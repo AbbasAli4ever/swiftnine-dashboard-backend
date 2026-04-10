@@ -4,7 +4,10 @@ exports.RegisterDto = void 0;
 const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 const RegisterSchema = zod_1.z.object({
-    fullName: zod_1.z.string().min(2, 'Full name must be at least 2 characters').max(100),
+    fullName: zod_1.z
+        .string()
+        .min(2, 'Full name must be at least 2 characters')
+        .max(100),
     email: zod_1.z.string().email('Invalid email address'),
     password: zod_1.z
         .string()

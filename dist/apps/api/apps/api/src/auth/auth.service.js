@@ -48,7 +48,9 @@ const jwt_1 = require("@nestjs/jwt");
 const database_1 = require("../../../../libs/database/src");
 const bcrypt = __importStar(require("bcrypt"));
 const node_crypto_1 = require("node:crypto");
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const auth_constants_1 = require("./auth.constants");
+const PASSWORD_SALT_ROUNDS = 10;
+const INVALID_PASSWORD_SENTINEL_HASH = '$2b$10$Cpe5hcMUx8Lu80OFuFzGs.zvfGbrX44sec3nfV9UJobelf8reAm2q';
 let AuthService = class AuthService {
     prisma;
     jwt;
@@ -57,21 +59,38 @@ let AuthService = class AuthService {
         this.jwt = jwt;
     }
     async register(dto) {
-        const passwordHash = await bcrypt.hash(dto.password, 10);
+        const passwordHash = await bcrypt.hash(dto.password, PASSWORD_SALT_ROUNDS);
         const user = await this.prisma.user.create({
             data: {
-                fullName: dto.fullName,
-                email: dto.email,
+                fullName: dto.fullName.trim(),
+                email: this.normalizeEmail(dto.email),
                 passwordHash,
             },
+            select: auth_constants_1.AUTH_USER_SELECT,
+        });
+        return this.issueTokens(user);
+    }
+    async validateUser(email, password) {
+        const normalizedEmail = this.normalizeEmail(email);
+        const user = await this.prisma.user.findFirst({
+            where: {
+                email: normalizedEmail,
+                deletedAt: null,
+            },
             select: {
-                id: true,
-                fullName: true,
-                email: true,
-                avatarUrl: true,
-                avatarColor: true,
+                ...auth_constants_1.AUTH_USER_SELECT,
+                passwordHash: true,
             },
         });
+        const passwordHash = user?.passwordHash ?? INVALID_PASSWORD_SENTINEL_HASH;
+        const isPasswordValid = await bcrypt.compare(password, passwordHash);
+        if (!user?.passwordHash || !isPasswordValid) {
+            throw new common_1.UnauthorizedException(auth_constants_1.INVALID_CREDENTIALS_MESSAGE);
+        }
+        const { passwordHash: _passwordHash, ...authUser } = user;
+        return authUser;
+    }
+    async login(user) {
         return this.issueTokens(user);
     }
     async issueTokens(user) {
@@ -85,10 +104,13 @@ let AuthService = class AuthService {
             data: {
                 userId: user.id,
                 tokenHash,
-                expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+                expiresAt: new Date(Date.now() + auth_constants_1.REFRESH_TOKEN_TTL_MS),
             },
         });
         return { user, accessToken, refreshToken: rawRefreshToken };
+    }
+    normalizeEmail(email) {
+        return email.trim().toLowerCase();
     }
 };
 exports.AuthService = AuthService;

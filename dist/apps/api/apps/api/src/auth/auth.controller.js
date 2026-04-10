@@ -18,7 +18,9 @@ const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const auth_response_dto_1 = require("./dto/auth-response.dto");
-const REFRESH_COOKIE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const login_dto_1 = require("./dto/login.dto");
+const local_auth_guard_1 = require("./guards/local-auth.guard");
+const auth_constants_1 = require("./auth.constants");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -29,12 +31,17 @@ let AuthController = class AuthController {
         this.setRefreshCookie(res, refreshToken);
         return result;
     }
+    async login(req, res) {
+        const { refreshToken, ...result } = await this.authService.login(req.user);
+        this.setRefreshCookie(res, refreshToken);
+        return result;
+    }
     setRefreshCookie(res, token) {
         res.cookie('refresh_token', token, {
             httpOnly: true,
             secure: process.env['NODE_ENV'] === 'production',
             sameSite: 'strict',
-            maxAge: REFRESH_COOKIE_TTL_MS,
+            maxAge: auth_constants_1.REFRESH_TOKEN_TTL_MS,
             path: '/api/v1/auth',
         });
     }
@@ -60,6 +67,28 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.RegisterDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('login'),
+    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Login with email & password',
+        description: 'Validates credentials. Returns access token in body and sets refresh token as httpOnly cookie.',
+    }),
+    (0, swagger_1.ApiBody)({ type: login_dto_1.LoginDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        type: auth_response_dto_1.AuthResponseDto,
+        description: 'Login successful, tokens issued',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Invalid email or password' }),
+    (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),
