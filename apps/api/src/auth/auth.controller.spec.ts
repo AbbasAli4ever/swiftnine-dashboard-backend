@@ -11,6 +11,7 @@ describe('AuthController', () => {
   let authService: {
     register: jest.Mock;
     login: jest.Mock;
+    handleGoogleAuth: jest.Mock;
   };
 
   const authUser: AuthUser = {
@@ -25,6 +26,7 @@ describe('AuthController', () => {
     authService = {
       register: jest.fn(),
       login: jest.fn(),
+      handleGoogleAuth: jest.fn(),
     };
 
     controller = new AuthController(authService as unknown as AuthService);
@@ -46,6 +48,51 @@ describe('AuthController', () => {
     const result = await controller.login(request, response);
 
     expect(authService.login).toHaveBeenCalledWith(authUser);
+    expect(response.cookie).toHaveBeenCalledWith(
+      'refresh_token',
+      'refresh-token',
+      {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/api/v1/auth',
+      },
+    );
+    expect(result).toEqual({
+      user: authUser,
+      accessToken: 'access-token',
+    });
+  });
+
+  it('sets the refresh cookie and returns the auth response on google callback', async () => {
+    authService.handleGoogleAuth.mockResolvedValue({
+      user: authUser,
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    });
+    const response = {
+      cookie: jest.fn(),
+    } as unknown as Response;
+    const request = {
+      user: {
+        googleId: 'google-1',
+        email: 'jane@example.com',
+        fullName: 'Jane Doe',
+        avatarUrl: 'https://example.com/avatar.png',
+      },
+    } as Request & {
+      user: {
+        googleId: string;
+        email: string;
+        fullName: string;
+        avatarUrl: string | null;
+      };
+    };
+
+    const result = await controller.googleCallback(request, response);
+
+    expect(authService.handleGoogleAuth).toHaveBeenCalledWith(request.user);
     expect(response.cookie).toHaveBeenCalledWith(
       'refresh_token',
       'refresh-token',

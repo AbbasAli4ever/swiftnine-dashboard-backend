@@ -103,6 +103,70 @@ let AuthService = class AuthService {
     async login(user) {
         return this.issueTokens(user);
     }
+    async handleGoogleAuth(profile) {
+        const normalizedProfile = this.normalizeGoogleProfile(profile);
+        await this.assertNoInactiveGoogleAccount(normalizedProfile);
+        const existingGoogleUser = await this.prisma.user.findFirst({
+            where: {
+                googleId: normalizedProfile.googleId,
+                deletedAt: null,
+            },
+            select: {
+                ...auth_constants_1.AUTH_USER_SELECT,
+                googleId: true,
+            },
+        });
+        if (existingGoogleUser) {
+            const syncedGoogleUser = await this.syncGoogleUser(existingGoogleUser, normalizedProfile);
+            return this.issueTokens(syncedGoogleUser);
+        }
+        const existingEmailUser = await this.prisma.user.findFirst({
+            where: {
+                email: normalizedProfile.email,
+                deletedAt: null,
+            },
+            select: {
+                ...auth_constants_1.AUTH_USER_SELECT,
+                googleId: true,
+            },
+        });
+        if (existingEmailUser) {
+            if (existingEmailUser.googleId &&
+                existingEmailUser.googleId !== normalizedProfile.googleId) {
+                throw new common_1.ConflictException(auth_constants_1.GOOGLE_ACCOUNT_CONFLICT_MESSAGE);
+            }
+            const linkedUser = await this.prisma.user.update({
+                where: {
+                    id: existingEmailUser.id,
+                },
+                data: {
+                    googleId: normalizedProfile.googleId,
+                    fullName: normalizedProfile.fullName &&
+                        normalizedProfile.fullName !== existingEmailUser.fullName
+                        ? normalizedProfile.fullName
+                        : undefined,
+                    avatarUrl: normalizedProfile.avatarUrl &&
+                        normalizedProfile.avatarUrl !== existingEmailUser.avatarUrl
+                        ? normalizedProfile.avatarUrl
+                        : undefined,
+                },
+                select: auth_constants_1.AUTH_USER_SELECT,
+            });
+            return this.issueTokens(linkedUser);
+        }
+        const createdUser = await this.prisma.user.create({
+            data: {
+                googleId: normalizedProfile.googleId,
+                email: normalizedProfile.email,
+                fullName: normalizedProfile.fullName ??
+                    normalizedProfile.email.split('@')[0] ??
+                    'Google User',
+                avatarUrl: normalizedProfile.avatarUrl,
+            },
+            select: auth_constants_1.AUTH_USER_SELECT,
+        });
+        return this.issueTokens(createdUser);
+    }
     async issueTokens(user) {
         const accessToken = await this.jwt.signAsync({
             sub: user.id,
@@ -121,6 +185,82 @@ let AuthService = class AuthService {
     }
     normalizeEmail(email) {
         return email.trim().toLowerCase();
+    }
+    normalizeGoogleProfile(profile) {
+        const googleId = profile.googleId.trim();
+        const email = this.normalizeEmail(profile.email);
+        const fullName = profile.fullName?.trim() || null;
+        const avatarUrl = profile.avatarUrl?.trim() || null;
+        if (!googleId || !email) {
+            throw new common_1.UnauthorizedException(auth_constants_1.GOOGLE_EMAIL_REQUIRED_MESSAGE);
+        }
+        return {
+            googleId,
+            email,
+            fullName,
+            avatarUrl,
+        };
+    }
+    async assertNoInactiveGoogleAccount(profile) {
+        const inactiveUser = await this.prisma.user.findFirst({
+            where: {
+                deletedAt: {
+                    not: null,
+                },
+                OR: [
+                    {
+                        googleId: profile.googleId,
+                    },
+                    {
+                        email: profile.email,
+                    },
+                ],
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (inactiveUser) {
+            throw new common_1.ConflictException(auth_constants_1.INACTIVE_ACCOUNT_MESSAGE);
+        }
+    }
+    async syncGoogleUser(user, profile) {
+        const updateData = {};
+        if (user.email !== profile.email) {
+            const conflictingEmailUser = await this.prisma.user.findFirst({
+                where: {
+                    email: profile.email,
+                    deletedAt: null,
+                    id: {
+                        not: user.id,
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            if (conflictingEmailUser) {
+                throw new common_1.ConflictException(auth_constants_1.GOOGLE_ACCOUNT_CONFLICT_MESSAGE);
+            }
+            updateData.email = profile.email;
+        }
+        if (profile.fullName && profile.fullName !== user.fullName) {
+            updateData.fullName = profile.fullName;
+        }
+        if (profile.avatarUrl && profile.avatarUrl !== user.avatarUrl) {
+            updateData.avatarUrl = profile.avatarUrl;
+        }
+        if (Object.keys(updateData).length === 0) {
+            const { googleId: _googleId, ...authUser } = user;
+            return authUser;
+        }
+        return this.prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: updateData,
+            select: auth_constants_1.AUTH_USER_SELECT,
+        });
     }
 };
 exports.AuthService = AuthService;

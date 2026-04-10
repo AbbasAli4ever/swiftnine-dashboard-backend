@@ -9,6 +9,11 @@ export const AUTHENTICATION_REQUIRED_MESSAGE =
   'Authentication token is required';
 export const INVALID_ACCESS_TOKEN_MESSAGE = 'Invalid or expired access token';
 export const ACCESS_TOKEN_EXPIRED_MESSAGE = 'Access token has expired';
+export const GOOGLE_EMAIL_REQUIRED_MESSAGE =
+  'Google account must provide a verified email address';
+export const INACTIVE_ACCOUNT_MESSAGE = 'Account is no longer active';
+export const GOOGLE_ACCOUNT_CONFLICT_MESSAGE =
+  'This email is already linked to another Google account';
 
 export const AUTH_USER_SELECT = {
   id: true,

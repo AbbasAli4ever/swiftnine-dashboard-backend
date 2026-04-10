@@ -11,6 +11,12 @@ export type TokenPair = {
     accessToken: string;
     refreshToken: string;
 };
+export type GoogleAuthProfile = {
+    googleId: string;
+    email: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+};
 export declare class AuthService {
     private readonly prisma;
     private readonly jwt;
@@ -19,6 +25,10 @@ export declare class AuthService {
     validateUser(email: string, password: string): Promise<AuthUser>;
     findActiveAuthUser(userId: string, email: string): Promise<AuthUser | null>;
     login(user: AuthUser): Promise<TokenPair>;
+    handleGoogleAuth(profile: GoogleAuthProfile): Promise<TokenPair>;
     issueTokens(user: AuthUser): Promise<TokenPair>;
     private normalizeEmail;
+    private normalizeGoogleProfile;
+    private assertNoInactiveGoogleAccount;
+    private syncGoogleUser;
 }

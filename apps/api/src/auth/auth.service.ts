@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
@@ -6,6 +10,9 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
 import { RegisterDto } from './dto/register.dto';
 import {
+  GOOGLE_ACCOUNT_CONFLICT_MESSAGE,
+  GOOGLE_EMAIL_REQUIRED_MESSAGE,
+  INACTIVE_ACCOUNT_MESSAGE,
   AUTH_USER_SELECT,
   INVALID_CREDENTIALS_MESSAGE,
   REFRESH_TOKEN_TTL_MS,
@@ -23,6 +30,13 @@ export type TokenPair = {
   user: AuthUser;
   accessToken: string;
   refreshToken: string;
+};
+
+export type GoogleAuthProfile = {
+  googleId: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
 };
 
 @Injectable()
@@ -89,6 +103,89 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async handleGoogleAuth(profile: GoogleAuthProfile): Promise<TokenPair> {
+    const normalizedProfile = this.normalizeGoogleProfile(profile);
+
+    await this.assertNoInactiveGoogleAccount(normalizedProfile);
+
+    const existingGoogleUser = await this.prisma.user.findFirst({
+      where: {
+        googleId: normalizedProfile.googleId,
+        deletedAt: null,
+      },
+      select: {
+        ...AUTH_USER_SELECT,
+        googleId: true,
+      },
+    });
+
+    if (existingGoogleUser) {
+      const syncedGoogleUser = await this.syncGoogleUser(
+        existingGoogleUser,
+        normalizedProfile,
+      );
+
+      return this.issueTokens(syncedGoogleUser);
+    }
+
+    const existingEmailUser = await this.prisma.user.findFirst({
+      where: {
+        email: normalizedProfile.email,
+        deletedAt: null,
+      },
+      select: {
+        ...AUTH_USER_SELECT,
+        googleId: true,
+      },
+    });
+
+    if (existingEmailUser) {
+      if (
+        existingEmailUser.googleId &&
+        existingEmailUser.googleId !== normalizedProfile.googleId
+      ) {
+        throw new ConflictException(GOOGLE_ACCOUNT_CONFLICT_MESSAGE);
+      }
+
+      const linkedUser = await this.prisma.user.update({
+        where: {
+          id: existingEmailUser.id,
+        },
+        data: {
+          googleId: normalizedProfile.googleId,
+          fullName:
+            normalizedProfile.fullName &&
+            normalizedProfile.fullName !== existingEmailUser.fullName
+              ? normalizedProfile.fullName
+              : undefined,
+          avatarUrl:
+            normalizedProfile.avatarUrl &&
+            normalizedProfile.avatarUrl !== existingEmailUser.avatarUrl
+              ? normalizedProfile.avatarUrl
+              : undefined,
+        },
+        select: AUTH_USER_SELECT,
+      });
+
+      return this.issueTokens(linkedUser);
+    }
+
+    const createdUser = await this.prisma.user.create({
+      data: {
+        googleId: normalizedProfile.googleId,
+        email: normalizedProfile.email,
+        fullName:
+          normalizedProfile.fullName ??
+          normalizedProfile.email.split('@')[0] ??
+          'Google User',
+        avatarUrl: normalizedProfile.avatarUrl,
+      },
+      select: AUTH_USER_SELECT,
+    });
+
+    return this.issueTokens(createdUser);
+  }
+
   // Shared by register, login, and Google OAuth
   async issueTokens(user: AuthUser): Promise<TokenPair> {
     const accessToken = await this.jwt.signAsync({
@@ -112,5 +209,101 @@ export class AuthService {
 
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
+  }
+
+  private normalizeGoogleProfile(
+    profile: GoogleAuthProfile,
+  ): GoogleAuthProfile {
+    const googleId = profile.googleId.trim();
+    const email = this.normalizeEmail(profile.email);
+    const fullName = profile.fullName?.trim() || null;
+    const avatarUrl = profile.avatarUrl?.trim() || null;
+
+    if (!googleId || !email) {
+      throw new UnauthorizedException(GOOGLE_EMAIL_REQUIRED_MESSAGE);
+    }
+
+    return {
+      googleId,
+      email,
+      fullName,
+      avatarUrl,
+    };
+  }
+
+  private async assertNoInactiveGoogleAccount(
+    profile: GoogleAuthProfile,
+  ): Promise<void> {
+    const inactiveUser = await this.prisma.user.findFirst({
+      where: {
+        deletedAt: {
+          not: null,
+        },
+        OR: [
+          {
+            googleId: profile.googleId,
+          },
+          {
+            email: profile.email,
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (inactiveUser) {
+      throw new ConflictException(INACTIVE_ACCOUNT_MESSAGE);
+    }
+  }
+
+  private async syncGoogleUser(
+    user: AuthUser & { googleId: string | null },
+    profile: GoogleAuthProfile,
+  ): Promise<AuthUser> {
+    const updateData: Prisma.UserUpdateInput = {};
+
+    if (user.email !== profile.email) {
+      const conflictingEmailUser = await this.prisma.user.findFirst({
+        where: {
+          email: profile.email,
+          deletedAt: null,
+          id: {
+            not: user.id,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (conflictingEmailUser) {
+        throw new ConflictException(GOOGLE_ACCOUNT_CONFLICT_MESSAGE);
+      }
+
+      updateData.email = profile.email;
+    }
+
+    if (profile.fullName && profile.fullName !== user.fullName) {
+      updateData.fullName = profile.fullName;
+    }
+
+    if (profile.avatarUrl && profile.avatarUrl !== user.avatarUrl) {
+      updateData.avatarUrl = profile.avatarUrl;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      const { googleId: _googleId, ...authUser } = user;
+      return authUser;
+    }
+
+    return this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: updateData,
+      select: AUTH_USER_SELECT,
+    });
   }
 }

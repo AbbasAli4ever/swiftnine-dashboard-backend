@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { AuthService, type AuthUser } from './auth.service';
@@ -13,6 +13,7 @@ describe('AuthService', () => {
     user: {
       create: jest.Mock;
       findFirst: jest.Mock;
+      update: jest.Mock;
     };
     refreshToken: {
       create: jest.Mock;
@@ -33,6 +34,7 @@ describe('AuthService', () => {
       user: {
         create: jest.fn(),
         findFirst: jest.fn(),
+        update: jest.fn(),
       },
       refreshToken: {
         create: jest.fn().mockResolvedValue(undefined),
@@ -153,5 +155,127 @@ describe('AuthService', () => {
       accessToken: 'access-token',
       refreshToken: expect.any(String),
     });
+  });
+
+  it('creates a new user for a first-time Google login', async () => {
+    prisma.user.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    prisma.user.create.mockResolvedValue(authUser);
+
+    const result = await service.handleGoogleAuth({
+      googleId: 'google-1',
+      email: 'Jane@Example.com',
+      fullName: 'Jane Doe',
+      avatarUrl: 'https://example.com/avatar.png',
+    });
+
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: {
+        googleId: 'google-1',
+        email: 'jane@example.com',
+        fullName: 'Jane Doe',
+        avatarUrl: 'https://example.com/avatar.png',
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        avatarUrl: true,
+        avatarColor: true,
+      },
+    });
+    expect(result.user).toEqual(authUser);
+  });
+
+  it('links an existing email account to Google when not yet linked', async () => {
+    prisma.user.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ...authUser,
+        googleId: null,
+      });
+    prisma.user.update.mockResolvedValue(authUser);
+
+    const result = await service.handleGoogleAuth({
+      googleId: 'google-1',
+      email: 'jane@example.com',
+      fullName: 'Jane Doe',
+      avatarUrl: null,
+    });
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: {
+        id: authUser.id,
+      },
+      data: {
+        googleId: 'google-1',
+        fullName: undefined,
+        avatarUrl: undefined,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        avatarUrl: true,
+        avatarColor: true,
+      },
+    });
+    expect(result.user).toEqual(authUser);
+  });
+
+  it('keeps existing profile fields when Google omits optional profile data', async () => {
+    prisma.user.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      ...authUser,
+      googleId: 'google-1',
+    });
+
+    const result = await service.handleGoogleAuth({
+      googleId: 'google-1',
+      email: 'jane@example.com',
+      fullName: null,
+      avatarUrl: null,
+    });
+
+    expect(prisma.user.update).not.toHaveBeenCalled();
+    expect(result.user).toEqual(authUser);
+  });
+
+  it('rejects Google auth for inactive accounts', async () => {
+    prisma.user.findFirst.mockResolvedValueOnce({ id: 'deleted-user' });
+
+    await expect(
+      service.handleGoogleAuth({
+        googleId: 'google-1',
+        email: 'jane@example.com',
+        fullName: 'Jane Doe',
+        avatarUrl: null,
+      }),
+    ).rejects.toThrow(new ConflictException('Account is no longer active'));
+  });
+
+  it('rejects conflicting Google account links', async () => {
+    prisma.user.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ...authUser,
+        googleId: 'another-google-id',
+      });
+
+    await expect(
+      service.handleGoogleAuth({
+        googleId: 'google-1',
+        email: 'jane@example.com',
+        fullName: 'Jane Doe',
+        avatarUrl: null,
+      }),
+    ).rejects.toThrow(
+      new ConflictException(
+        'This email is already linked to another Google account',
+      ),
+    );
   });
 });
