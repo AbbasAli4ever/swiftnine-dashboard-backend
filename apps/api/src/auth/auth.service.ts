@@ -71,6 +71,20 @@ export class AuthService {
     return authUser;
   }
 
+  async findActiveAuthUser(
+    userId: string,
+    email: string,
+  ): Promise<AuthUser | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        email: this.normalizeEmail(email),
+        deletedAt: null,
+      },
+      select: AUTH_USER_SELECT,
+    });
+  }
+
   async login(user: AuthUser): Promise<TokenPair> {
     return this.issueTokens(user);
   }

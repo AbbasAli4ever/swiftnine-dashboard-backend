@@ -109,6 +109,31 @@ describe('AuthService', () => {
     ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
   });
 
+  it('finds active auth users by id and normalized email', async () => {
+    prisma.user.findFirst.mockResolvedValue(authUser);
+
+    const result = await service.findActiveAuthUser(
+      'user-1',
+      '  JANE@Example.com ',
+    );
+
+    expect(prisma.user.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'user-1',
+        email: 'jane@example.com',
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        avatarUrl: true,
+        avatarColor: true,
+      },
+    });
+    expect(result).toEqual(authUser);
+  });
+
   it('issues access and refresh tokens on login', async () => {
     const result = await service.login(authUser);
 

@@ -17,6 +17,7 @@ export declare class AuthService {
     constructor(prisma: PrismaService, jwt: JwtService);
     register(dto: RegisterDto): Promise<TokenPair>;
     validateUser(email: string, password: string): Promise<AuthUser>;
+    findActiveAuthUser(userId: string, email: string): Promise<AuthUser | null>;
     login(user: AuthUser): Promise<TokenPair>;
     issueTokens(user: AuthUser): Promise<TokenPair>;
     private normalizeEmail;

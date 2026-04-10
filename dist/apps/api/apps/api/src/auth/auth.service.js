@@ -90,6 +90,16 @@ let AuthService = class AuthService {
         const { passwordHash: _passwordHash, ...authUser } = user;
         return authUser;
     }
+    async findActiveAuthUser(userId, email) {
+        return this.prisma.user.findFirst({
+            where: {
+                id: userId,
+                email: this.normalizeEmail(email),
+                deletedAt: null,
+            },
+            select: auth_constants_1.AUTH_USER_SELECT,
+        });
+    }
     async login(user) {
         return this.issueTokens(user);
     }
