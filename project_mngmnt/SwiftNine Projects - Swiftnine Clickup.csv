@@ -1,0 +1,210 @@
+Feature,Time Estimation (backend),Time Estimation (frontend),Assignee
+Authentication,,,
+Sign-Up with Goog'e Sign-In with Goog'e,3:00,,
+Get api/auth/google,,,
+Get api/auth/google/callback,,,
+"Sign-Up with Full Name
+Email
+Password
+",2:00,,
+Refresh token,1:00,,
+"Sign-In with Full Name
+Email
+Password",2:00,,
+Forgot Password,1:00,,
+Total Time,9:00,,
+User Profile,,,
+"Full Name
+Designation / Job Title
+Email
+Profile Picture - initials avatar
+Current Status (Online / Offline) - dropdown
+Short Bio (optional)
+Show Local Time
+CRUD",4:00,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+Change Password - API,2:00,,
+ ,,,
+Total Time,6:00,,
+,,,
+,,,
+,,,
+Account Settings,,,
+Profile settings GET,2:00,,
+Password settings,2:00,,
+Notification preferences,1:00,,
+Workspace switching,1:00,,
+total time,6:00,,
+,,,
+ Workspace/Organization Management,,,
+ Create Workspace,,,
+POST /organizations,2:00,,
+ Edit Workspace,,,
+POST /organizations/switch,1:00,,
+ Workspace Members,,,
+POST /organizations/invite,3:00,,
+POST /organizations/accept-invite,2:00,,
+GET /organizations/members,1:00,,
+DELETE /organizations/members/:id,1:00,,
+PUT /organizations/members/:id/role,2:00,,
+ Remove Workspace,,,
+DELETE /organizations,3:00,,
+Total Time,15:00,,
+Roles,,,
+Admin Member guesy,3:00,,
+Total Time,3:00,,
+"Team Member Management
+",,,
+ Invite Team Members,added in above section,,
+" Remove Team Members
+",,,
+" Member Roles
+",,,
+"Member Profile Visibility
+",2:00,,
+Total Time,2:00,,
+ Project / Space Management,,,
+"Create Project 
+",2:00,,
+" Edit Project
+",2:00,,
+" Delete Project / Space
+",2:00,,
+" Archive Project / Space
+",1:00,,
+Total Time,7:00,,
+,,,
+"Task List Management
+",,,
+" Create Task List
+",2:00,,
+"Rename Task List
+",1:00,,
+" Delete Task List
+",2:00,,
+" Move Task List
+",1:00,add order of view within project,
+"Archive Task List
+",1:00,,
+Total Time,7:00,,
+,,,
+Task Management,,,
+ Create Task,2:00,,
+" Edit Task
+",2:00,,
+"Delete Task
+",2:00,,
+" Task Detail View
+",2:00,,
+"Task ID
+",3:00,,
+Add Time,1:00,,
+Track Time,2:00,,
+"Tags / Labels
+",1:00,,
+Total Time,15:00,,
+" Subtask Management",,,
+ Create Subtasks,1:00,,
+ Mark Subtask Complete,1:00,,
+ Edit Subtask,1:00,,
+Delete Subtask,1:00,,
+TotalTime,4:00,,
+,,,
+Task Status Workflow,,,
+ Default Task Statuses,2:00,,
+ Change Task Status,1:00,,
+ Custom Statuses,,,
+POST /statuses,2:00,,
+GET /statuses,1:00,,
+GET /statuses/:id,1:00,,
+PUT /statuses/:id,2:00,,
+DELETE /statuses/:id,2:00,,
+PUT /statuses/reorder,2:00,,
+POST /statuses/default,1:00,,
+Total Time,14:00,,
+,,,
+Task Assignment,,,
+ Assign Task,3:00,,
+ Reassign Task,,,
+ Assignee Avatar,1:00,,
+Total Time,4:00,,
+,,,
+Comments & Task Discussion,,,
+ Add Comments,8:00,"2 without realtime, 8 with sockets for realtime comm",
+comment:created,,,
+comment:updated,,,
+comment:deleted,,,
+mention:received,,,
+POST /comments,, Comment Timestamps,
+GET /comments?task_id=,,,
+PUT /comments/:id,,,
+DELETE /comments/:id,,,
+ Reply to Comments,2:00,,
+ Mention Users,,,
+GET /mentions,2:00,,
+Edit / Delete Own Comment,3:00,,
+Total Time,15:00,,
+,,,
+,,,
+"Notifications
+",,,
+ Notification Triggers,8:00,,
+ Notification Center,3:00,,
+ Read / Unread Status,2:00,,
+Total Time,13:00,,
+,,,
+" Views
+",,,
+"List View
+",,,
+ Board View,,,
+,,,
+,,,
+"Task Card Info",,,
+Task Title,,,
+Assignee,,,
+Due Date,,,
+Priority,,,
+Tags (optional),,,
+,,,
+ Dashboard,,,
+tasks with different statuses,3:00,,
+Upcoming Deadlines,2:00,,
+Total Time,5:00,,
+,,,
+"File Attachments
+",,,
+ Upload File,2:00,,
+ View / Download File,2:00,,
+Delete File,2:00,,
+S3 Module,3:00,,
+Presigned URL,3:00,,
+Total Time,12:00,,
+,,,
+ Search & Filters,,,
+" Search
+
+Task title
+Keywords in description (recommended)
+Tags (optional)
+within project scope too",4:00,,
+Filters,2:00,,
+Sorting,3:00,,
+Total Time,9:00,,
+,,,
+ Activity Log,,,
+,,,
+,,,
+Email Module,4:00,,
+,,,
+Invite Token Module,3:00,,
+Total Time,7:00,,
+,TAGS,,
+CRUD,4:00,,
+Total Time,4:00,,

@@ -1,0 +1,65 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: focushub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-focushub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-focushub123}
+      POSTGRES_DB: ${POSTGRES_DB:-focushub}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-focushub}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FocusHub API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: focushub-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-focushub}:${POSTGRES_PASSWORD:-focushub123}@postgres:5432/${POSTGRES_DB:-focushub}?schema=public
+      PORT: 3000
+      NODE_ENV: development
+      LOG_LEVEL: full
+    ports:
+      - '${PORT:-3002}:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run start:dev
+
+  # Prisma Studio
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: focushub-prisma-studio
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-focushub}:${POSTGRES_PASSWORD:-focushub123}@postgres:5432/${POSTGRES_DB:-focushub}?schema=public
+    ports:
+      - '${PRISMA_STUDIO_PORT:-5555}:5555'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npx prisma studio --port 5555 --browser none
+
+volumes:
+  postgres_data:
