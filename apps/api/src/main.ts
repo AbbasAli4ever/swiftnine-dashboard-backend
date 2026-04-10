@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
+import cookieParser from 'cookie-parser';
 import { GlobalExceptionFilter } from '@app/common';
 import { AppModule } from './app.module';
 
@@ -8,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v1');
+  app.use(cookieParser());
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());
 
