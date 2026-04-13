@@ -30,15 +30,15 @@ Authorization: Bearer <access_token>
 
 ### Public Routes (No Auth Required)
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| /api/v1/auth/signup | POST | Register |
-| /api/v1/auth/login | POST | Login |
-| /api/v1/auth/google | GET | Google OAuth redirect |
-| /api/v1/auth/google/callback | GET | Google OAuth callback |
-| /api/v1/auth/forgot-password | POST | Request password reset |
-| /api/v1/auth/reset-password | POST | Reset password with token |
-| /api/v1/auth/refresh | POST | Refresh access token (uses cookie) |
+| Endpoint                     | Method | Purpose                            |
+| ---------------------------- | ------ | ---------------------------------- |
+| /api/v1/auth/signup          | POST   | Register                           |
+| /api/v1/auth/login           | POST   | Login                              |
+| /api/v1/auth/google          | GET    | Google OAuth redirect              |
+| /api/v1/auth/google/callback | GET    | Google OAuth callback              |
+| /api/v1/auth/forgot-password | POST   | Request password reset             |
+| /api/v1/auth/reset-password  | POST   | Reset password with token          |
+| /api/v1/auth/refresh         | POST   | Refresh access token (uses cookie) |
 
 ---
 
@@ -101,8 +101,8 @@ Login/signup returns tokens differently:
   "data": {
     "user": {
       "id": "uuid",
-      "full_name": "Zaeem",
-      "email": "zaeem@example.com",
+      "full_name": "Shoaib",
+      "email": "shoaib@example.com",
       "avatar_url": null,
       "avatar_color": "#6366f1"
     },
@@ -142,18 +142,18 @@ All errors follow one consistent shape:
 
 ### Error Codes
 
-| Code | HTTP Status | When Used |
-|------|-------------|-----------|
-| `VALIDATION_ERROR` | 400 | Request body/params fail validation |
-| `BAD_REQUEST` | 400 | Malformed request (non-validation) |
-| `UNAUTHORIZED` | 401 | Missing or invalid access token |
-| `TOKEN_EXPIRED` | 401 | Access token expired (client should refresh) |
-| `FORBIDDEN` | 403 | User lacks permission for this action |
-| `NOT_FOUND` | 404 | Resource doesn't exist or is soft-deleted |
-| `CONFLICT` | 409 | Duplicate resource (e.g., email already exists, invite already sent) |
-| `UNPROCESSABLE_ENTITY` | 422 | Business logic error (e.g., max subtask depth exceeded) |
-| `TOO_MANY_REQUESTS` | 429 | Rate limit exceeded |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| Code                   | HTTP Status | When Used                                                            |
+| ---------------------- | ----------- | -------------------------------------------------------------------- |
+| `VALIDATION_ERROR`     | 400         | Request body/params fail validation                                  |
+| `BAD_REQUEST`          | 400         | Malformed request (non-validation)                                   |
+| `UNAUTHORIZED`         | 401         | Missing or invalid access token                                      |
+| `TOKEN_EXPIRED`        | 401         | Access token expired (client should refresh)                         |
+| `FORBIDDEN`            | 403         | User lacks permission for this action                                |
+| `NOT_FOUND`            | 404         | Resource doesn't exist or is soft-deleted                            |
+| `CONFLICT`             | 409         | Duplicate resource (e.g., email already exists, invite already sent) |
+| `UNPROCESSABLE_ENTITY` | 422         | Business logic error (e.g., max subtask depth exceeded)              |
+| `TOO_MANY_REQUESTS`    | 429         | Rate limit exceeded                                                  |
+| `INTERNAL_ERROR`       | 500         | Unexpected server error                                              |
 
 ### Error Response — Simple (No Field Details)
 
@@ -189,12 +189,12 @@ All list endpoints use **offset-based pagination** with consistent query params.
 
 ### Request Query Params
 
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `page` | number | 1 | Page number (1-based) |
-| `limit` | number | 20 | Items per page (max 100) |
-| `sort_by` | string | `created_at` | Column to sort by |
-| `sort_order` | string | `desc` | `asc` or `desc` |
+| Param        | Type   | Default      | Description              |
+| ------------ | ------ | ------------ | ------------------------ |
+| `page`       | number | 1            | Page number (1-based)    |
+| `limit`      | number | 20           | Items per page (max 100) |
+| `sort_by`    | string | `created_at` | Column to sort by        |
+| `sort_order` | string | `desc`       | `asc` or `desc`          |
 
 ### Example
 
@@ -237,15 +237,15 @@ Filter params are passed as query strings. Multiple values use comma separation.
 
 ### Standard Filter Params (on task list endpoints)
 
-| Param | Type | Example | Description |
-|-------|------|---------|-------------|
-| `status` | UUID (comma-sep) | `?status=uuid1,uuid2` | Filter by status IDs |
-| `assignee` | UUID (comma-sep) | `?assignee=uuid1,uuid2` | Filter by assignee IDs |
-| `priority` | string (comma-sep) | `?priority=high,urgent` | Filter by priority |
-| `tag` | UUID (comma-sep) | `?tag=uuid1` | Filter by tag IDs |
-| `due_date_from` | ISO date | `?due_date_from=2026-04-01` | Due date range start |
-| `due_date_to` | ISO date | `?due_date_to=2026-04-30` | Due date range end |
-| `search` | string | `?search=login bug` | Full-text search on title/description |
+| Param           | Type               | Example                     | Description                           |
+| --------------- | ------------------ | --------------------------- | ------------------------------------- |
+| `status`        | UUID (comma-sep)   | `?status=uuid1,uuid2`       | Filter by status IDs                  |
+| `assignee`      | UUID (comma-sep)   | `?assignee=uuid1,uuid2`     | Filter by assignee IDs                |
+| `priority`      | string (comma-sep) | `?priority=high,urgent`     | Filter by priority                    |
+| `tag`           | UUID (comma-sep)   | `?tag=uuid1`                | Filter by tag IDs                     |
+| `due_date_from` | ISO date           | `?due_date_from=2026-04-01` | Due date range start                  |
+| `due_date_to`   | ISO date           | `?due_date_to=2026-04-30`   | Due date range end                    |
+| `search`        | string             | `?search=login bug`         | Full-text search on title/description |
 
 ---
 
@@ -265,15 +265,15 @@ Response follows the standard paginated list shape.
 
 ### URL Patterns
 
-| Pattern | Example |
-|---------|---------|
-| List resources | `GET /api/v1/workspaces` |
-| Create resource | `POST /api/v1/workspaces` |
-| Get single resource | `GET /api/v1/workspaces/:id` |
-| Update resource | `PATCH /api/v1/workspaces/:id` |
-| Delete resource | `DELETE /api/v1/workspaces/:id` |
-| Nested resources | `GET /api/v1/projects/:projectId/tasks` |
-| Actions | `POST /api/v1/tasks/:id/assign` |
+| Pattern             | Example                                 |
+| ------------------- | --------------------------------------- |
+| List resources      | `GET /api/v1/workspaces`                |
+| Create resource     | `POST /api/v1/workspaces`               |
+| Get single resource | `GET /api/v1/workspaces/:id`            |
+| Update resource     | `PATCH /api/v1/workspaces/:id`          |
+| Delete resource     | `DELETE /api/v1/workspaces/:id`         |
+| Nested resources    | `GET /api/v1/projects/:projectId/tasks` |
+| Actions             | `POST /api/v1/tasks/:id/assign`         |
 
 ### Rules
 
@@ -316,12 +316,12 @@ Returns projects only within that workspace.
 
 ## Rate Limiting
 
-| Scope | Limit | Window |
-|-------|-------|--------|
-| Auth endpoints (login, signup) | 10 requests | per minute |
-| General API | 100 requests | per minute |
-| File upload | 20 requests | per minute |
-| Search | 30 requests | per minute |
+| Scope                          | Limit        | Window     |
+| ------------------------------ | ------------ | ---------- |
+| Auth endpoints (login, signup) | 10 requests  | per minute |
+| General API                    | 100 requests | per minute |
+| File upload                    | 20 requests  | per minute |
+| Search                         | 30 requests  | per minute |
 
 Rate limit info returned in headers:
 
@@ -371,14 +371,14 @@ All WebSocket messages follow this shape:
 
 ### Events
 
-| Event | Direction | Description |
-|-------|-----------|-------------|
-| `comment:created` | Server -> Client | New comment on a task |
-| `comment:updated` | Server -> Client | Comment edited |
-| `comment:deleted` | Server -> Client | Comment deleted |
-| `mention:received` | Server -> Client | User was @mentioned |
-| `user:online` | Server -> Client | A workspace member came online |
-| `user:offline` | Server -> Client | A workspace member went offline |
+| Event              | Direction        | Description                     |
+| ------------------ | ---------------- | ------------------------------- |
+| `comment:created`  | Server -> Client | New comment on a task           |
+| `comment:updated`  | Server -> Client | Comment edited                  |
+| `comment:deleted`  | Server -> Client | Comment deleted                 |
+| `mention:received` | Server -> Client | User was @mentioned             |
+| `user:online`      | Server -> Client | A workspace member came online  |
+| `user:offline`     | Server -> Client | A workspace member went offline |
 
 ### Rooms/Channels
 
@@ -444,16 +444,16 @@ Returns a presigned download URL (short-lived, e.g., 15 min).
 
 ## Summary of HTTP Status Codes Used
 
-| Status | Meaning | When |
-|--------|---------|------|
-| 200 | OK | Successful GET, PATCH, action |
-| 201 | Created | Successful POST that creates a resource |
-| 204 | No Content | Successful DELETE |
-| 400 | Bad Request | Validation or malformed request |
-| 401 | Unauthorized | Missing/invalid/expired token |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Duplicate resource |
-| 422 | Unprocessable | Business logic violation |
-| 429 | Too Many Requests | Rate limited |
-| 500 | Internal Error | Unexpected server error |
+| Status | Meaning           | When                                    |
+| ------ | ----------------- | --------------------------------------- |
+| 200    | OK                | Successful GET, PATCH, action           |
+| 201    | Created           | Successful POST that creates a resource |
+| 204    | No Content        | Successful DELETE                       |
+| 400    | Bad Request       | Validation or malformed request         |
+| 401    | Unauthorized      | Missing/invalid/expired token           |
+| 403    | Forbidden         | Insufficient permissions                |
+| 404    | Not Found         | Resource doesn't exist                  |
+| 409    | Conflict          | Duplicate resource                      |
+| 422    | Unprocessable     | Business logic violation                |
+| 429    | Too Many Requests | Rate limited                            |
+| 500    | Internal Error    | Unexpected server error                 |
