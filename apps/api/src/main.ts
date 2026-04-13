@@ -4,11 +4,13 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import cookieParser from 'cookie-parser';
 import { GlobalExceptionFilter } from '@app/common';
 import { AppModule } from './app.module';
+import { buildCorsOptions } from './config/cors.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v1');
+  app.enableCors(buildCorsOptions(process.env));
   app.use(cookieParser());
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());

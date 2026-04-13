@@ -9,9 +9,11 @@ const nestjs_zod_1 = require("nestjs-zod");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const common_1 = require("../../../libs/common/src");
 const app_module_1 = require("./app.module");
+const cors_config_1 = require("./config/cors.config");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.setGlobalPrefix('api/v1');
+    app.enableCors((0, cors_config_1.buildCorsOptions)(process.env));
     app.use((0, cookie_parser_1.default)());
     app.useGlobalFilters(new common_1.GlobalExceptionFilter());
     app.useGlobalPipes(new nestjs_zod_1.ZodValidationPipe());
