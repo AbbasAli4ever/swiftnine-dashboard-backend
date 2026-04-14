@@ -216,6 +216,14 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async logout(rawToken: string): Promise<void> {
+    await this.prisma.refreshToken.deleteMany({
+      where: {
+        tokenHash: this.hashRefreshToken(rawToken),
+      },
+    });
+  }
+
   // Shared by register, login, and Google OAuth
   async issueTokens(user: AuthUser): Promise<TokenPair> {
     const accessToken = await this.jwt.signAsync({

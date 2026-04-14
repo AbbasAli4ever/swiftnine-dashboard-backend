@@ -152,6 +152,32 @@ export class AuthController {
     return result;
   }
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout current session',
+    description:
+      'Invalidates the current refresh token session and clears the refresh_token cookie.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Session logged out successfully',
+  })
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const rawToken = (
+      req as unknown as { cookies?: Record<string, string> }
+    ).cookies?.['refresh_token'];
+
+    if (rawToken) {
+      await this.authService.logout(rawToken);
+    }
+
+    this.clearRefreshCookie(res);
+  }
+
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -185,6 +211,15 @@ export class AuthController {
       secure: process.env['NODE_ENV'] === 'production',
       sameSite: 'strict',
       maxAge: REFRESH_TOKEN_TTL_MS,
+      path: '/api/v1/auth',
+    });
+  }
+
+  protected clearRefreshCookie(res: Response): void {
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env['NODE_ENV'] === 'production',
+      sameSite: 'strict',
       path: '/api/v1/auth',
     });
   }

@@ -12,6 +12,7 @@ describe('AuthController', () => {
     register: jest.Mock;
     login: jest.Mock;
     handleGoogleAuth: jest.Mock;
+    logout: jest.Mock;
   };
 
   const authUser: AuthUser = {
@@ -27,6 +28,7 @@ describe('AuthController', () => {
       register: jest.fn(),
       login: jest.fn(),
       handleGoogleAuth: jest.fn(),
+      logout: jest.fn(),
     };
 
     controller = new AuthController(authService as unknown as AuthService);
@@ -73,6 +75,7 @@ describe('AuthController', () => {
     });
     const response = {
       cookie: jest.fn(),
+      redirect: jest.fn(),
     } as unknown as Response;
     const request = {
       user: {
@@ -104,9 +107,49 @@ describe('AuthController', () => {
         path: '/api/v1/auth',
       },
     );
-    expect(result).toEqual({
-      user: authUser,
-      accessToken: 'access-token',
+    expect(response.redirect).toHaveBeenCalledWith(
+      'http://localhost:3000/auth/callback?token=access-token',
+    );
+    expect(result).toBeUndefined();
+  });
+
+  it('revokes the current refresh token and clears the cookie on logout', async () => {
+    const response = {
+      clearCookie: jest.fn(),
+    } as unknown as Response;
+    const request = {
+      cookies: {
+        refresh_token: 'refresh-token',
+      },
+    } as Request;
+
+    await controller.logout(request, response);
+
+    expect(authService.logout).toHaveBeenCalledWith('refresh-token');
+    expect(response.clearCookie).toHaveBeenCalledWith('refresh_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/api/v1/auth',
+    });
+  });
+
+  it('still clears the cookie when logout is called without a refresh token', async () => {
+    const response = {
+      clearCookie: jest.fn(),
+    } as unknown as Response;
+    const request = {
+      cookies: {},
+    } as Request;
+
+    await controller.logout(request, response);
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(response.clearCookie).toHaveBeenCalledWith('refresh_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/api/v1/auth',
     });
   });
 });

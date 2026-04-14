@@ -17,6 +17,8 @@ describe('AuthService', () => {
     };
     refreshToken: {
       create: jest.Mock;
+      delete: jest.Mock;
+      deleteMany: jest.Mock;
     };
   };
   let jwt: { signAsync: jest.Mock };
@@ -38,6 +40,8 @@ describe('AuthService', () => {
       },
       refreshToken: {
         create: jest.fn().mockResolvedValue(undefined),
+        delete: jest.fn().mockResolvedValue(undefined),
+        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
     };
     jwt = {
@@ -154,6 +158,18 @@ describe('AuthService', () => {
       user: authUser,
       accessToken: 'access-token',
       refreshToken: expect.any(String),
+    });
+  });
+
+  it('revokes the current refresh token on logout', async () => {
+    prisma.refreshToken.deleteMany.mockResolvedValue({ count: 1 });
+
+    await service.logout('refresh-token');
+
+    expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+      where: {
+        tokenHash: expect.any(String),
+      },
     });
   });
 
