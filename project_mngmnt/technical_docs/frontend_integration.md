@@ -1,301 +1,39 @@
-# FocusHub V1 — Frontend Integration Guide
+# FocusHub — Frontend Integration Guide
 
-**Base URL (dev):** `http://localhost:3020/api/v1`  
-**Backend port:** `3020`  
-**Swagger UI:** `http://localhost:3020/api` (auto-generated from decorators)
+**Base URL:** `http://localhost:3000/api/v1`  
+**Content-Type:** `application/json` on all requests with a body
 
 ---
 
 ## Table of Contents
 
-1. [Status: What Is and Is Not Implemented](#1-status-what-is-and-is-not-implemented)
-2. [Auth Flow Overview](#2-auth-flow-overview)
-3. [Token Storage Strategy](#3-token-storage-strategy)
-4. [API Reference — Implemented Endpoints](#4-api-reference--implemented-endpoints)
-   - [Health Check](#41-health-check)
-   - [POST /auth/register](#42-post-authregister)
-   - [POST /auth/login](#43-post-authlogin)
-   - [GET /auth/google](#44-get-authgoogle)
-   - [GET /auth/google/callback](#45-get-authgooglecallback)
-5. [Standard Response Shapes](#5-standard-response-shapes)
-6. [Error Handling](#6-error-handling)
-7. [Axios / Fetch Setup](#7-axios--fetch-setup)
-8. [Google OAuth Integration](#8-google-oauth-integration)
-9. [Protected Route Pattern](#9-protected-route-pattern)
-10. [Planned Endpoints (Not Yet Implemented)](#10-planned-endpoints-not-yet-implemented)
+1. [Response Format](#1-response-format)
+2. [Auth Flow & Token Management](#2-auth-flow--token-management)
+3. [Error Handling](#3-error-handling)
+4. [Auth Endpoints](#4-auth-endpoints)
+5. [User Endpoints](#5-user-endpoints)
+6. [Workspace Endpoints](#6-workspace-endpoints)
+7. [Project Endpoints](#7-project-endpoints)
+8. [System](#8-system)
 
 ---
 
-## 1. Status: What Is and Is Not Implemented
+## 1. Response Format
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| Health check | ✅ Done | `GET /health` |
-| Register (email/password) | ✅ Done | `POST /auth/register` |
-| Login (email/password) | ✅ Done | `POST /auth/login` |
-| Google OAuth | ✅ Done | `GET /auth/google` + callback |
-| JWT guard (protected routes) | ✅ Done | `Authorization: Bearer <token>` |
-| Token refresh | ❌ Not yet | Cookie is set, endpoint not built |
-| Forgot / Reset password | ❌ Not yet | Planned |
-| Workspace CRUD | ❌ Not yet | Planned |
-| Project CRUD | ❌ Not yet | Planned |
-| Task CRUD | ❌ Not yet | Planned |
-| Comments | ❌ Not yet | Planned |
-| Notifications | ❌ Not yet | Planned |
-| File Attachments | ❌ Not yet | Planned |
-| Search | ❌ Not yet | Planned |
-| WebSocket events | ❌ Not yet | Planned |
+There are **two response shapes** in this API. Auth and User endpoints return bare objects (legacy pattern). Workspace and Project endpoints follow the standard contract wrapper.
 
----
+### Standard Wrapper (Workspace + Project)
 
-## 2. Auth Flow Overview
-
-```
-Register / Login
-    │
-    ▼
-Backend signs JWT (15 min access token)
-    │
-    ├── access_token → returned in JSON body
-    └── refresh_token → set as httpOnly cookie (7 days)
-                        path: /api/v1/auth
-                        secure: true in production
-
-Frontend stores access_token in memory (NOT localStorage).
-Attaches it to every protected request as:
-    Authorization: Bearer <access_token>
-
-When access_token expires → hit POST /auth/refresh (not yet implemented)
-    → cookie is sent automatically by browser
-    → new access_token returned in body
-```
-
----
-
-## 3. Token Storage Strategy
-
-| Storage | Use | Reason |
-|---------|-----|--------|
-| **JavaScript memory** (e.g. React state / Zustand) | `access_token` | Short-lived (15 min), never persisted to disk, XSS-safe |
-| **httpOnly cookie** (set by server) | `refresh_token` | Never readable by JS, CSRF-safe with `sameSite: strict` |
-| ❌ `localStorage` | Never | Vulnerable to XSS — do not use for tokens |
-| ❌ `sessionStorage` | Never | Same XSS risk as localStorage |
-
-**Note:** On page refresh the access token is lost. The frontend should immediately call `POST /auth/refresh` on app mount to get a new access token from the cookie. (Endpoint not yet implemented — plan for it.)
-
----
-
-## 4. API Reference — Implemented Endpoints
-
-### 4.1 Health Check
-
-```
-GET /health
-No auth required
-```
-
-**Response 200:**
-```json
-{
-  "status": "ok",
-  "database": "connected"
-}
-```
-
-**Response 503:** database unreachable.
-
----
-
-### 4.2 POST /auth/register
-
-Creates a new account. Returns tokens.
-
-```
-POST /api/v1/auth/register
-Content-Type: application/json
-No auth required
-```
-
-**Request body:**
-```json
-{
-  "fullName": "Jane Smith",
-  "email": "jane@example.com",
-  "password": "Secret@123"
-}
-```
-
-**Validation rules (enforced server-side):**
-
-| Field | Rule |
-|-------|------|
-| `fullName` | string, min 2 chars, max 100 chars |
-| `email` | valid email format |
-| `password` | min 8 chars, must contain: uppercase, lowercase, digit, special char |
-
-**Response 201:**
-```json
-{
-  "user": {
-    "id": "uuid",
-    "fullName": "Jane Smith",
-    "email": "jane@example.com",
-    "avatarUrl": null,
-    "avatarColor": "#6366f1"
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-Cookie set: `refresh_token` (httpOnly, 7 days)
-
-**Error responses:**
-
-| Status | Code | When |
-|--------|------|------|
-| 409 | `CONFLICT` | Email already registered |
-| 422 | `UNPROCESSABLE_ENTITY` | Validation failed |
-
----
-
-### 4.3 POST /auth/login
-
-Authenticates an existing user.
-
-```
-POST /api/v1/auth/login
-Content-Type: application/json
-No auth required
-```
-
-**Request body:**
-```json
-{
-  "email": "jane@example.com",
-  "password": "Secret@123"
-}
-```
-
-**Response 200:**
-```json
-{
-  "user": {
-    "id": "uuid",
-    "fullName": "Jane Smith",
-    "email": "jane@example.com",
-    "avatarUrl": null,
-    "avatarColor": "#6366f1"
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-Cookie set: `refresh_token` (httpOnly, 7 days)
-
-**Error responses:**
-
-| Status | Code | When |
-|--------|------|------|
-| 401 | `UNAUTHORIZED` | Wrong email or password |
-| 422 | `UNPROCESSABLE_ENTITY` | Validation failed |
-
----
-
-### 4.4 GET /auth/google
-
-Initiates the Google OAuth flow. **Do not call this via fetch/XHR.** Redirect the browser window directly.
-
-```
-GET /api/v1/auth/google
-No auth required
-```
-
-**How to trigger from frontend:**
-```ts
-// Redirect the browser — do NOT use fetch()
-window.location.href = 'http://localhost:3020/api/v1/auth/google';
-```
-
-What happens:
-1. Backend redirects browser to Google consent screen.
-2. User approves.
-3. Google redirects back to the callback URL below.
-
----
-
-### 4.5 GET /auth/google/callback
-
-Handled entirely by the backend. Google redirects here after consent. The backend:
-1. Receives the OAuth code from Google.
-2. Creates or links the user account.
-3. Issues access token + sets refresh cookie.
-4. Returns the same `AuthResponseDto` as login/register.
-
-```
-GET /api/v1/auth/google/callback
-Handled by backend (Passport strategy) — do not call manually
-```
-
-**After callback:** The response is returned directly to the browser window that was redirected. If you opened Google OAuth in a popup, you need a postMessage or redirect strategy:
-
-**Option A — Full redirect (simpler):**
-```ts
-// On login page button click:
-window.location.href = `${API_BASE}/auth/google`;
-
-// In your root layout, on mount, check if user is already set
-// (the callback returns JSON + sets cookie — the frontend will
-//  parse the response if the callback page is handled as a
-//  dedicated route, or you redirect to /auth/callback?token=...)
-```
-
-**Option B — Popup + postMessage:**
-```ts
-const popup = window.open(`${API_BASE}/auth/google`, '_blank', 'width=500,height=600');
-window.addEventListener('message', (event) => {
-  if (event.origin !== API_BASE) return;
-  const { accessToken, user } = event.data;
-  // store access token in memory
-});
-```
-
-> The backend currently returns JSON directly from the callback. If you need a redirect to a specific frontend URL after OAuth, the backend will need a small change to redirect with the token as a query param or use postMessage. Flag this when building the OAuth UI.
-
-**Error responses:**
-
-| Status | When |
-|--------|------|
-| 401 | Google account has no verified email |
-| 409 | Email is already linked to a different Google account, or account is deactivated |
-
----
-
-## 5. Standard Response Shapes
-
-All responses from this backend follow a consistent envelope:
-
-### Auth Responses (login / register / Google)
-```json
-{
-  "user": {
-    "id": "string (uuid)",
-    "fullName": "string",
-    "email": "string",
-    "avatarUrl": "string | null",
-    "avatarColor": "string (hex)"
-  },
-  "accessToken": "string (JWT)"
-}
-```
-
-### Future: Standard Success (single resource)
 ```json
 {
   "success": true,
   "data": { ... },
-  "message": "string | null"
+  "message": "Human readable message or null"
 }
 ```
 
-### Future: Standard Success (paginated list)
+For paginated lists:
+
 ```json
 {
   "success": true,
@@ -312,305 +50,787 @@ All responses from this backend follow a consistent envelope:
 }
 ```
 
+### Bare Response (Auth + User)
+
+Auth and User endpoints return the data object directly — no `success` or `data` wrapper.
+
+```json
+{
+  "accessToken": "eyJ...",
+  "user": { ... }
+}
+```
+
 ---
 
-## 6. Error Handling
+## 2. Auth Flow & Token Management
+
+### Token Architecture
+
+| Token | Where | Lifetime | Purpose |
+|---|---|---|---|
+| Access token | Response body → memory | 15 min | Sent as `Authorization: Bearer <token>` on every protected request |
+| Refresh token | `httpOnly` cookie (`refresh_token`) | 7 days | Used only on `POST /auth/refresh` to get a new access token |
+
+**Never store the access token in `localStorage`.** Store it in memory (React state, Zustand, etc.). The browser automatically sends the refresh cookie on requests to the same origin.
+
+### Token Refresh Strategy
+
+When any request returns `401`, call `POST /auth/refresh` (the cookie is sent automatically). On success, store the new access token and retry the original request. On failure (cookie expired), redirect to login.
+
+```
+Request fails with 401
+    → POST /auth/refresh
+        → success: store new accessToken, retry original request
+        → failure (401): clear state, redirect to /login
+```
+
+### Google OAuth Flow
+
+1. Redirect the browser (full page navigation, not fetch) to `GET /api/v1/auth/google`
+2. Google redirects back to `GET /api/v1/auth/google/callback`
+3. The callback responds with the same shape as login — read `accessToken` from the JSON body, store in memory
+
+---
+
+## 3. Error Handling
 
 All errors follow this shape:
+
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human readable message",
-    "details": null
-  }
+  "statusCode": 401,
+  "message": "Invalid or expired access token"
 }
 ```
 
-For validation errors, `details` is an array:
+Validation errors (422) include field details:
+
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": [
-      { "field": "email", "message": "Invalid email address" },
-      { "field": "password", "message": "Password must be at least 8 characters" }
-    ]
-  }
+  "statusCode": 422,
+  "message": "Validation failed",
+  "errors": [
+    { "field": "email", "message": "Invalid email address" },
+    { "field": "password", "message": "Must contain at least one uppercase letter" }
+  ]
 }
 ```
 
-### Error Code Reference
-
-| Code | HTTP | Frontend Action |
-|------|------|----------------|
-| `VALIDATION_ERROR` | 400 | Show per-field errors from `details` array |
-| `BAD_REQUEST` | 400 | Show generic error message |
-| `UNAUTHORIZED` | 401 | Clear token, redirect to login |
-| `TOKEN_EXPIRED` | 401 | Call `POST /auth/refresh`, retry original request |
-| `FORBIDDEN` | 403 | Show "you don't have permission" |
-| `NOT_FOUND` | 404 | Show 404 state |
-| `CONFLICT` | 409 | Show specific conflict message (e.g., "Email already in use") |
-| `UNPROCESSABLE_ENTITY` | 422 | Show business logic error message |
-| `TOO_MANY_REQUESTS` | 429 | Show rate limit warning, use `Retry-After` header |
-| `INTERNAL_ERROR` | 500 | Show generic "something went wrong" |
+| Status | Meaning |
+|---|---|
+| 400 | Bad request (malformed body) |
+| 401 | Missing, invalid, or expired access token |
+| 403 | Authenticated but not allowed (wrong role, not a member) |
+| 404 | Resource not found |
+| 409 | Conflict (duplicate email, prefix already taken) |
+| 422 | Validation failed — check `errors` array |
+| 500 | Server error |
 
 ---
 
-## 7. Axios / Fetch Setup
+## 4. Auth Endpoints
 
-### Recommended Axios Instance
+Auth endpoints are **public** — no `Authorization` header needed.
 
-```ts
-// lib/api.ts
-import axios from 'axios';
+---
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3020/api/v1';
+### `POST /auth/register`
 
-export const api = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,  // REQUIRED: sends httpOnly refresh_token cookie
-  headers: {
-    'Content-Type': 'application/json',
+Create a new account. Returns access token in body and sets `refresh_token` cookie.
+
+**Request**
+```json
+{
+  "fullName": "Zaeem Hassan",
+  "email": "zaeem@example.com",
+  "password": "Secure123!"
+}
+```
+
+Password rules: min 8 chars, at least one uppercase, one lowercase, one number, one special character.
+
+**Response `201`**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "fullName": "Zaeem Hassan",
+    "email": "zaeem@example.com",
+    "avatarUrl": null,
+    "avatarColor": "#6366f1"
   },
-});
+  "accessToken": "eyJ..."
+}
+```
 
-// Attach access token from memory on every request
-api.interceptors.request.use((config) => {
-  const token = getAccessToken(); // from your auth store (Zustand/Context)
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+**Errors**
+| Status | When |
+|---|---|
+| 409 | Email already registered |
+| 422 | Validation failed |
 
-// Handle 401 — attempt refresh, then retry once
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const { data } = await api.post('/auth/refresh');
-        setAccessToken(data.accessToken); // store in memory
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(originalRequest);
-      } catch {
-        clearAccessToken();
-        window.location.href = '/login';
-      }
+---
+
+### `POST /auth/login`
+
+**Request**
+```json
+{
+  "email": "zaeem@example.com",
+  "password": "Secure123!"
+}
+```
+
+**Response `200`** — same shape as register
+
+**Errors**
+| Status | When |
+|---|---|
+| 401 | Wrong email or password |
+| 422 | Validation failed |
+
+---
+
+### `GET /auth/google`
+
+Redirect the browser here to start Google OAuth. Do **not** call with fetch.
+
+```
+window.location.href = 'http://localhost:3000/api/v1/auth/google'
+```
+
+---
+
+### `GET /auth/google/callback`
+
+Handled by the server — Google redirects here automatically. The server responds with the same JSON shape as login. Read `accessToken` from the response body.
+
+---
+
+### `POST /auth/refresh`
+
+Exchange the `refresh_token` cookie for a new token pair. The browser sends the cookie automatically (same-origin). Call this when a request fails with `401`.
+
+**Request** — no body required (cookie is sent automatically)
+
+**Response `200`** — same shape as login (new `accessToken` in body, new cookie set)
+
+**Errors**
+| Status | When |
+|---|---|
+| 401 | Cookie missing, expired, or already used |
+
+---
+
+### `POST /auth/forgot-password`
+
+Request a 6-digit OTP for password reset. Always returns `200` regardless of whether the email exists (prevents enumeration).
+
+**Request**
+```json
+{
+  "email": "zaeem@example.com"
+}
+```
+
+**Response `200`** — no body (empty)
+
+OTP is currently logged to server console. Valid for **15 minutes**.
+
+---
+
+### `POST /auth/reset-password`
+
+Reset password using the OTP received on email.
+
+**Request**
+```json
+{
+  "email": "zaeem@example.com",
+  "otp": "482931",
+  "newPassword": "NewSecure123!"
+}
+```
+
+`otp` must be the exact 6-digit code sent to the email. Password rules same as register.
+
+**Response `200`** — no body
+
+This endpoint **logs out all active sessions** — the user must log in again after resetting.
+
+**Errors**
+| Status | When |
+|---|---|
+| 401 | OTP wrong, expired (>15 min), or already used |
+| 422 | Validation failed |
+
+---
+
+## 5. User Endpoints
+
+All user endpoints require `Authorization: Bearer <accessToken>`.
+
+---
+
+### `POST /user/profile`
+
+Initialize the current user's profile after registration. Call this once after the user completes onboarding.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request**
+```json
+{
+  "designation": "Senior Backend Engineer",
+  "profilePicture": "initials:ZH",
+  "status": "ONLINE",
+  "bio": "Building scalable APIs.",
+  "timezone": "Asia/Karachi",
+  "showLocalTime": true
+}
+```
+
+All fields are optional. `profilePicture` accepts:
+- `"initials:ZH"` — shows colored circle with initials (1–4 letters)
+- `"ZH"` — shorthand, server normalizes to `"initials:ZH"`
+- `"https://cdn.example.com/avatar.png"` — direct image URL
+
+`timezone` must be a valid IANA timezone string (e.g. `"Asia/Karachi"`, `"Europe/London"`).
+
+**Response `201`**
+```json
+{
+  "id": "uuid",
+  "fullName": "Zaeem Hassan",
+  "email": "zaeem@example.com",
+  "designation": "Senior Backend Engineer",
+  "profilePicture": "initials:ZH",
+  "status": "ONLINE",
+  "bio": "Building scalable APIs.",
+  "timezone": "Asia/Karachi",
+  "showLocalTime": true,
+  "localTime": "14/04/2026, 17:30:00",
+  "createdAt": "2026-04-14T12:00:00.000Z",
+  "updatedAt": "2026-04-14T12:00:00.000Z"
+}
+```
+
+`localTime` is computed server-side from `timezone`. It is `null` if `showLocalTime` is `false` or no timezone is set.
+
+---
+
+### `GET /user/profile`
+
+Get the current user's profile.
+
+**Response `200`** — same shape as above
+
+---
+
+### `PATCH /user/profile`
+
+Update one or more profile fields. Only send fields you want to change — all are optional.
+
+**Request**
+```json
+{
+  "fullName": "Zaeem Ul Hassan",
+  "designation": "Lead Engineer",
+  "profilePicture": "https://cdn.example.com/new-avatar.png",
+  "status": "OFFLINE",
+  "bio": "I love clean architecture.",
+  "timezone": "Europe/London",
+  "showLocalTime": false
+}
+```
+
+At least one field must be present (server returns 400 otherwise).
+
+**Response `200`** — updated profile shape
+
+---
+
+### `PATCH /user/status`
+
+Quick status update without touching other profile fields.
+
+**Request**
+```json
+{
+  "status": "ONLINE"
+}
+```
+
+`status` must be `"ONLINE"` or `"OFFLINE"`.
+
+**Response `200`** — updated profile shape
+
+---
+
+### `PATCH /user/change-password`
+
+Change the account password. Requires the current password for verification. **Logs out all active sessions** — the user must log in again.
+
+**Request**
+```json
+{
+  "currentPassword": "OldSecure123!",
+  "newPassword": "NewSecure456!"
+}
+```
+
+**Response `200`**
+```json
+{
+  "message": "Password changed successfully. Please login again."
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 400 | New password is the same as current |
+| 403 | Current password is wrong, or account uses Google OAuth (no password to change) |
+| 422 | Validation failed |
+
+---
+
+### `DELETE /user/profile`
+
+Soft-delete the current user's account. This is irreversible from the frontend — the account is deactivated and all sessions are revoked. Redirect to login after calling this.
+
+**Response `204`** — no body
+
+---
+
+## 6. Workspace Endpoints
+
+**Create workspace** does not require a workspace header. All other workspace endpoints and all project endpoints require `x-workspace-id`.
+
+---
+
+### `POST /workspaces`
+
+Create a new workspace. The calling user automatically becomes the `OWNER`.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request**
+```json
+{
+  "name": "Acme Corp",
+  "logoUrl": "https://cdn.example.com/logo.png"
+}
+```
+
+`logoUrl` is optional.
+
+**Response `201`**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Acme Corp",
+    "logoUrl": "https://cdn.example.com/logo.png",
+    "createdBy": "user-uuid",
+    "createdAt": "2026-04-14T12:00:00.000Z",
+    "updatedAt": "2026-04-14T12:00:00.000Z"
+  },
+  "message": "Workspace created successfully"
+}
+```
+
+---
+
+### `GET /workspaces`
+
+List all workspaces the current user is a member of.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Acme Corp",
+      "logoUrl": null,
+      "createdBy": "user-uuid",
+      "createdAt": "2026-04-14T12:00:00.000Z",
+      "updatedAt": "2026-04-14T12:00:00.000Z"
     }
-    return Promise.reject(error);
-  }
-);
-```
-
-> `withCredentials: true` is required for the httpOnly `refresh_token` cookie to be sent cross-origin. Make sure the backend has CORS configured to allow your frontend origin with `credentials: true`.
-
----
-
-## 8. Google OAuth Integration
-
-### Full Redirect Flow (recommended for simplicity)
-
-```tsx
-// components/GoogleLoginButton.tsx
-export function GoogleLoginButton() {
-  const handleClick = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
-  };
-
-  return (
-    <button onClick={handleClick}>
-      Sign in with Google
-    </button>
-  );
+  ],
+  "message": null
 }
 ```
 
-After Google redirects back to the callback, the backend returns the auth JSON response. You'll need a dedicated callback page on the frontend if you want to capture the token:
-
-```tsx
-// app/auth/callback/page.tsx (Next.js example)
-// This only applies if backend is configured to redirect to frontend with token
-// as a query param — requires a backend change.
-
-// Current behavior: backend returns JSON directly from /auth/google/callback
-// This means the full-redirect flow needs backend cooperation.
-// Flag this to the backend developer before building this page.
-```
-
-**Recommended ask to backend:** After Google OAuth succeeds, redirect to:
-```
-http://localhost:3001/auth/callback?token=<access_token>
-```
-Then the frontend `/auth/callback` page reads the token from the URL, stores it in memory, and redirects to `/dashboard`.
-
 ---
 
-## 9. Protected Route Pattern
+### `GET /workspaces/:workspaceId`
 
-All workspace/project/task routes (when implemented) require:
+Get a single workspace. User must be a member.
 
+**Headers**
 ```
-Authorization: Bearer <access_token>
-x-workspace-id: <workspace_uuid>   ← required for workspace-scoped endpoints
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
 ```
 
-### Next.js Middleware Example
+The `:workspaceId` in the URL and the `x-workspace-id` header should be the same value.
 
-```ts
-// middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
-
-const PUBLIC_ROUTES = ['/login', '/register', '/auth/callback'];
-
-export function middleware(req: NextRequest) {
-  const isPublic = PUBLIC_ROUTES.some(r => req.nextUrl.pathname.startsWith(r));
-  if (isPublic) return NextResponse.next();
-
-  // Access token check — stored in a short-lived cookie or memory
-  // Since we keep it in memory, we can't check it in middleware.
-  // Redirect happens in the component/layout if the store is empty.
-  return NextResponse.next();
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Acme Corp",
+    "logoUrl": null,
+    "createdBy": "user-uuid",
+    "createdAt": "2026-04-14T12:00:00.000Z",
+    "updatedAt": "2026-04-14T12:00:00.000Z",
+    "memberCount": 5
+  },
+  "message": null
 }
 ```
 
-### React/Zustand Auth Store Pattern
+**Errors**
+| Status | When |
+|---|---|
+| 403 | `x-workspace-id` header missing or user is not a member |
+| 404 | Workspace does not exist |
 
-```ts
-// stores/auth.store.ts
-import { create } from 'zustand';
+---
 
-type AuthState = {
-  accessToken: string | null;
-  user: AuthUser | null;
-  setAuth: (token: string, user: AuthUser) => void;
-  clearAuth: () => void;
-};
+### `PATCH /workspaces/:workspaceId`
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  user: null,
-  setAuth: (accessToken, user) => set({ accessToken, user }),
-  clearAuth: () => set({ accessToken: null, user: null }),
-}));
+Update workspace name or logo. **OWNER only.**
 
-// Helpers used by the axios interceptor
-export const getAccessToken = () => useAuthStore.getState().accessToken;
-export const setAccessToken = (t: string) =>
-  useAuthStore.setState((s) => ({ ...s, accessToken: t }));
-export const clearAccessToken = () =>
-  useAuthStore.setState((s) => ({ ...s, accessToken: null, user: null }));
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Request** — all fields optional
+```json
+{
+  "name": "Acme Corporation",
+  "logoUrl": null
+}
+```
+
+Send `"logoUrl": null` to remove the logo.
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Workspace updated successfully"
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not a member, or member but not OWNER |
+| 404 | Workspace not found |
+
+---
+
+### `DELETE /workspaces/:workspaceId`
+
+Soft delete the workspace. **OWNER only.** All projects, task lists, and tasks inside become inaccessible.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Workspace deleted successfully"
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not OWNER |
+| 404 | Workspace not found |
+
+---
+
+## 7. Project Endpoints
+
+All project endpoints require both the `Authorization` header and the `x-workspace-id` header. Any workspace member can create, view, and edit projects. Only the workspace OWNER can delete.
+
+---
+
+### `POST /projects`
+
+Create a new project. Automatically creates 4 default statuses: **To Do**, **In Progress**, **Review**, **Completed**.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Request**
+```json
+{
+  "name": "Backend API",
+  "description": "Core REST API for FocusHub",
+  "color": "#6366f1",
+  "icon": "code",
+  "taskIdPrefix": "API"
+}
+```
+
+| Field | Required | Rules |
+|---|---|---|
+| `name` | Yes | 1–100 chars |
+| `description` | No | max 500 chars |
+| `color` | No | hex color string, default `#6366f1` |
+| `icon` | No | max 50 chars, any icon identifier string |
+| `taskIdPrefix` | Yes | 2–6 uppercase letters/numbers (e.g. `API`, `FH`, `PROJ`). Auto-uppercased. Must be unique in the workspace. |
+
+**Response `201`**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "workspaceId": "uuid",
+    "name": "Backend API",
+    "description": "Core REST API for FocusHub",
+    "color": "#6366f1",
+    "icon": "code",
+    "taskIdPrefix": "API",
+    "isArchived": false,
+    "createdBy": "user-uuid",
+    "createdAt": "2026-04-14T12:00:00.000Z",
+    "updatedAt": "2026-04-14T12:00:00.000Z",
+    "statuses": [
+      { "id": "uuid", "name": "To Do",       "color": "#94a3b8", "position": 1000, "isDefault": true, "isClosed": false },
+      { "id": "uuid", "name": "In Progress", "color": "#3b82f6", "position": 2000, "isDefault": true, "isClosed": false },
+      { "id": "uuid", "name": "Review",      "color": "#f59e0b", "position": 3000, "isDefault": true, "isClosed": false },
+      { "id": "uuid", "name": "Completed",   "color": "#22c55e", "position": 4000, "isDefault": true, "isClosed": true  }
+    ],
+    "_count": { "taskLists": 0 }
+  },
+  "message": "Project created successfully"
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not a workspace member |
+| 409 | `taskIdPrefix` already used in this workspace |
+| 422 | Validation failed |
+
+---
+
+### `GET /projects`
+
+List all active (non-archived, non-deleted) projects in the workspace.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "name": "Backend API",
+      "description": "...",
+      "color": "#6366f1",
+      "icon": "code",
+      "taskIdPrefix": "API",
+      "isArchived": false,
+      "createdBy": "user-uuid",
+      "createdAt": "...",
+      "updatedAt": "...",
+      "statuses": [ ... ],
+      "_count": { "taskLists": 3 }
+    }
+  ],
+  "message": null
+}
 ```
 
 ---
 
-## 10. Planned Endpoints (Not Yet Implemented)
+### `GET /projects/:projectId`
 
-These endpoints are in the design spec but not yet built. Do not integrate against them yet — shapes may change during implementation.
+Get a single project with its full status list.
 
-### Auth (remaining)
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/auth/refresh` | Exchange refresh cookie for new access token |
-| POST | `/auth/forgot-password` | Send reset link to email |
-| POST | `/auth/reset-password` | Set new password using reset token |
-| POST | `/auth/logout` | Invalidate refresh token + clear cookie |
-
-### User Profile
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/users/me` | Get current user profile |
-| PATCH | `/users/me` | Update name, bio, designation, timezone, avatar |
-
-### Workspaces
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/workspaces` | List workspaces for current user |
-| POST | `/workspaces` | Create workspace |
-| GET | `/workspaces/:id` | Get workspace detail |
-| PATCH | `/workspaces/:id` | Update workspace |
-| DELETE | `/workspaces/:id` | Delete workspace |
-| GET | `/workspaces/:id/members` | List members |
-| POST | `/workspaces/:id/invites` | Invite member by email |
-| DELETE | `/workspaces/:id/members/:userId` | Remove member |
-
-All workspace-scoped requests also need `x-workspace-id` header.
-
-### Projects
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/projects` | List projects in workspace |
-| POST | `/projects` | Create project |
-| GET | `/projects/:id` | Get project |
-| PATCH | `/projects/:id` | Update project |
-| DELETE | `/projects/:id` | Delete project |
-
-### Tasks
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/projects/:projectId/tasks` | List tasks (paginated, filterable) |
-| POST | `/projects/:projectId/tasks` | Create task |
-| GET | `/tasks/:id` | Get task detail |
-| PATCH | `/tasks/:id` | Update task |
-| DELETE | `/tasks/:id` | Delete task |
-| POST | `/tasks/:id/assign` | Assign task to user |
-
-### Comments
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/tasks/:taskId/comments` | List comments |
-| POST | `/tasks/:taskId/comments` | Post comment |
-| PATCH | `/comments/:id` | Edit comment |
-| DELETE | `/comments/:id` | Delete comment |
-
-### Notifications
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/notifications` | List notifications |
-| PATCH | `/notifications/:id/read` | Mark as read |
-| POST | `/notifications/read-all` | Mark all as read |
-
-### File Attachments
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/attachments/presign` | Get S3 presigned upload URL |
-| POST | `/attachments/:id/confirm` | Confirm upload complete |
-| GET | `/attachments/:id/download` | Get presigned download URL |
-
-### Search
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/search?q=...&workspace_id=...` | Full-text search across tasks/projects |
-
-### WebSocket
-
+**Headers**
 ```
-ws://localhost:3020/ws?token=<access_token>
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
 ```
 
-Events (server → client):
-- `comment:created`
-- `comment:updated`
-- `comment:deleted`
-- `mention:received`
-- `user:online`
-- `user:offline`
+**Response `200`** — same data shape as individual item in list above
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not a workspace member |
+| 404 | Project not found (wrong workspace or deleted) |
 
 ---
 
-*Last updated: 2026-04-13 — reflects commit `8704587` (auth module complete)*
+### `PATCH /projects/:projectId`
+
+Update project metadata. Any workspace member can do this. Only send fields you want to change.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Request** — all fields optional
+```json
+{
+  "name": "Backend API v2",
+  "description": "Updated description",
+  "color": "#10b981",
+  "icon": "server"
+}
+```
+
+Send `"description": null` or `"icon": null` to clear those fields.
+
+**Note:** `taskIdPrefix` cannot be changed after creation.
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Project updated successfully"
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not a workspace member |
+| 404 | Project not found |
+
+---
+
+### `DELETE /projects/:projectId`
+
+Soft delete the project and **all its data** (task lists, tasks, statuses). **OWNER only.** This is a hard operation — there is no undo from the frontend.
+
+**Headers**
+```
+Authorization: Bearer <accessToken>
+x-workspace-id: <workspaceId>
+```
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Project deleted successfully"
+}
+```
+
+**Errors**
+| Status | When |
+|---|---|
+| 403 | Not OWNER |
+| 404 | Project not found |
+
+---
+
+## 8. System
+
+### `GET /health`
+
+No auth required. Returns database connectivity status. Use for uptime monitoring or app startup checks.
+
+**Response `200`**
+```json
+{
+  "status": "ok",
+  "database": "connected"
+}
+```
+
+**Response `503`** — database unreachable
+
+---
+
+## Quick Reference
+
+### Headers Cheatsheet
+
+| Situation | Headers needed |
+|---|---|
+| Auth endpoints | None |
+| User endpoints | `Authorization: Bearer <token>` |
+| Workspace create/list | `Authorization: Bearer <token>` |
+| Workspace get/update/delete | `Authorization: Bearer <token>` + `x-workspace-id` |
+| All project endpoints | `Authorization: Bearer <token>` + `x-workspace-id` |
+
+### Who Can Do What
+
+| Action | Required Role |
+|---|---|
+| Create workspace | Any authenticated user |
+| List / view workspaces | Member of that workspace |
+| Update workspace | OWNER |
+| Delete workspace | OWNER |
+| Create project | Any workspace member |
+| View / update project | Any workspace member |
+| Delete project | OWNER |
+
+### profilePicture Format (User Module)
+
+The `profilePicture` field in user endpoints is non-standard. It stores either a URL or an initials string:
+
+| Value | What it means |
+|---|---|
+| `"initials:ZH"` | Show colored circle with letters ZH |
+| `"ZH"` | Shorthand — server normalizes to `"initials:ZH"` |
+| `"https://..."` | Direct image URL |
+
+To render on the frontend: check if it starts with `"initials:"` → render an avatar with the letters. Otherwise treat as an `<img>` src.
+
+### Task ID Format
+
+Tasks (coming soon) will have a display ID like `API-1`, `API-2`, computed from `taskIdPrefix + '-' + taskNumber`. This is not stored in the DB — it is computed at query time. The `taskIdPrefix` set on project creation is permanent.

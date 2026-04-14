@@ -1,0 +1,200 @@
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '@app/database';
+import type { Prisma, Role } from '@app/database/generated/prisma/client';
+import type { CreateProjectDto } from './dto/create-project.dto';
+import type { UpdateProjectDto } from './dto/update-project.dto';
+import {
+  DEFAULT_STATUSES,
+  OWNER_ONLY,
+  PROJECT_NOT_FOUND,
+  PROJECT_PREFIX_TAKEN,
+  PROJECT_SELECT,
+  PROJECT_WITH_STATUSES_SELECT,
+} from './project.constants';
+
+export type ProjectData = Prisma.ProjectGetPayload<{ select: typeof PROJECT_SELECT }>;
+export type ProjectWithDetails = Prisma.ProjectGetPayload<{ select: typeof PROJECT_WITH_STATUSES_SELECT }>;
+
+@Injectable()
+export class ProjectService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(workspaceId: string, userId: string, dto: CreateProjectDto): Promise<ProjectWithDetails> {
+    const prefixTaken = await this.prisma.project.findFirst({
+      where: { workspaceId, taskIdPrefix: dto.taskIdPrefix, deletedAt: null },
+      select: { id: true },
+    });
+    if (prefixTaken) throw new ConflictException(PROJECT_PREFIX_TAKEN);
+
+    return this.prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: {
+          workspaceId,
+          name: dto.name.trim(),
+          description: dto.description?.trim() ?? null,
+          color: dto.color,
+          icon: dto.icon ?? null,
+          taskIdPrefix: dto.taskIdPrefix,
+          createdBy: userId,
+        },
+        select: PROJECT_SELECT,
+      });
+
+      await tx.status.createMany({
+        data: DEFAULT_STATUSES.map((s) => ({ ...s, projectId: project.id })),
+      });
+
+      await tx.activityLog.create({
+        data: {
+          workspaceId,
+          entityType: 'project',
+          entityId: project.id,
+          action: 'created',
+          metadata: { projectName: project.name },
+          performedBy: userId,
+        },
+      });
+
+      return tx.project.findFirstOrThrow({
+        where: { id: project.id },
+        select: PROJECT_WITH_STATUSES_SELECT,
+      });
+    });
+  }
+
+  async findAll(workspaceId: string): Promise<ProjectWithDetails[]> {
+    return this.prisma.project.findMany({
+      where: { workspaceId, deletedAt: null, isArchived: false },
+      select: PROJECT_WITH_STATUSES_SELECT,
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async findOne(workspaceId: string, projectId: string): Promise<ProjectWithDetails> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, workspaceId, deletedAt: null },
+      select: PROJECT_WITH_STATUSES_SELECT,
+    });
+    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+    return project;
+  }
+
+  async update(
+    workspaceId: string,
+    projectId: string,
+    userId: string,
+    dto: UpdateProjectDto,
+  ): Promise<ProjectWithDetails> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, workspaceId, deletedAt: null },
+      select: PROJECT_SELECT,
+    });
+    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+
+    const updateData: Prisma.ProjectUpdateInput = {};
+    const logEntries: Array<{ fieldName: string; oldValue: string | null; newValue: string | null }> = [];
+
+    if (dto.name !== undefined && dto.name !== project.name) {
+      updateData.name = dto.name.trim();
+      logEntries.push({ fieldName: 'name', oldValue: project.name, newValue: dto.name.trim() });
+    }
+    if (dto.description !== undefined && dto.description !== project.description) {
+      updateData.description = dto.description;
+      logEntries.push({ fieldName: 'description', oldValue: project.description ?? null, newValue: dto.description ?? null });
+    }
+    if (dto.color !== undefined && dto.color !== project.color) {
+      updateData.color = dto.color;
+      logEntries.push({ fieldName: 'color', oldValue: project.color, newValue: dto.color });
+    }
+    if (dto.icon !== undefined && dto.icon !== project.icon) {
+      updateData.icon = dto.icon;
+      logEntries.push({ fieldName: 'icon', oldValue: project.icon ?? null, newValue: dto.icon ?? null });
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return this.findOne(workspaceId, projectId);
+    }
+
+    await this.prisma.project.update({
+      where: { id: projectId },
+      data: updateData,
+    });
+
+    if (logEntries.length > 0) {
+      await this.prisma.activityLog.createMany({
+        data: logEntries.map((entry) => ({
+          workspaceId,
+          entityType: 'project',
+          entityId: projectId,
+          action: 'updated',
+          fieldName: entry.fieldName,
+          oldValue: entry.oldValue,
+          newValue: entry.newValue,
+          metadata: { projectName: updateData.name ?? project.name },
+          performedBy: userId,
+        })),
+      });
+    }
+
+    return this.findOne(workspaceId, projectId);
+  }
+
+  async remove(workspaceId: string, projectId: string, userId: string, role: Role): Promise<void> {
+    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, workspaceId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+
+    const now = new Date();
+
+    await this.prisma.$transaction(async (tx) => {
+      // Cascade soft delete: tasks → task lists → statuses → project
+      const taskLists = await tx.taskList.findMany({
+        where: { projectId, deletedAt: null },
+        select: { id: true },
+      });
+      const listIds = taskLists.map((l) => l.id);
+
+      if (listIds.length > 0) {
+        await tx.task.updateMany({
+          where: { listId: { in: listIds }, deletedAt: null },
+          data: { deletedAt: now },
+        });
+      }
+
+      await tx.taskList.updateMany({
+        where: { projectId, deletedAt: null },
+        data: { deletedAt: now },
+      });
+
+      await tx.status.updateMany({
+        where: { projectId, deletedAt: null },
+        data: { deletedAt: now },
+      });
+
+      await tx.project.update({
+        where: { id: projectId },
+        data: { deletedAt: now },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          workspaceId,
+          entityType: 'project',
+          entityId: projectId,
+          action: 'deleted',
+          metadata: { projectName: project.name },
+          performedBy: userId,
+        },
+      });
+    });
+  }
+}

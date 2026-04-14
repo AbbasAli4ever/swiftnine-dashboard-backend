@@ -62,6 +62,7 @@ model User {
 
   // Relations
   refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
   workspacesCreated       Workspace[]          @relation("WorkspaceCreator")
   workspaceMembers        WorkspaceMember[]
   workspaceInvitesSent    WorkspaceInvite[]    @relation("InviteSender")
@@ -97,6 +98,21 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+/// Short-lived OTP for password reset — one active token per user
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  otpHash   String   @unique @map("otp_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 /// Top-level organizational container — users can belong to multiple

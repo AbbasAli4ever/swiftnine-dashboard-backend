@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomInt, randomUUID } from 'node:crypto';
 import { RegisterDto } from './dto/register.dto';
 import {
   GOOGLE_ACCOUNT_CONFLICT_MESSAGE,
@@ -15,7 +15,10 @@ import {
   INACTIVE_ACCOUNT_MESSAGE,
   AUTH_USER_SELECT,
   INVALID_CREDENTIALS_MESSAGE,
+  INVALID_OTP_MESSAGE,
+  INVALID_REFRESH_TOKEN_MESSAGE,
   REFRESH_TOKEN_TTL_MS,
+  RESET_OTP_TTL_MS,
 } from './auth.constants';
 
 const PASSWORD_SALT_ROUNDS = 10;
@@ -153,12 +156,8 @@ export class AuthService {
         },
         data: {
           googleId: normalizedProfile.googleId,
-          fullName:
-            normalizedProfile.fullName &&
-            normalizedProfile.fullName !== existingEmailUser.fullName
-              ? normalizedProfile.fullName
-              : undefined,
           avatarUrl:
+            !existingEmailUser.avatarUrl &&
             normalizedProfile.avatarUrl &&
             normalizedProfile.avatarUrl !== existingEmailUser.avatarUrl
               ? normalizedProfile.avatarUrl
@@ -186,6 +185,37 @@ export class AuthService {
     return this.issueTokens(createdUser);
   }
 
+  async refreshTokens(rawToken: string): Promise<TokenPair> {
+    const tokenHash = this.hashRefreshToken(rawToken);
+
+    const stored = await this.prisma.refreshToken.findFirst({
+      where: {
+        tokenHash,
+        isRevoked: false,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true, userId: true },
+    });
+
+    if (!stored) {
+      throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: stored.userId, deletedAt: null },
+      select: AUTH_USER_SELECT,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
+    }
+
+    // Rotate: delete old token then issue fresh pair atomically
+    await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+
+    return this.issueTokens(user);
+  }
+
   // Shared by register, login, and Google OAuth
   async issueTokens(user: AuthUser): Promise<TokenPair> {
     const accessToken = await this.jwt.signAsync({
@@ -194,7 +224,7 @@ export class AuthService {
     });
 
     const rawRefreshToken = randomUUID();
-    const tokenHash = await bcrypt.hash(rawRefreshToken, 10);
+    const tokenHash = this.hashRefreshToken(rawRefreshToken);
 
     await this.prisma.refreshToken.create({
       data: {
@@ -205,6 +235,82 @@ export class AuthService {
     });
 
     return { user, accessToken, refreshToken: rawRefreshToken };
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const normalizedEmail = this.normalizeEmail(email);
+
+    const user = await this.prisma.user.findFirst({
+      where: { email: normalizedEmail, deletedAt: null },
+      select: { id: true, passwordHash: true },
+    });
+
+    // Silent return: don't reveal whether the email exists or is Google-only
+    if (!user || !user.passwordHash) return;
+
+    const otp = this.generateOtp();
+    const otpHash = this.hashOtp(otp);
+
+    // Replace any existing OTP for this user (one active OTP at a time)
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    await this.prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        otpHash,
+        expiresAt: new Date(Date.now() + RESET_OTP_TTL_MS),
+      },
+    });
+
+    // TODO: replace with Resend email
+    console.log(`[ForgotPassword] OTP for ${normalizedEmail}: ${otp}`);
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const otpHash = this.hashOtp(otp);
+
+    const stored = await this.prisma.passwordResetToken.findFirst({
+      where: {
+        otpHash,
+        expiresAt: { gt: new Date() },
+        user: { email: normalizedEmail, deletedAt: null },
+      },
+      select: { id: true, userId: true },
+    });
+
+    if (!stored) {
+      throw new UnauthorizedException(INVALID_OTP_MESSAGE);
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS);
+
+    await this.prisma.$transaction([
+      // Update password
+      this.prisma.user.update({
+        where: { id: stored.userId },
+        data: { passwordHash: newPasswordHash },
+      }),
+      // Consume the OTP
+      this.prisma.passwordResetToken.delete({ where: { id: stored.id } }),
+      // Force logout from all sessions
+      this.prisma.refreshToken.deleteMany({ where: { userId: stored.userId } }),
+    ]);
+  }
+
+  private generateOtp(): string {
+    // randomInt(min, max) is exclusive of max, so 1000000 gives range 100000–999999
+    return randomInt(100000, 1000000).toString();
+  }
+
+  private hashOtp(otp: string): string {
+    return createHash('sha256').update(otp).digest('hex');
+  }
+
+  private hashRefreshToken(rawToken: string): string {
+    return createHash('sha256').update(rawToken).digest('hex');
   }
 
   private normalizeEmail(email: string): string {
@@ -285,11 +391,11 @@ export class AuthService {
       updateData.email = profile.email;
     }
 
-    if (profile.fullName && profile.fullName !== user.fullName) {
-      updateData.fullName = profile.fullName;
-    }
-
-    if (profile.avatarUrl && profile.avatarUrl !== user.avatarUrl) {
+    if (
+      !user.avatarUrl &&
+      profile.avatarUrl &&
+      profile.avatarUrl !== user.avatarUrl
+    ) {
       updateData.avatarUrl = profile.avatarUrl;
     }
 

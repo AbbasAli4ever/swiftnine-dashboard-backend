@@ -212,7 +212,6 @@ describe('AuthService', () => {
       },
       data: {
         googleId: 'google-1',
-        fullName: undefined,
         avatarUrl: undefined,
       },
       select: {
@@ -223,6 +222,25 @@ describe('AuthService', () => {
         avatarColor: true,
       },
     });
+    expect(result.user).toEqual(authUser);
+  });
+
+  it('preserves the existing profile name for linked Google accounts', async () => {
+    prisma.user.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ...authUser,
+        googleId: 'google-1',
+      });
+
+    const result = await service.handleGoogleAuth({
+      googleId: 'google-1',
+      email: 'jane@example.com',
+      fullName: 'Google Display Name',
+      avatarUrl: null,
+    });
+
+    expect(prisma.user.update).not.toHaveBeenCalled();
     expect(result.user).toEqual(authUser);
   });
 

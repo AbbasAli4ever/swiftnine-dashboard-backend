@@ -1,98 +1,176 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# FocusHub Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Docker-first setup guide for running this API on a brand new machine.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Services started by Docker Compose
 
-## Description
+- `postgres` (PostgreSQL 16)
+- `api` (NestJS API in watch mode)
+- `prisma-studio` (Prisma Studio UI)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+1. Docker Desktop (latest stable) with Docker Compose v2 enabled
+2. Git
+3. Ports available on your machine:
+   - `3002` (API)
+   - `5432` (PostgreSQL)
+   - `5555` (Prisma Studio)
+
+Node.js is not required for the Docker workflow below.
+
+## 1) Clone the repository
 
 ```bash
-$ npm install
+git clone <your-repo-url>
+cd swiftnine-dashboard-backend
 ```
 
-## Compile and run the project
+## 2) Create environment file
+
+From the project root:
+
+### Windows PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### macOS / Linux
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+Edit `.env` if needed. At minimum, replace JWT secrets for real environments.
+
+## 3) Build and start containers
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up --build -d
 ```
 
-## Deployment
+This starts database, API, and Prisma Studio.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 4) Apply database migrations
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Run this once after first startup (and after pulling new migrations):
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose exec api npx prisma migrate deploy
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 5) Verify everything is running
 
-## Resources
+### Check container status
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+docker compose ps
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Check API health endpoint
 
-## Support
+Open:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- `http://localhost:3002/api/v1/health`
 
-## Stay in touch
+Expected response example:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```json
+{
+  "status": "ok",
+  "database": "connected"
+}
+```
 
-## License
+### Open API docs (Swagger)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `http://localhost:3002/api/docs`
+
+### Open Prisma Studio
+
+- `http://localhost:5555`
+
+## Daily commands
+
+### Start (detached)
+
+```bash
+docker compose up -d
+```
+
+### Stream logs
+
+```bash
+docker compose logs -f api
+```
+
+### Stop containers
+
+```bash
+docker compose down
+```
+
+### Stop and remove database volume (full reset)
+
+```bash
+docker compose down -v
+```
+
+Then start again and re-run migrations:
+
+```bash
+docker compose up --build -d
+docker compose exec api npx prisma migrate deploy
+```
+
+## Troubleshooting
+
+### Port already in use
+
+- Update `PORT`, `DB_PORT`, or `PRISMA_STUDIO_PORT` in `.env`.
+- Restart containers:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+### API cannot connect to database
+
+1. Check DB is healthy:
+
+```bash
+docker compose ps
+```
+
+2. Check API logs:
+
+```bash
+docker compose logs -f api
+```
+
+3. Re-run migrations:
+
+```bash
+docker compose exec api npx prisma migrate deploy
+```
+
+### Fresh reset when local state gets broken
+
+```bash
+docker compose down -v
+docker compose up --build -d
+docker compose exec api npx prisma migrate deploy
+```
+
+## Environment summary
+
+Main values from `.env.example`:
+
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+- `DB_PORT` (host port for PostgreSQL)
+- `PORT` (host port for API, default `3002`)
+- `PRISMA_STUDIO_PORT` (default `5555`)
+- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
+- Google OAuth variables (only required if you use Google auth flow)
