@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -17,7 +18,9 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { REFRESH_TOKEN_TTL_MS } from './auth.constants';
+import { INVALID_REFRESH_TOKEN_MESSAGE, REFRESH_TOKEN_TTL_MS } from './auth.constants';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import type { AuthUser, GoogleAuthProfile } from './auth.service';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
@@ -118,6 +121,60 @@ export class AuthController {
     );
     this.setRefreshCookie(res, refreshToken);
     return result;
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description:
+      'Reads the refresh_token httpOnly cookie, validates it, rotates it, and issues a new token pair.',
+  })
+  @ApiResponse({
+    status: 200,
+    type: AuthResponseDto,
+    description: 'New token pair issued',
+  })
+  @ApiResponse({ status: 401, description: 'Refresh token missing, invalid, or expired' })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const rawToken = (req as unknown as { cookies: Record<string, string> }).cookies['refresh_token'];
+
+    if (!rawToken) {
+      throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
+    }
+
+    const { refreshToken, ...result } = await this.authService.refreshTokens(rawToken);
+    this.setRefreshCookie(res, refreshToken);
+    return result;
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request password reset OTP',
+    description:
+      'Sends a 6-digit OTP to the email if an account exists. Always returns 200 to prevent email enumeration.',
+  })
+  @ApiResponse({ status: 200, description: 'OTP sent (or silently ignored if email not found)' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
+    await this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password using OTP',
+    description:
+      'Validates the 6-digit OTP and sets a new password. Revokes all active sessions on success.',
+  })
+  @ApiResponse({ status: 200, description: 'Password updated successfully' })
+  @ApiResponse({ status: 401, description: 'OTP is invalid or has expired' })
+  @ApiResponse({ status: 422, description: 'Validation failed' })
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    await this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
   }
 
   // Reused by login and Google OAuth callback in later steps

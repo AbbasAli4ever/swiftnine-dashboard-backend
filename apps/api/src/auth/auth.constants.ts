@@ -14,6 +14,13 @@ export const GOOGLE_EMAIL_REQUIRED_MESSAGE =
 export const INACTIVE_ACCOUNT_MESSAGE = 'Account is no longer active';
 export const GOOGLE_ACCOUNT_CONFLICT_MESSAGE =
   'This email is already linked to another Google account';
+export const INVALID_REFRESH_TOKEN_MESSAGE =
+  'Refresh token is invalid, expired, or already used';
+export const INVALID_OTP_MESSAGE = 'OTP is invalid or has expired';
+export const GOOGLE_ONLY_ACCOUNT_MESSAGE =
+  'This account uses Google sign-in and has no password to reset';
+
+export const RESET_OTP_TTL_MS = 15 * 60 * 1000; // 15 min
 
 export const AUTH_USER_SELECT = {
   id: true,
