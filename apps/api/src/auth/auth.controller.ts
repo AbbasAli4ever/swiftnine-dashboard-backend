@@ -114,13 +114,14 @@ export class AuthController {
   })
   async googleCallback(
     @Req() req: GoogleAuthenticatedRequest,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const { refreshToken, ...result } = await this.authService.handleGoogleAuth(
+    @Res() res: Response,
+  ): Promise<void> {
+    const { refreshToken, accessToken } = await this.authService.handleGoogleAuth(
       req.user,
     );
     this.setRefreshCookie(res, refreshToken);
-    return result;
+    const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
   }
 
   @Post('refresh')
