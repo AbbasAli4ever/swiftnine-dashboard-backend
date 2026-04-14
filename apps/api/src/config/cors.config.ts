@@ -1,4 +1,9 @@
-import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { Logger } from '@nestjs/common';
+import type {
+  CorsOptions,
+  CorsOptionsDelegate,
+} from '@nestjs/common/interfaces/external/cors-options.interface';
+import type { Request } from 'express';
 
 const DEFAULT_CORS_METHODS = [
   'GET',
@@ -10,18 +15,31 @@ const DEFAULT_CORS_METHODS = [
   'OPTIONS',
 ];
 
-const DEFAULT_CORS_ALLOWED_HEADERS = ['Content-Type', 'Authorization'];
+const DEFAULT_CORS_ALLOWED_HEADERS = [
+  'Content-Type',
+  'Authorization',
+  'x-workspace-id',
+];
+
+const corsLogger = new Logger('CORS');
 
 const TRUE_VALUES = new Set(['true', '1', 'yes', 'on']);
 const FALSE_VALUES = new Set(['false', '0', 'no', 'off']);
 
-export function buildCorsOptions(env: NodeJS.ProcessEnv): CorsOptions {
+export function buildCorsOptions(
+  env: NodeJS.ProcessEnv,
+): CorsOptionsDelegate<Request> {
   const allowCredentials = parseBooleanEnv(
     env['CORS_ALLOW_CREDENTIALS'],
     true,
     'CORS_ALLOW_CREDENTIALS',
   );
   const allowedOrigins = parseOrigins(env['CORS_ORIGINS']);
+  const allowedMethods = parseListEnv(env['CORS_METHODS'], DEFAULT_CORS_METHODS);
+  const allowedHeaders = ensureRequiredHeaders(
+    parseListEnv(env['CORS_ALLOWED_HEADERS'], DEFAULT_CORS_ALLOWED_HEADERS),
+    DEFAULT_CORS_ALLOWED_HEADERS,
+  );
   const allowAllOrigins =
     allowedOrigins.length === 1 && allowedOrigins[0] === '*';
 
@@ -31,29 +49,48 @@ export function buildCorsOptions(env: NodeJS.ProcessEnv): CorsOptions {
     );
   }
 
-  return {
-    credentials: allowCredentials,
-    methods: parseListEnv(env['CORS_METHODS'], DEFAULT_CORS_METHODS),
-    allowedHeaders: parseListEnv(
-      env['CORS_ALLOWED_HEADERS'],
-      DEFAULT_CORS_ALLOWED_HEADERS,
-    ),
-    origin: (origin, callback) => {
-      // Requests from tools/server-side callers often omit Origin and should not
-      // be blocked by CORS policy checks.
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
+  return (req, callback) => {
+    const requestOrigin = getSingleHeader(req.headers.origin);
+    const requestedMethod = getSingleHeader(
+      req.headers['access-control-request-method'],
+    );
+    const requestedHeaders = parseHeaderList(
+      getSingleHeader(req.headers['access-control-request-headers']),
+    );
+    const corsIssues = getCorsIssues({
+      requestOrigin,
+      requestedMethod,
+      requestedHeaders,
+      allowedOrigins,
+      allowedMethods,
+      allowedHeaders,
+      allowAllOrigins,
+    });
 
-      if (allowAllOrigins || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
+    if (corsIssues.length > 0) {
+      corsLogger.warn(
+        `Rejected CORS request: ${JSON.stringify({
+          path: req.originalUrl ?? req.url,
+          method: req.method,
+          origin: requestOrigin ?? null,
+          requestedMethod: requestedMethod ?? null,
+          requestedHeaders,
+          allowedOrigins,
+          allowedMethods,
+          allowedHeaders,
+          issues: corsIssues,
+        })}`,
+      );
+    }
 
-      callback(null, false);
-    },
-    optionsSuccessStatus: 204,
+    callback(null, {
+      credentials: allowCredentials,
+      methods: allowedMethods,
+      allowedHeaders,
+      origin:
+        !requestOrigin || allowAllOrigins || allowedOrigins.includes(requestOrigin),
+      optionsSuccessStatus: 204,
+    });
   };
 }
 
@@ -89,6 +126,104 @@ function parseListEnv(
         .filter(Boolean),
     ),
   ];
+}
+
+function ensureRequiredHeaders(
+  configuredHeaders: string[],
+  requiredHeaders: string[],
+): string[] {
+  const mergedHeaders = [...configuredHeaders];
+
+  for (const requiredHeader of requiredHeaders) {
+    const alreadyIncluded = mergedHeaders.some(
+      (header) => header.toLowerCase() === requiredHeader.toLowerCase(),
+    );
+
+    if (!alreadyIncluded) {
+      mergedHeaders.push(requiredHeader);
+    }
+  }
+
+  return mergedHeaders;
+}
+
+function getSingleHeader(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (typeof value === 'string') {
+    return value.trim() || undefined;
+  }
+
+  if (Array.isArray(value)) {
+    return value[0]?.trim() || undefined;
+  }
+
+  return undefined;
+}
+
+function parseHeaderList(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((header) => header.trim())
+    .filter(Boolean);
+}
+
+function getCorsIssues({
+  requestOrigin,
+  requestedMethod,
+  requestedHeaders,
+  allowedOrigins,
+  allowedMethods,
+  allowedHeaders,
+  allowAllOrigins,
+}: {
+  requestOrigin: string | undefined;
+  requestedMethod: string | undefined;
+  requestedHeaders: string[];
+  allowedOrigins: string[];
+  allowedMethods: string[];
+  allowedHeaders: string[];
+  allowAllOrigins: boolean;
+}): string[] {
+  const issues: string[] = [];
+
+  if (
+    requestOrigin &&
+    !allowAllOrigins &&
+    !allowedOrigins.includes(requestOrigin)
+  ) {
+    issues.push(`Origin "${requestOrigin}" is not in CORS_ORIGINS`);
+  }
+
+  if (
+    requestedMethod &&
+    !allowedMethods.some(
+      (allowedMethod) =>
+        allowedMethod.toLowerCase() === requestedMethod.toLowerCase(),
+    )
+  ) {
+    issues.push(`Method "${requestedMethod}" is not allowed by CORS_METHODS`);
+  }
+
+  const disallowedHeaders = requestedHeaders.filter(
+    (requestedHeader) =>
+      !allowedHeaders.some(
+        (allowedHeader) =>
+          allowedHeader.toLowerCase() === requestedHeader.toLowerCase(),
+      ),
+  );
+
+  if (disallowedHeaders.length > 0) {
+    issues.push(
+      `Headers not allowed by CORS_ALLOWED_HEADERS: ${disallowedHeaders.join(', ')}`,
+    );
+  }
+
+  return issues;
 }
 
 function parseBooleanEnv(

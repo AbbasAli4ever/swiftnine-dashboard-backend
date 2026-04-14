@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   Req,
   Res,
@@ -29,6 +30,8 @@ type GoogleAuthenticatedRequest = Request & { user: GoogleAuthProfile };
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
@@ -141,9 +144,23 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    const rawToken = (req as unknown as { cookies: Record<string, string> }).cookies['refresh_token'];
+    const cookieBag = (req as unknown as { cookies?: Record<string, string> })
+      .cookies;
+    const rawToken = cookieBag?.['refresh_token'];
 
     if (!rawToken) {
+      this.logger.warn(
+        `Refresh token missing on request: ${JSON.stringify({
+          path: req.originalUrl ?? req.url,
+          method: req.method,
+          origin: req.headers.origin ?? null,
+          referer: req.headers.referer ?? null,
+          userAgent: req.headers['user-agent'] ?? null,
+          cookieHeaderPresent: Boolean(req.headers.cookie),
+          hasParsedCookies: Boolean(cookieBag),
+          parsedCookieKeys: Object.keys(cookieBag ?? {}),
+        })}`,
+      );
       throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
     }
 

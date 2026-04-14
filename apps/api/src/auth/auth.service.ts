@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -44,6 +45,8 @@ export type GoogleAuthProfile = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
@@ -198,6 +201,12 @@ export class AuthService {
     });
 
     if (!stored) {
+      this.logger.warn(
+        `Refresh token rejected: ${JSON.stringify({
+          tokenHashPrefix: tokenHash.slice(0, 12),
+          reason: 'token_not_found_or_expired',
+        })}`,
+      );
       throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
     }
 
@@ -207,6 +216,13 @@ export class AuthService {
     });
 
     if (!user) {
+      this.logger.warn(
+        `Refresh token rejected: ${JSON.stringify({
+          tokenHashPrefix: tokenHash.slice(0, 12),
+          userId: stored.userId,
+          reason: 'user_not_found_or_inactive',
+        })}`,
+      );
       throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
     }
 
