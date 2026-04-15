@@ -9,8 +9,12 @@ export declare const INACTIVE_ACCOUNT_MESSAGE = "Account is no longer active";
 export declare const GOOGLE_ACCOUNT_CONFLICT_MESSAGE = "This email is already linked to another Google account";
 export declare const INVALID_REFRESH_TOKEN_MESSAGE = "Refresh token is invalid, expired, or already used";
 export declare const INVALID_OTP_MESSAGE = "OTP is invalid or has expired";
+export declare const INVALID_RESET_TOKEN_MESSAGE = "Reset link is invalid or has expired";
+export declare const EMAIL_NOT_VERIFIED_MESSAGE = "Email not verified. Check your inbox for the verification code.";
+export declare const EMAIL_ALREADY_REGISTERED_MESSAGE = "This email is already registered but not yet verified. A new verification code has been sent.";
 export declare const GOOGLE_ONLY_ACCOUNT_MESSAGE = "This account uses Google sign-in and has no password to reset";
-export declare const RESET_OTP_TTL_MS: number;
+export declare const RESET_TOKEN_TTL_MS: number;
+export declare const VERIFICATION_OTP_TTL_MS: number;
 export declare const AUTH_USER_SELECT: {
     id: true;
     fullName: true;

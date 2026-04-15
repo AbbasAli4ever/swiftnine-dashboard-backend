@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
+const common_2 = require("../../../../libs/common/src");
 const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
@@ -25,6 +26,7 @@ exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            common_2.CommonModule,
             passport_1.PassportModule.register({
                 session: false,
             }),

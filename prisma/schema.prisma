@@ -56,13 +56,15 @@ model User {
   lastSeenAt              DateTime? @map("last_seen_at")
   timezone                String?
   notificationPreferences Json     @default("{}") @map("notification_preferences")
+  isEmailVerified         Boolean  @default(false) @map("is_email_verified")
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
   deletedAt               DateTime? @map("deleted_at")
 
   // Relations
-  refreshTokens           RefreshToken[]
-  passwordResetTokens     PasswordResetToken[]
+  refreshTokens              RefreshToken[]
+  passwordResetTokens        PasswordResetToken[]
+  emailVerificationTokens    EmailVerificationToken[]
   workspacesCreated       Workspace[]          @relation("WorkspaceCreator")
   workspaceMembers        WorkspaceMember[]
   workspaceInvitesSent    WorkspaceInvite[]    @relation("InviteSender")
@@ -100,8 +102,23 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-/// Short-lived OTP for password reset — one active token per user
+/// Short-lived token for password reset via email link — one active token per user
 model PasswordResetToken {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  tokenHash   String   @unique @map("token_hash")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+/// Short-lived OTP for email verification on sign-up — one active token per user
+model EmailVerificationToken {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
   otpHash   String   @unique @map("otp_hash")
@@ -112,7 +129,7 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("password_reset_tokens")
+  @@map("email_verification_tokens")
 }
 
 /// Top-level organizational container — users can belong to multiple

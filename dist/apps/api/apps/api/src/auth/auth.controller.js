@@ -20,6 +20,7 @@ const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const auth_response_dto_1 = require("./dto/auth-response.dto");
 const login_dto_1 = require("./dto/login.dto");
+const verify_email_dto_1 = require("./dto/verify-email.dto");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 const local_auth_guard_1 = require("./guards/local-auth.guard");
 const auth_constants_1 = require("./auth.constants");
@@ -31,8 +32,11 @@ let AuthController = AuthController_1 = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    async register(dto, res) {
-        const { refreshToken, ...result } = await this.authService.register(dto);
+    async register(dto) {
+        return this.authService.register(dto);
+    }
+    async verifyEmail(dto, res) {
+        const { refreshToken, ...result } = await this.authService.verifyEmail(dto.email, dto.otp);
         this.setRefreshCookie(res, refreshToken);
         return result;
     }
@@ -49,18 +53,14 @@ let AuthController = AuthController_1 = class AuthController {
         res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
     }
     async refresh(req, res) {
-        const cookieBag = req
-            .cookies;
+        const cookieBag = req.cookies;
         const rawToken = cookieBag?.['refresh_token'];
         if (!rawToken) {
             this.logger.warn(`Refresh token missing on request: ${JSON.stringify({
                 path: req.originalUrl ?? req.url,
                 method: req.method,
                 origin: req.headers.origin ?? null,
-                referer: req.headers.referer ?? null,
-                userAgent: req.headers['user-agent'] ?? null,
                 cookieHeaderPresent: Boolean(req.headers.cookie),
-                hasParsedCookies: Boolean(cookieBag),
                 parsedCookieKeys: Object.keys(cookieBag ?? {}),
             })}`);
             throw new common_1.UnauthorizedException(auth_constants_1.INVALID_REFRESH_TOKEN_MESSAGE);
@@ -80,7 +80,7 @@ let AuthController = AuthController_1 = class AuthController {
         await this.authService.forgotPassword(dto.email);
     }
     async resetPassword(dto) {
-        await this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
+        await this.authService.resetPassword(dto.token, dto.newPassword);
     }
     setRefreshCookie(res, token) {
         res.cookie('refresh_token', token, {
@@ -106,21 +106,32 @@ __decorate([
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({
         summary: 'Register with email & password',
-        description: 'Creates a new account. Returns access token in body and sets refresh token as httpOnly cookie.',
+        description: 'Creates a new account and sends a 6-digit OTP to the email. Account is not active until the OTP is verified.',
     }),
-    (0, swagger_1.ApiResponse)({
-        status: 201,
-        type: auth_response_dto_1.AuthResponseDto,
-        description: 'Account created, tokens issued',
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'OTP sent to email' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email already in use and verified' }),
+    (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('verify-email'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Verify email with OTP',
+        description: 'Validates the 6-digit OTP sent during registration. On success, marks the account as verified and issues tokens.',
     }),
-    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email already in use' }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: auth_response_dto_1.AuthResponseDto, description: 'Email verified, tokens issued' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'OTP is invalid or has expired' }),
     (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_dto_1.RegisterDto, Object]),
+    __metadata("design:paramtypes", [verify_email_dto_1.VerifyEmailDto, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "register", null);
+], AuthController.prototype, "verifyEmail", null);
 __decorate([
     (0, common_1.Post)('login'),
     (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
@@ -130,12 +141,9 @@ __decorate([
         description: 'Validates credentials. Returns access token in body and sets refresh token as httpOnly cookie.',
     }),
     (0, swagger_1.ApiBody)({ type: login_dto_1.LoginDto }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        type: auth_response_dto_1.AuthResponseDto,
-        description: 'Login successful, tokens issued',
-    }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: auth_response_dto_1.AuthResponseDto, description: 'Login successful, tokens issued' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Invalid email or password' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Email not verified' }),
     (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
@@ -146,14 +154,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)('google'),
     (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Start Google OAuth',
-        description: 'Redirects the user to Google for authentication.',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 302,
-        description: 'Redirect to Google consent screen',
-    }),
+    (0, swagger_1.ApiOperation)({ summary: 'Start Google OAuth' }),
+    (0, swagger_1.ApiResponse)({ status: 302, description: 'Redirect to Google consent screen' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -161,23 +163,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)('google/callback'),
     (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Handle Google OAuth callback',
-        description: 'Consumes the Google OAuth callback, issues tokens, and sets the refresh token cookie.',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        type: auth_response_dto_1.AuthResponseDto,
-        description: 'Google authentication successful, tokens issued',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 401,
-        description: 'Google account could not be authenticated',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 409,
-        description: 'Google account conflicts with an existing or inactive account',
-    }),
+    (0, swagger_1.ApiOperation)({ summary: 'Handle Google OAuth callback' }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: auth_response_dto_1.AuthResponseDto, description: 'Google authentication successful' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Google account could not be authenticated' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Google account conflicts with an existing account' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -191,11 +180,7 @@ __decorate([
         summary: 'Refresh access token',
         description: 'Reads the refresh_token httpOnly cookie, validates it, rotates it, and issues a new token pair.',
     }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        type: auth_response_dto_1.AuthResponseDto,
-        description: 'New token pair issued',
-    }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: auth_response_dto_1.AuthResponseDto, description: 'New token pair issued' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Refresh token missing, invalid, or expired' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
@@ -206,14 +191,8 @@ __decorate([
 __decorate([
     (0, common_1.Post)('logout'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Logout current session',
-        description: 'Invalidates the current refresh token session and clears the refresh_token cookie.',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Session logged out successfully',
-    }),
+    (0, swagger_1.ApiOperation)({ summary: 'Logout current session' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Session logged out successfully' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
@@ -224,10 +203,10 @@ __decorate([
     (0, common_1.Post)('forgot-password'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({
-        summary: 'Request password reset OTP',
-        description: 'Sends a 6-digit OTP to the email if an account exists. Always returns 200 to prevent email enumeration.',
+        summary: 'Request password reset link',
+        description: 'Sends a password reset link to the email if an account exists. Always returns 200 to prevent email enumeration.',
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'OTP sent (or silently ignored if email not found)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Reset link sent (or silently ignored if email not found)' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [forgot_password_dto_1.ForgotPasswordDto]),
@@ -237,11 +216,11 @@ __decorate([
     (0, common_1.Post)('reset-password'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({
-        summary: 'Reset password using OTP',
-        description: 'Validates the 6-digit OTP and sets a new password. Revokes all active sessions on success.',
+        summary: 'Reset password using link token',
+        description: 'Validates the token from the reset link and sets a new password. Revokes all active sessions on success.',
     }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Password updated successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'OTP is invalid or has expired' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Token is invalid or has expired' }),
     (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),

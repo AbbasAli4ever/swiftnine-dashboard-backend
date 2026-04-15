@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
   Req,
@@ -22,6 +23,8 @@ import { WorkspaceGuard } from './workspace.guard';
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request } from 'express';
@@ -108,5 +111,69 @@ export class WorkspaceController {
       req.workspaceContext.role,
     );
     return ok(null, 'Workspace deleted successfully');
+  }
+
+  // ─── Invite ─────────────────────────────────────────────────────────────────
+
+  @Post(':workspaceId/invite')
+  @UseGuards(WorkspaceGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send a workspace invite email (OWNER only)' })
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiResponse({ status: 200, description: 'Invite sent' })
+  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({ status: 404, description: 'Workspace not found' })
+  async sendInvite(
+    @Req() req: WorkspaceRequest,
+    @Body() dto: InviteMemberDto,
+  ): Promise<ApiRes<null>> {
+    await this.workspaceService.sendInvite(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      req.workspaceContext.role,
+      dto,
+    );
+    return ok(null, 'Invite sent successfully');
+  }
+
+  @Get('invite/:token')
+  @ApiOperation({ summary: 'Peek at invite details without consuming it (public)' })
+  @ApiResponse({ status: 200, description: 'Invite details returned' })
+  @ApiResponse({ status: 404, description: 'Invite not found, used, or expired' })
+  async getInviteDetails(
+    @Param('token') token: string,
+  ): Promise<ApiRes<{
+    workspaceId: string;
+    workspaceName: string;
+    invitedEmail: string;
+    role: string;
+    inviterName: string;
+  }>> {
+    const details = await this.workspaceService.getInviteDetails(token);
+    return ok(details);
+  }
+
+  @Post('invite/accept')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Accept a workspace invite (authenticated)',
+    description:
+      'User must be logged in. The logged-in email must match the invited email.',
+  })
+  @ApiResponse({ status: 200, description: 'Invite accepted, added to workspace' })
+  @ApiResponse({ status: 400, description: 'Invite was sent to a different email' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 404, description: 'Invite not found, used, or expired' })
+  async acceptInvite(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: AcceptInviteDto,
+  ): Promise<ApiRes<{ workspaceId: string }>> {
+    const result = await this.workspaceService.acceptInvite(
+      dto.token,
+      req.user.id,
+      req.user.email,
+    );
+    return ok(result, 'Invite accepted successfully');
   }
 }

@@ -9,6 +9,7 @@ export { Prisma };
 export type User = Prisma.UserModel;
 export type RefreshToken = Prisma.RefreshTokenModel;
 export type PasswordResetToken = Prisma.PasswordResetTokenModel;
+export type EmailVerificationToken = Prisma.EmailVerificationTokenModel;
 export type Workspace = Prisma.WorkspaceModel;
 export type WorkspaceMember = Prisma.WorkspaceMemberModel;
 export type WorkspaceInvite = Prisma.WorkspaceInviteModel;

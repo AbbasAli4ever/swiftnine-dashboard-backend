@@ -20,6 +20,8 @@ const workspace_guard_1 = require("./workspace.guard");
 const workspace_service_1 = require("./workspace.service");
 const create_workspace_dto_1 = require("./dto/create-workspace.dto");
 const update_workspace_dto_1 = require("./dto/update-workspace.dto");
+const invite_member_dto_1 = require("./dto/invite-member.dto");
+const accept_invite_dto_1 = require("./dto/accept-invite.dto");
 const common_2 = require("../../../../libs/common/src");
 let WorkspaceController = class WorkspaceController {
     workspaceService;
@@ -45,6 +47,18 @@ let WorkspaceController = class WorkspaceController {
     async remove(req) {
         await this.workspaceService.remove(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role);
         return (0, common_2.ok)(null, 'Workspace deleted successfully');
+    }
+    async sendInvite(req, dto) {
+        await this.workspaceService.sendInvite(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, dto);
+        return (0, common_2.ok)(null, 'Invite sent successfully');
+    }
+    async getInviteDetails(token) {
+        const details = await this.workspaceService.getInviteDetails(token);
+        return (0, common_2.ok)(details);
+    }
+    async acceptInvite(req, dto) {
+        const result = await this.workspaceService.acceptInvite(dto.token, req.user.id, req.user.email);
+        return (0, common_2.ok)(result, 'Invite accepted successfully');
     }
 };
 exports.WorkspaceController = WorkspaceController;
@@ -110,6 +124,49 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)(':workspaceId/invite'),
+    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Send a workspace invite email (OWNER only)' }),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Invite sent' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member or not an owner' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Workspace not found' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, invite_member_dto_1.InviteMemberDto]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "sendInvite", null);
+__decorate([
+    (0, common_1.Get)('invite/:token'),
+    (0, swagger_1.ApiOperation)({ summary: 'Peek at invite details without consuming it (public)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Invite details returned' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Invite not found, used, or expired' }),
+    __param(0, (0, common_1.Param)('token')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "getInviteDetails", null);
+__decorate([
+    (0, common_1.Post)('invite/accept'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Accept a workspace invite (authenticated)',
+        description: 'User must be logged in. The logged-in email must match the invited email.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Invite accepted, added to workspace' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invite was sent to a different email' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Not authenticated' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Invite not found, used, or expired' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, accept_invite_dto_1.AcceptInviteDto]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "acceptInvite", null);
 exports.WorkspaceController = WorkspaceController = __decorate([
     (0, swagger_1.ApiTags)('workspaces'),
     (0, swagger_1.ApiBearerAuth)(),

@@ -4,8 +4,7 @@ exports.ResetPasswordDto = void 0;
 const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 const ResetPasswordSchema = zod_1.z.object({
-    email: zod_1.z.string().email('Invalid email address'),
-    otp: zod_1.z.string().length(6, 'OTP must be 6 digits').regex(/^\d{6}$/, 'OTP must be numeric'),
+    token: zod_1.z.string().uuid('Invalid reset token'),
     newPassword: zod_1.z
         .string()
         .min(8, 'Password must be at least 8 characters')

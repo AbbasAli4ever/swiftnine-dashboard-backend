@@ -17,10 +17,16 @@ export const GOOGLE_ACCOUNT_CONFLICT_MESSAGE =
 export const INVALID_REFRESH_TOKEN_MESSAGE =
   'Refresh token is invalid, expired, or already used';
 export const INVALID_OTP_MESSAGE = 'OTP is invalid or has expired';
+export const INVALID_RESET_TOKEN_MESSAGE = 'Reset link is invalid or has expired';
+export const EMAIL_NOT_VERIFIED_MESSAGE =
+  'Email not verified. Check your inbox for the verification code.';
+export const EMAIL_ALREADY_REGISTERED_MESSAGE =
+  'This email is already registered but not yet verified. A new verification code has been sent.';
 export const GOOGLE_ONLY_ACCOUNT_MESSAGE =
   'This account uses Google sign-in and has no password to reset';
 
-export const RESET_OTP_TTL_MS = 15 * 60 * 1000; // 15 min
+export const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;     // 1 hour
+export const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 export const AUTH_USER_SELECT = {
   id: true,

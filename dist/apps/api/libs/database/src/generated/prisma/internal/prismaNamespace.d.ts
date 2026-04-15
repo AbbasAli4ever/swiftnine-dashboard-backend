@@ -160,6 +160,7 @@ export declare const ModelName: {
     readonly User: "User";
     readonly RefreshToken: "RefreshToken";
     readonly PasswordResetToken: "PasswordResetToken";
+    readonly EmailVerificationToken: "EmailVerificationToken";
     readonly Workspace: "Workspace";
     readonly WorkspaceMember: "WorkspaceMember";
     readonly WorkspaceInvite: "WorkspaceInvite";
@@ -188,7 +189,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -411,6 +412,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 count: {
                     args: Prisma.PasswordResetTokenCountArgs<ExtArgs>;
                     result: runtime.Types.Utils.Optional<Prisma.PasswordResetTokenCountAggregateOutputType> | number;
+                };
+            };
+        };
+        EmailVerificationToken: {
+            payload: Prisma.$EmailVerificationTokenPayload<ExtArgs>;
+            fields: Prisma.EmailVerificationTokenFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.EmailVerificationTokenFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.EmailVerificationTokenFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                findFirst: {
+                    args: Prisma.EmailVerificationTokenFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.EmailVerificationTokenFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                findMany: {
+                    args: Prisma.EmailVerificationTokenFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+                };
+                create: {
+                    args: Prisma.EmailVerificationTokenCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                createMany: {
+                    args: Prisma.EmailVerificationTokenCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.EmailVerificationTokenCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+                };
+                delete: {
+                    args: Prisma.EmailVerificationTokenDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                update: {
+                    args: Prisma.EmailVerificationTokenUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.EmailVerificationTokenDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.EmailVerificationTokenUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.EmailVerificationTokenUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+                };
+                upsert: {
+                    args: Prisma.EmailVerificationTokenUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+                };
+                aggregate: {
+                    args: Prisma.EmailVerificationTokenAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateEmailVerificationToken>;
+                };
+                groupBy: {
+                    args: Prisma.EmailVerificationTokenGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.EmailVerificationTokenGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.EmailVerificationTokenCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.EmailVerificationTokenCountAggregateOutputType> | number;
                 };
             };
         };
@@ -1643,6 +1718,7 @@ export declare const UserScalarFieldEnum: {
     readonly lastSeenAt: "lastSeenAt";
     readonly timezone: "timezone";
     readonly notificationPreferences: "notificationPreferences";
+    readonly isEmailVerified: "isEmailVerified";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
     readonly deletedAt: "deletedAt";
@@ -1662,11 +1738,19 @@ export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[k
 export declare const PasswordResetTokenScalarFieldEnum: {
     readonly id: "id";
     readonly userId: "userId";
-    readonly otpHash: "otpHash";
+    readonly tokenHash: "tokenHash";
     readonly expiresAt: "expiresAt";
     readonly createdAt: "createdAt";
 };
 export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum];
+export declare const EmailVerificationTokenScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly otpHash: "otpHash";
+    readonly expiresAt: "expiresAt";
+    readonly createdAt: "createdAt";
+};
+export type EmailVerificationTokenScalarFieldEnum = (typeof EmailVerificationTokenScalarFieldEnum)[keyof typeof EmailVerificationTokenScalarFieldEnum];
 export declare const WorkspaceScalarFieldEnum: {
     readonly id: "id";
     readonly name: "name";
@@ -1931,6 +2015,7 @@ export type GlobalOmitConfig = {
     user?: Prisma.UserOmit;
     refreshToken?: Prisma.RefreshTokenOmit;
     passwordResetToken?: Prisma.PasswordResetTokenOmit;
+    emailVerificationToken?: Prisma.EmailVerificationTokenOmit;
     workspace?: Prisma.WorkspaceOmit;
     workspaceMember?: Prisma.WorkspaceMemberOmit;
     workspaceInvite?: Prisma.WorkspaceInviteOmit;

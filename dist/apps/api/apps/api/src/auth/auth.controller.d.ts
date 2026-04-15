@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import type { AuthUser, GoogleAuthProfile } from './auth.service';
@@ -15,7 +16,10 @@ export declare class AuthController {
     private readonly authService;
     private readonly logger;
     constructor(authService: AuthService);
-    register(dto: RegisterDto, res: Response): Promise<AuthResponseDto>;
+    register(dto: RegisterDto): Promise<{
+        message: string;
+    }>;
+    verifyEmail(dto: VerifyEmailDto, res: Response): Promise<AuthResponseDto>;
     login(req: AuthenticatedRequest, res: Response): Promise<AuthResponseDto>;
     googleAuth(): void;
     googleCallback(req: GoogleAuthenticatedRequest, res: Response): Promise<void>;

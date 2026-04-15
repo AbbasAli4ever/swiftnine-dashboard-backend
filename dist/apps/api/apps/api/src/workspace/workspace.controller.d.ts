@@ -1,6 +1,8 @@
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request } from 'express';
@@ -19,5 +21,16 @@ export declare class WorkspaceController {
     }>>;
     update(req: WorkspaceRequest, dto: UpdateWorkspaceDto): Promise<ApiRes<WorkspaceData>>;
     remove(req: WorkspaceRequest): Promise<ApiRes<null>>;
+    sendInvite(req: WorkspaceRequest, dto: InviteMemberDto): Promise<ApiRes<null>>;
+    getInviteDetails(token: string): Promise<ApiRes<{
+        workspaceId: string;
+        workspaceName: string;
+        invitedEmail: string;
+        role: string;
+        inviterName: string;
+    }>>;
+    acceptInvite(req: AuthenticatedRequest, dto: AcceptInviteDto): Promise<ApiRes<{
+        workspaceId: string;
+    }>>;
 }
 export {};

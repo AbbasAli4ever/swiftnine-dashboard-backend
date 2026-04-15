@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkspaceModule = void 0;
 const common_1 = require("@nestjs/common");
+const common_2 = require("../../../../libs/common/src");
 const workspace_controller_1 = require("./workspace.controller");
 const workspace_service_1 = require("./workspace.service");
 const workspace_guard_1 = require("./workspace.guard");
@@ -16,6 +17,7 @@ let WorkspaceModule = class WorkspaceModule {
 exports.WorkspaceModule = WorkspaceModule;
 exports.WorkspaceModule = WorkspaceModule = __decorate([
     (0, common_1.Module)({
+        imports: [common_2.CommonModule],
         controllers: [workspace_controller_1.WorkspaceController],
         providers: [workspace_service_1.WorkspaceService, workspace_guard_1.WorkspaceGuard],
         exports: [workspace_guard_1.WorkspaceGuard],

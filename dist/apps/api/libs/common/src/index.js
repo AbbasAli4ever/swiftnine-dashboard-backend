@@ -15,6 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./common.module"), exports);
+__exportStar(require("./email/email.service"), exports);
 __exportStar(require("./filters/global-exception.filter"), exports);
 __exportStar(require("./middleware/http-logger.middleware"), exports);
 __exportStar(require("./utils/api-response"), exports);
