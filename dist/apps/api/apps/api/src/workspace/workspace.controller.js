@@ -22,7 +22,9 @@ const create_workspace_dto_1 = require("./dto/create-workspace.dto");
 const update_workspace_dto_1 = require("./dto/update-workspace.dto");
 const invite_member_dto_1 = require("./dto/invite-member.dto");
 const accept_invite_dto_1 = require("./dto/accept-invite.dto");
+const claim_invite_dto_1 = require("./dto/claim-invite.dto");
 const common_2 = require("../../../../libs/common/src");
+const auth_constants_1 = require("../auth/auth.constants");
 let WorkspaceController = class WorkspaceController {
     workspaceService;
     constructor(workspaceService) {
@@ -56,14 +58,30 @@ let WorkspaceController = class WorkspaceController {
         const details = await this.workspaceService.getInviteDetails(token);
         return (0, common_2.ok)(details);
     }
+    async claimInvite(dto, res) {
+        const { refreshToken, ...result } = await this.workspaceService.claimInvite(dto);
+        this.setRefreshCookie(res, refreshToken);
+        return (0, common_2.ok)(result, 'Invite claimed successfully');
+    }
     async acceptInvite(req, dto) {
         const result = await this.workspaceService.acceptInvite(dto.token, req.user.id, req.user.email);
         return (0, common_2.ok)(result, 'Invite accepted successfully');
+    }
+    setRefreshCookie(res, token) {
+        res.cookie('refresh_token', token, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: auth_constants_1.REFRESH_TOKEN_TTL_MS,
+            path: '/api/v1/auth',
+        });
     }
 };
 exports.WorkspaceController = WorkspaceController;
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new workspace' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Workspace created successfully' }),
@@ -76,6 +94,8 @@ __decorate([
 ], WorkspaceController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'List all workspaces the current user belongs to' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Workspaces returned' }),
     __param(0, (0, common_1.Req)()),
@@ -85,7 +105,8 @@ __decorate([
 ], WorkspaceController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':workspaceId'),
-    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get a single workspace' }),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Workspace returned' }),
@@ -98,7 +119,8 @@ __decorate([
 ], WorkspaceController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':workspaceId'),
-    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update workspace name or logo (OWNER only)' }),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Workspace updated' }),
@@ -112,7 +134,8 @@ __decorate([
 ], WorkspaceController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':workspaceId'),
-    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Soft delete a workspace (OWNER only)' }),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
@@ -126,7 +149,8 @@ __decorate([
 ], WorkspaceController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':workspaceId/invite'),
-    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Send a workspace invite email (OWNER only)' }),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
@@ -150,8 +174,36 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "getInviteDetails", null);
 __decorate([
+    (0, common_1.Post)('invite/claim'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Create an account from a workspace invite and join immediately',
+        description: 'Public endpoint for invite recipients. Validates the invite token, creates or upgrades the invited account without OTP, signs the user in, and accepts the invite.',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        type: claim_invite_dto_1.ClaimInviteResponseDto,
+        description: 'Invite claimed successfully and auth tokens issued',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 404,
+        description: 'Invite not found, already used, or expired',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 409,
+        description: 'A verified account already exists for the invite email',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [claim_invite_dto_1.ClaimInviteDto, Object]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "claimInvite", null);
+__decorate([
     (0, common_1.Post)('invite/accept'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({
         summary: 'Accept a workspace invite (authenticated)',
@@ -169,9 +221,7 @@ __decorate([
 ], WorkspaceController.prototype, "acceptInvite", null);
 exports.WorkspaceController = WorkspaceController = __decorate([
     (0, swagger_1.ApiTags)('workspaces'),
-    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('workspaces'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [workspace_service_1.WorkspaceService])
 ], WorkspaceController);
 //# sourceMappingURL=workspace.controller.js.map

@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -25,22 +26,31 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
+import {
+  ClaimInviteDto,
+  ClaimInviteResponseDto,
+} from './dto/claim-invite.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
-import type { WorkspaceData } from './workspace.service';
+import type {
+  InviteClaimResult,
+  InviteNextStep,
+  WorkspaceData,
+} from './workspace.service';
+import { REFRESH_TOKEN_TTL_MS } from '../auth/auth.constants';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
 @ApiTags('workspaces')
-@ApiBearerAuth()
 @Controller('workspaces')
-@UseGuards(JwtAuthGuard)
 export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiResponse({ status: 201, description: 'Workspace created successfully' })
@@ -54,6 +64,8 @@ export class WorkspaceController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List all workspaces the current user belongs to' })
   @ApiResponse({ status: 200, description: 'Workspaces returned' })
   async findAll(@Req() req: AuthenticatedRequest): Promise<ApiRes<WorkspaceData[]>> {
@@ -62,7 +74,8 @@ export class WorkspaceController {
   }
 
   @Get(':workspaceId')
-  @UseGuards(WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a single workspace' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace returned' })
@@ -77,7 +90,8 @@ export class WorkspaceController {
   }
 
   @Patch(':workspaceId')
-  @UseGuards(WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update workspace name or logo (OWNER only)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace updated' })
@@ -97,7 +111,8 @@ export class WorkspaceController {
   }
 
   @Delete(':workspaceId')
-  @UseGuards(WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft delete a workspace (OWNER only)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
@@ -116,7 +131,8 @@ export class WorkspaceController {
   // ─── Invite ─────────────────────────────────────────────────────────────────
 
   @Post(':workspaceId/invite')
-  @UseGuards(WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send a workspace invite email (OWNER only)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
@@ -148,13 +164,45 @@ export class WorkspaceController {
     invitedEmail: string;
     role: string;
     inviterName: string;
+    nextStep: InviteNextStep;
   }>> {
     const details = await this.workspaceService.getInviteDetails(token);
     return ok(details);
   }
 
+  @Post('invite/claim')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Create an account from a workspace invite and join immediately',
+    description:
+      'Public endpoint for invite recipients. Validates the invite token, creates or upgrades the invited account without OTP, signs the user in, and accepts the invite.',
+  })
+  @ApiResponse({
+    status: 200,
+    type: ClaimInviteResponseDto,
+    description: 'Invite claimed successfully and auth tokens issued',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Invite not found, already used, or expired',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'A verified account already exists for the invite email',
+  })
+  @ApiResponse({ status: 422, description: 'Validation failed' })
+  async claimInvite(
+    @Body() dto: ClaimInviteDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiRes<Omit<InviteClaimResult, 'refreshToken'>>> {
+    const { refreshToken, ...result } = await this.workspaceService.claimInvite(dto);
+    this.setRefreshCookie(res, refreshToken);
+    return ok(result, 'Invite claimed successfully');
+  }
+
   @Post('invite/accept')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Accept a workspace invite (authenticated)',
@@ -175,5 +223,15 @@ export class WorkspaceController {
       req.user.email,
     );
     return ok(result, 'Invite accepted successfully');
+  }
+
+  private setRefreshCookie(res: Response, token: string): void {
+    res.cookie('refresh_token', token, {
+      httpOnly: true,
+      secure: process.env['NODE_ENV'] === 'production',
+      sameSite: 'strict',
+      maxAge: REFRESH_TOKEN_TTL_MS,
+      path: '/api/v1/auth',
+    });
   }
 }

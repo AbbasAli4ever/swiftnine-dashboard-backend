@@ -3,11 +3,12 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { ClaimInviteDto } from './dto/claim-invite.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
-import type { WorkspaceData } from './workspace.service';
+import type { InviteClaimResult, InviteNextStep, WorkspaceData } from './workspace.service';
 type AuthenticatedRequest = Request & {
     user: AuthUser;
 };
@@ -28,9 +29,12 @@ export declare class WorkspaceController {
         invitedEmail: string;
         role: string;
         inviterName: string;
+        nextStep: InviteNextStep;
     }>>;
+    claimInvite(dto: ClaimInviteDto, res: Response): Promise<ApiRes<Omit<InviteClaimResult, 'refreshToken'>>>;
     acceptInvite(req: AuthenticatedRequest, dto: AcceptInviteDto): Promise<ApiRes<{
         workspaceId: string;
     }>>;
+    private setRefreshCookie;
 }
 export {};

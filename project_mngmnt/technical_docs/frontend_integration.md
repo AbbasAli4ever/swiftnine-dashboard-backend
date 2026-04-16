@@ -148,6 +148,8 @@ All auth endpoints are **public** — no `Authorization` header needed.
 
 Creates a new account. Does **not** return tokens. Instead, sends a 6-digit OTP to the email. The user must verify the OTP before they can log in.
 
+Use this for normal sign-up flows. **Workspace invite recipients can now skip OTP** by claiming the invite directly with `POST /workspaces/invite/claim`.
+
 **Request**
 ```json
 {
@@ -656,11 +658,16 @@ Read the `token` query param from the invite URL and pass it here.
     "workspaceName": "Acme Corp",
     "invitedEmail": "newmember@example.com",
     "role": "MEMBER",
-    "inviterName": "Zaeem Hassan"
+    "inviterName": "Zaeem Hassan",
+    "nextStep": "claim_account"
   },
   "message": null
 }
 ```
+
+`nextStep` tells the frontend what to render immediately:
+- `claim_account` → show the invite claim form with `fullName` + `password`
+- `login` → show the login flow for the invited email
 
 **Errors**
 | Status | When |
@@ -673,11 +680,11 @@ Read the `token` query param from the invite URL and pass it here.
 
 Accept the invite. The user **must be logged in** and their account email must match the invited email.
 
-**Typical flow for an unregistered invitee:**
+**Typical flow for an existing account:**
 ```
 1. User clicks invite link → frontend calls GET /workspaces/invite/:token
-2. Frontend shows "You've been invited to X by Y" + Sign Up / Log In buttons
-3. User signs up (register → verify-email) or logs in
+2. Frontend checks `nextStep`
+3. Frontend shows the login flow
 4. Frontend calls POST /workspaces/invite/accept with the same token
 5. User is added to the workspace → redirect to workspace dashboard
 ```
@@ -710,6 +717,53 @@ Use `workspaceId` from the response to redirect the user directly into their new
 | `400` | Logged-in user's email ≠ invited email |
 | `401` | Not authenticated |
 | `404` | Token not found, expired, or already used |
+
+---
+
+### `POST /workspaces/invite/claim`
+
+Claim the invite without OTP. This is the receiver flow for invitees who do **not** already have a verified account. The backend validates the invite token, creates or upgrades the user account with the invited email, marks the email as verified, signs the user in, and accepts the invite in one step.
+
+**Public — no auth required.**
+
+**Request**
+```json
+{
+  "token": "the-uuid-from-the-invite-link",
+  "fullName": "Jane Invitee",
+  "password": "Secure123!"
+}
+```
+
+Password rules: min 8 chars · at least 1 uppercase · 1 lowercase · 1 number · 1 special character.
+
+**Response `200`** — sets `refresh_token` httpOnly cookie
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid",
+      "fullName": "Jane Invitee",
+      "email": "newmember@example.com",
+      "avatarUrl": null,
+      "avatarColor": "#6366f1"
+    },
+    "accessToken": "eyJ...",
+    "workspaceId": "uuid"
+  },
+  "message": "Invite claimed successfully"
+}
+```
+
+Use `workspaceId` from the response to redirect the user directly into their new workspace.
+
+**Errors**
+| Status | When |
+|---|---|
+| `404` | Token not found, expired, revoked, or already used |
+| `409` | A verified account already exists for the invited email — user should log in instead |
+| `422` | Validation failed |
 
 ---
 
@@ -916,15 +970,15 @@ ADMIN SIDE:
 
 INVITEE SIDE (not registered):
 2. Clicks link: http://localhost:3000/invite?token=<uuid>
-3. GET /workspaces/invite/:token → shows workspace name, inviter, role
-4. Frontend renders invite landing page with Sign Up / Log In
-5. User registers: POST /auth/register → verify OTP → POST /auth/verify-email
-6. POST /workspaces/invite/accept  → { workspaceId }
+3. GET /workspaces/invite/:token → shows workspace name, inviter, role, nextStep
+4. Frontend sees `nextStep = claim_account` and renders Name + Password form
+5. User submits POST /workspaces/invite/claim
+6. Backend creates/verifies the account, signs user in, accepts invite
 7. Redirect to /workspaces/<workspaceId>
 
 INVITEE SIDE (already registered):
 2–3. Same as above
-4. User logs in: POST /auth/login
+4. Frontend sees `nextStep = login`; user logs in: POST /auth/login
 5. POST /workspaces/invite/accept  → { workspaceId }
 6. Redirect to /workspaces/<workspaceId>
 ```

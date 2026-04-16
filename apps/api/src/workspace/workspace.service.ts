@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,14 +8,24 @@ import {
 import { PrismaService } from '@app/database';
 import { EmailService } from '@app/common';
 import type { Prisma, Role } from '@app/database/generated/prisma/client';
+import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'node:crypto';
+import {
+  type AuthUser,
+  AuthService,
+  type TokenPair,
+} from '../auth/auth.service';
 import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
+import type { ClaimInviteDto } from './dto/claim-invite.dto';
 
 const WORKSPACE_NOT_FOUND = 'Workspace not found';
 const OWNER_ONLY = 'Only the workspace owner can perform this action';
 const INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const PASSWORD_SALT_ROUNDS = 10;
+const INVITE_ALREADY_REGISTERED_MESSAGE =
+  'An account already exists for this email. Please log in to accept the invite.';
 
 const WORKSPACE_SELECT = {
   id: true,
@@ -29,11 +40,19 @@ export type WorkspaceData = Prisma.WorkspaceGetPayload<{
   select: typeof WORKSPACE_SELECT;
 }>;
 
+export type InviteClaimResult = Omit<TokenPair, 'refreshToken'> & {
+  refreshToken: string;
+  workspaceId: string;
+};
+
+export type InviteNextStep = 'claim_account' | 'login';
+
 @Injectable()
 export class WorkspaceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
+    private readonly authService: AuthService,
   ) {}
 
   async create(userId: string, dto: CreateWorkspaceDto): Promise<WorkspaceData> {
@@ -255,26 +274,19 @@ export class WorkspaceService {
     invitedEmail: string;
     role: Role;
     inviterName: string;
+    nextStep: InviteNextStep;
   }> {
-    const tokenHash = this.hashToken(token);
-
-    const invite = await this.prisma.workspaceInvite.findFirst({
-      where: {
-        inviteToken: tokenHash,
-        status: 'PENDING',
-        expiresAt: { gt: new Date() },
-      },
-      select: {
-        email: true,
-        role: true,
-        workspace: { select: { id: true, name: true } },
-        sender: { select: { fullName: true } },
-      },
+    const invite = await this.findPendingInviteByToken(token, {
+      email: true,
+      role: true,
+      workspace: { select: { id: true, name: true } },
+      sender: { select: { fullName: true } },
     });
 
-    if (!invite) {
-      throw new NotFoundException('Invite not found, already used, or expired');
-    }
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: invite.email.trim().toLowerCase(), deletedAt: null },
+      select: { id: true, isEmailVerified: true },
+    });
 
     return {
       workspaceId: invite.workspace.id,
@@ -282,6 +294,111 @@ export class WorkspaceService {
       invitedEmail: invite.email,
       role: invite.role,
       inviterName: invite.sender.fullName,
+      nextStep: existingUser?.isEmailVerified ? 'login' : 'claim_account',
+    };
+  }
+
+  async claimInvite(dto: ClaimInviteDto): Promise<InviteClaimResult> {
+    const invite = await this.findPendingInviteByToken(dto.token, {
+      id: true,
+      workspaceId: true,
+      email: true,
+      role: true,
+    });
+
+    const inviteEmail = invite.email.trim().toLowerCase();
+    const fullName = dto.fullName.trim();
+    const passwordHash = await bcrypt.hash(dto.password, PASSWORD_SALT_ROUNDS);
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const existingUser = await tx.user.findFirst({
+        where: { email: inviteEmail, deletedAt: null },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+          avatarColor: true,
+          isEmailVerified: true,
+        },
+      });
+
+      if (existingUser?.isEmailVerified) {
+        throw new ConflictException(INVITE_ALREADY_REGISTERED_MESSAGE);
+      }
+
+      let authUser: AuthUser;
+
+      if (existingUser) {
+        authUser = await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            fullName,
+            passwordHash,
+            isEmailVerified: true,
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+            avatarColor: true,
+          },
+        });
+
+        await tx.emailVerificationToken.deleteMany({
+          where: { userId: existingUser.id },
+        });
+      } else {
+        authUser = await tx.user.create({
+          data: {
+            fullName,
+            email: inviteEmail,
+            passwordHash,
+            isEmailVerified: true,
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+            avatarColor: true,
+          },
+        });
+      }
+
+      const existingMember = await tx.workspaceMember.findFirst({
+        where: {
+          workspaceId: invite.workspaceId,
+          userId: authUser.id,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      await tx.workspaceInvite.update({
+        where: { id: invite.id },
+        data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      });
+
+      if (!existingMember) {
+        await tx.workspaceMember.create({
+          data: {
+            workspaceId: invite.workspaceId,
+            userId: authUser.id,
+            role: invite.role,
+          },
+        });
+      }
+
+      return authUser;
+    });
+
+    const tokenPair = await this.authService.issueTokens(user);
+
+    return {
+      ...tokenPair,
+      workspaceId: invite.workspaceId,
     };
   }
 
@@ -290,20 +407,12 @@ export class WorkspaceService {
     userId: string,
     userEmail: string,
   ): Promise<{ workspaceId: string }> {
-    const tokenHash = this.hashToken(token);
-
-    const invite = await this.prisma.workspaceInvite.findFirst({
-      where: {
-        inviteToken: tokenHash,
-        status: 'PENDING',
-        expiresAt: { gt: new Date() },
-      },
-      select: { id: true, workspaceId: true, email: true, role: true },
+    const invite = await this.findPendingInviteByToken(token, {
+      id: true,
+      workspaceId: true,
+      email: true,
+      role: true,
     });
-
-    if (!invite) {
-      throw new NotFoundException('Invite not found, already used, or expired');
-    }
 
     if (invite.email !== userEmail.trim().toLowerCase()) {
       throw new BadRequestException('This invite was sent to a different email address');
@@ -337,5 +446,25 @@ export class WorkspaceService {
 
   private hashToken(rawToken: string): string {
     return createHash('sha256').update(rawToken).digest('hex');
+  }
+
+  private async findPendingInviteByToken<TSelect extends Prisma.WorkspaceInviteSelect>(
+    token: string,
+    select: TSelect,
+  ): Promise<Prisma.WorkspaceInviteGetPayload<{ select: TSelect }>> {
+    const invite = await this.prisma.workspaceInvite.findFirst({
+      where: {
+        inviteToken: this.hashToken(token),
+        status: 'PENDING',
+        expiresAt: { gt: new Date() },
+      },
+      select,
+    });
+
+    if (!invite) {
+      throw new NotFoundException('Invite not found, already used, or expired');
+    }
+
+    return invite;
   }
 }
