@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { WorkspaceController } from './workspace.controller';
 import { WorkspaceService } from './workspace.service';
+import type { WorkspaceRequest } from './workspace.types';
 
 jest.mock('@app/database', () => ({
   PrismaService: class PrismaService {},
@@ -11,11 +12,13 @@ describe('WorkspaceController', () => {
   let controller: WorkspaceController;
   let workspaceService: {
     claimInvite: jest.Mock;
+    sendBatchInvites: jest.Mock;
   };
 
   beforeEach(() => {
     workspaceService = {
       claimInvite: jest.fn(),
+      sendBatchInvites: jest.fn(),
     };
 
     controller = new WorkspaceController(workspaceService as unknown as WorkspaceService);
@@ -78,6 +81,60 @@ describe('WorkspaceController', () => {
         workspaceId: 'workspace-1',
       },
       message: 'Invite claimed successfully',
+    });
+  });
+
+  it('returns the batch invite result payload from the controller', async () => {
+    workspaceService.sendBatchInvites.mockResolvedValue({
+      results: [
+        { email: 'a@example.com', status: 'invited', message: null },
+        { email: 'b@example.com', status: 'already_member', message: null },
+      ],
+      summary: {
+        total: 2,
+        invited: 1,
+        alreadyMember: 1,
+        failed: 0,
+      },
+    });
+
+    const request = {
+      user: { id: 'user-1' },
+      workspaceContext: {
+        workspaceId: 'workspace-1',
+        role: 'OWNER',
+      },
+    } as unknown as WorkspaceRequest;
+
+    const result = await controller.sendBatchInvites(request, {
+      emails: ['a@example.com', 'b@example.com'],
+      role: 'MEMBER',
+    });
+
+    expect(workspaceService.sendBatchInvites).toHaveBeenCalledWith(
+      'workspace-1',
+      'user-1',
+      'OWNER',
+      {
+        emails: ['a@example.com', 'b@example.com'],
+        role: 'MEMBER',
+      },
+    );
+    expect(result).toEqual({
+      success: true,
+      data: {
+        results: [
+          { email: 'a@example.com', status: 'invited', message: null },
+          { email: 'b@example.com', status: 'already_member', message: null },
+        ],
+        summary: {
+          total: 2,
+          invited: 1,
+          alreadyMember: 1,
+          failed: 0,
+        },
+      },
+      message: 'Batch invite processed',
     });
   });
 });

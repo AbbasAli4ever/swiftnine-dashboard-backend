@@ -1,12 +1,37 @@
+import type { Prisma } from '@app/database/generated/prisma/client';
+
 export const PROJECT_NOT_FOUND = 'Project not found';
 export const PROJECT_PREFIX_TAKEN = 'A project with this task ID prefix already exists in this workspace';
 export const OWNER_ONLY = 'Only the workspace owner can perform this action';
 
 export const DEFAULT_STATUSES = [
-  { name: 'To Do',       color: '#94a3b8', position: 1000, isDefault: true, isClosed: false },
-  { name: 'In Progress', color: '#3b82f6', position: 2000, isDefault: true, isClosed: false },
-  { name: 'Review',      color: '#f59e0b', position: 3000, isDefault: true, isClosed: false },
-  { name: 'Completed',   color: '#22c55e', position: 4000, isDefault: true, isClosed: true  },
+  {
+    name: 'To Do',
+    color: '#94a3b8',
+    position: 1000,
+    group: 'NOT_STARTED',
+    isDefault: true,
+    isProtected: false,
+    isClosed: false,
+  },
+  {
+    name: 'In Progress',
+    color: '#3b82f6',
+    position: 1000,
+    group: 'ACTIVE',
+    isDefault: true,
+    isProtected: false,
+    isClosed: false,
+  },
+  {
+    name: 'Complete',
+    color: '#22c55e',
+    position: 1000,
+    group: 'CLOSED',
+    isDefault: true,
+    isProtected: true,
+    isClosed: true,
+  },
 ] as const;
 
 export const PROJECT_SELECT = {
@@ -31,13 +56,15 @@ export const PROJECT_WITH_STATUSES_SELECT = {
       id: true,
       name: true,
       color: true,
+      group: true,
       position: true,
       isDefault: true,
+      isProtected: true,
       isClosed: true,
     },
-    orderBy: { position: 'asc' as const },
+    orderBy: [{ group: 'asc' }, { position: 'asc' }],
   },
   _count: {
     select: { taskLists: true },
   },
-} as const;
+} satisfies Prisma.ProjectSelect;

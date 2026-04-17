@@ -5,25 +5,25 @@ export declare const DEFAULT_STATUSES: readonly [{
     readonly name: "To Do";
     readonly color: "#94a3b8";
     readonly position: 1000;
+    readonly group: "NOT_STARTED";
     readonly isDefault: true;
+    readonly isProtected: false;
     readonly isClosed: false;
 }, {
     readonly name: "In Progress";
     readonly color: "#3b82f6";
-    readonly position: 2000;
+    readonly position: 1000;
+    readonly group: "ACTIVE";
     readonly isDefault: true;
+    readonly isProtected: false;
     readonly isClosed: false;
 }, {
-    readonly name: "Review";
-    readonly color: "#f59e0b";
-    readonly position: 3000;
-    readonly isDefault: true;
-    readonly isClosed: false;
-}, {
-    readonly name: "Completed";
+    readonly name: "Complete";
     readonly color: "#22c55e";
-    readonly position: 4000;
+    readonly position: 1000;
+    readonly group: "CLOSED";
     readonly isDefault: true;
+    readonly isProtected: true;
     readonly isClosed: true;
 }];
 export declare const PROJECT_SELECT: {
@@ -40,36 +40,42 @@ export declare const PROJECT_SELECT: {
     readonly updatedAt: true;
 };
 export declare const PROJECT_WITH_STATUSES_SELECT: {
-    readonly statuses: {
-        readonly where: {
-            readonly deletedAt: null;
+    statuses: {
+        where: {
+            deletedAt: null;
         };
-        readonly select: {
-            readonly id: true;
-            readonly name: true;
-            readonly color: true;
-            readonly position: true;
-            readonly isDefault: true;
-            readonly isClosed: true;
+        select: {
+            id: true;
+            name: true;
+            color: true;
+            group: true;
+            position: true;
+            isDefault: true;
+            isProtected: true;
+            isClosed: true;
         };
-        readonly orderBy: {
-            readonly position: "asc";
+        orderBy: ({
+            group: "asc";
+            position?: undefined;
+        } | {
+            position: "asc";
+            group?: undefined;
+        })[];
+    };
+    _count: {
+        select: {
+            taskLists: true;
         };
     };
-    readonly _count: {
-        readonly select: {
-            readonly taskLists: true;
-        };
-    };
-    readonly id: true;
-    readonly workspaceId: true;
-    readonly name: true;
-    readonly description: true;
-    readonly color: true;
-    readonly icon: true;
-    readonly taskIdPrefix: true;
-    readonly isArchived: true;
-    readonly createdBy: true;
-    readonly createdAt: true;
-    readonly updatedAt: true;
+    id: true;
+    workspaceId: true;
+    name: true;
+    description: true;
+    color: true;
+    icon: true;
+    taskIdPrefix: true;
+    isArchived: true;
+    createdBy: true;
+    createdAt: true;
+    updatedAt: true;
 };

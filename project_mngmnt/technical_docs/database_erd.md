@@ -95,6 +95,8 @@ Top-level organizational container. A user can own/belong to multiple workspaces
 | id | String | @id @default(uuid()) | |
 | name | String | | Workspace name |
 | logoUrl | String? | | Workspace logo (S3) |
+| workspaceUse | WorkspaceUse | | Primary workspace intent (`WORK`, `PERSONAL`, `SCHOOL`) |
+| managementType | WorkspaceManagementType | | Primary function managed in the workspace |
 | createdBy | String | FK -> User | Creator/owner |
 | createdAt | DateTime | @default(now()) | |
 | updatedAt | DateTime | @updatedAt | |
@@ -102,7 +104,7 @@ Top-level organizational container. A user can own/belong to multiple workspaces
 
 **Relations:** creator, members, invites, projects, tags, activityLogs
 
-**Activity Log Tracking:** Log on `name`, `logoUrl` changes. Log creation and deletion.
+**Activity Log Tracking:** Log on `name`, `logoUrl`, `workspaceUse`, and `managementType` changes. Log creation and deletion.
 
 **Maps to:** `@@map("workspaces")`
 
@@ -205,7 +207,7 @@ Lists live inside a project and contain tasks. Gap-based positioning (1000, 2000
 
 ### 8. `Status`
 
-Custom statuses per project. 4 defaults created on project creation.
+Custom statuses per project. Grouped into `NOT_STARTED`, `ACTIVE`, `DONE`, and `CLOSED`.
 
 | Field | Prisma Type | Constraints | Description |
 |-------|-------------|-------------|-------------|
@@ -213,9 +215,11 @@ Custom statuses per project. 4 defaults created on project creation.
 | projectId | String | FK -> Project | Scoped to project |
 | name | String | | Status name |
 | color | String | @default("#94a3b8") | Hex color |
+| group | StatusGroup | @default(ACTIVE) | Fixed buckets for UI and reporting |
 | position | Int | @default(1000) | Gap-based display order |
-| isDefault | Boolean | @default(false) | System default (can't delete) |
-| isClosed | Boolean | @default(false) | "Done" statuses for dashboard stats |
+| isDefault | Boolean | @default(false) | Included in the baseline template |
+| isProtected | Boolean | @default(false) | Locked closed status that cannot be deleted |
+| isClosed | Boolean | @default(false) | Terminal/closed status flag |
 | createdAt | DateTime | @default(now()) | |
 | updatedAt | DateTime | @updatedAt | |
 | deletedAt | DateTime? | | Soft delete |
@@ -223,10 +227,14 @@ Custom statuses per project. 4 defaults created on project creation.
 **Unique:** `@@unique([projectId, name])`
 
 **Default statuses on project creation:**
-1. To Do (position: 1000, isClosed: false)
-2. In Progress (position: 2000, isClosed: false)
-3. Review (position: 3000, isClosed: false)
-4. Completed (position: 4000, isClosed: true)
+1. To Do (`NOT_STARTED`, position: 1000)
+2. In Progress (`ACTIVE`, position: 1000)
+3. Complete (`CLOSED`, position: 1000, `isProtected: true`)
+
+**Rules:**
+1. Custom statuses can only be created in `NOT_STARTED`, `ACTIVE`, or `DONE`
+2. `CLOSED` always contains exactly one protected status
+3. The protected closed status can be renamed, but not deleted
 
 **Activity Log Tracking:** Log creation, update, deletion, reorder.
 
@@ -893,7 +901,7 @@ Since Prisma doesn't have built-in soft delete, we use **Prisma middleware** tha
 
 3. **Subtask Depth** — No native CHECK constraint in Prisma. Enforced at service level: `if (parent.depth >= 2) throw new UnprocessableEntityException('Max subtask depth exceeded')`.
 
-4. **Default Statuses** — On project creation, within the same transaction, create 4 statuses: To Do (1000), In Progress (2000), Review (3000), Completed (4000, isClosed: true).
+4. **Default Statuses** — On project creation, within the same transaction, create grouped defaults: To Do (`NOT_STARTED`), In Progress (`ACTIVE`), and Complete (`CLOSED`, protected).
 
 5. **WebSocket Events** — `isOnline` updated via WebSocket connect/disconnect. `lastSeenAt` updated on disconnect.
 

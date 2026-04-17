@@ -3,6 +3,29 @@ export declare const Role: {
     readonly MEMBER: "MEMBER";
 };
 export type Role = (typeof Role)[keyof typeof Role];
+export declare const WorkspaceUse: {
+    readonly WORK: "WORK";
+    readonly PERSONAL: "PERSONAL";
+    readonly SCHOOL: "SCHOOL";
+};
+export type WorkspaceUse = (typeof WorkspaceUse)[keyof typeof WorkspaceUse];
+export declare const WorkspaceManagementType: {
+    readonly HR_RECRUITING: "HR_RECRUITING";
+    readonly CREATIVE_DESIGN: "CREATIVE_DESIGN";
+    readonly PROFESSIONAL_SERVICES: "PROFESSIONAL_SERVICES";
+    readonly FINANCE_ACCOUNTING: "FINANCE_ACCOUNTING";
+    readonly OPERATIONS: "OPERATIONS";
+    readonly SOFTWARE_DEVELOPMENT: "SOFTWARE_DEVELOPMENT";
+    readonly IT: "IT";
+    readonly SALES_CRM: "SALES_CRM";
+    readonly PERSONAL_USE: "PERSONAL_USE";
+    readonly SUPPORT: "SUPPORT";
+    readonly STARTUP: "STARTUP";
+    readonly PMO: "PMO";
+    readonly MARKETING: "MARKETING";
+    readonly OTHER: "OTHER";
+};
+export type WorkspaceManagementType = (typeof WorkspaceManagementType)[keyof typeof WorkspaceManagementType];
 export declare const InviteStatus: {
     readonly PENDING: "PENDING";
     readonly ACCEPTED: "ACCEPTED";
@@ -18,3 +41,10 @@ export declare const Priority: {
     readonly NONE: "NONE";
 };
 export type Priority = (typeof Priority)[keyof typeof Priority];
+export declare const StatusGroup: {
+    readonly NOT_STARTED: "NOT_STARTED";
+    readonly ACTIVE: "ACTIVE";
+    readonly DONE: "DONE";
+    readonly CLOSED: "CLOSED";
+};
+export type StatusGroup = (typeof StatusGroup)[keyof typeof StatusGroup];

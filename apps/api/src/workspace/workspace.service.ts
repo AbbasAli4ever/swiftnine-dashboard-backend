@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  InternalServerErrorException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
 import type { ClaimInviteDto } from './dto/claim-invite.dto';
+import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
 
 const WORKSPACE_NOT_FOUND = 'Workspace not found';
 const OWNER_ONLY = 'Only the workspace owner can perform this action';
@@ -31,6 +33,8 @@ const WORKSPACE_SELECT = {
   id: true,
   name: true,
   logoUrl: true,
+  workspaceUse: true,
+  managementType: true,
   createdBy: true,
   createdAt: true,
   updatedAt: true,
@@ -46,6 +50,28 @@ export type InviteClaimResult = Omit<TokenPair, 'refreshToken'> & {
 };
 
 export type InviteNextStep = 'claim_account' | 'login';
+export type BatchInviteStatus = 'invited' | 'already_member' | 'failed';
+export type BatchInviteMemberResult = {
+  email: string;
+  status: BatchInviteStatus;
+  message: string | null;
+};
+export type BatchInviteResult = {
+  results: BatchInviteMemberResult[];
+  summary: {
+    total: number;
+    invited: number;
+    alreadyMember: number;
+    failed: number;
+  };
+};
+
+type InviteContext = {
+  workspaceId: string;
+  workspaceName: string;
+  inviterId: string;
+  inviterName: string;
+};
 
 @Injectable()
 export class WorkspaceService {
@@ -61,6 +87,8 @@ export class WorkspaceService {
         data: {
           name: dto.name.trim(),
           logoUrl: dto.logoUrl ?? null,
+          workspaceUse: dto.workspaceUse,
+          managementType: dto.managementType,
           createdBy: userId,
         },
         select: WORKSPACE_SELECT,
@@ -80,7 +108,11 @@ export class WorkspaceService {
           entityType: 'workspace',
           entityId: workspace.id,
           action: 'created',
-          metadata: { workspaceName: workspace.name },
+          metadata: {
+            workspaceName: workspace.name,
+            workspaceUse: workspace.workspaceUse,
+            managementType: workspace.managementType,
+          },
           performedBy: userId,
         },
       });
@@ -148,6 +180,27 @@ export class WorkspaceService {
       logEntries.push({ fieldName: 'logoUrl', oldValue: workspace.logoUrl ?? null, newValue: dto.logoUrl ?? null });
     }
 
+    if (dto.workspaceUse !== undefined && dto.workspaceUse !== workspace.workspaceUse) {
+      updateData.workspaceUse = dto.workspaceUse;
+      logEntries.push({
+        fieldName: 'workspaceUse',
+        oldValue: workspace.workspaceUse,
+        newValue: dto.workspaceUse,
+      });
+    }
+
+    if (
+      dto.managementType !== undefined &&
+      dto.managementType !== workspace.managementType
+    ) {
+      updateData.managementType = dto.managementType;
+      logEntries.push({
+        fieldName: 'managementType',
+        oldValue: workspace.managementType,
+        newValue: dto.managementType,
+      });
+    }
+
     if (Object.keys(updateData).length === 0) return workspace;
 
     const updated = await this.prisma.workspace.update({
@@ -210,62 +263,37 @@ export class WorkspaceService {
     role: Role,
     dto: InviteMemberDto,
   ): Promise<void> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+    const inviteContext = await this.prepareInviteContext(workspaceId, inviterId, role);
+    const result = await this.sendInviteToEmail(inviteContext, dto.email, dto.role);
 
-    const workspace = await this.prisma.workspace.findFirst({
-      where: { id: workspaceId, deletedAt: null },
-      select: { id: true, name: true },
-    });
-    if (!workspace) throw new NotFoundException(WORKSPACE_NOT_FOUND);
+    if (result.status === 'failed') {
+      throw new InternalServerErrorException(result.message ?? 'Failed to send invite email');
+    }
+  }
 
-    const inviteeEmail = dto.email.trim().toLowerCase();
+  async sendBatchInvites(
+    workspaceId: string,
+    inviterId: string,
+    role: Role,
+    dto: BatchInviteMembersDto,
+  ): Promise<BatchInviteResult> {
+    const inviteContext = await this.prepareInviteContext(workspaceId, inviterId, role);
+    const uniqueEmails = [...new Set(dto.emails.map((email) => email.trim().toLowerCase()))];
+    const results: BatchInviteMemberResult[] = [];
 
-    // Silent return if already an active member
-    const alreadyMember = await this.prisma.workspaceMember.findFirst({
-      where: {
-        workspaceId,
-        deletedAt: null,
-        user: { email: inviteeEmail, deletedAt: null },
+    for (const email of uniqueEmails) {
+      results.push(await this.sendInviteToEmail(inviteContext, email, dto.role));
+    }
+
+    return {
+      results,
+      summary: {
+        total: results.length,
+        invited: results.filter((result) => result.status === 'invited').length,
+        alreadyMember: results.filter((result) => result.status === 'already_member').length,
+        failed: results.filter((result) => result.status === 'failed').length,
       },
-      select: { id: true },
-    });
-    if (alreadyMember) return;
-
-    const inviter = await this.prisma.user.findFirst({
-      where: { id: inviterId, deletedAt: null },
-      select: { fullName: true },
-    });
-
-    // Revoke any existing pending invite for this email in this workspace
-    await this.prisma.workspaceInvite.updateMany({
-      where: { workspaceId, email: inviteeEmail, status: 'PENDING' },
-      data: { status: 'REVOKED' },
-    });
-
-    const rawToken = randomUUID();
-    const tokenHash = this.hashToken(rawToken);
-
-    await this.prisma.workspaceInvite.create({
-      data: {
-        workspaceId,
-        email: inviteeEmail,
-        role: dto.role,
-        inviteToken: tokenHash,
-        invitedBy: inviterId,
-        status: 'PENDING',
-        expiresAt: new Date(Date.now() + INVITE_TOKEN_TTL_MS),
-      },
-    });
-
-    const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
-    const inviteUrl = `${frontendUrl}/invite?token=${rawToken}`;
-
-    await this.email.sendWorkspaceInviteEmail(
-      inviteeEmail,
-      inviter?.fullName ?? 'A team member',
-      workspace.name,
-      inviteUrl,
-    );
+    };
   }
 
   async getInviteDetails(token: string): Promise<{
@@ -448,6 +476,32 @@ export class WorkspaceService {
     return createHash('sha256').update(rawToken).digest('hex');
   }
 
+  private async prepareInviteContext(
+    workspaceId: string,
+    inviterId: string,
+    role: Role,
+  ): Promise<InviteContext> {
+    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+
+    const workspace = await this.prisma.workspace.findFirst({
+      where: { id: workspaceId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!workspace) throw new NotFoundException(WORKSPACE_NOT_FOUND);
+
+    const inviter = await this.prisma.user.findFirst({
+      where: { id: inviterId, deletedAt: null },
+      select: { fullName: true },
+    });
+
+    return {
+      workspaceId: workspace.id,
+      workspaceName: workspace.name,
+      inviterId,
+      inviterName: inviter?.fullName ?? 'A team member',
+    };
+  }
+
   private async findPendingInviteByToken<TSelect extends Prisma.WorkspaceInviteSelect>(
     token: string,
     select: TSelect,
@@ -466,5 +520,83 @@ export class WorkspaceService {
     }
 
     return invite;
+  }
+
+  private async sendInviteToEmail(
+    inviteContext: InviteContext,
+    email: string,
+    inviteRole: Role,
+  ): Promise<BatchInviteMemberResult> {
+    const inviteeEmail = email.trim().toLowerCase();
+
+    const alreadyMember = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId: inviteContext.workspaceId,
+        deletedAt: null,
+        user: { email: inviteeEmail, deletedAt: null },
+      },
+      select: { id: true },
+    });
+
+    if (alreadyMember) {
+      return {
+        email: inviteeEmail,
+        status: 'already_member',
+        message: null,
+      };
+    }
+
+    await this.prisma.workspaceInvite.updateMany({
+      where: {
+        workspaceId: inviteContext.workspaceId,
+        email: inviteeEmail,
+        status: 'PENDING',
+      },
+      data: { status: 'REVOKED' },
+    });
+
+    const rawToken = randomUUID();
+    const tokenHash = this.hashToken(rawToken);
+    const invite = await this.prisma.workspaceInvite.create({
+      data: {
+        workspaceId: inviteContext.workspaceId,
+        email: inviteeEmail,
+        role: inviteRole,
+        inviteToken: tokenHash,
+        invitedBy: inviteContext.inviterId,
+        status: 'PENDING',
+        expiresAt: new Date(Date.now() + INVITE_TOKEN_TTL_MS),
+      },
+      select: { id: true },
+    });
+
+    const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
+    const inviteUrl = `${frontendUrl}/invite?token=${rawToken}`;
+
+    try {
+      await this.email.sendWorkspaceInviteEmail(
+        inviteeEmail,
+        inviteContext.inviterName,
+        inviteContext.workspaceName,
+        inviteUrl,
+      );
+
+      return {
+        email: inviteeEmail,
+        status: 'invited',
+        message: null,
+      };
+    } catch {
+      await this.prisma.workspaceInvite.update({
+        where: { id: invite.id },
+        data: { status: 'REVOKED' },
+      });
+
+      return {
+        email: inviteeEmail,
+        status: 'failed',
+        message: 'Failed to send invite email',
+      };
+    }
   }
 }

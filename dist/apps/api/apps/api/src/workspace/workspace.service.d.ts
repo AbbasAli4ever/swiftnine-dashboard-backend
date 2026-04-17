@@ -6,10 +6,13 @@ import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
 import type { ClaimInviteDto } from './dto/claim-invite.dto';
+import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
 declare const WORKSPACE_SELECT: {
     id: true;
     name: true;
     logoUrl: true;
+    workspaceUse: true;
+    managementType: true;
     createdBy: true;
     createdAt: true;
     updatedAt: true;
@@ -22,6 +25,21 @@ export type InviteClaimResult = Omit<TokenPair, 'refreshToken'> & {
     workspaceId: string;
 };
 export type InviteNextStep = 'claim_account' | 'login';
+export type BatchInviteStatus = 'invited' | 'already_member' | 'failed';
+export type BatchInviteMemberResult = {
+    email: string;
+    status: BatchInviteStatus;
+    message: string | null;
+};
+export type BatchInviteResult = {
+    results: BatchInviteMemberResult[];
+    summary: {
+        total: number;
+        invited: number;
+        alreadyMember: number;
+        failed: number;
+    };
+};
 export declare class WorkspaceService {
     private readonly prisma;
     private readonly email;
@@ -35,6 +53,7 @@ export declare class WorkspaceService {
     update(workspaceId: string, userId: string, role: Role, dto: UpdateWorkspaceDto): Promise<WorkspaceData>;
     remove(workspaceId: string, userId: string, role: Role): Promise<void>;
     sendInvite(workspaceId: string, inviterId: string, role: Role, dto: InviteMemberDto): Promise<void>;
+    sendBatchInvites(workspaceId: string, inviterId: string, role: Role, dto: BatchInviteMembersDto): Promise<BatchInviteResult>;
     getInviteDetails(token: string): Promise<{
         workspaceId: string;
         workspaceName: string;
@@ -48,6 +67,8 @@ export declare class WorkspaceService {
         workspaceId: string;
     }>;
     private hashToken;
+    private prepareInviteContext;
     private findPendingInviteByToken;
+    private sendInviteToEmail;
 }
 export {};

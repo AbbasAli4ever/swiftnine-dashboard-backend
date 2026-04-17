@@ -37,7 +37,7 @@ export class ProjectController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new project in the workspace' })
-  @ApiResponse({ status: 201, description: 'Project created with 4 default statuses' })
+  @ApiResponse({ status: 201, description: 'Project created with grouped default statuses' })
   @ApiResponse({ status: 409, description: 'Task ID prefix already taken in this workspace' })
   async create(
     @Req() req: WorkspaceRequest,

@@ -1755,6 +1755,8 @@ export declare const WorkspaceScalarFieldEnum: {
     readonly id: "id";
     readonly name: "name";
     readonly logoUrl: "logoUrl";
+    readonly workspaceUse: "workspaceUse";
+    readonly managementType: "managementType";
     readonly createdBy: "createdBy";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
@@ -1818,7 +1820,9 @@ export declare const StatusScalarFieldEnum: {
     readonly name: "name";
     readonly color: "color";
     readonly position: "position";
+    readonly group: "group";
     readonly isDefault: "isDefault";
+    readonly isProtected: "isProtected";
     readonly isClosed: "isClosed";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
@@ -1976,12 +1980,18 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>;
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>;
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>;
+export type EnumWorkspaceUseFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceUse'>;
+export type ListEnumWorkspaceUseFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceUse[]'>;
+export type EnumWorkspaceManagementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceManagementType'>;
+export type ListEnumWorkspaceManagementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceManagementType[]'>;
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>;
 export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>;
 export type EnumInviteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InviteStatus'>;
 export type ListEnumInviteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InviteStatus[]'>;
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>;
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>;
+export type EnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup'>;
+export type ListEnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup[]'>;
 export type EnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority'>;
 export type ListEnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority[]'>;
 export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>;

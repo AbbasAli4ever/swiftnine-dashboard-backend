@@ -1,4 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
+import type * as $Enums from "../enums.js";
 import type * as Prisma from "../internal/prismaNamespace.js";
 export type StatusModel = runtime.Types.Result.DefaultSelection<Prisma.$StatusPayload>;
 export type AggregateStatus = {
@@ -20,7 +21,9 @@ export type StatusMinAggregateOutputType = {
     name: string | null;
     color: string | null;
     position: number | null;
+    group: $Enums.StatusGroup | null;
     isDefault: boolean | null;
+    isProtected: boolean | null;
     isClosed: boolean | null;
     createdAt: Date | null;
     updatedAt: Date | null;
@@ -32,7 +35,9 @@ export type StatusMaxAggregateOutputType = {
     name: string | null;
     color: string | null;
     position: number | null;
+    group: $Enums.StatusGroup | null;
     isDefault: boolean | null;
+    isProtected: boolean | null;
     isClosed: boolean | null;
     createdAt: Date | null;
     updatedAt: Date | null;
@@ -44,7 +49,9 @@ export type StatusCountAggregateOutputType = {
     name: number;
     color: number;
     position: number;
+    group: number;
     isDefault: number;
+    isProtected: number;
     isClosed: number;
     createdAt: number;
     updatedAt: number;
@@ -63,7 +70,9 @@ export type StatusMinAggregateInputType = {
     name?: true;
     color?: true;
     position?: true;
+    group?: true;
     isDefault?: true;
+    isProtected?: true;
     isClosed?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -75,7 +84,9 @@ export type StatusMaxAggregateInputType = {
     name?: true;
     color?: true;
     position?: true;
+    group?: true;
     isDefault?: true;
+    isProtected?: true;
     isClosed?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -87,7 +98,9 @@ export type StatusCountAggregateInputType = {
     name?: true;
     color?: true;
     position?: true;
+    group?: true;
     isDefault?: true;
+    isProtected?: true;
     isClosed?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -128,7 +141,9 @@ export type StatusGroupByOutputType = {
     name: string;
     color: string;
     position: number;
+    group: $Enums.StatusGroup;
     isDefault: boolean;
+    isProtected: boolean;
     isClosed: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -151,7 +166,9 @@ export type StatusWhereInput = {
     name?: Prisma.StringFilter<"Status"> | string;
     color?: Prisma.StringFilter<"Status"> | string;
     position?: Prisma.IntFilter<"Status"> | number;
+    group?: Prisma.EnumStatusGroupFilter<"Status"> | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFilter<"Status"> | boolean;
+    isProtected?: Prisma.BoolFilter<"Status"> | boolean;
     isClosed?: Prisma.BoolFilter<"Status"> | boolean;
     createdAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
@@ -165,7 +182,9 @@ export type StatusOrderByWithRelationInput = {
     name?: Prisma.SortOrder;
     color?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    group?: Prisma.SortOrder;
     isDefault?: Prisma.SortOrder;
+    isProtected?: Prisma.SortOrder;
     isClosed?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -183,7 +202,9 @@ export type StatusWhereUniqueInput = Prisma.AtLeast<{
     name?: Prisma.StringFilter<"Status"> | string;
     color?: Prisma.StringFilter<"Status"> | string;
     position?: Prisma.IntFilter<"Status"> | number;
+    group?: Prisma.EnumStatusGroupFilter<"Status"> | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFilter<"Status"> | boolean;
+    isProtected?: Prisma.BoolFilter<"Status"> | boolean;
     isClosed?: Prisma.BoolFilter<"Status"> | boolean;
     createdAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
@@ -197,7 +218,9 @@ export type StatusOrderByWithAggregationInput = {
     name?: Prisma.SortOrder;
     color?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    group?: Prisma.SortOrder;
     isDefault?: Prisma.SortOrder;
+    isProtected?: Prisma.SortOrder;
     isClosed?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -217,7 +240,9 @@ export type StatusScalarWhereWithAggregatesInput = {
     name?: Prisma.StringWithAggregatesFilter<"Status"> | string;
     color?: Prisma.StringWithAggregatesFilter<"Status"> | string;
     position?: Prisma.IntWithAggregatesFilter<"Status"> | number;
+    group?: Prisma.EnumStatusGroupWithAggregatesFilter<"Status"> | $Enums.StatusGroup;
     isDefault?: Prisma.BoolWithAggregatesFilter<"Status"> | boolean;
+    isProtected?: Prisma.BoolWithAggregatesFilter<"Status"> | boolean;
     isClosed?: Prisma.BoolWithAggregatesFilter<"Status"> | boolean;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Status"> | Date | string;
     updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Status"> | Date | string;
@@ -228,7 +253,9 @@ export type StatusCreateInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -242,7 +269,9 @@ export type StatusUncheckedCreateInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -254,7 +283,9 @@ export type StatusUpdateInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -268,7 +299,9 @@ export type StatusUncheckedUpdateInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -281,7 +314,9 @@ export type StatusCreateManyInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -292,7 +327,9 @@ export type StatusUpdateManyMutationInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -304,7 +341,9 @@ export type StatusUncheckedUpdateManyInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -328,7 +367,9 @@ export type StatusCountOrderByAggregateInput = {
     name?: Prisma.SortOrder;
     color?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    group?: Prisma.SortOrder;
     isDefault?: Prisma.SortOrder;
+    isProtected?: Prisma.SortOrder;
     isClosed?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -343,7 +384,9 @@ export type StatusMaxOrderByAggregateInput = {
     name?: Prisma.SortOrder;
     color?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    group?: Prisma.SortOrder;
     isDefault?: Prisma.SortOrder;
+    isProtected?: Prisma.SortOrder;
     isClosed?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -355,7 +398,9 @@ export type StatusMinOrderByAggregateInput = {
     name?: Prisma.SortOrder;
     color?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    group?: Prisma.SortOrder;
     isDefault?: Prisma.SortOrder;
+    isProtected?: Prisma.SortOrder;
     isClosed?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -406,6 +451,9 @@ export type StatusUncheckedUpdateManyWithoutProjectNestedInput = {
     updateMany?: Prisma.StatusUpdateManyWithWhereWithoutProjectInput | Prisma.StatusUpdateManyWithWhereWithoutProjectInput[];
     deleteMany?: Prisma.StatusScalarWhereInput | Prisma.StatusScalarWhereInput[];
 };
+export type EnumStatusGroupFieldUpdateOperationsInput = {
+    set?: $Enums.StatusGroup;
+};
 export type StatusCreateNestedOneWithoutTasksInput = {
     create?: Prisma.XOR<Prisma.StatusCreateWithoutTasksInput, Prisma.StatusUncheckedCreateWithoutTasksInput>;
     connectOrCreate?: Prisma.StatusCreateOrConnectWithoutTasksInput;
@@ -423,7 +471,9 @@ export type StatusCreateWithoutProjectInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -435,7 +485,9 @@ export type StatusUncheckedCreateWithoutProjectInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -472,7 +524,9 @@ export type StatusScalarWhereInput = {
     name?: Prisma.StringFilter<"Status"> | string;
     color?: Prisma.StringFilter<"Status"> | string;
     position?: Prisma.IntFilter<"Status"> | number;
+    group?: Prisma.EnumStatusGroupFilter<"Status"> | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFilter<"Status"> | boolean;
+    isProtected?: Prisma.BoolFilter<"Status"> | boolean;
     isClosed?: Prisma.BoolFilter<"Status"> | boolean;
     createdAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Status"> | Date | string;
@@ -483,7 +537,9 @@ export type StatusCreateWithoutTasksInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -496,7 +552,9 @@ export type StatusUncheckedCreateWithoutTasksInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -520,7 +578,9 @@ export type StatusUpdateWithoutTasksInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -533,7 +593,9 @@ export type StatusUncheckedUpdateWithoutTasksInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -544,7 +606,9 @@ export type StatusCreateManyProjectInput = {
     name: string;
     color?: string;
     position?: number;
+    group?: $Enums.StatusGroup;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -555,7 +619,9 @@ export type StatusUpdateWithoutProjectInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -567,7 +633,9 @@ export type StatusUncheckedUpdateWithoutProjectInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -579,7 +647,9 @@ export type StatusUncheckedUpdateManyWithoutProjectInput = {
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     color?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    group?: Prisma.EnumStatusGroupFieldUpdateOperationsInput | $Enums.StatusGroup;
     isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isProtected?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isClosed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -603,7 +673,9 @@ export type StatusSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     name?: boolean;
     color?: boolean;
     position?: boolean;
+    group?: boolean;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -618,7 +690,9 @@ export type StatusSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
     name?: boolean;
     color?: boolean;
     position?: boolean;
+    group?: boolean;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -631,7 +705,9 @@ export type StatusSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
     name?: boolean;
     color?: boolean;
     position?: boolean;
+    group?: boolean;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -644,13 +720,15 @@ export type StatusSelectScalar = {
     name?: boolean;
     color?: boolean;
     position?: boolean;
+    group?: boolean;
     isDefault?: boolean;
+    isProtected?: boolean;
     isClosed?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
 };
-export type StatusOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "color" | "position" | "isDefault" | "isClosed" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["status"]>;
+export type StatusOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "color" | "position" | "group" | "isDefault" | "isProtected" | "isClosed" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["status"]>;
 export type StatusInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     tasks?: boolean | Prisma.Status$tasksArgs<ExtArgs>;
@@ -674,7 +752,9 @@ export type $StatusPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
         name: string;
         color: string;
         position: number;
+        group: $Enums.StatusGroup;
         isDefault: boolean;
+        isProtected: boolean;
         isClosed: boolean;
         createdAt: Date;
         updatedAt: Date;
@@ -743,7 +823,9 @@ export interface StatusFieldRefs {
     readonly name: Prisma.FieldRef<"Status", 'String'>;
     readonly color: Prisma.FieldRef<"Status", 'String'>;
     readonly position: Prisma.FieldRef<"Status", 'Int'>;
+    readonly group: Prisma.FieldRef<"Status", 'StatusGroup'>;
     readonly isDefault: Prisma.FieldRef<"Status", 'Boolean'>;
+    readonly isProtected: Prisma.FieldRef<"Status", 'Boolean'>;
     readonly isClosed: Prisma.FieldRef<"Status", 'Boolean'>;
     readonly createdAt: Prisma.FieldRef<"Status", 'DateTime'>;
     readonly updatedAt: Prisma.FieldRef<"Status", 'DateTime'>;

@@ -1,4 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
+import type * as $Enums from "../enums.js";
 import type * as Prisma from "../internal/prismaNamespace.js";
 export type WorkspaceModel = runtime.Types.Result.DefaultSelection<Prisma.$WorkspacePayload>;
 export type AggregateWorkspace = {
@@ -10,6 +11,8 @@ export type WorkspaceMinAggregateOutputType = {
     id: string | null;
     name: string | null;
     logoUrl: string | null;
+    workspaceUse: $Enums.WorkspaceUse | null;
+    managementType: $Enums.WorkspaceManagementType | null;
     createdBy: string | null;
     createdAt: Date | null;
     updatedAt: Date | null;
@@ -19,6 +22,8 @@ export type WorkspaceMaxAggregateOutputType = {
     id: string | null;
     name: string | null;
     logoUrl: string | null;
+    workspaceUse: $Enums.WorkspaceUse | null;
+    managementType: $Enums.WorkspaceManagementType | null;
     createdBy: string | null;
     createdAt: Date | null;
     updatedAt: Date | null;
@@ -28,6 +33,8 @@ export type WorkspaceCountAggregateOutputType = {
     id: number;
     name: number;
     logoUrl: number;
+    workspaceUse: number;
+    managementType: number;
     createdBy: number;
     createdAt: number;
     updatedAt: number;
@@ -38,6 +45,8 @@ export type WorkspaceMinAggregateInputType = {
     id?: true;
     name?: true;
     logoUrl?: true;
+    workspaceUse?: true;
+    managementType?: true;
     createdBy?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -47,6 +56,8 @@ export type WorkspaceMaxAggregateInputType = {
     id?: true;
     name?: true;
     logoUrl?: true;
+    workspaceUse?: true;
+    managementType?: true;
     createdBy?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -56,6 +67,8 @@ export type WorkspaceCountAggregateInputType = {
     id?: true;
     name?: true;
     logoUrl?: true;
+    workspaceUse?: true;
+    managementType?: true;
     createdBy?: true;
     createdAt?: true;
     updatedAt?: true;
@@ -90,6 +103,8 @@ export type WorkspaceGroupByOutputType = {
     id: string;
     name: string;
     logoUrl: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
@@ -108,6 +123,8 @@ export type WorkspaceWhereInput = {
     id?: Prisma.StringFilter<"Workspace"> | string;
     name?: Prisma.StringFilter<"Workspace"> | string;
     logoUrl?: Prisma.StringNullableFilter<"Workspace"> | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFilter<"Workspace"> | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFilter<"Workspace"> | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFilter<"Workspace"> | string;
     createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
@@ -123,6 +140,8 @@ export type WorkspaceOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
+    workspaceUse?: Prisma.SortOrder;
+    managementType?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -141,6 +160,8 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
     NOT?: Prisma.WorkspaceWhereInput | Prisma.WorkspaceWhereInput[];
     name?: Prisma.StringFilter<"Workspace"> | string;
     logoUrl?: Prisma.StringNullableFilter<"Workspace"> | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFilter<"Workspace"> | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFilter<"Workspace"> | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFilter<"Workspace"> | string;
     createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
@@ -156,6 +177,8 @@ export type WorkspaceOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
+    workspaceUse?: Prisma.SortOrder;
+    managementType?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -171,6 +194,8 @@ export type WorkspaceScalarWhereWithAggregatesInput = {
     id?: Prisma.StringWithAggregatesFilter<"Workspace"> | string;
     name?: Prisma.StringWithAggregatesFilter<"Workspace"> | string;
     logoUrl?: Prisma.StringNullableWithAggregatesFilter<"Workspace"> | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseWithAggregatesFilter<"Workspace"> | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeWithAggregatesFilter<"Workspace"> | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringWithAggregatesFilter<"Workspace"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string;
     updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string;
@@ -180,6 +205,8 @@ export type WorkspaceCreateInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -194,6 +221,8 @@ export type WorkspaceUncheckedCreateInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -208,6 +237,8 @@ export type WorkspaceUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -222,6 +253,8 @@ export type WorkspaceUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -236,6 +269,8 @@ export type WorkspaceCreateManyInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -245,6 +280,8 @@ export type WorkspaceUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -253,6 +290,8 @@ export type WorkspaceUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -270,6 +309,8 @@ export type WorkspaceCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     logoUrl?: Prisma.SortOrder;
+    workspaceUse?: Prisma.SortOrder;
+    managementType?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -279,6 +320,8 @@ export type WorkspaceMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     logoUrl?: Prisma.SortOrder;
+    workspaceUse?: Prisma.SortOrder;
+    managementType?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -288,6 +331,8 @@ export type WorkspaceMinOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     logoUrl?: Prisma.SortOrder;
+    workspaceUse?: Prisma.SortOrder;
+    managementType?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
@@ -334,6 +379,12 @@ export type WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput = {
     update?: Prisma.WorkspaceUpdateWithWhereUniqueWithoutCreatorInput | Prisma.WorkspaceUpdateWithWhereUniqueWithoutCreatorInput[];
     updateMany?: Prisma.WorkspaceUpdateManyWithWhereWithoutCreatorInput | Prisma.WorkspaceUpdateManyWithWhereWithoutCreatorInput[];
     deleteMany?: Prisma.WorkspaceScalarWhereInput | Prisma.WorkspaceScalarWhereInput[];
+};
+export type EnumWorkspaceUseFieldUpdateOperationsInput = {
+    set?: $Enums.WorkspaceUse;
+};
+export type EnumWorkspaceManagementTypeFieldUpdateOperationsInput = {
+    set?: $Enums.WorkspaceManagementType;
 };
 export type WorkspaceCreateNestedOneWithoutMembersInput = {
     create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutMembersInput, Prisma.WorkspaceUncheckedCreateWithoutMembersInput>;
@@ -399,6 +450,8 @@ export type WorkspaceCreateWithoutCreatorInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -412,6 +465,8 @@ export type WorkspaceUncheckedCreateWithoutCreatorInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -449,6 +504,8 @@ export type WorkspaceScalarWhereInput = {
     id?: Prisma.StringFilter<"Workspace"> | string;
     name?: Prisma.StringFilter<"Workspace"> | string;
     logoUrl?: Prisma.StringNullableFilter<"Workspace"> | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFilter<"Workspace"> | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFilter<"Workspace"> | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFilter<"Workspace"> | string;
     createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string;
@@ -458,6 +515,8 @@ export type WorkspaceCreateWithoutMembersInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -471,6 +530,8 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -497,6 +558,8 @@ export type WorkspaceUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -510,6 +573,8 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -523,6 +588,8 @@ export type WorkspaceCreateWithoutInvitesInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -536,6 +603,8 @@ export type WorkspaceUncheckedCreateWithoutInvitesInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -562,6 +631,8 @@ export type WorkspaceUpdateWithoutInvitesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -575,6 +646,8 @@ export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -588,6 +661,8 @@ export type WorkspaceCreateWithoutProjectsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -601,6 +676,8 @@ export type WorkspaceUncheckedCreateWithoutProjectsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -627,6 +704,8 @@ export type WorkspaceUpdateWithoutProjectsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -640,6 +719,8 @@ export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -653,6 +734,8 @@ export type WorkspaceCreateWithoutTagsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -666,6 +749,8 @@ export type WorkspaceUncheckedCreateWithoutTagsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -692,6 +777,8 @@ export type WorkspaceUpdateWithoutTagsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -705,6 +792,8 @@ export type WorkspaceUncheckedUpdateWithoutTagsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -718,6 +807,8 @@ export type WorkspaceCreateWithoutActivityLogsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -731,6 +822,8 @@ export type WorkspaceUncheckedCreateWithoutActivityLogsInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -757,6 +850,8 @@ export type WorkspaceUpdateWithoutActivityLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -770,6 +865,8 @@ export type WorkspaceUncheckedUpdateWithoutActivityLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -783,6 +880,8 @@ export type WorkspaceCreateManyCreatorInput = {
     id?: string;
     name: string;
     logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -791,6 +890,8 @@ export type WorkspaceUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -804,6 +905,8 @@ export type WorkspaceUncheckedUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -817,6 +920,8 @@ export type WorkspaceUncheckedUpdateManyWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -857,6 +962,8 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
     id?: boolean;
     name?: boolean;
     logoUrl?: boolean;
+    workspaceUse?: boolean;
+    managementType?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -873,6 +980,8 @@ export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
     id?: boolean;
     name?: boolean;
     logoUrl?: boolean;
+    workspaceUse?: boolean;
+    managementType?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -883,6 +992,8 @@ export type WorkspaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
     id?: boolean;
     name?: boolean;
     logoUrl?: boolean;
+    workspaceUse?: boolean;
+    managementType?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -893,12 +1004,14 @@ export type WorkspaceSelectScalar = {
     id?: boolean;
     name?: boolean;
     logoUrl?: boolean;
+    workspaceUse?: boolean;
+    managementType?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
 };
-export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "logoUrl" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["workspace"]>;
+export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "logoUrl" | "workspaceUse" | "managementType" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["workspace"]>;
 export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>;
@@ -928,6 +1041,8 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
         id: string;
         name: string;
         logoUrl: string | null;
+        workspaceUse: $Enums.WorkspaceUse;
+        managementType: $Enums.WorkspaceManagementType;
         createdBy: string;
         createdAt: Date;
         updatedAt: Date;
@@ -998,6 +1113,8 @@ export interface WorkspaceFieldRefs {
     readonly id: Prisma.FieldRef<"Workspace", 'String'>;
     readonly name: Prisma.FieldRef<"Workspace", 'String'>;
     readonly logoUrl: Prisma.FieldRef<"Workspace", 'String'>;
+    readonly workspaceUse: Prisma.FieldRef<"Workspace", 'WorkspaceUse'>;
+    readonly managementType: Prisma.FieldRef<"Workspace", 'WorkspaceManagementType'>;
     readonly createdBy: Prisma.FieldRef<"Workspace", 'String'>;
     readonly createdAt: Prisma.FieldRef<"Workspace", 'DateTime'>;
     readonly updatedAt: Prisma.FieldRef<"Workspace", 'DateTime'>;

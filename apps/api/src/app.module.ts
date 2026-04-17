@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { ProjectModule } from './project/project.module';
+import { StatusModule } from './status/status.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProjectModule } from './project/project.module';
     UserModule,
     WorkspaceModule,
     ProjectModule,
+    StatusModule,
   ],
   controllers: [AppController],
   providers: [AppService],

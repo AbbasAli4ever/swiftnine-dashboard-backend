@@ -17,6 +17,7 @@ const auth_module_1 = require("./auth/auth.module");
 const user_module_1 = require("./user/user.module");
 const workspace_module_1 = require("./workspace/workspace.module");
 const project_module_1 = require("./project/project.module");
+const status_module_1 = require("./status/status.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -34,6 +35,7 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             workspace_module_1.WorkspaceModule,
             project_module_1.ProjectModule,
+            status_module_1.StatusModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

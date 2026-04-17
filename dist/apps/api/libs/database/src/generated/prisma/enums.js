@@ -1,9 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Priority = exports.InviteStatus = exports.Role = void 0;
+exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
     MEMBER: 'MEMBER'
+};
+exports.WorkspaceUse = {
+    WORK: 'WORK',
+    PERSONAL: 'PERSONAL',
+    SCHOOL: 'SCHOOL'
+};
+exports.WorkspaceManagementType = {
+    HR_RECRUITING: 'HR_RECRUITING',
+    CREATIVE_DESIGN: 'CREATIVE_DESIGN',
+    PROFESSIONAL_SERVICES: 'PROFESSIONAL_SERVICES',
+    FINANCE_ACCOUNTING: 'FINANCE_ACCOUNTING',
+    OPERATIONS: 'OPERATIONS',
+    SOFTWARE_DEVELOPMENT: 'SOFTWARE_DEVELOPMENT',
+    IT: 'IT',
+    SALES_CRM: 'SALES_CRM',
+    PERSONAL_USE: 'PERSONAL_USE',
+    SUPPORT: 'SUPPORT',
+    STARTUP: 'STARTUP',
+    PMO: 'PMO',
+    MARKETING: 'MARKETING',
+    OTHER: 'OTHER'
 };
 exports.InviteStatus = {
     PENDING: 'PENDING',
@@ -17,5 +38,11 @@ exports.Priority = {
     NORMAL: 'NORMAL',
     LOW: 'LOW',
     NONE: 'NONE'
+};
+exports.StatusGroup = {
+    NOT_STARTED: 'NOT_STARTED',
+    ACTIVE: 'ACTIVE',
+    DONE: 'DONE',
+    CLOSED: 'CLOSED'
 };
 //# sourceMappingURL=enums.js.map

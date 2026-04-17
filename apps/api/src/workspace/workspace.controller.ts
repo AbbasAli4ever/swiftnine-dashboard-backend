@@ -27,6 +27,10 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import {
+  BatchInviteMembersDto,
+  BatchInviteResponseDto,
+} from './dto/batch-invite-members.dto';
+import {
   ClaimInviteDto,
   ClaimInviteResponseDto,
 } from './dto/claim-invite.dto';
@@ -35,6 +39,7 @@ import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import type {
+  BatchInviteResult,
   InviteClaimResult,
   InviteNextStep,
   WorkspaceData,
@@ -52,7 +57,7 @@ export class WorkspaceController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new workspace' })
+  @ApiOperation({ summary: 'Create a new workspace with onboarding metadata' })
   @ApiResponse({ status: 201, description: 'Workspace created successfully' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   async create(
@@ -92,7 +97,7 @@ export class WorkspaceController {
   @Patch(':workspaceId')
   @UseGuards(JwtAuthGuard, WorkspaceGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update workspace name or logo (OWNER only)' })
+  @ApiOperation({ summary: 'Update workspace settings (OWNER only)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace updated' })
   @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
@@ -150,6 +155,33 @@ export class WorkspaceController {
       dto,
     );
     return ok(null, 'Invite sent successfully');
+  }
+
+  @Post(':workspaceId/invites')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send workspace invite emails in bulk (OWNER only)' })
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiResponse({
+    status: 200,
+    type: BatchInviteResponseDto,
+    description: 'Batch invite processed',
+  })
+  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiResponse({ status: 422, description: 'Validation failed' })
+  async sendBatchInvites(
+    @Req() req: WorkspaceRequest,
+    @Body() dto: BatchInviteMembersDto,
+  ): Promise<ApiRes<BatchInviteResult>> {
+    const result = await this.workspaceService.sendBatchInvites(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      req.workspaceContext.role,
+      dto,
+    );
+    return ok(result, 'Batch invite processed');
   }
 
   @Get('invite/:token')

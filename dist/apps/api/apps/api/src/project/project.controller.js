@@ -52,7 +52,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new project in the workspace' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Project created with 4 default statuses' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Project created with grouped default statuses' }),
     (0, swagger_1.ApiResponse)({ status: 409, description: 'Task ID prefix already taken in this workspace' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),

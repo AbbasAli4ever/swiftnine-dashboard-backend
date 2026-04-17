@@ -8,9 +8,16 @@ jest.mock('@app/database', () => ({
 describe('WorkspaceService', () => {
   let service: WorkspaceService;
   let prisma: {
-    workspaceInvite: {
+    workspace: {
+      create: jest.Mock;
       findFirst: jest.Mock;
       update: jest.Mock;
+    };
+    workspaceInvite: {
+      create: jest.Mock;
+      findFirst: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
     };
     user: {
       findFirst: jest.Mock;
@@ -24,7 +31,14 @@ describe('WorkspaceService', () => {
     emailVerificationToken: {
       deleteMany: jest.Mock;
     };
+    activityLog: {
+      create: jest.Mock;
+      createMany: jest.Mock;
+    };
     $transaction: jest.Mock;
+  };
+  let emailService: {
+    sendWorkspaceInviteEmail: jest.Mock;
   };
   let authService: {
     issueTokens: jest.Mock;
@@ -32,9 +46,16 @@ describe('WorkspaceService', () => {
 
   beforeEach(() => {
     prisma = {
+      workspace: {
+        create: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
+      },
       workspaceInvite: {
+        create: jest.fn(),
         findFirst: jest.fn(),
         update: jest.fn().mockResolvedValue(undefined),
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
       user: {
         findFirst: jest.fn(),
@@ -48,7 +69,14 @@ describe('WorkspaceService', () => {
       emailVerificationToken: {
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
+      activityLog: {
+        create: jest.fn().mockResolvedValue(undefined),
+        createMany: jest.fn().mockResolvedValue({ count: 0 }),
+      },
       $transaction: jest.fn(),
+    };
+    emailService = {
+      sendWorkspaceInviteEmail: jest.fn().mockResolvedValue(undefined),
     };
     authService = {
       issueTokens: jest.fn().mockResolvedValue({
@@ -70,9 +98,212 @@ describe('WorkspaceService', () => {
 
     service = new WorkspaceService(
       prisma as never,
-      {} as never,
+      emailService as never,
       authService as never,
     );
+  });
+
+  it('creates a workspace with required metadata fields', async () => {
+    prisma.workspace.create.mockResolvedValue({
+      id: 'workspace-1',
+      name: 'Acme Corp',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      workspaceUse: 'WORK',
+      managementType: 'SOFTWARE_DEVELOPMENT',
+      createdBy: 'user-1',
+      createdAt: new Date('2026-04-16T09:00:00.000Z'),
+      updatedAt: new Date('2026-04-16T09:00:00.000Z'),
+    });
+
+    const result = await service.create('user-1', {
+      name: '  Acme Corp  ',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      workspaceUse: 'WORK',
+      managementType: 'SOFTWARE_DEVELOPMENT',
+    });
+
+    expect(prisma.workspace.create).toHaveBeenCalledWith({
+      data: {
+        name: 'Acme Corp',
+        logoUrl: 'https://cdn.example.com/logo.png',
+        workspaceUse: 'WORK',
+        managementType: 'SOFTWARE_DEVELOPMENT',
+        createdBy: 'user-1',
+      },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        workspaceUse: true,
+        managementType: true,
+        createdBy: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    expect(prisma.workspaceMember.create).toHaveBeenCalledWith({
+      data: {
+        workspaceId: 'workspace-1',
+        userId: 'user-1',
+        role: 'OWNER',
+      },
+    });
+    expect(prisma.activityLog.create).toHaveBeenCalledWith({
+      data: {
+        workspaceId: 'workspace-1',
+        entityType: 'workspace',
+        entityId: 'workspace-1',
+        action: 'created',
+        metadata: {
+          workspaceName: 'Acme Corp',
+          workspaceUse: 'WORK',
+          managementType: 'SOFTWARE_DEVELOPMENT',
+        },
+        performedBy: 'user-1',
+      },
+    });
+    expect(result).toEqual({
+      id: 'workspace-1',
+      name: 'Acme Corp',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      workspaceUse: 'WORK',
+      managementType: 'SOFTWARE_DEVELOPMENT',
+      createdBy: 'user-1',
+      createdAt: new Date('2026-04-16T09:00:00.000Z'),
+      updatedAt: new Date('2026-04-16T09:00:00.000Z'),
+    });
+  });
+
+  it('updates workspace metadata fields when provided', async () => {
+    prisma.workspace.findFirst.mockResolvedValue({
+      id: 'workspace-1',
+      name: 'Acme Corp',
+      logoUrl: null,
+      workspaceUse: 'WORK',
+      managementType: 'SOFTWARE_DEVELOPMENT',
+      createdBy: 'user-1',
+      createdAt: new Date('2026-04-16T09:00:00.000Z'),
+      updatedAt: new Date('2026-04-16T09:00:00.000Z'),
+    });
+    prisma.workspace.update.mockResolvedValue({
+      id: 'workspace-1',
+      name: 'Acme Corp',
+      logoUrl: null,
+      workspaceUse: 'PERSONAL',
+      managementType: 'OTHER',
+      createdBy: 'user-1',
+      createdAt: new Date('2026-04-16T09:00:00.000Z'),
+      updatedAt: new Date('2026-04-16T10:00:00.000Z'),
+    });
+
+    const result = await service.update('workspace-1', 'user-1', 'OWNER', {
+      workspaceUse: 'PERSONAL',
+      managementType: 'OTHER',
+    });
+
+    expect(prisma.workspace.update).toHaveBeenCalledWith({
+      where: { id: 'workspace-1' },
+      data: {
+        workspaceUse: 'PERSONAL',
+        managementType: 'OTHER',
+      },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        workspaceUse: true,
+        managementType: true,
+        createdBy: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    expect(prisma.activityLog.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          workspaceId: 'workspace-1',
+          entityType: 'workspace',
+          entityId: 'workspace-1',
+          action: 'updated',
+          fieldName: 'workspaceUse',
+          oldValue: 'WORK',
+          newValue: 'PERSONAL',
+          metadata: { workspaceName: 'Acme Corp' },
+          performedBy: 'user-1',
+        },
+        {
+          workspaceId: 'workspace-1',
+          entityType: 'workspace',
+          entityId: 'workspace-1',
+          action: 'updated',
+          fieldName: 'managementType',
+          oldValue: 'SOFTWARE_DEVELOPMENT',
+          newValue: 'OTHER',
+          metadata: { workspaceName: 'Acme Corp' },
+          performedBy: 'user-1',
+        },
+      ],
+    });
+    expect(result.workspaceUse).toBe('PERSONAL');
+    expect(result.managementType).toBe('OTHER');
+  });
+
+  it('processes batch invites with deduping, mixed statuses, and summary counts', async () => {
+    prisma.workspace.findFirst.mockResolvedValue({
+      id: 'workspace-1',
+      name: 'Acme Corp',
+    });
+    prisma.user.findFirst.mockResolvedValueOnce({ fullName: 'Zaeem Hassan' });
+    prisma.workspaceMember.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'member-1' })
+      .mockResolvedValueOnce(null);
+    prisma.workspaceInvite.create
+      .mockResolvedValueOnce({ id: 'invite-1' })
+      .mockResolvedValueOnce({ id: 'invite-2' });
+    emailService.sendWorkspaceInviteEmail
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('mailer down'));
+
+    const result = await service.sendBatchInvites(
+      'workspace-1',
+      'user-1',
+      'OWNER',
+      {
+        emails: [
+          '  first@example.com ',
+          'member@example.com',
+          'FIRST@example.com',
+          'fail@example.com',
+        ],
+        role: 'MEMBER',
+      },
+    );
+
+    expect(result).toEqual({
+      results: [
+        { email: 'first@example.com', status: 'invited', message: null },
+        { email: 'member@example.com', status: 'already_member', message: null },
+        {
+          email: 'fail@example.com',
+          status: 'failed',
+          message: 'Failed to send invite email',
+        },
+      ],
+      summary: {
+        total: 3,
+        invited: 1,
+        alreadyMember: 1,
+        failed: 1,
+      },
+    });
+    expect(prisma.workspaceInvite.updateMany).toHaveBeenCalledTimes(2);
+    expect(prisma.workspaceInvite.create).toHaveBeenCalledTimes(2);
+    expect(emailService.sendWorkspaceInviteEmail).toHaveBeenCalledTimes(2);
+    expect(prisma.workspaceInvite.update).toHaveBeenCalledWith({
+      where: { id: 'invite-2' },
+      data: { status: 'REVOKED' },
+    });
   });
 
   it('claims a valid invite by creating a verified user, joining the workspace, and issuing tokens', async () => {

@@ -22,6 +22,7 @@ const create_workspace_dto_1 = require("./dto/create-workspace.dto");
 const update_workspace_dto_1 = require("./dto/update-workspace.dto");
 const invite_member_dto_1 = require("./dto/invite-member.dto");
 const accept_invite_dto_1 = require("./dto/accept-invite.dto");
+const batch_invite_members_dto_1 = require("./dto/batch-invite-members.dto");
 const claim_invite_dto_1 = require("./dto/claim-invite.dto");
 const common_2 = require("../../../../libs/common/src");
 const auth_constants_1 = require("../auth/auth.constants");
@@ -54,6 +55,10 @@ let WorkspaceController = class WorkspaceController {
         await this.workspaceService.sendInvite(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, dto);
         return (0, common_2.ok)(null, 'Invite sent successfully');
     }
+    async sendBatchInvites(req, dto) {
+        const result = await this.workspaceService.sendBatchInvites(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, dto);
+        return (0, common_2.ok)(result, 'Batch invite processed');
+    }
     async getInviteDetails(token) {
         const details = await this.workspaceService.getInviteDetails(token);
         return (0, common_2.ok)(details);
@@ -83,7 +88,7 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new workspace' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new workspace with onboarding metadata' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Workspace created successfully' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Body)()),
@@ -121,7 +126,7 @@ __decorate([
     (0, common_1.Patch)(':workspaceId'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Update workspace name or logo (OWNER only)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update workspace settings (OWNER only)' }),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Workspace updated' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member or not an owner' }),
@@ -163,6 +168,27 @@ __decorate([
     __metadata("design:paramtypes", [Object, invite_member_dto_1.InviteMemberDto]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "sendInvite", null);
+__decorate([
+    (0, common_1.Post)(':workspaceId/invites'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Send workspace invite emails in bulk (OWNER only)' }),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        type: batch_invite_members_dto_1.BatchInviteResponseDto,
+        description: 'Batch invite processed',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member or not an owner' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Workspace not found' }),
+    (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, batch_invite_members_dto_1.BatchInviteMembersDto]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "sendBatchInvites", null);
 __decorate([
     (0, common_1.Get)('invite/:token'),
     (0, swagger_1.ApiOperation)({ summary: 'Peek at invite details without consuming it (public)' }),

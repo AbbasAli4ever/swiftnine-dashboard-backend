@@ -493,11 +493,34 @@ Create a new workspace. The calling user automatically becomes the `OWNER`.
 ```json
 {
   "name": "Acme Corp",
-  "logoUrl": "https://cdn.example.com/logo.png"
+  "logoUrl": "https://cdn.example.com/logo.png",
+  "workspaceUse": "WORK",
+  "managementType": "SOFTWARE_DEVELOPMENT"
 }
 ```
 
 `logoUrl` is optional.
+
+`workspaceUse` is required and must be one of:
+- `WORK`
+- `PERSONAL`
+- `SCHOOL`
+
+`managementType` is required and must be one of:
+- `HR_RECRUITING`
+- `CREATIVE_DESIGN`
+- `PROFESSIONAL_SERVICES`
+- `FINANCE_ACCOUNTING`
+- `OPERATIONS`
+- `SOFTWARE_DEVELOPMENT`
+- `IT`
+- `SALES_CRM`
+- `PERSONAL_USE`
+- `SUPPORT`
+- `STARTUP`
+- `PMO`
+- `MARKETING`
+- `OTHER`
 
 **Response `201`**
 ```json
@@ -507,6 +530,8 @@ Create a new workspace. The calling user automatically becomes the `OWNER`.
     "id": "uuid",
     "name": "Acme Corp",
     "logoUrl": "https://cdn.example.com/logo.png",
+    "workspaceUse": "WORK",
+    "managementType": "SOFTWARE_DEVELOPMENT",
     "createdBy": "user-uuid",
     "createdAt": "2026-04-14T12:00:00.000Z",
     "updatedAt": "2026-04-14T12:00:00.000Z"
@@ -525,7 +550,14 @@ List all workspaces the current user belongs to.
 ```json
 {
   "success": true,
-  "data": [ { "id": "...", "name": "...", ... } ],
+  "data": [
+    {
+      "id": "...",
+      "name": "...",
+      "workspaceUse": "WORK",
+      "managementType": "SOFTWARE_DEVELOPMENT"
+    }
+  ],
   "message": null
 }
 ```
@@ -546,6 +578,8 @@ Get a single workspace with member count. User must be a member.
     "id": "uuid",
     "name": "Acme Corp",
     "logoUrl": null,
+    "workspaceUse": "WORK",
+    "managementType": "SOFTWARE_DEVELOPMENT",
     "createdBy": "user-uuid",
     "createdAt": "...",
     "updatedAt": "...",
@@ -565,7 +599,7 @@ Get a single workspace with member count. User must be a member.
 
 ### `PATCH /workspaces/:workspaceId`
 
-Update name or logo. **OWNER only.** Pass `"logoUrl": null` to remove the logo.
+Update workspace settings. **OWNER only.** Pass `"logoUrl": null` to remove the logo.
 
 **Headers required:** `Authorization` + `x-workspace-id`
 
@@ -573,7 +607,9 @@ Update name or logo. **OWNER only.** Pass `"logoUrl": null` to remove the logo.
 ```json
 {
   "name": "Acme Corporation",
-  "logoUrl": null
+  "logoUrl": null,
+  "workspaceUse": "PERSONAL",
+  "managementType": "OTHER"
 }
 ```
 
@@ -640,6 +676,75 @@ http://localhost:3000/invite?token=<uuid>
 |---|---|
 | `403` | Not OWNER |
 | `404` | Workspace not found |
+
+---
+
+### `POST /workspaces/:workspaceId/invites`
+
+Send invite emails in bulk. **OWNER only.** This is the recommended endpoint when the frontend submits multiple emails at once.
+
+The backend normalizes and deduplicates emails before processing. Each email is handled independently, so one failure does **not** fail the whole request.
+
+**Headers required:** `Authorization` + `x-workspace-id: <workspaceId>`
+
+**Request**
+```json
+{
+  "emails": [
+    "newmember1@example.com",
+    "newmember2@example.com",
+    "newmember3@example.com"
+  ],
+  "role": "MEMBER"
+}
+```
+
+`role` is optional, defaults to `"MEMBER"`. Can also be `"OWNER"`.
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "email": "newmember1@example.com",
+        "status": "invited",
+        "message": null
+      },
+      {
+        "email": "newmember2@example.com",
+        "status": "already_member",
+        "message": null
+      },
+      {
+        "email": "newmember3@example.com",
+        "status": "failed",
+        "message": "Failed to send invite email"
+      }
+    ],
+    "summary": {
+      "total": 3,
+      "invited": 1,
+      "alreadyMember": 1,
+      "failed": 1
+    }
+  },
+  "message": "Batch invite processed"
+}
+```
+
+**Status meanings**
+- `invited` → fresh invite created and email sent
+- `already_member` → email already belongs to an active workspace member
+- `failed` → invite processing failed for that specific email
+
+**Errors**
+| Status | When |
+|---|---|
+| `403` | Not OWNER |
+| `404` | Workspace not found |
+| `422` | Validation failed |
 
 ---
 
@@ -775,7 +880,7 @@ All project endpoints require **both** `Authorization` and `x-workspace-id`. Any
 
 ### `POST /projects`
 
-Create a project. Automatically creates 4 default statuses: **To Do**, **In Progress**, **Review**, **Completed**.
+Create a project. Automatically creates grouped default statuses: **To Do** (`NOT_STARTED`), **In Progress** (`ACTIVE`), and **Complete** (`CLOSED`).
 
 **Headers required:** `Authorization` + `x-workspace-id`
 
@@ -815,10 +920,9 @@ Create a project. Automatically creates 4 default statuses: **To Do**, **In Prog
     "createdAt": "...",
     "updatedAt": "...",
     "statuses": [
-      { "id": "uuid", "name": "To Do",       "color": "#94a3b8", "position": 1000, "isDefault": true, "isClosed": false },
-      { "id": "uuid", "name": "In Progress", "color": "#3b82f6", "position": 2000, "isDefault": true, "isClosed": false },
-      { "id": "uuid", "name": "Review",      "color": "#f59e0b", "position": 3000, "isDefault": true, "isClosed": false },
-      { "id": "uuid", "name": "Completed",   "color": "#22c55e", "position": 4000, "isDefault": true, "isClosed": true  }
+      { "id": "uuid", "name": "To Do",       "color": "#94a3b8", "group": "NOT_STARTED", "position": 1000, "isDefault": true, "isProtected": false, "isClosed": false },
+      { "id": "uuid", "name": "In Progress", "color": "#3b82f6", "group": "ACTIVE",      "position": 1000, "isDefault": true, "isProtected": false, "isClosed": false },
+      { "id": "uuid", "name": "Complete",    "color": "#22c55e", "group": "CLOSED",      "position": 1000, "isDefault": true, "isProtected": true,  "isClosed": true  }
     ],
     "_count": { "taskLists": 0 }
   },
@@ -888,7 +992,107 @@ Soft-delete the project and **all its data** (task lists, tasks, statuses). **OW
 
 ---
 
-## 8. System
+## 8. Status Endpoints
+
+All status endpoints require **both** `Authorization` and `x-workspace-id`. Viewing is allowed for any workspace member. Creating, editing, deleting, reordering, and resetting are **OWNER only**.
+
+Status groups:
+- `NOT_STARTED`
+- `ACTIVE`
+- `DONE`
+- `CLOSED`
+
+Rules:
+- Custom statuses can only be created in `NOT_STARTED`, `ACTIVE`, or `DONE`
+- `CLOSED` always contains exactly one protected status
+- The protected closed status can be renamed, but cannot be recolored or deleted
+
+### `POST /statuses`
+
+Create a custom status for a project.
+
+```json
+{
+  "projectId": "uuid",
+  "name": "QA Review",
+  "color": "#f59e0b",
+  "group": "DONE"
+}
+```
+
+### `GET /statuses?projectId=<uuid>`
+
+Return grouped statuses for the project.
+
+```json
+{
+  "success": true,
+  "data": {
+    "projectId": "uuid",
+    "groups": {
+      "notStarted": [],
+      "active": [],
+      "done": [],
+      "closed": []
+    }
+  }
+}
+```
+
+### `GET /statuses/:id`
+
+Return one status by id.
+
+### `PUT /statuses/:id`
+
+Update a status. Protected closed statuses only support `name`.
+
+```json
+{
+  "name": "In QA",
+  "color": "#8b5cf6"
+}
+```
+
+### `DELETE /statuses/:id`
+
+Delete a custom status. If tasks still use it, send a replacement status.
+
+```json
+{
+  "replacementStatusId": "uuid"
+}
+```
+
+### `PUT /statuses/reorder`
+
+Reorder statuses within groups and move them across `NOT_STARTED`, `ACTIVE`, and `DONE`.
+
+```json
+{
+  "projectId": "uuid",
+  "groups": {
+    "notStarted": ["status-1"],
+    "active": ["status-2", "status-3"],
+    "done": ["status-4"],
+    "closed": ["status-5"]
+  }
+}
+```
+
+### `POST /statuses/default`
+
+Apply or repair the default grouped template for a project.
+
+```json
+{
+  "projectId": "uuid"
+}
+```
+
+---
+
+## 9. System
 
 ### `GET /health`
 
@@ -903,7 +1107,7 @@ Public. Use for startup checks or uptime monitoring.
 
 ---
 
-## 9. Quick Reference
+## 10. Quick Reference
 
 ### Headers cheatsheet
 
@@ -915,9 +1119,11 @@ Public. Use for startup checks or uptime monitoring.
 | `GET /workspaces` | Required | Not needed |
 | `GET/PATCH/DELETE /workspaces/:id` | Required | Required |
 | `POST /workspaces/:id/invite` | Required | Required |
+| `POST /workspaces/:id/invites` | Required | Required |
 | `GET /workspaces/invite/:token` | Not needed | Not needed |
 | `POST /workspaces/invite/accept` | Required | Not needed |
 | All project endpoints | Required | Required |
+| All status endpoints | Required | Required |
 
 ---
 
@@ -931,9 +1137,12 @@ Public. Use for startup checks or uptime monitoring.
 | Update workspace name/logo | OWNER |
 | Delete workspace | OWNER |
 | Send workspace invite | OWNER |
+| Send batch workspace invites | OWNER |
 | Accept workspace invite | Authenticated (email must match) |
 | Create / view / update project | Any workspace member |
 | Delete project | OWNER |
+| View statuses | Any workspace member |
+| Create / update / delete / reorder / reset statuses | OWNER |
 
 ---
 
@@ -1002,4 +1211,4 @@ Tasks (coming soon) have display IDs like `API-1`, `API-2` — computed from `ta
 
 ---
 
-*Last updated: 2026-04-15 — reflects sign-up OTP verification, forgot-password link flow, and workspace invite endpoints.*
+*Last updated: 2026-04-16 — reflects sign-up OTP verification, forgot-password link flow, and workspace invite endpoints.*
