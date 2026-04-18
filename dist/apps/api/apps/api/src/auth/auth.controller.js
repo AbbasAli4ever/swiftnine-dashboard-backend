@@ -24,6 +24,7 @@ const verify_email_dto_1 = require("./dto/verify-email.dto");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 const local_auth_guard_1 = require("./guards/local-auth.guard");
 const auth_constants_1 = require("./auth.constants");
+const auth_cookies_1 = require("./auth.cookies");
 const forgot_password_dto_1 = require("./dto/forgot-password.dto");
 const reset_password_dto_1 = require("./dto/reset-password.dto");
 let AuthController = AuthController_1 = class AuthController {
@@ -83,21 +84,10 @@ let AuthController = AuthController_1 = class AuthController {
         await this.authService.resetPassword(dto.token, dto.newPassword);
     }
     setRefreshCookie(res, token) {
-        res.cookie('refresh_token', token, {
-            httpOnly: true,
-            secure: process.env['NODE_ENV'] === 'production',
-            sameSite: 'strict',
-            maxAge: auth_constants_1.REFRESH_TOKEN_TTL_MS,
-            path: '/api/v1/auth',
-        });
+        res.cookie('refresh_token', token, (0, auth_cookies_1.buildRefreshCookieOptions)());
     }
     clearRefreshCookie(res) {
-        res.clearCookie('refresh_token', {
-            httpOnly: true,
-            secure: process.env['NODE_ENV'] === 'production',
-            sameSite: 'strict',
-            path: '/api/v1/auth',
-        });
+        res.clearCookie('refresh_token', (0, auth_cookies_1.buildClearRefreshCookieOptions)());
     }
 };
 exports.AuthController = AuthController;

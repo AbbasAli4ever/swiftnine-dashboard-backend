@@ -44,7 +44,7 @@ import type {
   InviteNextStep,
   WorkspaceData,
 } from './workspace.service';
-import { REFRESH_TOKEN_TTL_MS } from '../auth/auth.constants';
+import { buildRefreshCookieOptions } from '../auth/auth.cookies';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -258,12 +258,6 @@ export class WorkspaceController {
   }
 
   private setRefreshCookie(res: Response, token: string): void {
-    res.cookie('refresh_token', token, {
-      httpOnly: true,
-      secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
-      maxAge: REFRESH_TOKEN_TTL_MS,
-      path: '/api/v1/auth',
-    });
+    res.cookie('refresh_token', token, buildRefreshCookieOptions());
   }
 }

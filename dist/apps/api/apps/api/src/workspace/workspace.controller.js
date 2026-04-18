@@ -25,7 +25,7 @@ const accept_invite_dto_1 = require("./dto/accept-invite.dto");
 const batch_invite_members_dto_1 = require("./dto/batch-invite-members.dto");
 const claim_invite_dto_1 = require("./dto/claim-invite.dto");
 const common_2 = require("../../../../libs/common/src");
-const auth_constants_1 = require("../auth/auth.constants");
+const auth_cookies_1 = require("../auth/auth.cookies");
 let WorkspaceController = class WorkspaceController {
     workspaceService;
     constructor(workspaceService) {
@@ -73,13 +73,7 @@ let WorkspaceController = class WorkspaceController {
         return (0, common_2.ok)(result, 'Invite accepted successfully');
     }
     setRefreshCookie(res, token) {
-        res.cookie('refresh_token', token, {
-            httpOnly: true,
-            secure: process.env['NODE_ENV'] === 'production',
-            sameSite: 'strict',
-            maxAge: auth_constants_1.REFRESH_TOKEN_TTL_MS,
-            path: '/api/v1/auth',
-        });
+        res.cookie('refresh_token', token, (0, auth_cookies_1.buildRefreshCookieOptions)());
     }
 };
 exports.WorkspaceController = WorkspaceController;

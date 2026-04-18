@@ -20,7 +20,11 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { INVALID_REFRESH_TOKEN_MESSAGE, REFRESH_TOKEN_TTL_MS } from './auth.constants';
+import { INVALID_REFRESH_TOKEN_MESSAGE } from './auth.constants';
+import {
+  buildClearRefreshCookieOptions,
+  buildRefreshCookieOptions,
+} from './auth.cookies';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import type { AuthUser, GoogleAuthProfile } from './auth.service';
@@ -192,21 +196,10 @@ export class AuthController {
   }
 
   protected setRefreshCookie(res: Response, token: string): void {
-    res.cookie('refresh_token', token, {
-      httpOnly: true,
-      secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
-      maxAge: REFRESH_TOKEN_TTL_MS,
-      path: '/api/v1/auth',
-    });
+    res.cookie('refresh_token', token, buildRefreshCookieOptions());
   }
 
   protected clearRefreshCookie(res: Response): void {
-    res.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
-      path: '/api/v1/auth',
-    });
+    res.clearCookie('refresh_token', buildClearRefreshCookieOptions());
   }
 }

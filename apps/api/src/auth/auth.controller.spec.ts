@@ -56,9 +56,9 @@ describe('AuthController', () => {
       {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: 'lax',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/api/v1/auth',
       },
     );
     expect(result).toEqual({
@@ -102,9 +102,9 @@ describe('AuthController', () => {
       {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: 'lax',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/api/v1/auth',
       },
     );
     expect(response.redirect).toHaveBeenCalledWith(
@@ -129,8 +129,8 @@ describe('AuthController', () => {
     expect(response.clearCookie).toHaveBeenCalledWith('refresh_token', {
       httpOnly: true,
       secure: false,
-      sameSite: 'strict',
-      path: '/api/v1/auth',
+      sameSite: 'lax',
+      path: '/',
     });
   });
 
@@ -148,8 +148,8 @@ describe('AuthController', () => {
     expect(response.clearCookie).toHaveBeenCalledWith('refresh_token', {
       httpOnly: true,
       secure: false,
-      sameSite: 'strict',
-      path: '/api/v1/auth',
+      sameSite: 'lax',
+      path: '/',
     });
   });
 });

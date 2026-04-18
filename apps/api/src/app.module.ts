@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { ProjectModule } from './project/project.module';
 import { StatusModule } from './status/status.module';
+import { TaskListModule } from './task-list/task-list.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StatusModule } from './status/status.module';
     WorkspaceModule,
     ProjectModule,
     StatusModule,
+    TaskListModule,
   ],
   controllers: [AppController],
   providers: [AppService],
