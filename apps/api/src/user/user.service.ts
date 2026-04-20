@@ -181,6 +181,51 @@ export class UserService {
     return this.toUserProfile(updatedUser);
   }
 
+  async updateNotificationPreferences(
+    userId: string,
+    dto: {
+      inbox?: boolean;
+      email?: boolean;
+      browser?: boolean;
+      mobile?: boolean;
+    },
+  ): Promise<{
+    inbox: boolean | null;
+    email: boolean | null;
+    browser: boolean | null;
+    mobile: boolean | null;
+  }> {
+    const existingUser = await this.findActiveUserOrThrow(userId);
+
+    const safePreferences: Prisma.JsonObject = this.isJsonObject(
+      existingUser.notificationPreferences,
+    )
+      ? { ...(existingUser.notificationPreferences as Prisma.JsonObject) }
+      : {};
+
+    if (dto.inbox !== undefined) safePreferences['inbox'] = dto.inbox;
+    if (dto.email !== undefined) safePreferences['email'] = dto.email;
+    if (dto.browser !== undefined) safePreferences['browser'] = dto.browser;
+    if (dto.mobile !== undefined) safePreferences['mobile'] = dto.mobile;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { notificationPreferences: safePreferences as Prisma.InputJsonValue },
+      select: USER_PROFILE_SELECT,
+    });
+
+    const prefs = this.isJsonObject(updatedUser.notificationPreferences)
+      ? (updatedUser.notificationPreferences as Prisma.JsonObject)
+      : {};
+
+    return {
+      inbox: typeof prefs['inbox'] === 'boolean' ? prefs['inbox'] : null,
+      email: typeof prefs['email'] === 'boolean' ? prefs['email'] : null,
+      browser: typeof prefs['browser'] === 'boolean' ? prefs['browser'] : null,
+      mobile: typeof prefs['mobile'] === 'boolean' ? prefs['mobile'] : null,
+    };
+  }
+
   async deleteProfile(userId: string): Promise<void> {
     await this.findActiveUserOrThrow(userId);
 

@@ -23,6 +23,8 @@ const create_profile_dto_1 = require("./dto/create-profile.dto");
 const set_status_dto_1 = require("./dto/set-status.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
 const user_profile_response_dto_1 = require("./dto/user-profile-response.dto");
+const update_notification_preferences_dto_1 = require("./dto/update-notification-preferences.dto");
+const notification_preferences_response_dto_1 = require("./dto/notification-preferences-response.dto");
 let UserController = class UserController {
     userService;
     constructor(userService) {
@@ -48,6 +50,9 @@ let UserController = class UserController {
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
+    }
+    async updateNotificationPreferences(req, dto) {
+        return this.userService.updateNotificationPreferences(req.user.id, dto);
     }
 };
 exports.UserController = UserController;
@@ -232,6 +237,36 @@ __decorate([
     __metadata("design:paramtypes", [Object, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "changePassword", null);
+__decorate([
+    (0, common_1.Patch)('notifications'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update current user notification preferences' }),
+    (0, swagger_1.ApiBody)({
+        type: update_notification_preferences_dto_1.UpdateNotificationPreferencesDto,
+        description: 'Patch notification preferences. Only fields provided will be updated.',
+        examples: {
+            enableEmail: {
+                summary: 'Enable email notifications only',
+                value: { email: true },
+            },
+            disableBrowser: {
+                summary: 'Disable browser notifications only',
+                value: { browser: false },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Notification preferences updated successfully',
+        type: notification_preferences_response_dto_1.NotificationPreferencesResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Validation failed' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_notification_preferences_dto_1.UpdateNotificationPreferencesDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "updateNotificationPreferences", null);
 exports.UserController = UserController = __decorate([
     (0, swagger_1.ApiTags)('users'),
     (0, swagger_1.ApiBearerAuth)(),

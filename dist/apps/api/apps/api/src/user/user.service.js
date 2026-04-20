@@ -151,6 +151,34 @@ let UserService = class UserService {
         });
         return this.toUserProfile(updatedUser);
     }
+    async updateNotificationPreferences(userId, dto) {
+        const existingUser = await this.findActiveUserOrThrow(userId);
+        const safePreferences = this.isJsonObject(existingUser.notificationPreferences)
+            ? { ...existingUser.notificationPreferences }
+            : {};
+        if (dto.inbox !== undefined)
+            safePreferences['inbox'] = dto.inbox;
+        if (dto.email !== undefined)
+            safePreferences['email'] = dto.email;
+        if (dto.browser !== undefined)
+            safePreferences['browser'] = dto.browser;
+        if (dto.mobile !== undefined)
+            safePreferences['mobile'] = dto.mobile;
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { notificationPreferences: safePreferences },
+            select: USER_PROFILE_SELECT,
+        });
+        const prefs = this.isJsonObject(updatedUser.notificationPreferences)
+            ? updatedUser.notificationPreferences
+            : {};
+        return {
+            inbox: typeof prefs['inbox'] === 'boolean' ? prefs['inbox'] : null,
+            email: typeof prefs['email'] === 'boolean' ? prefs['email'] : null,
+            browser: typeof prefs['browser'] === 'boolean' ? prefs['browser'] : null,
+            mobile: typeof prefs['mobile'] === 'boolean' ? prefs['mobile'] : null,
+        };
+    }
     async deleteProfile(userId) {
         await this.findActiveUserOrThrow(userId);
         await this.prisma.$transaction([

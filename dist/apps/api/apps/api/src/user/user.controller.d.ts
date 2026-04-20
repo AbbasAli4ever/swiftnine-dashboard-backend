@@ -5,6 +5,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { SetStatusDto } from './dto/set-status.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
 type AuthenticatedRequest = Request & {
     user: AuthUser;
 };
@@ -20,5 +22,6 @@ export declare class UserController {
     changePassword(req: AuthenticatedRequest, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;
+    updateNotificationPreferences(req: AuthenticatedRequest, dto: UpdateNotificationPreferencesDto): Promise<NotificationPreferencesResponseDto>;
 }
 export {};

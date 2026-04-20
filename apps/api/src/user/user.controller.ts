@@ -32,6 +32,8 @@ import { CreateProfileDto } from './dto/create-profile.dto';
 import { SetStatusDto } from './dto/set-status.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -224,5 +226,36 @@ export class UserController {
     @Body() dto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     return this.userService.changePassword(req.user.id, dto);
+  }
+
+  @Patch('notifications')
+  @ApiOperation({ summary: 'Update current user notification preferences' })
+  @ApiBody({
+    type: UpdateNotificationPreferencesDto,
+    description:
+      'Patch notification preferences. Only fields provided will be updated.',
+    examples: {
+      enableEmail: {
+        summary: 'Enable email notifications only',
+        value: { email: true },
+      },
+      disableBrowser: {
+        summary: 'Disable browser notifications only',
+        value: { browser: false },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification preferences updated successfully',
+    type: NotificationPreferencesResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async updateNotificationPreferences(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpdateNotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto> {
+    return this.userService.updateNotificationPreferences(req.user.id, dto as any);
   }
 }

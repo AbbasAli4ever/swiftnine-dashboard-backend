@@ -24,6 +24,17 @@ export declare class UserService {
     getProfile(userId: string): Promise<UserProfile>;
     updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserProfile>;
     updateStatus(userId: string, status: UserPresenceStatus): Promise<UserProfile>;
+    updateNotificationPreferences(userId: string, dto: {
+        inbox?: boolean;
+        email?: boolean;
+        browser?: boolean;
+        mobile?: boolean;
+    }): Promise<{
+        inbox: boolean | null;
+        email: boolean | null;
+        browser: boolean | null;
+        mobile: boolean | null;
+    }>;
     deleteProfile(userId: string): Promise<void>;
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
