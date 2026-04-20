@@ -34,6 +34,9 @@ let UserController = class UserController {
     async getProfile(req) {
         return this.userService.getProfile(req.user.id);
     }
+    async getById(id) {
+        return this.userService.getProfile(id);
+    }
     async updateProfile(req, dto) {
         return this.userService.updateProfile(req.user.id, dto);
     }
@@ -96,6 +99,26 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get user profile by id' }),
+    (0, swagger_1.ApiParam)({
+        name: 'id',
+        description: 'User UUID',
+        example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Profile returned successfully',
+        type: user_profile_response_dto_1.UserProfileResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found' }),
+    __param(0, (0, common_1.Param)('id', new common_1.ParseUUIDPipe())),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getById", null);
 __decorate([
     (0, common_1.Patch)('profile'),
     (0, swagger_1.ApiOperation)({ summary: 'Update current user profile' }),

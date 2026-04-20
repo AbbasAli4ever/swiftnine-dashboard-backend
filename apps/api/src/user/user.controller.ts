@@ -8,6 +8,8 @@ import {
   Patch,
   Post,
   Req,
+  Param,
+  ParseUUIDPipe,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -18,6 +20,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiParam,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -90,6 +93,26 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getProfile(@Req() req: AuthenticatedRequest): Promise<UserProfile> {
     return this.userService.getProfile(req.user.id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user profile by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID',
+    example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile returned successfully',
+    type: UserProfileResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<UserProfile> {
+    return this.userService.getProfile(id);
   }
 
   @Patch('profile')

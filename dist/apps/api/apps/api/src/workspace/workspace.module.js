@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const common_2 = require("../../../../libs/common/src");
 const auth_module_1 = require("../auth/auth.module");
 const workspace_controller_1 = require("./workspace.controller");
+const organizations_controller_1 = require("./organizations.controller");
 const workspace_service_1 = require("./workspace.service");
 const workspace_guard_1 = require("./workspace.guard");
 let WorkspaceModule = class WorkspaceModule {
@@ -19,7 +20,7 @@ exports.WorkspaceModule = WorkspaceModule;
 exports.WorkspaceModule = WorkspaceModule = __decorate([
     (0, common_1.Module)({
         imports: [common_2.CommonModule, auth_module_1.AuthModule],
-        controllers: [workspace_controller_1.WorkspaceController],
+        controllers: [workspace_controller_1.WorkspaceController, organizations_controller_1.OrganizationsController],
         providers: [workspace_service_1.WorkspaceService, workspace_guard_1.WorkspaceGuard],
         exports: [workspace_guard_1.WorkspaceGuard],
     })

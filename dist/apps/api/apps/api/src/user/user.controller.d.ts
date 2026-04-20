@@ -13,6 +13,7 @@ export declare class UserController {
     constructor(userService: UserService);
     createProfile(req: AuthenticatedRequest, dto: CreateProfileDto): Promise<UserProfile>;
     getProfile(req: AuthenticatedRequest): Promise<UserProfile>;
+    getById(id: string): Promise<UserProfile>;
     updateProfile(req: AuthenticatedRequest, dto: UpdateProfileDto): Promise<UserProfile>;
     updateStatus(req: AuthenticatedRequest, dto: SetStatusDto): Promise<UserProfile>;
     deleteProfile(req: AuthenticatedRequest): Promise<void>;

@@ -34,6 +34,7 @@ import {
   ClaimInviteDto,
   ClaimInviteResponseDto,
 } from './dto/claim-invite.dto';
+import { MemberResponseDto } from './dto/member-response.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
@@ -92,6 +93,19 @@ export class WorkspaceController {
       req.user.id,
     );
     return ok(workspace);
+  }
+
+  @Get(':workspaceId/members')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiOperation({ summary: 'List members in a workspace' })
+  @ApiResponse({ status: 200, description: 'Members returned', type: [MemberResponseDto] })
+  @ApiResponse({ status: 403, description: 'Not a member' })
+  @ApiResponse({ status: 404, description: 'Workspace not found' })
+  async listMembers(@Req() req: WorkspaceRequest): Promise<ApiRes<MemberResponseDto[]>> {
+    const members = await this.workspaceService.listMembers(req.workspaceContext.workspaceId);
+    return ok(members, 'Members returned successfully');
   }
 
   @Patch(':workspaceId')

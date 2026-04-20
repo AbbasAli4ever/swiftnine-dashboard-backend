@@ -137,6 +137,45 @@ let WorkspaceService = class WorkspaceService {
             throw new common_1.NotFoundException(WORKSPACE_NOT_FOUND);
         return { ...workspace, memberCount };
     }
+    async listMembers(workspaceId) {
+        const members = await this.prisma.workspaceMember.findMany({
+            where: { workspaceId, deletedAt: null },
+            select: {
+                role: true,
+                createdAt: true,
+                user: { select: { id: true, fullName: true, email: true, lastSeenAt: true } },
+            },
+            orderBy: { createdAt: 'asc' },
+        });
+        const emails = [...new Set(members.map((m) => m.user.email.trim().toLowerCase()))];
+        const invites = emails.length > 0
+            ? await this.prisma.workspaceInvite.findMany({
+                where: { workspaceId, email: { in: emails } },
+                select: { email: true, createdAt: true, sender: { select: { fullName: true } } },
+                orderBy: { createdAt: 'desc' },
+            })
+            : [];
+        const inviteMap = new Map();
+        for (const inv of invites) {
+            const key = inv.email.trim().toLowerCase();
+            if (!inviteMap.has(key))
+                inviteMap.set(key, inv);
+        }
+        return members.map((m) => {
+            const u = m.user;
+            const key = u.email.trim().toLowerCase();
+            const inv = inviteMap.get(key);
+            return {
+                id: u.id,
+                fullName: u.fullName,
+                email: u.email,
+                role: m.role,
+                lastActive: u.lastSeenAt ?? null,
+                invitedBy: inv?.sender?.fullName ?? null,
+                invitedOn: inv?.createdAt ?? null,
+            };
+        });
+    }
     async update(workspaceId, userId, role, dto) {
         if (role !== 'OWNER')
             throw new common_1.ForbiddenException(OWNER_ONLY);
@@ -487,6 +526,79 @@ let WorkspaceService = class WorkspaceService {
                 message: 'Failed to send invite email',
             };
         }
+    }
+    async assertActorIsOwnerOrAdmin(workspaceId, actorId) {
+        const actor = await this.prisma.workspaceMember.findFirst({
+            where: { workspaceId, userId: actorId, deletedAt: null },
+            select: { role: true },
+        });
+        if (!actor) {
+            throw new common_1.ForbiddenException('You are not a member of this workspace');
+        }
+        const roleStr = String(actor.role);
+        if (!['OWNER', 'ADMIN'].includes(roleStr)) {
+            throw new common_1.ForbiddenException('Only owner or admin can perform this action');
+        }
+    }
+    async removeMember(workspaceId, memberId, actorId) {
+        await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+        const member = await this.prisma.workspaceMember.findFirst({
+            where: { id: memberId, workspaceId, deletedAt: null },
+            select: { id: true, userId: true, user: { select: { fullName: true } } },
+        });
+        if (!member) {
+            throw new common_1.NotFoundException('Member not found');
+        }
+        await this.prisma.workspaceMember.update({
+            where: { id: memberId },
+            data: { deletedAt: new Date() },
+        });
+        await this.prisma.activityLog.create({
+            data: {
+                workspaceId,
+                entityType: 'workspace',
+                entityId: workspaceId,
+                action: 'member_removed',
+                metadata: {
+                    memberId: member.userId,
+                    memberName: member.user?.fullName ?? null,
+                },
+                performedBy: actorId,
+            },
+        });
+    }
+    async changeMemberRole(workspaceId, memberId, newRole, actorId) {
+        await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+        const member = await this.prisma.workspaceMember.findFirst({
+            where: { id: memberId, workspaceId, deletedAt: null },
+            select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
+        });
+        if (!member) {
+            throw new common_1.NotFoundException('Member not found');
+        }
+        const oldRole = member.role;
+        if (oldRole === newRole)
+            return;
+        await this.prisma.workspaceMember.update({
+            where: { id: memberId },
+            data: { role: newRole },
+        });
+        await this.prisma.activityLog.create({
+            data: {
+                workspaceId,
+                entityType: 'workspace',
+                entityId: workspaceId,
+                action: 'member_role_changed',
+                fieldName: 'role',
+                oldValue: oldRole,
+                newValue: newRole,
+                metadata: {
+                    memberId: member.userId,
+                    memberName: member.user?.fullName ?? null,
+                },
+                performedBy: actorId,
+            },
+        });
     }
 };
 exports.WorkspaceService = WorkspaceService;

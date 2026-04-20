@@ -50,6 +50,15 @@ export declare class WorkspaceService {
     findOne(workspaceId: string, userId: string): Promise<WorkspaceData & {
         memberCount: number;
     }>;
+    listMembers(workspaceId: string): Promise<Array<{
+        id: string;
+        fullName: string;
+        email: string;
+        role: Role;
+        lastActive: Date | null;
+        invitedBy: string | null;
+        invitedOn: Date | null;
+    }>>;
     update(workspaceId: string, userId: string, role: Role, dto: UpdateWorkspaceDto): Promise<WorkspaceData>;
     remove(workspaceId: string, userId: string, role: Role): Promise<void>;
     sendInvite(workspaceId: string, inviterId: string, role: Role, dto: InviteMemberDto): Promise<void>;
@@ -70,5 +79,8 @@ export declare class WorkspaceService {
     private prepareInviteContext;
     private findPendingInviteByToken;
     private sendInviteToEmail;
+    private assertActorIsOwnerOrAdmin;
+    removeMember(workspaceId: string, memberId: string, actorId: string): Promise<void>;
+    changeMemberRole(workspaceId: string, memberId: string, newRole: Role, actorId: string): Promise<void>;
 }
 export {};

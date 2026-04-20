@@ -24,6 +24,7 @@ const invite_member_dto_1 = require("./dto/invite-member.dto");
 const accept_invite_dto_1 = require("./dto/accept-invite.dto");
 const batch_invite_members_dto_1 = require("./dto/batch-invite-members.dto");
 const claim_invite_dto_1 = require("./dto/claim-invite.dto");
+const member_response_dto_1 = require("./dto/member-response.dto");
 const common_2 = require("../../../../libs/common/src");
 const auth_cookies_1 = require("../auth/auth.cookies");
 let WorkspaceController = class WorkspaceController {
@@ -42,6 +43,10 @@ let WorkspaceController = class WorkspaceController {
     async findOne(req) {
         const workspace = await this.workspaceService.findOne(req.workspaceContext.workspaceId, req.user.id);
         return (0, common_2.ok)(workspace);
+    }
+    async listMembers(req) {
+        const members = await this.workspaceService.listMembers(req.workspaceContext.workspaceId);
+        return (0, common_2.ok)(members, 'Members returned successfully');
     }
     async update(req, dto) {
         const workspace = await this.workspaceService.update(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, dto);
@@ -116,6 +121,20 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Get)(':workspaceId/members'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
+    (0, swagger_1.ApiOperation)({ summary: 'List members in a workspace' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Members returned', type: [member_response_dto_1.MemberResponseDto] }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Workspace not found' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "listMembers", null);
 __decorate([
     (0, common_1.Patch)(':workspaceId'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
