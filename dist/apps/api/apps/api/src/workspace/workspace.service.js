@@ -543,15 +543,21 @@ let WorkspaceService = class WorkspaceService {
     }
     async removeMember(workspaceId, memberId, actorId) {
         await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
-        const member = await this.prisma.workspaceMember.findFirst({
+        let member = await this.prisma.workspaceMember.findFirst({
             where: { id: memberId, workspaceId, deletedAt: null },
             select: { id: true, userId: true, user: { select: { fullName: true } } },
         });
         if (!member) {
+            member = await this.prisma.workspaceMember.findFirst({
+                where: { userId: memberId, workspaceId, deletedAt: null },
+                select: { id: true, userId: true, user: { select: { fullName: true } } },
+            });
+        }
+        if (!member) {
             throw new common_1.NotFoundException('Member not found');
         }
         await this.prisma.workspaceMember.update({
-            where: { id: memberId },
+            where: { id: member.id },
             data: { deletedAt: new Date() },
         });
         await this.prisma.activityLog.create({
@@ -570,10 +576,16 @@ let WorkspaceService = class WorkspaceService {
     }
     async changeMemberRole(workspaceId, memberId, newRole, actorId) {
         await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
-        const member = await this.prisma.workspaceMember.findFirst({
+        let member = await this.prisma.workspaceMember.findFirst({
             where: { id: memberId, workspaceId, deletedAt: null },
             select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
         });
+        if (!member) {
+            member = await this.prisma.workspaceMember.findFirst({
+                where: { userId: memberId, workspaceId, deletedAt: null },
+                select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
+            });
+        }
         if (!member) {
             throw new common_1.NotFoundException('Member not found');
         }
@@ -581,7 +593,7 @@ let WorkspaceService = class WorkspaceService {
         if (oldRole === newRole)
             return;
         await this.prisma.workspaceMember.update({
-            where: { id: memberId },
+            where: { id: member.id },
             data: { role: newRole },
         });
         await this.prisma.activityLog.create({

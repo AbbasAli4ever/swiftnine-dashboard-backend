@@ -687,17 +687,26 @@ export class WorkspaceService {
   ): Promise<void> {
     await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
 
-    const member = await this.prisma.workspaceMember.findFirst({
+    let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
       select: { id: true, userId: true, user: { select: { fullName: true } } },
     });
+
+    // Fallback: if client passed a userId instead of workspaceMember id,
+    // try to resolve membership by userId.
+    if (!member) {
+      member = await this.prisma.workspaceMember.findFirst({
+        where: { userId: memberId, workspaceId, deletedAt: null },
+        select: { id: true, userId: true, user: { select: { fullName: true } } },
+      });
+    }
 
     if (!member) {
       throw new NotFoundException('Member not found');
     }
 
     await this.prisma.workspaceMember.update({
-      where: { id: memberId },
+      where: { id: member.id },
       data: { deletedAt: new Date() },
     });
 
@@ -724,10 +733,18 @@ export class WorkspaceService {
   ): Promise<void> {
     await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
 
-    const member = await this.prisma.workspaceMember.findFirst({
+    let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
       select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
     });
+
+    // Fallback: allow passing a userId in place of workspaceMember id
+    if (!member) {
+      member = await this.prisma.workspaceMember.findFirst({
+        where: { userId: memberId, workspaceId, deletedAt: null },
+        select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
+      });
+    }
 
     if (!member) {
       throw new NotFoundException('Member not found');
@@ -737,7 +754,7 @@ export class WorkspaceService {
     if (oldRole === newRole) return;
 
     await this.prisma.workspaceMember.update({
-      where: { id: memberId },
+      where: { id: member.id },
       data: { role: newRole },
     });
 
