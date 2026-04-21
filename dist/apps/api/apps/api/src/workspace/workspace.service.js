@@ -151,7 +151,7 @@ let WorkspaceService = class WorkspaceService {
         const invites = emails.length > 0
             ? await this.prisma.workspaceInvite.findMany({
                 where: { workspaceId, email: { in: emails } },
-                select: { email: true, createdAt: true, sender: { select: { fullName: true } } },
+                select: { email: true, createdAt: true, status: true, sender: { select: { fullName: true } } },
                 orderBy: { createdAt: 'desc' },
             })
             : [];
@@ -173,6 +173,7 @@ let WorkspaceService = class WorkspaceService {
                 lastActive: u.lastSeenAt ?? null,
                 invitedBy: inv?.sender?.fullName ?? null,
                 invitedOn: inv?.createdAt ?? null,
+                inviteStatus: inv?.status ?? null,
             };
         });
     }

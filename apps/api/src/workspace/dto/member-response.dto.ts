@@ -21,4 +21,7 @@ export class MemberResponseDto {
 
   @ApiProperty({ example: '2026-04-10T12:35:41.000Z', format: 'date-time', nullable: true })
   invitedOn!: Date | null;
+
+  @ApiProperty({ example: 'PENDING', enum: ['PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED'], nullable: true })
+  inviteStatus!: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | null;
 }

@@ -19,6 +19,7 @@ class MemberResponseDto {
     lastActive;
     invitedBy;
     invitedOn;
+    inviteStatus;
 }
 exports.MemberResponseDto = MemberResponseDto;
 __decorate([
@@ -49,4 +50,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: '2026-04-10T12:35:41.000Z', format: 'date-time', nullable: true }),
     __metadata("design:type", Object)
 ], MemberResponseDto.prototype, "invitedOn", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'PENDING', enum: ['PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED'], nullable: true }),
+    __metadata("design:type", Object)
+], MemberResponseDto.prototype, "inviteStatus", void 0);
 //# sourceMappingURL=member-response.dto.js.map

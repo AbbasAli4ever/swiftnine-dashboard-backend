@@ -6,4 +6,5 @@ export declare class MemberResponseDto {
     lastActive: Date | null;
     invitedBy: string | null;
     invitedOn: Date | null;
+    inviteStatus: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | null;
 }

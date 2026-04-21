@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { EmailService } from '@app/common';
-import type { Prisma, Role } from '@app/database/generated/prisma/client';
+import type { Prisma, Role, InviteStatus } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -164,6 +164,7 @@ export class WorkspaceService {
       lastActive: Date | null;
       invitedBy: string | null;
       invitedOn: Date | null;
+      inviteStatus: InviteStatus | null;
     }>
   > {
     const members = await this.prisma.workspaceMember.findMany({
@@ -181,13 +182,16 @@ export class WorkspaceService {
     const invites =
       emails.length > 0
         ? await this.prisma.workspaceInvite.findMany({
-            where: { workspaceId, email: { in: emails } },
-            select: { email: true, createdAt: true, sender: { select: { fullName: true } } },
-            orderBy: { createdAt: 'desc' },
-          })
+              where: { workspaceId, email: { in: emails } },
+              select: { email: true, createdAt: true, status: true, sender: { select: { fullName: true } } },
+              orderBy: { createdAt: 'desc' },
+            })
         : [];
 
-    const inviteMap = new Map<string, { email: string; createdAt: Date; sender?: { fullName: string } }>();
+      const inviteMap = new Map<
+        string,
+        { email: string; createdAt: Date; status?: InviteStatus; sender?: { fullName: string } }
+      >();
     for (const inv of invites) {
       const key = inv.email.trim().toLowerCase();
       if (!inviteMap.has(key)) inviteMap.set(key, inv as any);
@@ -205,6 +209,7 @@ export class WorkspaceService {
         lastActive: (u as any).lastSeenAt ?? null,
         invitedBy: inv?.sender?.fullName ?? null,
         invitedOn: inv?.createdAt ?? null,
+        inviteStatus: (inv as any)?.status ?? null,
       };
     });
   }

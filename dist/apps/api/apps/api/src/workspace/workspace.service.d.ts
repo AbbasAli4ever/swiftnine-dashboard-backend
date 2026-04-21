@@ -1,6 +1,6 @@
 import { PrismaService } from "../../../../libs/database/src";
 import { EmailService } from "../../../../libs/common/src";
-import type { Prisma, Role } from "../../../../libs/database/src/generated/prisma/client";
+import type { Prisma, Role, InviteStatus } from "../../../../libs/database/src/generated/prisma/client";
 import { AuthService, type TokenPair } from '../auth/auth.service';
 import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
@@ -58,6 +58,7 @@ export declare class WorkspaceService {
         lastActive: Date | null;
         invitedBy: string | null;
         invitedOn: Date | null;
+        inviteStatus: InviteStatus | null;
     }>>;
     update(workspaceId: string, userId: string, role: Role, dto: UpdateWorkspaceDto): Promise<WorkspaceData>;
     remove(workspaceId: string, userId: string, role: Role): Promise<void>;
