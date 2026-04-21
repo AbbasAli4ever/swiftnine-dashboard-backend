@@ -19,6 +19,9 @@ const workspace_module_1 = require("./workspace/workspace.module");
 const project_module_1 = require("./project/project.module");
 const status_module_1 = require("./status/status.module");
 const task_list_module_1 = require("./task-list/task-list.module");
+const tag_module_1 = require("./tag/tag.module");
+const task_module_1 = require("./task/task.module");
+const time_entry_module_1 = require("./time-entry/time-entry.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -38,6 +41,9 @@ exports.AppModule = AppModule = __decorate([
             project_module_1.ProjectModule,
             status_module_1.StatusModule,
             task_list_module_1.TaskListModule,
+            tag_module_1.TagModule,
+            task_module_1.TaskModule,
+            time_entry_module_1.TimeEntryModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

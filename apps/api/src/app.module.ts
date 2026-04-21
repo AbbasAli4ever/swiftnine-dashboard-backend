@@ -10,6 +10,9 @@ import { WorkspaceModule } from './workspace/workspace.module';
 import { ProjectModule } from './project/project.module';
 import { StatusModule } from './status/status.module';
 import { TaskListModule } from './task-list/task-list.module';
+import { TagModule } from './tag/tag.module';
+import { TaskModule } from './task/task.module';
+import { TimeEntryModule } from './time-entry/time-entry.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { TaskListModule } from './task-list/task-list.module';
     ProjectModule,
     StatusModule,
     TaskListModule,
+    TagModule,
+    TaskModule,
+    TimeEntryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
