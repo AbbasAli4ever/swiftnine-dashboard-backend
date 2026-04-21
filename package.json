@@ -24,7 +24,8 @@
     "db:push": "npx prisma db push",
     "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
-    "db:reset": "npx prisma migrate reset"
+    "db:reset": "npx prisma migrate reset",
+    "user:soft-delete": "node -r ts-node/register -r tsconfig-paths/register scripts/soft-delete-user.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
