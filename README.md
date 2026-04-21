@@ -174,3 +174,4 @@ Main values from `.env.example`:
 - `PRISMA_STUDIO_PORT` (default `5555`)
 - `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
 - Google OAuth variables (only required if you use Google auth flow)
+ - `AWS_S3_PREFIX` (optional) — base folder inside the S3 bucket to use for uploaded files. Defaults to `swiftnine/docs/app`.

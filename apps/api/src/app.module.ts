@@ -13,6 +13,7 @@ import { TaskListModule } from './task-list/task-list.module';
 import { TagModule } from './tag/tag.module';
 import { TaskModule } from './task/task.module';
 import { TimeEntryModule } from './time-entry/time-entry.module';
+import { AttachmentsModule } from './attachments/attachments.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TimeEntryModule } from './time-entry/time-entry.module';
     AuthModule,
     UserModule,
     WorkspaceModule,
+    AttachmentsModule,
     ProjectModule,
     StatusModule,
     TaskListModule,
