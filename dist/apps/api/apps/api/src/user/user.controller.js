@@ -25,6 +25,7 @@ const update_profile_dto_1 = require("./dto/update-profile.dto");
 const user_profile_response_dto_1 = require("./dto/user-profile-response.dto");
 const update_notification_preferences_dto_1 = require("./dto/update-notification-preferences.dto");
 const notification_preferences_response_dto_1 = require("./dto/notification-preferences-response.dto");
+const workspace_guard_1 = require("../workspace/workspace.guard");
 let UserController = class UserController {
     userService;
     constructor(userService) {
@@ -47,6 +48,9 @@ let UserController = class UserController {
     }
     async deleteProfile(req) {
         await this.userService.deleteProfile(req.user.id);
+    }
+    async adminDeleteUser(req, id) {
+        await this.userService.adminDeleteUser(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id);
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
@@ -207,6 +211,35 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteProfile", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    (0, swagger_1.ApiHeader)({
+        name: 'x-workspace-id',
+        required: true,
+        description: 'Active workspace ID. Caller must be the workspace owner.',
+    }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Soft delete a workspace member account (workspace OWNER only)',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'id',
+        description: 'Target user UUID',
+        example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 204,
+        description: 'User soft deleted successfully (no content)',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only the workspace owner can delete users' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found in this workspace' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id', new common_1.ParseUUIDPipe())),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "adminDeleteUser", null);
 __decorate([
     (0, common_1.Patch)('change-password'),
     (0, swagger_1.ApiOperation)({ summary: 'Change current user password' }),

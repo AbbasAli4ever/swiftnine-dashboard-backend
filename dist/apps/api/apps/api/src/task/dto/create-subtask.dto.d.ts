@@ -10,8 +10,8 @@ declare const CreateSubtaskDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
         LOW: "LOW";
         NONE: "NONE";
     }>>;
-    startDate: z.ZodOptional<z.ZodString>;
-    dueDate: z.ZodOptional<z.ZodString>;
+    startDate: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    dueDate: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, z.core.$strip>, false>;
 export declare class CreateSubtaskDto extends CreateSubtaskDto_base {
 }

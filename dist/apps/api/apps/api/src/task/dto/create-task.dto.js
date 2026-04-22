@@ -8,8 +8,8 @@ const CreateTaskSchema = zod_1.z.object({
     description: zod_1.z.string().max(10000).optional(),
     statusId: zod_1.z.string().uuid('Invalid status ID'),
     priority: zod_1.z.enum(['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE']).default('NONE'),
-    startDate: zod_1.z.string().datetime().optional(),
-    dueDate: zod_1.z.string().datetime().optional(),
+    startDate: zod_1.z.string().datetime().nullable().optional(),
+    dueDate: zod_1.z.string().datetime().nullable().optional(),
     assigneeIds: zod_1.z.array(zod_1.z.string().uuid('Invalid user ID')).optional(),
     tagIds: zod_1.z.array(zod_1.z.string().uuid('Invalid tag ID')).optional(),
 });

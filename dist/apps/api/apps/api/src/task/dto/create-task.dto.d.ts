@@ -10,8 +10,8 @@ declare const CreateTaskDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
         LOW: "LOW";
         NONE: "NONE";
     }>>;
-    startDate: z.ZodOptional<z.ZodString>;
-    dueDate: z.ZodOptional<z.ZodString>;
+    startDate: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    dueDate: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     assigneeIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
     tagIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>, false>;

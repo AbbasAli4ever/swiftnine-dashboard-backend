@@ -17,6 +17,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -34,6 +35,8 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
+import { WorkspaceGuard } from '../workspace/workspace.guard';
+import type { WorkspaceRequest } from '../workspace/workspace.types';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -196,6 +199,40 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async deleteProfile(@Req() req: AuthenticatedRequest): Promise<void> {
     await this.userService.deleteProfile(req.user.id);
+  }
+
+  @Delete(':id')
+  @UseGuards(WorkspaceGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiHeader({
+    name: 'x-workspace-id',
+    required: true,
+    description: 'Active workspace ID. Caller must be the workspace owner.',
+  })
+  @ApiOperation({
+    summary: 'Soft delete a workspace member account (workspace OWNER only)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Target user UUID',
+    example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'User soft deleted successfully (no content)',
+  })
+  @ApiResponse({ status: 403, description: 'Only the workspace owner can delete users' })
+  @ApiResponse({ status: 404, description: 'User not found in this workspace' })
+  async adminDeleteUser(
+    @Req() req: WorkspaceRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<void> {
+    await this.userService.adminDeleteUser(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      req.workspaceContext.role,
+      id,
+    );
   }
 
   @Patch('change-password')

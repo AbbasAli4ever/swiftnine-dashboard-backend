@@ -1,4 +1,5 @@
 import { PrismaService } from "../../../../libs/database/src";
+import type { Role } from "../../../../libs/database/src/generated/prisma/client";
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserPresenceStatus } from './dto/profile-status.enum';
@@ -36,10 +37,12 @@ export declare class UserService {
         mobile: boolean | null;
     }>;
     deleteProfile(userId: string): Promise<void>;
+    adminDeleteUser(workspaceId: string, actorId: string, actorRole: Role, targetUserId: string): Promise<void>;
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;
     private findActiveUserOrThrow;
+    private softDeleteUserInTransaction;
     private findActiveUserWithPasswordOrThrow;
     private toUserProfile;
     private getShowLocalTimePreference;

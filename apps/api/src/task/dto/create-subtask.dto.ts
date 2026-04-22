@@ -6,8 +6,8 @@ const CreateSubtaskSchema = z.object({
   description: z.string().max(10000).optional(),
   statusId: z.string().uuid('Invalid status ID'),
   priority: z.enum(['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE']).default('NONE'),
-  startDate: z.string().datetime().optional(),
-  dueDate: z.string().datetime().optional(),
+  startDate: z.string().datetime().nullable().optional(),
+  dueDate: z.string().datetime().nullable().optional(),
 });
 
 export class CreateSubtaskDto extends createZodDto(CreateSubtaskSchema) {}

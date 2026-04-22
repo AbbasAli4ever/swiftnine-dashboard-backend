@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
-import type { Prisma } from '@app/database/generated/prisma/client';
+import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
@@ -229,23 +229,67 @@ export class UserService {
   async deleteProfile(userId: string): Promise<void> {
     await this.findActiveUserOrThrow(userId);
 
-    await this.prisma.$transaction([
-      this.prisma.refreshToken.deleteMany({
-        where: {
-          userId,
+    await this.prisma.$transaction((tx) => this.softDeleteUserInTransaction(userId, tx));
+  }
+
+  async adminDeleteUser(
+    workspaceId: string,
+    actorId: string,
+    actorRole: Role,
+    targetUserId: string,
+  ): Promise<void> {
+    if (actorRole !== 'OWNER') {
+      throw new ForbiddenException('Only the workspace owner can delete users');
+    }
+
+    if (actorId === targetUserId) {
+      throw new BadRequestException(
+        'Use DELETE /user/profile to delete your own account',
+      );
+    }
+
+    const membership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId: targetUserId,
+        deletedAt: null,
+        user: { deletedAt: null },
+      },
+      select: {
+        role: true,
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+          },
         },
-      }),
-      this.prisma.user.update({
-        where: {
-          id: userId,
-        },
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('User not found in this workspace');
+    }
+
+    if (membership.role === 'OWNER') {
+      throw new ForbiddenException('Workspace owners cannot be deleted by another owner');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.softDeleteUserInTransaction(targetUserId, tx);
+
+      await tx.activityLog.create({
         data: {
-          deletedAt: new Date(),
-          isOnline: false,
-          lastSeenAt: new Date(),
+          workspaceId,
+          entityType: 'user',
+          entityId: targetUserId,
+          action: 'deleted_by_owner',
+          metadata: {
+            targetUserName: membership.user.fullName,
+          },
+          performedBy: actorId,
         },
-      }),
-    ]);
+      });
+    });
   }
 
   async changePassword(
@@ -326,6 +370,30 @@ export class UserService {
     }
 
     return user;
+  }
+
+  private async softDeleteUserInTransaction(
+    userId: string,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const now = new Date();
+
+    await tx.refreshToken.deleteMany({
+      where: {
+        userId,
+      },
+    });
+
+    await tx.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        deletedAt: now,
+        isOnline: false,
+        lastSeenAt: now,
+      },
+    });
   }
 
   private async findActiveUserWithPasswordOrThrow(
