@@ -60,6 +60,26 @@ export declare class WorkspaceService {
         invitedOn: Date | null;
         inviteStatus: InviteStatus | null;
     }>>;
+    getMember(workspaceId: string, memberId: string): Promise<{
+        id: string;
+        workspaceMemberId: string;
+        fullName: string;
+        email: string;
+        role: Role;
+        avatarUrl: string | null;
+        avatarColor: string | null;
+        designation: string | null;
+        bio: string | null;
+        isOnline: boolean;
+        lastActive: Date | null;
+        timezone: string | null;
+        notificationPreferences: any;
+        invitedBy: string | null;
+        invitedOn: Date | null;
+        inviteStatus: InviteStatus | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     update(workspaceId: string, userId: string, role: Role, dto: UpdateWorkspaceDto): Promise<WorkspaceData>;
     remove(workspaceId: string, userId: string, role: Role): Promise<void>;
     sendInvite(workspaceId: string, inviterId: string, role: Role, dto: InviteMemberDto): Promise<void>;

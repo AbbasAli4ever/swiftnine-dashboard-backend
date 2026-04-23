@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from './workspace.guard';
@@ -37,6 +38,7 @@ import {
   ClaimInviteResponseDto,
 } from './dto/claim-invite.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
+import { MemberDetailResponseDto } from './dto/member-detail-response.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
@@ -108,6 +110,23 @@ export class WorkspaceController {
   async listMembers(@Req() req: WorkspaceRequest): Promise<ApiRes<MemberResponseDto[]>> {
     const members = await this.workspaceService.listMembers(req.workspaceContext.workspaceId);
     return ok(members, 'Members returned successfully');
+  }
+
+  @Get(':workspaceId/members/:memberId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a single workspace member by id (protected by JWT)' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace UUID' })
+  @ApiParam({ name: 'memberId', description: 'Workspace member id or user id' })
+  @ApiResponse({ status: 200, description: 'Member returned', type: MemberDetailResponseDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async getMember(
+    @Param('workspaceId') workspaceId: string,
+    @Param('memberId') memberId: string,
+  ): Promise<ApiRes<MemberDetailResponseDto>> {
+    const member = await this.workspaceService.getMember(workspaceId, memberId);
+    return ok(member, 'Member returned successfully');
   }
 
   @Patch(':workspaceId')

@@ -177,6 +177,89 @@ let WorkspaceService = class WorkspaceService {
             };
         });
     }
+    async getMember(workspaceId, memberId) {
+        let member = await this.prisma.workspaceMember.findFirst({
+            where: { id: memberId, workspaceId, deletedAt: null },
+            select: {
+                id: true,
+                role: true,
+                createdAt: true,
+                user: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true,
+                        avatarUrl: true,
+                        avatarColor: true,
+                        designation: true,
+                        bio: true,
+                        isOnline: true,
+                        lastSeenAt: true,
+                        timezone: true,
+                        notificationPreferences: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
+                },
+            },
+        });
+        if (!member) {
+            member = await this.prisma.workspaceMember.findFirst({
+                where: { userId: memberId, workspaceId, deletedAt: null },
+                select: {
+                    id: true,
+                    role: true,
+                    createdAt: true,
+                    user: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            email: true,
+                            avatarUrl: true,
+                            avatarColor: true,
+                            designation: true,
+                            bio: true,
+                            isOnline: true,
+                            lastSeenAt: true,
+                            timezone: true,
+                            notificationPreferences: true,
+                            createdAt: true,
+                            updatedAt: true,
+                        },
+                    },
+                },
+            });
+        }
+        if (!member) {
+            throw new common_1.NotFoundException('Member not found');
+        }
+        const u = member.user;
+        const invite = await this.prisma.workspaceInvite.findFirst({
+            where: { workspaceId, email: u.email.trim().toLowerCase() },
+            select: { createdAt: true, status: true, sender: { select: { fullName: true } } },
+            orderBy: { createdAt: 'desc' },
+        });
+        return {
+            id: u.id,
+            workspaceMemberId: member.id,
+            fullName: u.fullName,
+            email: u.email,
+            role: member.role,
+            avatarUrl: u.avatarUrl ?? null,
+            avatarColor: u.avatarColor ?? null,
+            designation: u.designation ?? null,
+            bio: u.bio ?? null,
+            isOnline: u.isOnline ?? false,
+            lastActive: u.lastSeenAt ?? null,
+            timezone: u.timezone ?? null,
+            notificationPreferences: u.notificationPreferences ?? null,
+            invitedBy: invite?.sender?.fullName ?? null,
+            invitedOn: invite?.createdAt ?? null,
+            inviteStatus: invite?.status ?? null,
+            createdAt: u.createdAt,
+            updatedAt: u.updatedAt,
+        };
+    }
     async update(workspaceId, userId, role, dto) {
         if (role !== 'OWNER')
             throw new common_1.ForbiddenException(OWNER_ONLY);

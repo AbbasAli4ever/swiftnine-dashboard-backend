@@ -406,9 +406,26 @@ model Comment {
   parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Comment[] @relation("CommentReplies")
   mentions Mention[]
+  reactions Reaction[]
 
   @@index([taskId, createdAt])
   @@map("comments")
+}
+
+/// Reactions on comments (one reaction belongs to one comment)
+model Reaction {
+  id         String   @id @default(uuid())
+  commentId  String   @map("comment_id")
+  memberId   String   @map("member_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  comment    Comment        @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  member     WorkspaceMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@index([memberId])
+  @@map("reactions")
 }
 
 /// @mentions in comments — used for notification targeting

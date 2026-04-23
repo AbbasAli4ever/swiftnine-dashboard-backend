@@ -6,6 +6,7 @@ import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
 import { ClaimInviteDto } from './dto/claim-invite.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
+import { MemberDetailResponseDto } from './dto/member-detail-response.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
@@ -23,6 +24,7 @@ export declare class WorkspaceController {
         memberCount: number;
     }>>;
     listMembers(req: WorkspaceRequest): Promise<ApiRes<MemberResponseDto[]>>;
+    getMember(workspaceId: string, memberId: string): Promise<ApiRes<MemberDetailResponseDto>>;
     update(req: WorkspaceRequest, dto: UpdateWorkspaceDto): Promise<ApiRes<WorkspaceData>>;
     remove(req: WorkspaceRequest): Promise<ApiRes<null>>;
     sendInvite(req: WorkspaceRequest, dto: InviteMemberDto): Promise<ApiRes<null>>;

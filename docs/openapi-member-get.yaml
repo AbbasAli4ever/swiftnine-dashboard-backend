@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: FocusHub API - Workspace member detail
+  version: 1.0.0
+  description: OpenAPI snippet documenting the workspace member GET endpoint added to the API.
+servers:
+  - url: http://localhost:3000
+    description: Local server (adjust as needed)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MemberDetailResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceMemberId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [OWNER, MEMBER]
+        avatarUrl:
+          type: string
+          nullable: true
+        avatarColor:
+          type: string
+          nullable: true
+        designation:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        isOnline:
+          type: boolean
+        lastActive:
+          type: string
+          format: date-time
+          nullable: true
+        timezone:
+          type: string
+          nullable: true
+        notificationPreferences:
+          type: object
+          nullable: true
+        invitedBy:
+          type: string
+          nullable: true
+        invitedOn:
+          type: string
+          format: date-time
+          nullable: true
+        inviteStatus:
+          type: string
+          enum: [PENDING, ACCEPTED, EXPIRED, REVOKED]
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+paths:
+  /api/v1/workspaces/{workspaceId}/members/{memberId}:
+    get:
+      summary: Get a single workspace member by id
+      description: |
+        Returns detailed information about a workspace member. `memberId` may be either a
+        workspace member row id or a user id. The endpoint is protected by a bearer token (JWT)
+        and accepts `workspaceId` and `memberId` as path parameters.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Workspace UUID
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace member id or user id
+      responses:
+        '200':
+          description: Member returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberDetailResponseDto'
+        '401':
+          description: Authentication required
+        '404':
+          description: Member not found
+

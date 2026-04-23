@@ -214,6 +214,116 @@ export class WorkspaceService {
     });
   }
 
+  async getMember(
+    workspaceId: string,
+    memberId: string,
+  ): Promise<{
+    id: string;
+    workspaceMemberId: string;
+    fullName: string;
+    email: string;
+    role: Role;
+    avatarUrl: string | null;
+    avatarColor: string | null;
+    designation: string | null;
+    bio: string | null;
+    isOnline: boolean;
+    lastActive: Date | null;
+    timezone: string | null;
+    notificationPreferences: any;
+    invitedBy: string | null;
+    invitedOn: Date | null;
+    inviteStatus: InviteStatus | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }> {
+    let member = await this.prisma.workspaceMember.findFirst({
+      where: { id: memberId, workspaceId, deletedAt: null },
+      select: {
+        id: true,
+        role: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+            avatarColor: true,
+            designation: true,
+            bio: true,
+            isOnline: true,
+            lastSeenAt: true,
+            timezone: true,
+            notificationPreferences: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!member) {
+      member = await this.prisma.workspaceMember.findFirst({
+        where: { userId: memberId, workspaceId, deletedAt: null },
+        select: {
+          id: true,
+          role: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+              avatarColor: true,
+              designation: true,
+              bio: true,
+              isOnline: true,
+              lastSeenAt: true,
+              timezone: true,
+              notificationPreferences: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+    }
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    const u = member.user;
+    const invite = await this.prisma.workspaceInvite.findFirst({
+      where: { workspaceId, email: u.email.trim().toLowerCase() },
+      select: { createdAt: true, status: true, sender: { select: { fullName: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      id: u.id,
+      workspaceMemberId: member.id,
+      fullName: u.fullName,
+      email: u.email,
+      role: member.role,
+      avatarUrl: u.avatarUrl ?? null,
+      avatarColor: u.avatarColor ?? null,
+      designation: u.designation ?? null,
+      bio: u.bio ?? null,
+      isOnline: (u as any).isOnline ?? false,
+      lastActive: (u as any).lastSeenAt ?? null,
+      timezone: u.timezone ?? null,
+      notificationPreferences: u.notificationPreferences ?? null,
+      invitedBy: (invite as any)?.sender?.fullName ?? null,
+      invitedOn: (invite as any)?.createdAt ?? null,
+      inviteStatus: (invite as any)?.status ?? null,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    };
+  }
+
   async update(
     workspaceId: string,
     userId: string,
