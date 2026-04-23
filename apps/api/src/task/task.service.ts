@@ -28,6 +28,7 @@ import type { CreateSubtaskDto } from './dto/create-subtask.dto';
 import type { AddAssigneesDto } from './dto/add-assignees.dto';
 import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
+import type { ListTasksQuery } from './dto/list-tasks-query.dto';
 import { ActivityService } from '../activity/activity.service';
 
 // ─── Response types ───────────────────────────────────────────────────────────
@@ -37,6 +38,19 @@ type RawTaskListItem = Prisma.TaskGetPayload<{ select: typeof TASK_LIST_ITEM_SEL
 
 export type TaskDetailData = RawTaskDetail & { taskId: string; totalTimeLogged: number };
 export type TaskListItemData = RawTaskListItem & { taskId: string };
+export type TaskSearchResult = {
+  items: TaskListItemData[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+type TaskSearchScope = {
+  workspaceId: string;
+  userId: string;
+  projectId?: string;
+  listId?: string;
+};
 
 // ─── Service ─────────────────────────────────────────────────────────────────
 
@@ -142,6 +156,35 @@ export class TaskService {
     });
 
     return tasks.map((t) => this.toListItem(t));
+  }
+
+  async findTasksByList(
+    workspaceId: string,
+    userId: string,
+    projectId: string,
+    listId: string,
+    query: ListTasksQuery,
+  ): Promise<TaskSearchResult> {
+    await this.findListOrThrow(workspaceId, projectId, listId);
+    return this.searchTasks({ workspaceId, userId, projectId, listId }, query);
+  }
+
+  async findTasksByProject(
+    workspaceId: string,
+    userId: string,
+    projectId: string,
+    query: ListTasksQuery,
+  ): Promise<TaskSearchResult> {
+    await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+    return this.searchTasks({ workspaceId, userId, projectId }, query);
+  }
+
+  async findTasksByWorkspace(
+    workspaceId: string,
+    userId: string,
+    query: ListTasksQuery,
+  ): Promise<TaskSearchResult> {
+    return this.searchTasks({ workspaceId, userId }, query);
   }
 
   async findOne(workspaceId: string, taskId: string): Promise<TaskDetailData> {
@@ -608,6 +651,288 @@ export class TaskService {
 
   // ─── Private helpers ───────────────────────────────────────────────────────
 
+  private async searchTasks(
+    scope: TaskSearchScope,
+    query: ListTasksQuery,
+  ): Promise<TaskSearchResult> {
+    const where = this.buildTaskSearchWhere(scope, query);
+    const orderBy = this.buildTaskSearchOrderBy(scope, query);
+    const skip = (query.page - 1) * query.limit;
+
+    const [total, tasks] = await Promise.all([
+      this.prisma.task.count({ where }),
+      this.prisma.task.findMany({
+        where,
+        select: TASK_LIST_ITEM_SELECT,
+        orderBy,
+        skip,
+        take: query.limit,
+      }),
+    ]);
+
+    return {
+      items: tasks.map((task) => this.toListItem(task)),
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
+
+  private buildTaskSearchWhere(
+    scope: TaskSearchScope,
+    query: ListTasksQuery,
+  ): Prisma.TaskWhereInput {
+    const and: Prisma.TaskWhereInput[] = [];
+    const where: Prisma.TaskWhereInput = {
+      deletedAt: null,
+      list: {
+        deletedAt: null,
+        ...(query.includeArchived ? {} : { isArchived: false }),
+        project: {
+          workspaceId: scope.workspaceId,
+          deletedAt: null,
+          ...(scope.projectId ? { id: scope.projectId } : {}),
+          ...(query.includeArchived ? {} : { isArchived: false }),
+        },
+      },
+      ...(scope.listId ? { listId: scope.listId } : {}),
+    };
+
+    if (!query.includeSubtasks) {
+      where.depth = 0;
+    }
+
+    if (query.q) {
+      const parsedTaskNumber = this.extractTaskNumber(query.q);
+      and.push({
+        OR: [
+          { title: { contains: query.q, mode: 'insensitive' } },
+          { description: { contains: query.q, mode: 'insensitive' } },
+          { status: { name: { contains: query.q, mode: 'insensitive' } } },
+          { tags: { some: { tag: { name: { contains: query.q, mode: 'insensitive' } } } } },
+          { assignees: { some: { user: { fullName: { contains: query.q, mode: 'insensitive' } } } } },
+          ...(parsedTaskNumber ? [{ taskNumber: parsedTaskNumber }] : []),
+        ],
+      });
+    }
+
+    if (query.statusIds?.length) {
+      and.push({ statusId: { in: query.statusIds } });
+    }
+
+    if (query.statusGroups?.length) {
+      and.push({ status: { group: { in: query.statusGroups } } });
+    } else if (!query.includeClosed) {
+      and.push({ status: { group: { not: 'CLOSED' } } });
+    }
+
+    if (query.priorities?.length) {
+      and.push({ priority: { in: query.priorities } });
+    }
+
+    const dueDateFilter = this.buildDueDateFilter(query);
+    if (dueDateFilter) {
+      and.push(dueDateFilter);
+    }
+
+    const assigneeFilter = this.buildAssigneeFilter(scope.userId, query);
+    if (assigneeFilter) {
+      and.push(assigneeFilter);
+    }
+
+    const tagFilter = this.buildTagFilter(query);
+    if (tagFilter) {
+      and.push(tagFilter);
+    }
+
+    if (query.createdBy?.length) {
+      and.push({ createdBy: { in: query.createdBy } });
+    }
+
+    this.pushDateRangeFilter(and, 'createdAt', query.createdFrom, query.createdTo);
+    this.pushDateRangeFilter(and, 'updatedAt', query.updatedFrom, query.updatedTo);
+    this.pushDateRangeFilter(and, 'completedAt', query.completedFrom, query.completedTo);
+
+    if (query.completed !== undefined) {
+      and.push({ isCompleted: query.completed });
+    }
+
+    if (and.length > 0) {
+      where.AND = and;
+    }
+
+    return where;
+  }
+
+  private buildTaskSearchOrderBy(
+    scope: TaskSearchScope,
+    query: ListTasksQuery,
+  ): Prisma.TaskOrderByWithRelationInput[] {
+    const sortBy = query.sortBy ?? (scope.listId ? 'position' : 'updated_at');
+    const order = query.sortBy ? query.sortOrder : scope.listId ? 'asc' : 'desc';
+
+    const primary: Prisma.TaskOrderByWithRelationInput =
+      sortBy === 'created_at'
+        ? { createdAt: order }
+        : sortBy === 'updated_at'
+          ? { updatedAt: order }
+          : sortBy === 'due_date'
+            ? { dueDate: order }
+            : sortBy === 'priority'
+              ? { priority: order }
+              : sortBy === 'status'
+                ? { status: { name: order } }
+                : sortBy === 'title'
+                  ? { title: order }
+                  : { position: order };
+
+    return scope.listId
+      ? [primary, { id: 'asc' }]
+      : [primary, { listId: 'asc' }, { position: 'asc' }, { id: 'asc' }];
+  }
+
+  private buildDueDateFilter(query: ListTasksQuery): Prisma.TaskWhereInput | null {
+    if (query.dueDate === 'no_due_date') {
+      return { dueDate: null };
+    }
+
+    if (query.hasDueDate === true) {
+      return { dueDate: { not: null } };
+    }
+
+    if (query.hasDueDate === false) {
+      return { dueDate: null };
+    }
+
+    const presetRange = query.dueDate ? this.getDueDatePresetRange(query.dueDate) : null;
+    if (presetRange) {
+      return { dueDate: presetRange };
+    }
+
+    if (!query.dueDateFrom && !query.dueDateTo) return null;
+    return {
+      dueDate: {
+        ...(query.dueDateFrom ? { gte: this.parseDateBoundary(query.dueDateFrom, 'start') } : {}),
+        ...(query.dueDateTo ? { lte: this.parseDateBoundary(query.dueDateTo, 'end') } : {}),
+      },
+    };
+  }
+
+  private buildAssigneeFilter(userId: string, query: ListTasksQuery): Prisma.TaskWhereInput | null {
+    const rawAssigneeIds = query.assigneeIds ?? [];
+    const wantsUnassigned = rawAssigneeIds.includes('unassigned') || query.hasAssignees === false;
+    const selectedUserIds = Array.from(
+      new Set([
+        ...rawAssigneeIds.filter((id) => id !== 'unassigned'),
+        ...(query.me ? [userId] : []),
+      ]),
+    );
+
+    if (query.hasAssignees === true && selectedUserIds.length === 0) {
+      return { assignees: { some: {} } };
+    }
+
+    if (selectedUserIds.length === 0) {
+      return wantsUnassigned ? { assignees: { none: {} } } : null;
+    }
+
+    const assignedFilter =
+      query.assigneeMatch === 'all'
+        ? {
+            AND: selectedUserIds.map((id) => ({
+              assignees: { some: { userId: id } },
+            })),
+          }
+        : { assignees: { some: { userId: { in: selectedUserIds } } } };
+
+    return wantsUnassigned
+      ? { OR: [assignedFilter, { assignees: { none: {} } }] }
+      : assignedFilter;
+  }
+
+  private buildTagFilter(query: ListTasksQuery): Prisma.TaskWhereInput | null {
+    if (!query.tagIds?.length) return null;
+
+    if (query.tagMatch === 'all') {
+      return {
+        AND: query.tagIds.map((id) => ({
+          tags: { some: { tagId: id } },
+        })),
+      };
+    }
+
+    return { tags: { some: { tagId: { in: query.tagIds } } } };
+  }
+
+  private pushDateRangeFilter(
+    filters: Prisma.TaskWhereInput[],
+    field: 'createdAt' | 'updatedAt' | 'completedAt',
+    from?: string,
+    to?: string,
+  ): void {
+    if (!from && !to) return;
+    filters.push({
+      [field]: {
+        ...(from ? { gte: this.parseDateBoundary(from, 'start') } : {}),
+        ...(to ? { lte: this.parseDateBoundary(to, 'end') } : {}),
+      },
+    });
+  }
+
+  private getDueDatePresetRange(
+    preset: Exclude<ListTasksQuery['dueDate'], undefined | 'no_due_date'>,
+  ): Prisma.DateTimeNullableFilter<'Task'> {
+    const todayStart = this.startOfUtcDay(new Date());
+    const tomorrowStart = this.addUtcDays(todayStart, 1);
+
+    if (preset === 'overdue') return { lt: todayStart };
+    if (preset === 'today') return { gte: todayStart, lt: tomorrowStart };
+    if (preset === 'today_or_earlier') return { lt: tomorrowStart };
+    if (preset === 'tomorrow') return { gte: tomorrowStart, lt: this.addUtcDays(tomorrowStart, 1) };
+
+    const weekStart = this.startOfUtcWeek(todayStart);
+    const nextWeekStart = this.addUtcDays(weekStart, 7);
+    const followingWeekStart = this.addUtcDays(nextWeekStart, 7);
+
+    if (preset === 'this_week') return { gte: weekStart, lt: nextWeekStart };
+    return { gte: nextWeekStart, lt: followingWeekStart };
+  }
+
+  private parseDateBoundary(value: string, boundary: 'start' | 'end'): Date {
+    const parsed = new Date(value);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      parsed.setUTCHours(
+        boundary === 'start' ? 0 : 23,
+        boundary === 'start' ? 0 : 59,
+        boundary === 'start' ? 0 : 59,
+        boundary === 'start' ? 0 : 999,
+      );
+    }
+    return parsed;
+  }
+
+  private startOfUtcDay(value: Date): Date {
+    return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+  }
+
+  private startOfUtcWeek(value: Date): Date {
+    const day = value.getUTCDay() || 7;
+    return this.addUtcDays(value, 1 - day);
+  }
+
+  private addUtcDays(value: Date, days: number): Date {
+    const next = new Date(value);
+    next.setUTCDate(next.getUTCDate() + days);
+    return next;
+  }
+
+  private extractTaskNumber(value: string): number | null {
+    const match = value.trim().match(/(?:^|[-#\s])(\d+)$/);
+    if (!match) return null;
+    const parsed = Number.parseInt(match[1], 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
   private async findListOrThrow(workspaceId: string, projectId: string, listId: string) {
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
@@ -622,6 +947,23 @@ export class TaskService {
     if (!list) throw new NotFoundException(TASK_LIST_NOT_FOUND);
 
     return list;
+  }
+
+  private async findProjectOrThrow(
+    workspaceId: string,
+    projectId: string,
+    includeArchived = false,
+  ): Promise<void> {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        workspaceId,
+        deletedAt: null,
+        ...(includeArchived ? {} : { isArchived: false }),
+      },
+      select: { id: true },
+    });
+    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
   }
 
   private async findStatusOrThrow(projectId: string, statusId: string): Promise<{ id: string; name: string }> {

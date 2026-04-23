@@ -20,6 +20,9 @@ const workspace_guard_1 = require("../workspace/workspace.guard");
 const task_service_1 = require("./task.service");
 const create_task_dto_1 = require("./dto/create-task.dto");
 const reorder_tasks_dto_1 = require("./dto/reorder-tasks.dto");
+const list_tasks_query_dto_1 = require("./dto/list-tasks-query.dto");
+const task_list_item_response_dto_1 = require("./dto/task-list-item-response.dto");
+const task_search_swagger_1 = require("./task-search.swagger");
 const common_2 = require("../../../../libs/common/src");
 let TaskListTasksController = class TaskListTasksController {
     taskService;
@@ -30,9 +33,9 @@ let TaskListTasksController = class TaskListTasksController {
         const task = await this.taskService.create(req.workspaceContext.workspaceId, req.user.id, projectId, listId, dto);
         return (0, common_2.ok)(task, 'Task created successfully');
     }
-    async findAll(req, projectId, listId) {
-        const tasks = await this.taskService.findAllByList(req.workspaceContext.workspaceId, projectId, listId);
-        return (0, common_2.ok)(tasks);
+    async findAll(req, projectId, listId, query) {
+        const result = await this.taskService.findTasksByList(req.workspaceContext.workspaceId, req.user.id, projectId, listId, query);
+        return (0, common_2.paginated)(result.items, result.total, result.page, result.limit);
     }
     async reorder(req, projectId, listId, dto) {
         const tasks = await this.taskService.reorder(req.workspaceContext.workspaceId, req.user.id, projectId, listId, dto);
@@ -56,13 +59,18 @@ __decorate([
 ], TaskListTasksController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'List all top-level tasks in a list (excludes subtasks)' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Tasks returned ordered by position' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Search and filter tasks in a list',
+        description: 'ClickUp-style list view query endpoint. Supports instant keyword search, stacked filters, Me Mode, subtasks-as-separate-tasks, sorting, and pagination.',
+    }),
+    (0, task_search_swagger_1.TaskSearchSwaggerQueries)(),
+    (0, swagger_1.ApiOkResponse)({ description: 'Paginated tasks returned', type: task_list_item_response_dto_1.PaginatedTasksResponseDto }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('projectId')),
     __param(2, (0, common_1.Param)('listId')),
+    __param(3, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, list_tasks_query_dto_1.ListTasksQueryDto]),
     __metadata("design:returntype", Promise)
 ], TaskListTasksController.prototype, "findAll", null);
 __decorate([

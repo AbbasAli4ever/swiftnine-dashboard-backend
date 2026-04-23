@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const task_service_1 = require("./task.service");
 const task_controller_1 = require("./task.controller");
 const task_list_tasks_controller_1 = require("./task-list-tasks.controller");
+const task_project_tasks_controller_1 = require("./task-project-tasks.controller");
 const activity_module_1 = require("../activity/activity.module");
 let TaskModule = class TaskModule {
 };
@@ -18,7 +19,7 @@ exports.TaskModule = TaskModule;
 exports.TaskModule = TaskModule = __decorate([
     (0, common_1.Module)({
         imports: [activity_module_1.ActivityModule],
-        controllers: [task_controller_1.TaskController, task_list_tasks_controller_1.TaskListTasksController],
+        controllers: [task_controller_1.TaskController, task_list_tasks_controller_1.TaskListTasksController, task_project_tasks_controller_1.TaskProjectTasksController],
         providers: [task_service_1.TaskService],
         exports: [task_service_1.TaskService],
     })
