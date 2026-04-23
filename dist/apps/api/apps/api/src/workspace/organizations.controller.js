@@ -20,6 +20,8 @@ const workspace_service_1 = require("./workspace.service");
 const remove_member_dto_1 = require("./dto/remove-member.dto");
 const change_member_role_dto_1 = require("./dto/change-member-role.dto");
 const common_2 = require("../../../../libs/common/src");
+const roles_decorator_1 = require("../roles/roles.decorator");
+const roles_guard_1 = require("../roles/roles.guard");
 let OrganizationsController = class OrganizationsController {
     workspaceService;
     constructor(workspaceService) {
@@ -37,9 +39,11 @@ let OrganizationsController = class OrganizationsController {
 exports.OrganizationsController = OrganizationsController;
 __decorate([
     (0, common_1.Delete)('members'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Remove a member from a workspace' }),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove a member from a workspace (OWNER only)' }),
     (0, swagger_1.ApiBody)({
         type: remove_member_dto_1.RemoveMemberDto,
         description: 'Workspace id and workspace-member id to remove',
@@ -66,14 +70,16 @@ __decorate([
 ], OrganizationsController.prototype, "removeMember", null);
 __decorate([
     (0, common_1.Put)('members/:id/role'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' }),
     (0, swagger_1.ApiParam)({
         name: 'id',
         description: 'Workspace member id (membership record id)',
         example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
     }),
-    (0, swagger_1.ApiOperation)({ summary: "Change a member's role in the workspace" }),
+    (0, swagger_1.ApiOperation)({ summary: "Change a member's role in the workspace (OWNER only)" }),
     (0, swagger_1.ApiBody)({
         type: change_member_role_dto_1.ChangeMemberRoleDto,
         description: 'Workspace id and new role for the specified membership',

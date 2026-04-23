@@ -183,7 +183,7 @@ let UserService = class UserService {
         await this.findActiveUserOrThrow(userId);
         await this.prisma.$transaction((tx) => this.softDeleteUserInTransaction(userId, tx));
     }
-    async adminDeleteUser(workspaceId, actorId, actorRole, targetUserId) {
+    async deleteWorkspaceMemberUser(workspaceId, actorId, actorRole, targetUserId) {
         if (actorRole !== 'OWNER') {
             throw new common_1.ForbiddenException('Only the workspace owner can delete users');
         }

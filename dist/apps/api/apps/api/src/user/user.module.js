@@ -12,12 +12,13 @@ const auth_module_1 = require("../auth/auth.module");
 const workspace_module_1 = require("../workspace/workspace.module");
 const user_controller_1 = require("./user.controller");
 const user_service_1 = require("./user.service");
+const roles_module_1 = require("../roles/roles.module");
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
     (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule, workspace_module_1.WorkspaceModule],
+        imports: [auth_module_1.AuthModule, workspace_module_1.WorkspaceModule, roles_module_1.RolesModule],
         controllers: [user_controller_1.UserController],
         providers: [user_service_1.UserService],
     })

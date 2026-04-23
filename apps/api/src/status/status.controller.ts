@@ -22,6 +22,8 @@ import {
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { StatusService, type GroupedStatuses, type StatusData } from './status.service';
 import { CreateStatusDto } from './dto/create-status.dto';
@@ -34,12 +36,13 @@ import { ListStatusesDto } from './dto/list-statuses.dto';
 @ApiTags('statuses')
 @ApiBearerAuth()
 @Controller('statuses')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class StatusController {
   constructor(private readonly statusService: StatusService) {}
 
   @Post()
+  @Roles('OWNER')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a custom status for a project (OWNER only)' })
   @ApiResponse({ status: 201, description: 'Status created' })
@@ -72,6 +75,7 @@ export class StatusController {
   }
 
   @Put('reorder')
+  @Roles('OWNER')
   @ApiOperation({ summary: 'Reorder statuses and move them across groups (OWNER only)' })
   @ApiResponse({ status: 200, description: 'Statuses reordered' })
   @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
@@ -89,6 +93,7 @@ export class StatusController {
   }
 
   @Post('default')
+  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Apply the default status template to a project (OWNER only)' })
   @ApiResponse({ status: 200, description: 'Default statuses applied' })
@@ -119,6 +124,7 @@ export class StatusController {
   }
 
   @Put(':id')
+  @Roles('OWNER')
   @ApiOperation({ summary: 'Update a status (OWNER only)' })
   @ApiResponse({ status: 200, description: 'Status updated' })
   @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
@@ -138,6 +144,7 @@ export class StatusController {
   }
 
   @Delete(':id')
+  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a status and optionally reassign its tasks (OWNER only)' })
   @ApiResponse({ status: 200, description: 'Status deleted' })

@@ -661,7 +661,7 @@ export class WorkspaceService {
     }
   }
 
-  private async assertActorIsOwnerOrAdmin(
+  private async assertActorIsOwner(
     workspaceId: string,
     actorId: string,
   ): Promise<void> {
@@ -674,9 +674,8 @@ export class WorkspaceService {
       throw new ForbiddenException('You are not a member of this workspace');
     }
 
-    const roleStr = String(actor.role);
-    if (!['OWNER', 'ADMIN'].includes(roleStr)) {
-      throw new ForbiddenException('Only owner or admin can perform this action');
+    if (actor.role !== 'OWNER') {
+      throw new ForbiddenException('Only the workspace owner can perform this action');
     }
   }
 
@@ -685,7 +684,7 @@ export class WorkspaceService {
     memberId: string,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+    await this.assertActorIsOwner(workspaceId, actorId);
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
@@ -731,7 +730,7 @@ export class WorkspaceService {
     newRole: Role,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+    await this.assertActorIsOwner(workspaceId, actorId);
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },

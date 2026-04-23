@@ -4,12 +4,16 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 import type { PresignAttachmentDto } from './dto/presign-attachment.dto';
 import { PrismaService } from '@app/database';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class AttachmentsService {
   private readonly s3: S3Client;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly activity: ActivityService,
+  ) {
     this.s3 = new S3Client({
       region: process.env.AWS_REGION,
       credentials: {
@@ -71,7 +75,18 @@ export class AttachmentsService {
     // Ensure task exists and belongs to a workspace
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-      select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+      select: {
+        id: true,
+        title: true,
+        taskNumber: true,
+        list: {
+          select: {
+            id: true,
+            name: true,
+            project: { select: { id: true, name: true, workspaceId: true } },
+          },
+        },
+      },
     });
 
     if (!task) throw new NotFoundException('Task not found');
@@ -127,6 +142,26 @@ export class AttachmentsService {
       select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
     });
 
+    await this.activity.log({
+      workspaceId,
+      entityType: 'attachment',
+      entityId: attachment.id,
+      action: 'file_uploaded',
+      metadata: {
+        taskId,
+        taskTitle: task.title,
+        taskNumber: task.taskNumber,
+        projectId: task.list.project.id,
+        projectName: task.list.project.name,
+        listId: task.list.id,
+        listName: task.list.name,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        fileSize: Number(attachment.fileSize),
+      },
+      performedBy: actorId,
+    });
+
     return {
       ...attachment,
       fileSize: Number(attachment.fileSize),
@@ -136,7 +171,18 @@ export class AttachmentsService {
   async listAttachmentsForTask(actorId: string, taskId: string, memberId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-      select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+      select: {
+        id: true,
+        title: true,
+        taskNumber: true,
+        list: {
+          select: {
+            id: true,
+            name: true,
+            project: { select: { id: true, name: true, workspaceId: true } },
+          },
+        },
+      },
     });
 
     if (!task) throw new NotFoundException('Task not found');
@@ -171,7 +217,18 @@ export class AttachmentsService {
   async deleteAttachment(actorId: string, taskId: string, memberId: string, s3Key: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-      select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+      select: {
+        id: true,
+        title: true,
+        taskNumber: true,
+        list: {
+          select: {
+            id: true,
+            name: true,
+            project: { select: { id: true, name: true, workspaceId: true } },
+          },
+        },
+      },
     });
 
     if (!task) throw new NotFoundException('Task not found');
@@ -185,10 +242,33 @@ export class AttachmentsService {
       throw new ForbiddenException('Actor must be the same as member');
     }
 
-    const attachment = await this.prisma.attachment.findFirst({ where: { taskId, s3Key, deletedAt: null } });
+    const attachment = await this.prisma.attachment.findFirst({
+      where: { taskId, s3Key, deletedAt: null },
+      select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true },
+    });
     if (!attachment) throw new NotFoundException('Attachment not found');
 
     await this.prisma.attachment.update({ where: { id: attachment.id }, data: { deletedAt: new Date() } });
+
+    await this.activity.log({
+      workspaceId,
+      entityType: 'attachment',
+      entityId: attachment.id,
+      action: 'file_deleted',
+      metadata: {
+        taskId,
+        taskTitle: task.title,
+        taskNumber: task.taskNumber,
+        projectId: task.list.project.id,
+        projectName: task.list.project.name,
+        listId: task.list.id,
+        listName: task.list.name,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        fileSize: Number(attachment.fileSize),
+      },
+      performedBy: actorId,
+    });
 
     return { id: attachment.id, s3Key };
   }

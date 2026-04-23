@@ -13,10 +13,13 @@ exports.TaskService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const task_constants_1 = require("./task.constants");
+const activity_service_1 = require("../activity/activity.service");
 let TaskService = class TaskService {
     prisma;
-    constructor(prisma) {
+    activity;
+    constructor(prisma, activity) {
         this.prisma = prisma;
+        this.activity = activity;
     }
     async create(workspaceId, userId, projectId, listId, dto) {
         await this.findListOrThrow(workspaceId, projectId, listId);
@@ -67,16 +70,14 @@ let TaskService = class TaskService {
                 },
                 select: { id: true },
             });
-            await tx.activityLog.create({
-                data: {
-                    workspaceId,
-                    entityType: 'task',
-                    entityId: task.id,
-                    action: 'created',
-                    metadata: { title: dto.title.trim() },
-                    performedBy: userId,
-                },
-            });
+            await this.activity.log({
+                workspaceId,
+                entityType: 'task',
+                entityId: task.id,
+                action: 'created',
+                metadata: { taskTitle: dto.title.trim(), projectId, listId, statusId: dto.statusId },
+                performedBy: userId,
+            }, tx);
             return tx.task.findFirstOrThrow({
                 where: { id: task.id },
                 select: task_constants_1.TASK_DETAIL_SELECT,
@@ -111,59 +112,84 @@ let TaskService = class TaskService {
         const updateData = {};
         const logEntries = [];
         if (dto.title !== undefined) {
-            updateData.title = dto.title.trim();
-            logEntries.push({ fieldName: 'title', oldValue: null, newValue: dto.title.trim() });
+            const title = dto.title.trim();
+            if (title !== task.title) {
+                updateData.title = title;
+                logEntries.push({ fieldName: 'title', oldValue: task.title, newValue: title });
+            }
         }
-        if (dto.description !== undefined) {
+        if (dto.description !== undefined && dto.description !== task.description) {
             updateData.description = dto.description;
-            logEntries.push({ fieldName: 'description', oldValue: null, newValue: dto.description });
+            logEntries.push({ fieldName: 'description', oldValue: task.description, newValue: dto.description });
         }
-        if (dto.priority !== undefined) {
+        if (dto.priority !== undefined && dto.priority !== task.priority) {
             updateData.priority = dto.priority;
-            logEntries.push({ fieldName: 'priority', oldValue: null, newValue: dto.priority });
+            logEntries.push({ fieldName: 'priority', oldValue: task.priority, newValue: dto.priority });
         }
-        if (dto.startDate !== undefined) {
+        if (dto.startDate !== undefined && this.dateString(task.startDate) !== dto.startDate) {
             updateData.startDate = dto.startDate;
-            logEntries.push({ fieldName: 'startDate', oldValue: null, newValue: dto.startDate ?? null });
+            logEntries.push({ fieldName: 'startDate', oldValue: task.startDate, newValue: dto.startDate ?? null });
         }
-        if (dto.dueDate !== undefined) {
+        if (dto.dueDate !== undefined && this.dateString(task.dueDate) !== dto.dueDate) {
             updateData.dueDate = dto.dueDate;
-            logEntries.push({ fieldName: 'dueDate', oldValue: null, newValue: dto.dueDate ?? null });
+            logEntries.push({ fieldName: 'dueDate', oldValue: task.dueDate, newValue: dto.dueDate ?? null });
         }
-        if (dto.statusId !== undefined) {
-            await this.findStatusOrThrow(task.list.project.id, dto.statusId);
+        if (dto.statusId !== undefined && dto.statusId !== task.statusId) {
+            const newStatus = await this.findStatusOrThrow(task.list.project.id, dto.statusId);
             updateData.status = { connect: { id: dto.statusId } };
-            logEntries.push({ fieldName: 'status', oldValue: null, newValue: dto.statusId });
+            logEntries.push({
+                fieldName: 'status',
+                oldValue: task.status.name,
+                newValue: newStatus.name,
+                action: 'status_changed',
+                metadata: {
+                    oldStatusId: task.statusId,
+                    newStatusId: dto.statusId,
+                    oldStatusName: task.status.name,
+                    newStatusName: newStatus.name,
+                },
+            });
         }
         if (dto.listId !== undefined && dto.listId !== task.listId) {
             const newList = await this.prisma.taskList.findFirst({
                 where: { id: dto.listId, projectId: task.list.project.id, deletedAt: null, isArchived: false },
-                select: { id: true },
+                select: { id: true, name: true },
             });
             if (!newList)
                 throw new common_1.NotFoundException(task_constants_1.TASK_LIST_NOT_FOUND);
             const newPosition = await this.getNextPosition(dto.listId);
             updateData.list = { connect: { id: dto.listId } };
             updateData.position = newPosition;
-            logEntries.push({ fieldName: 'listId', oldValue: task.listId, newValue: dto.listId });
+            logEntries.push({
+                fieldName: 'listId',
+                oldValue: task.list.name,
+                newValue: newList.name,
+                action: 'moved',
+                metadata: { oldListId: task.listId, newListId: dto.listId },
+            });
         }
         if (Object.keys(updateData).length === 0)
             return this.findOne(workspaceId, taskId);
         await this.prisma.task.update({ where: { id: taskId }, data: updateData });
         if (logEntries.length > 0) {
-            await this.prisma.activityLog.createMany({
-                data: logEntries.map((entry) => ({
-                    workspaceId,
-                    entityType: 'task',
-                    entityId: taskId,
-                    action: 'updated',
-                    fieldName: entry.fieldName,
-                    oldValue: entry.oldValue,
-                    newValue: entry.newValue,
-                    metadata: {},
-                    performedBy: userId,
-                })),
-            });
+            await this.activity.logMany(logEntries.map((entry) => ({
+                workspaceId,
+                entityType: 'task',
+                entityId: taskId,
+                action: entry.action ?? 'updated',
+                fieldName: entry.fieldName,
+                oldValue: entry.oldValue,
+                newValue: entry.newValue,
+                metadata: {
+                    taskTitle: updateData.title ?? task.title,
+                    taskNumber: task.taskNumber,
+                    projectId: task.list.project.id,
+                    projectName: task.list.project.name,
+                    listId: dto.listId ?? task.listId,
+                    ...(entry.metadata ?? {}),
+                },
+                performedBy: userId,
+            })));
         }
         return this.findOne(workspaceId, taskId);
     }
@@ -179,51 +205,51 @@ let TaskService = class TaskService {
                 data: { deletedAt: now },
             });
             await tx.task.update({ where: { id: taskId }, data: { deletedAt: now } });
-            await tx.activityLog.create({
-                data: {
-                    workspaceId,
-                    entityType: 'task',
-                    entityId: taskId,
-                    action: 'deleted',
-                    metadata: {},
-                    performedBy: userId,
-                },
-            });
+            await this.activity.log({
+                workspaceId,
+                entityType: 'task',
+                entityId: taskId,
+                action: 'deleted',
+                metadata: { taskTitle: task.title, taskNumber: task.taskNumber, listId: task.listId },
+                performedBy: userId,
+            }, tx);
         });
     }
     async complete(workspaceId, userId, taskId) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         await this.prisma.task.update({
             where: { id: taskId },
             data: { isCompleted: true, completedAt: new Date() },
         });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task',
-                entityId: taskId,
-                action: 'completed',
-                metadata: {},
-                performedBy: userId,
-            },
+        await this.activity.log({
+            workspaceId,
+            entityType: 'task',
+            entityId: taskId,
+            action: 'completed',
+            fieldName: 'isCompleted',
+            oldValue: task.isCompleted,
+            newValue: true,
+            metadata: { taskTitle: task.title, taskNumber: task.taskNumber },
+            performedBy: userId,
         });
         return this.findOne(workspaceId, taskId);
     }
     async uncomplete(workspaceId, userId, taskId) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         await this.prisma.task.update({
             where: { id: taskId },
             data: { isCompleted: false, completedAt: null },
         });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task',
-                entityId: taskId,
-                action: 'uncompleted',
-                metadata: {},
-                performedBy: userId,
-            },
+        await this.activity.log({
+            workspaceId,
+            entityType: 'task',
+            entityId: taskId,
+            action: 'uncompleted',
+            fieldName: 'isCompleted',
+            oldValue: task.isCompleted,
+            newValue: false,
+            metadata: { taskTitle: task.title, taskNumber: task.taskNumber },
+            performedBy: userId,
         });
         return this.findOne(workspaceId, taskId);
     }
@@ -256,16 +282,18 @@ let TaskService = class TaskService {
                 },
                 select: { id: true },
             });
-            await tx.activityLog.create({
-                data: {
-                    workspaceId,
-                    entityType: 'task',
-                    entityId: subtask.id,
-                    action: 'created',
-                    metadata: { title: dto.title.trim(), parentId: parentTaskId },
-                    performedBy: userId,
+            await this.activity.log({
+                workspaceId,
+                entityType: 'task',
+                entityId: subtask.id,
+                action: 'subtask_created',
+                metadata: {
+                    taskTitle: dto.title.trim(),
+                    parentId: parentTaskId,
+                    parentTitle: parent.title,
                 },
-            });
+                performedBy: userId,
+            }, tx);
             return tx.task.findFirstOrThrow({
                 where: { id: subtask.id },
                 select: task_constants_1.TASK_DETAIL_SELECT,
@@ -283,44 +311,52 @@ let TaskService = class TaskService {
         return tasks.map((t) => this.toListItem(t));
     }
     async addAssignees(workspaceId, userId, taskId, dto) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         await this.assertUsersAreMembers(workspaceId, dto.userIds);
+        const existing = await this.prisma.taskAssignee.findMany({
+            where: { taskId, userId: { in: dto.userIds } },
+            select: { userId: true },
+        });
+        const existingUserIds = new Set(existing.map((assignee) => assignee.userId));
+        const newUserIds = dto.userIds.filter((uid) => !existingUserIds.has(uid));
         await this.prisma.taskAssignee.createMany({
             data: dto.userIds.map((uid) => ({ taskId, userId: uid, assignedBy: userId })),
             skipDuplicates: true,
         });
-        await this.prisma.activityLog.create({
-            data: {
+        if (newUserIds.length > 0) {
+            await this.activity.log({
                 workspaceId,
                 entityType: 'task',
                 entityId: taskId,
-                action: 'assignees_added',
-                metadata: { userIds: dto.userIds },
+                action: 'assignee_added',
+                metadata: { userIds: newUserIds, taskTitle: task.title, taskNumber: task.taskNumber },
                 performedBy: userId,
-            },
-        });
+            });
+        }
         return this.findOne(workspaceId, taskId);
     }
     async removeAssignee(workspaceId, userId, taskId, targetUserId) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         await this.prisma.taskAssignee.deleteMany({
             where: { taskId, userId: targetUserId },
         });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task',
-                entityId: taskId,
-                action: 'assignee_removed',
-                metadata: { removedUserId: targetUserId },
-                performedBy: userId,
-            },
+        await this.activity.log({
+            workspaceId,
+            entityType: 'task',
+            entityId: taskId,
+            action: 'assignee_removed',
+            metadata: { removedUserId: targetUserId, taskTitle: task.title, taskNumber: task.taskNumber },
+            performedBy: userId,
         });
         return this.findOne(workspaceId, taskId);
     }
     async addTag(workspaceId, userId, taskId, dto) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         await this.assertTagsInWorkspace(workspaceId, [dto.tagId]);
+        const tag = await this.prisma.tag.findFirst({
+            where: { id: dto.tagId, workspaceId, deletedAt: null },
+            select: { id: true, name: true, color: true },
+        });
         const existing = await this.prisma.taskTag.findFirst({
             where: { taskId, tagId: dto.tagId },
             select: { id: true },
@@ -328,36 +364,42 @@ let TaskService = class TaskService {
         if (existing)
             throw new common_1.ConflictException(task_constants_1.TAG_ALREADY_ON_TASK);
         await this.prisma.taskTag.create({ data: { taskId, tagId: dto.tagId } });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task',
-                entityId: taskId,
-                action: 'tag_added',
-                metadata: { tagId: dto.tagId },
-                performedBy: userId,
+        await this.activity.log({
+            workspaceId,
+            entityType: 'task',
+            entityId: taskId,
+            action: 'tag_added',
+            metadata: {
+                tagId: dto.tagId,
+                tagName: tag?.name ?? null,
+                taskTitle: task.title,
+                taskNumber: task.taskNumber,
             },
+            performedBy: userId,
         });
         return this.findOne(workspaceId, taskId);
     }
     async removeTag(workspaceId, userId, taskId, tagId) {
-        await this.findTaskMinimalOrThrow(workspaceId, taskId);
+        const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
         const existing = await this.prisma.taskTag.findFirst({
             where: { taskId, tagId },
-            select: { id: true },
+            select: { id: true, tag: { select: { name: true, color: true } } },
         });
         if (!existing)
             throw new common_1.NotFoundException(task_constants_1.TAG_NOT_ON_TASK);
         await this.prisma.taskTag.delete({ where: { id: existing.id } });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task',
-                entityId: taskId,
-                action: 'tag_removed',
-                metadata: { tagId },
-                performedBy: userId,
+        await this.activity.log({
+            workspaceId,
+            entityType: 'task',
+            entityId: taskId,
+            action: 'tag_removed',
+            metadata: {
+                tagId,
+                tagName: existing.tag.name,
+                taskTitle: task.title,
+                taskNumber: task.taskNumber,
             },
+            performedBy: userId,
         });
         return this.findOne(workspaceId, taskId);
     }
@@ -383,15 +425,13 @@ let TaskService = class TaskService {
                 where: { id: entry.id },
                 data: { position: entry.position },
             })));
-            await this.prisma.activityLog.create({
-                data: {
-                    workspaceId,
-                    entityType: 'task',
-                    entityId: listId,
-                    action: 'reordered',
-                    metadata: { taskIds: dto.taskIds },
-                    performedBy: userId,
-                },
+            await this.activity.log({
+                workspaceId,
+                entityType: 'task',
+                entityId: listId,
+                action: 'reordered',
+                metadata: { taskIds: dto.taskIds },
+                performedBy: userId,
             });
         }
         return this.findAllByList(workspaceId, projectId, listId);
@@ -414,10 +454,11 @@ let TaskService = class TaskService {
     async findStatusOrThrow(projectId, statusId) {
         const status = await this.prisma.status.findFirst({
             where: { id: statusId, projectId, deletedAt: null },
-            select: { id: true },
+            select: { id: true, name: true },
         });
         if (!status)
             throw new common_1.NotFoundException(task_constants_1.STATUS_NOT_FOUND);
+        return status;
     }
     async findTaskMinimalOrThrow(workspaceId, taskId) {
         const task = await this.prisma.task.findFirst({
@@ -431,12 +472,22 @@ let TaskService = class TaskService {
                 listId: true,
                 parentId: true,
                 depth: true,
+                title: true,
+                description: true,
+                statusId: true,
+                priority: true,
+                startDate: true,
+                dueDate: true,
+                isCompleted: true,
                 taskNumber: true,
                 createdBy: true,
+                status: { select: { id: true, name: true, color: true } },
                 list: {
                     select: {
+                        id: true,
+                        name: true,
                         projectId: true,
-                        project: { select: { id: true, workspaceId: true, taskIdPrefix: true } },
+                        project: { select: { id: true, workspaceId: true, taskIdPrefix: true, name: true } },
                     },
                 },
             },
@@ -444,6 +495,9 @@ let TaskService = class TaskService {
         if (!task)
             throw new common_1.NotFoundException(task_constants_1.TASK_NOT_FOUND);
         return task;
+    }
+    dateString(value) {
+        return value ? value.toISOString() : null;
     }
     async assertUsersAreMembers(workspaceId, userIds) {
         const members = await this.prisma.workspaceMember.findMany({
@@ -496,6 +550,7 @@ let TaskService = class TaskService {
 exports.TaskService = TaskService;
 exports.TaskService = TaskService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        activity_service_1.ActivityService])
 ], TaskService);
 //# sourceMappingURL=task.service.js.map

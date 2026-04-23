@@ -18,6 +18,8 @@ const swagger_1 = require("@nestjs/swagger");
 const common_2 = require("../../../../libs/common/src");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
+const roles_decorator_1 = require("../roles/roles.decorator");
+const roles_guard_1 = require("../roles/roles.guard");
 const status_service_1 = require("./status.service");
 const create_status_dto_1 = require("./dto/create-status.dto");
 const update_status_dto_1 = require("./dto/update-status.dto");
@@ -62,6 +64,7 @@ let StatusController = class StatusController {
 exports.StatusController = StatusController;
 __decorate([
     (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({ summary: 'Create a custom status for a project (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Status created' }),
@@ -84,6 +87,7 @@ __decorate([
 ], StatusController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Put)('reorder'),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, swagger_1.ApiOperation)({ summary: 'Reorder statuses and move them across groups (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Statuses reordered' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Only workspace owner can manage statuses' }),
@@ -95,6 +99,7 @@ __decorate([
 ], StatusController.prototype, "reorder", null);
 __decorate([
     (0, common_1.Post)('default'),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Apply the default status template to a project (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Default statuses applied' }),
@@ -118,6 +123,7 @@ __decorate([
 ], StatusController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, swagger_1.ApiOperation)({ summary: 'Update a status (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Status updated' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Only workspace owner can manage statuses' }),
@@ -130,6 +136,7 @@ __decorate([
 ], StatusController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Delete a status and optionally reassign its tasks (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Status deleted' }),
@@ -145,7 +152,7 @@ exports.StatusController = StatusController = __decorate([
     (0, swagger_1.ApiTags)('statuses'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('statuses'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' }),
     __metadata("design:paramtypes", [status_service_1.StatusService])
 ], StatusController);

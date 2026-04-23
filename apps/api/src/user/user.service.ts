@@ -232,7 +232,7 @@ export class UserService {
     await this.prisma.$transaction((tx) => this.softDeleteUserInTransaction(userId, tx));
   }
 
-  async adminDeleteUser(
+  async deleteWorkspaceMemberUser(
     workspaceId: string,
     actorId: string,
     actorRole: Role,

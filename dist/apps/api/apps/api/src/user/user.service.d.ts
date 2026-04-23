@@ -37,7 +37,7 @@ export declare class UserService {
         mobile: boolean | null;
     }>;
     deleteProfile(userId: string): Promise<void>;
-    adminDeleteUser(workspaceId: string, actorId: string, actorRole: Role, targetUserId: string): Promise<void>;
+    deleteWorkspaceMemberUser(workspaceId: string, actorId: string, actorRole: Role, targetUserId: string): Promise<void>;
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;

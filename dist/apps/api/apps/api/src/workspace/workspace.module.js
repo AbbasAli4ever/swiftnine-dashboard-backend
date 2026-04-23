@@ -14,12 +14,13 @@ const workspace_controller_1 = require("./workspace.controller");
 const organizations_controller_1 = require("./organizations.controller");
 const workspace_service_1 = require("./workspace.service");
 const workspace_guard_1 = require("./workspace.guard");
+const roles_module_1 = require("../roles/roles.module");
 let WorkspaceModule = class WorkspaceModule {
 };
 exports.WorkspaceModule = WorkspaceModule;
 exports.WorkspaceModule = WorkspaceModule = __decorate([
     (0, common_1.Module)({
-        imports: [common_2.CommonModule, auth_module_1.AuthModule],
+        imports: [common_2.CommonModule, auth_module_1.AuthModule, roles_module_1.RolesModule],
         controllers: [workspace_controller_1.WorkspaceController, organizations_controller_1.OrganizationsController],
         providers: [workspace_service_1.WorkspaceService, workspace_guard_1.WorkspaceGuard],
         exports: [workspace_guard_1.WorkspaceGuard],

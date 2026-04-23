@@ -528,7 +528,7 @@ let WorkspaceService = class WorkspaceService {
             };
         }
     }
-    async assertActorIsOwnerOrAdmin(workspaceId, actorId) {
+    async assertActorIsOwner(workspaceId, actorId) {
         const actor = await this.prisma.workspaceMember.findFirst({
             where: { workspaceId, userId: actorId, deletedAt: null },
             select: { role: true },
@@ -536,13 +536,12 @@ let WorkspaceService = class WorkspaceService {
         if (!actor) {
             throw new common_1.ForbiddenException('You are not a member of this workspace');
         }
-        const roleStr = String(actor.role);
-        if (!['OWNER', 'ADMIN'].includes(roleStr)) {
-            throw new common_1.ForbiddenException('Only owner or admin can perform this action');
+        if (actor.role !== 'OWNER') {
+            throw new common_1.ForbiddenException('Only the workspace owner can perform this action');
         }
     }
     async removeMember(workspaceId, memberId, actorId) {
-        await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+        await this.assertActorIsOwner(workspaceId, actorId);
         let member = await this.prisma.workspaceMember.findFirst({
             where: { id: memberId, workspaceId, deletedAt: null },
             select: { id: true, userId: true, user: { select: { fullName: true } } },
@@ -575,7 +574,7 @@ let WorkspaceService = class WorkspaceService {
         });
     }
     async changeMemberRole(workspaceId, memberId, newRole, actorId) {
-        await this.assertActorIsOwnerOrAdmin(workspaceId, actorId);
+        await this.assertActorIsOwner(workspaceId, actorId);
         let member = await this.prisma.workspaceMember.findFirst({
             where: { id: memberId, workspaceId, deletedAt: null },
             select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },

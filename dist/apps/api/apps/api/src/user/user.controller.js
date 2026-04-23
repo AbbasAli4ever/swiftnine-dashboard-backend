@@ -26,6 +26,8 @@ const user_profile_response_dto_1 = require("./dto/user-profile-response.dto");
 const update_notification_preferences_dto_1 = require("./dto/update-notification-preferences.dto");
 const notification_preferences_response_dto_1 = require("./dto/notification-preferences-response.dto");
 const workspace_guard_1 = require("../workspace/workspace.guard");
+const roles_decorator_1 = require("../roles/roles.decorator");
+const roles_guard_1 = require("../roles/roles.guard");
 let UserController = class UserController {
     userService;
     constructor(userService) {
@@ -49,8 +51,8 @@ let UserController = class UserController {
     async deleteProfile(req) {
         await this.userService.deleteProfile(req.user.id);
     }
-    async adminDeleteUser(req, id) {
-        await this.userService.adminDeleteUser(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id);
+    async deleteWorkspaceMemberUser(req, id) {
+        await this.userService.deleteWorkspaceMemberUser(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id);
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
@@ -213,7 +215,8 @@ __decorate([
 ], UserController.prototype, "deleteProfile", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     (0, swagger_1.ApiHeader)({
         name: 'x-workspace-id',
@@ -239,7 +242,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
-], UserController.prototype, "adminDeleteUser", null);
+], UserController.prototype, "deleteWorkspaceMemberUser", null);
 __decorate([
     (0, common_1.Patch)('change-password'),
     (0, swagger_1.ApiOperation)({ summary: 'Change current user password' }),

@@ -20,7 +20,7 @@ export declare class UserController {
     updateProfile(req: AuthenticatedRequest, dto: UpdateProfileDto): Promise<UserProfile>;
     updateStatus(req: AuthenticatedRequest, dto: SetStatusDto): Promise<UserProfile>;
     deleteProfile(req: AuthenticatedRequest): Promise<void>;
-    adminDeleteUser(req: WorkspaceRequest, id: string): Promise<void>;
+    deleteWorkspaceMemberUser(req: WorkspaceRequest, id: string): Promise<void>;
     changePassword(req: AuthenticatedRequest, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;

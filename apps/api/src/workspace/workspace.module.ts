@@ -5,9 +5,10 @@ import { WorkspaceController } from './workspace.controller';
 import { OrganizationsController } from './organizations.controller';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceGuard } from './workspace.guard';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
-  imports: [CommonModule, AuthModule],
+  imports: [CommonModule, AuthModule, RolesModule],
   controllers: [WorkspaceController, OrganizationsController],
   providers: [WorkspaceService, WorkspaceGuard],
   exports: [WorkspaceGuard],

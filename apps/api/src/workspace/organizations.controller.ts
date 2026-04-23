@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Param, Put, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { RemoveMemberDto } from './dto/remove-member.dto';
@@ -7,6 +7,8 @@ import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
 import { ok } from '@app/common';
 import type { Request } from 'express';
 import type { AuthUser } from '../auth/auth.service';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -16,9 +18,11 @@ export class OrganizationsController {
   constructor(private readonly workspaceService: WorkspaceService) {}
 
   @Delete('members')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Remove a member from a workspace' })
+  @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
+  @ApiOperation({ summary: 'Remove a member from a workspace (OWNER only)' })
   @ApiBody({
     type: RemoveMemberDto,
     description: 'Workspace id and workspace-member id to remove',
@@ -43,14 +47,16 @@ export class OrganizationsController {
   }
 
   @Put('members/:id/role')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
+  @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
   @ApiParam({
     name: 'id',
     description: 'Workspace member id (membership record id)',
     example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
   })
-  @ApiOperation({ summary: "Change a member's role in the workspace" })
+  @ApiOperation({ summary: "Change a member's role in the workspace (OWNER only)" })
   @ApiBody({
     type: ChangeMemberRoleDto,
     description: 'Workspace id and new role for the specified membership',

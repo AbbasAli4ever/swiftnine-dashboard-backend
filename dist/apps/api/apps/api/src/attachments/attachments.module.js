@@ -10,11 +10,13 @@ exports.AttachmentsModule = void 0;
 const common_1 = require("@nestjs/common");
 const attachments_controller_1 = require("./attachments.controller");
 const attachments_service_1 = require("./attachments.service");
+const activity_module_1 = require("../activity/activity.module");
 let AttachmentsModule = class AttachmentsModule {
 };
 exports.AttachmentsModule = AttachmentsModule;
 exports.AttachmentsModule = AttachmentsModule = __decorate([
     (0, common_1.Module)({
+        imports: [activity_module_1.ActivityModule],
         controllers: [attachments_controller_1.AttachmentsController],
         providers: [attachments_service_1.AttachmentsService],
     })

@@ -21,6 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from './workspace.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
@@ -109,7 +111,8 @@ export class WorkspaceController {
   }
 
   @Patch(':workspaceId')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update workspace settings (OWNER only)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
@@ -130,7 +133,8 @@ export class WorkspaceController {
   }
 
   @Delete(':workspaceId')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft delete a workspace (OWNER only)' })
@@ -150,7 +154,8 @@ export class WorkspaceController {
   // ─── Invite ─────────────────────────────────────────────────────────────────
 
   @Post(':workspaceId/invite')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send a workspace invite email (OWNER only)' })
@@ -172,7 +177,8 @@ export class WorkspaceController {
   }
 
   @Post(':workspaceId/invites')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send workspace invite emails in bulk (OWNER only)' })

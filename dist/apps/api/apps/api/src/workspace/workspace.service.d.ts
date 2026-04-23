@@ -80,7 +80,7 @@ export declare class WorkspaceService {
     private prepareInviteContext;
     private findPendingInviteByToken;
     private sendInviteToEmail;
-    private assertActorIsOwnerOrAdmin;
+    private assertActorIsOwner;
     removeMember(workspaceId: string, memberId: string, actorId: string): Promise<void>;
     changeMemberRole(workspaceId: string, memberId: string, newRole: Role, actorId: string): Promise<void>;
 }

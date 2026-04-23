@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
+const roles_decorator_1 = require("../roles/roles.decorator");
+const roles_guard_1 = require("../roles/roles.guard");
 const project_service_1 = require("./project.service");
 const create_project_dto_1 = require("./dto/create-project.dto");
 const update_project_dto_1 = require("./dto/update-project.dto");
@@ -94,6 +96,8 @@ __decorate([
 ], ProjectController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':projectId'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Soft delete a project and all its data (OWNER only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Project deleted' }),

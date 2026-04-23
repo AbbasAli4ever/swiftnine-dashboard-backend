@@ -15,11 +15,14 @@ const client_s3_1 = require("@aws-sdk/client-s3");
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const node_crypto_1 = require("node:crypto");
 const database_1 = require("../../../../libs/database/src");
+const activity_service_1 = require("../activity/activity.service");
 let AttachmentsService = class AttachmentsService {
     prisma;
+    activity;
     s3;
-    constructor(prisma) {
+    constructor(prisma, activity) {
         this.prisma = prisma;
+        this.activity = activity;
         this.s3 = new client_s3_1.S3Client({
             region: process.env.AWS_REGION,
             credentials: {
@@ -56,7 +59,18 @@ let AttachmentsService = class AttachmentsService {
     async createAttachment(actorId, taskId, memberId, s3Key, fileName, mimeType, fileSize) {
         const task = await this.prisma.task.findFirst({
             where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-            select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+            select: {
+                id: true,
+                title: true,
+                taskNumber: true,
+                list: {
+                    select: {
+                        id: true,
+                        name: true,
+                        project: { select: { id: true, name: true, workspaceId: true } },
+                    },
+                },
+            },
         });
         if (!task)
             throw new common_1.NotFoundException('Task not found');
@@ -105,6 +119,25 @@ let AttachmentsService = class AttachmentsService {
             },
             select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
         });
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'file_uploaded',
+            metadata: {
+                taskId,
+                taskTitle: task.title,
+                taskNumber: task.taskNumber,
+                projectId: task.list.project.id,
+                projectName: task.list.project.name,
+                listId: task.list.id,
+                listName: task.list.name,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                fileSize: Number(attachment.fileSize),
+            },
+            performedBy: actorId,
+        });
         return {
             ...attachment,
             fileSize: Number(attachment.fileSize),
@@ -113,7 +146,18 @@ let AttachmentsService = class AttachmentsService {
     async listAttachmentsForTask(actorId, taskId, memberId) {
         const task = await this.prisma.task.findFirst({
             where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-            select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+            select: {
+                id: true,
+                title: true,
+                taskNumber: true,
+                list: {
+                    select: {
+                        id: true,
+                        name: true,
+                        project: { select: { id: true, name: true, workspaceId: true } },
+                    },
+                },
+            },
         });
         if (!task)
             throw new common_1.NotFoundException('Task not found');
@@ -141,7 +185,18 @@ let AttachmentsService = class AttachmentsService {
     async deleteAttachment(actorId, taskId, memberId, s3Key) {
         const task = await this.prisma.task.findFirst({
             where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
-            select: { id: true, list: { select: { project: { select: { workspaceId: true } } } } },
+            select: {
+                id: true,
+                title: true,
+                taskNumber: true,
+                list: {
+                    select: {
+                        id: true,
+                        name: true,
+                        project: { select: { id: true, name: true, workspaceId: true } },
+                    },
+                },
+            },
         });
         if (!task)
             throw new common_1.NotFoundException('Task not found');
@@ -152,10 +207,32 @@ let AttachmentsService = class AttachmentsService {
         if (actorId !== member.userId) {
             throw new common_1.ForbiddenException('Actor must be the same as member');
         }
-        const attachment = await this.prisma.attachment.findFirst({ where: { taskId, s3Key, deletedAt: null } });
+        const attachment = await this.prisma.attachment.findFirst({
+            where: { taskId, s3Key, deletedAt: null },
+            select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true },
+        });
         if (!attachment)
             throw new common_1.NotFoundException('Attachment not found');
         await this.prisma.attachment.update({ where: { id: attachment.id }, data: { deletedAt: new Date() } });
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'file_deleted',
+            metadata: {
+                taskId,
+                taskTitle: task.title,
+                taskNumber: task.taskNumber,
+                projectId: task.list.project.id,
+                projectName: task.list.project.name,
+                listId: task.list.id,
+                listName: task.list.name,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                fileSize: Number(attachment.fileSize),
+            },
+            performedBy: actorId,
+        });
         return { id: attachment.id, s3Key };
     }
     async resolveWorkspaceMember(workspaceId, memberId) {
@@ -175,6 +252,7 @@ let AttachmentsService = class AttachmentsService {
 exports.AttachmentsService = AttachmentsService;
 exports.AttachmentsService = AttachmentsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        activity_service_1.ActivityService])
 ], AttachmentsService);
 //# sourceMappingURL=attachments.service.js.map

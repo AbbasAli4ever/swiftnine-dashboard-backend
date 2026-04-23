@@ -37,6 +37,8 @@ import { UpdateNotificationPreferencesDto } from './dto/update-notification-pref
 import { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -202,7 +204,8 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(WorkspaceGuard)
+  @UseGuards(WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiHeader({
     name: 'x-workspace-id',
@@ -223,11 +226,11 @@ export class UserController {
   })
   @ApiResponse({ status: 403, description: 'Only the workspace owner can delete users' })
   @ApiResponse({ status: 404, description: 'User not found in this workspace' })
-  async adminDeleteUser(
+  async deleteWorkspaceMemberUser(
     @Req() req: WorkspaceRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<void> {
-    await this.userService.adminDeleteUser(
+    await this.userService.deleteWorkspaceMemberUser(
       req.workspaceContext.workspaceId,
       req.user.id,
       req.workspaceContext.role,

@@ -7,6 +7,7 @@ import type { CreateSubtaskDto } from './dto/create-subtask.dto';
 import type { AddAssigneesDto } from './dto/add-assignees.dto';
 import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
+import { ActivityService } from '../activity/activity.service';
 type RawTaskDetail = Prisma.TaskGetPayload<{
     select: typeof TASK_DETAIL_SELECT;
 }>;
@@ -22,7 +23,8 @@ export type TaskListItemData = RawTaskListItem & {
 };
 export declare class TaskService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly activity;
+    constructor(prisma: PrismaService, activity: ActivityService);
     create(workspaceId: string, userId: string, projectId: string, listId: string, dto: CreateTaskDto): Promise<TaskDetailData>;
     findAllByList(workspaceId: string, projectId: string, listId: string): Promise<TaskListItemData[]>;
     findOne(workspaceId: string, taskId: string): Promise<TaskDetailData>;
@@ -40,6 +42,7 @@ export declare class TaskService {
     private findListOrThrow;
     private findStatusOrThrow;
     private findTaskMinimalOrThrow;
+    private dateString;
     private assertUsersAreMembers;
     private assertTagsInWorkspace;
     private getNextPosition;

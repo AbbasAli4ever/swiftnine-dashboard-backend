@@ -20,6 +20,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 import { ProjectService, type ProjectWithDetails } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -93,6 +95,8 @@ export class ProjectController {
   }
 
   @Delete(':projectId')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft delete a project and all its data (OWNER only)' })
   @ApiResponse({ status: 200, description: 'Project deleted' })
