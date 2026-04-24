@@ -19,6 +19,7 @@ x-workspace-id: <workspace_uuid>
 | --- | --- | --- |
 | `GET /api/v1/tasks` | Active workspace | Global task search, My Tasks, dashboards, assignee task views |
 | `GET /api/v1/projects/:projectId/tasks` | One project | Project-wide task search across all lists |
+| `GET /api/v1/projects/:projectId/board/tasks` | One project board | Project board columns grouped by status, using tasks from all lists |
 | `GET /api/v1/projects/:projectId/lists/:listId/tasks` | One list | ClickUp List view search/filter |
 
 All three endpoints return the standard paginated API response:
@@ -288,6 +289,138 @@ Examples:
 GET /api/v1/tasks?sort_by=due_date&sort_order=asc
 GET /api/v1/projects/:projectId/lists/:listId/tasks?sort_by=position
 ```
+
+## Project Board View
+
+The board view is different from list view:
+
+- List view uses `Task.position`, which is local to a single list.
+- Board view is derived from project list order plus task list order.
+
+The board does not keep a separate board-only order. Inside a status column, tasks are ordered by:
+
+```ts
+orderBy: [
+  { list: { position: 'asc' } },
+  { position: 'asc' },
+  { id: 'asc' }
+]
+```
+
+This means the existing project list reorder API controls which list's tasks appear first on the board, and task reorder controls the task order inside each list. This keeps list view and board view in sync.
+
+### Get Board Tasks
+
+```http
+GET /api/v1/projects/:projectId/board/tasks
+```
+
+The response includes every active status in the project as a column:
+
+```json
+{
+  "success": true,
+  "data": {
+    "groupBy": "status",
+    "projectId": "uuid",
+    "columns": [
+      {
+        "status": {
+          "id": "uuid",
+          "name": "In Progress",
+          "color": "#3b82f6",
+          "group": "ACTIVE",
+          "position": 2000,
+          "isDefault": true,
+          "isProtected": false,
+          "isClosed": false
+        },
+        "tasks": [],
+        "total": 0
+      }
+    ],
+    "total": 0
+  },
+  "message": null
+}
+```
+
+The board endpoint supports the same search and filter params as task search:
+
+- `q` / `search`
+- `status_ids`
+- `status_groups`
+- `priority`
+- `due_date`
+- `due_date_from`
+- `due_date_to`
+- `assignee_ids`
+- `me`
+- `tag_ids`
+- `created_by`
+- date range filters
+- `include_subtasks`
+- `include_closed`
+- `include_archived`
+
+Example:
+
+```http
+GET /api/v1/projects/:projectId/board/tasks?me=true&priority=HIGH,URGENT&include_closed=false
+```
+
+### Reorder Board Tasks
+
+```http
+PUT /api/v1/projects/:projectId/board/tasks/reorder
+```
+
+Payload:
+
+```json
+{
+  "mode": "manual",
+  "taskId": "uuid",
+  "toStatusId": "uuid",
+  "toListId": "uuid-optional",
+  "orderedTaskIds": ["uuid-1", "uuid-2", "uuid-3"]
+}
+```
+
+Rules:
+
+- `orderedTaskIds` must contain every active top-level task in the destination status column after the move, exactly once.
+- `mode` must be `manual`.
+- Subtasks cannot be reordered directly on the board.
+- If `toStatusId` is different from the task's current status, the task status changes.
+- If `toListId` is provided and differs from the current list, the task list changes.
+- Board reorder writes canonical `Task.position` in affected lists.
+- A task cannot appear above tasks from an earlier list unless it moves into that earlier list or the lists are reordered first.
+- Reordering a filtered/partial board column is rejected to avoid corrupting the full column order.
+
+Example:
+
+```json
+{
+  "mode": "manual",
+  "taskId": "a843cde2-f8c4-49a1-916b-308941b56f34",
+  "toStatusId": "9fa46c52-c13a-4088-89f8-1c321016862f",
+  "orderedTaskIds": [
+    "11111111-1111-4111-8111-111111111111",
+    "a843cde2-f8c4-49a1-916b-308941b56f34",
+    "22222222-2222-4222-8222-222222222222"
+  ]
+}
+```
+
+Impossible order example:
+
+```text
+List 1: 1, 2, 3
+List 2: 4, 5
+```
+
+If the payload asks for a status column order of `5, 1, 2, 3, 4` while task `5` stays in List 2, the API rejects it because List 2 is below List 1. To make `5` appear before `1`, either move task `5` to List 1 using `toListId`, or reorder List 2 above List 1.
 
 ## Pagination
 

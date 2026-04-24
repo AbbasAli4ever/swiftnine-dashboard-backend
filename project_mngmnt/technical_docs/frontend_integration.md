@@ -1211,4 +1211,14 @@ Tasks (coming soon) have display IDs like `API-1`, `API-2` — computed from `ta
 
 ---
 
+### Task Search, List View, and Board View
+
+For the current task search/filter API contract, list ordering behavior, board ordering behavior, and board drag/drop rules, use:
+
+```text
+project_mngmnt/technical_docs/frontend_task_search_board_guide.md
+```
+
+---
+
 *Last updated: 2026-04-16 — reflects sign-up OTP verification, forgot-password link flow, and workspace invite endpoints.*

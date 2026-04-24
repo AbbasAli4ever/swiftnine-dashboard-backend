@@ -8,6 +8,7 @@ import type { AddAssigneesDto } from './dto/add-assignees.dto';
 import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
 import type { ListTasksQuery } from './dto/list-tasks-query.dto';
+import type { ReorderBoardTasksDto } from './dto/reorder-board-tasks.dto';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 type RawTaskDetail = Prisma.TaskGetPayload<{
@@ -22,6 +23,26 @@ export type TaskDetailData = RawTaskDetail & {
 };
 export type TaskListItemData = RawTaskListItem & {
     taskId: string;
+};
+export type ProjectBoardColumnData = {
+    status: {
+        id: string;
+        name: string;
+        color: string;
+        group: string;
+        position: number;
+        isDefault: boolean;
+        isProtected: boolean;
+        isClosed: boolean;
+    };
+    tasks: TaskListItemData[];
+    total: number;
+};
+export type ProjectBoardData = {
+    groupBy: 'status';
+    projectId: string;
+    columns: ProjectBoardColumnData[];
+    total: number;
 };
 export type TaskSearchResult = {
     items: TaskListItemData[];
@@ -39,6 +60,7 @@ export declare class TaskService {
     findTasksByList(workspaceId: string, userId: string, projectId: string, listId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
     findTasksByProject(workspaceId: string, userId: string, projectId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
     findTasksByWorkspace(workspaceId: string, userId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
+    getProjectBoard(workspaceId: string, userId: string, projectId: string, query: ListTasksQuery): Promise<ProjectBoardData>;
     findOne(workspaceId: string, taskId: string): Promise<TaskDetailData>;
     update(workspaceId: string, userId: string, taskId: string, dto: UpdateTaskDto): Promise<TaskDetailData>;
     remove(workspaceId: string, userId: string, taskId: string, role: Role): Promise<void>;
@@ -51,6 +73,7 @@ export declare class TaskService {
     addTag(workspaceId: string, userId: string, taskId: string, dto: AddTagToTaskDto): Promise<TaskDetailData>;
     removeTag(workspaceId: string, userId: string, taskId: string, tagId: string): Promise<TaskDetailData>;
     reorder(workspaceId: string, userId: string, projectId: string, listId: string, dto: ReorderTasksDto): Promise<TaskListItemData[]>;
+    reorderProjectBoard(workspaceId: string, userId: string, projectId: string, dto: ReorderBoardTasksDto): Promise<ProjectBoardData>;
     private searchTasks;
     private buildTaskSearchWhere;
     private buildTaskSearchOrderBy;
@@ -65,6 +88,7 @@ export declare class TaskService {
     private addUtcDays;
     private extractTaskNumber;
     private findListOrThrow;
+    private findListForProjectOrThrow;
     private findProjectOrThrow;
     private findStatusOrThrow;
     private findTaskMinimalOrThrow;
@@ -75,5 +99,6 @@ export declare class TaskService {
     private getNextSubtaskPosition;
     private toDetail;
     private toListItem;
+    private defaultBoardQuery;
 }
 export {};

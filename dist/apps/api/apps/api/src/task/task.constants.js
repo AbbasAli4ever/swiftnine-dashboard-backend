@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TASK_DETAIL_SELECT = exports.TASK_LIST_ITEM_SELECT = exports.INVALID_REORDER_PAYLOAD = exports.FORBIDDEN_DELETE = exports.TAG_NOT_ON_TASK = exports.TAG_ALREADY_ON_TASK = exports.SUBTASK_DEPTH_LIMIT = exports.TAG_NOT_IN_WORKSPACE = exports.USER_NOT_MEMBER = exports.STATUS_NOT_FOUND = exports.PROJECT_NOT_FOUND = exports.TASK_LIST_NOT_FOUND = exports.TASK_NOT_FOUND = void 0;
+exports.TASK_DETAIL_SELECT = exports.TASK_LIST_ITEM_SELECT = exports.BOARD_REORDER_IMPOSSIBLE_ORDER = exports.BOARD_REORDER_SUBTASK_FORBIDDEN = exports.INVALID_BOARD_REORDER_PAYLOAD = exports.INVALID_REORDER_PAYLOAD = exports.FORBIDDEN_DELETE = exports.TAG_NOT_ON_TASK = exports.TAG_ALREADY_ON_TASK = exports.SUBTASK_DEPTH_LIMIT = exports.TAG_NOT_IN_WORKSPACE = exports.USER_NOT_MEMBER = exports.STATUS_NOT_FOUND = exports.PROJECT_NOT_FOUND = exports.TASK_LIST_NOT_FOUND = exports.TASK_NOT_FOUND = void 0;
 exports.TASK_NOT_FOUND = 'Task not found';
 exports.TASK_LIST_NOT_FOUND = 'Task list not found';
 exports.PROJECT_NOT_FOUND = 'Project not found';
@@ -12,6 +12,9 @@ exports.TAG_ALREADY_ON_TASK = 'Tag is already added to this task';
 exports.TAG_NOT_ON_TASK = 'Tag is not on this task';
 exports.FORBIDDEN_DELETE = 'Only the task creator or workspace owner can delete this task';
 exports.INVALID_REORDER_PAYLOAD = 'Reorder payload must include every active task in the list exactly once';
+exports.INVALID_BOARD_REORDER_PAYLOAD = 'Board reorder payload must include every active top-level task in the destination status exactly once';
+exports.BOARD_REORDER_SUBTASK_FORBIDDEN = 'Board reorder supports top-level tasks only';
+exports.BOARD_REORDER_IMPOSSIBLE_ORDER = 'Board reorder conflicts with project list order; move the task to an earlier list or reorder the lists first';
 const USER_BRIEF_SELECT = {
     id: true,
     fullName: true,

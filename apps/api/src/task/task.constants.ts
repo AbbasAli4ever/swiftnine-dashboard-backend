@@ -11,6 +11,11 @@ export const TAG_ALREADY_ON_TASK = 'Tag is already added to this task';
 export const TAG_NOT_ON_TASK = 'Tag is not on this task';
 export const FORBIDDEN_DELETE = 'Only the task creator or workspace owner can delete this task';
 export const INVALID_REORDER_PAYLOAD = 'Reorder payload must include every active task in the list exactly once';
+export const INVALID_BOARD_REORDER_PAYLOAD =
+  'Board reorder payload must include every active top-level task in the destination status exactly once';
+export const BOARD_REORDER_SUBTASK_FORBIDDEN = 'Board reorder supports top-level tasks only';
+export const BOARD_REORDER_IMPOSSIBLE_ORDER =
+  'Board reorder conflicts with project list order; move the task to an earlier list or reorder the lists first';
 
 // ─── Shared inline selects ────────────────────────────────────────────────────
 
