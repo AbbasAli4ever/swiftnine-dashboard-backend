@@ -280,6 +280,8 @@ Response follows the standard paginated list shape.
 | Delete resource     | `DELETE /api/v1/workspaces/:id`         |
 | Nested resources    | `GET /api/v1/projects/:projectId/tasks` |
 | Actions             | `POST /api/v1/tasks/:id/assign`         |
+| Board views         | `GET /api/v1/projects/:projectId/board/tasks` |
+| Board actions       | `PUT /api/v1/projects/:projectId/board/tasks/reorder` |
 
 ### Rules
 

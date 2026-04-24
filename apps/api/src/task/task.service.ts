@@ -10,7 +10,10 @@ import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import {
   FORBIDDEN_DELETE,
   INVALID_REORDER_PAYLOAD,
+  INVALID_BOARD_REORDER_PAYLOAD,
   PROJECT_NOT_FOUND,
+  BOARD_REORDER_SUBTASK_FORBIDDEN,
+  BOARD_REORDER_IMPOSSIBLE_ORDER,
   STATUS_NOT_FOUND,
   SUBTASK_DEPTH_LIMIT,
   TAG_ALREADY_ON_TASK,
@@ -29,6 +32,7 @@ import type { AddAssigneesDto } from './dto/add-assignees.dto';
 import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
 import type { ListTasksQuery } from './dto/list-tasks-query.dto';
+import type { ReorderBoardTasksDto } from './dto/reorder-board-tasks.dto';
 import { ActivityService } from '../activity/activity.service';
 
 // ─── Response types ───────────────────────────────────────────────────────────
@@ -38,6 +42,26 @@ type RawTaskListItem = Prisma.TaskGetPayload<{ select: typeof TASK_LIST_ITEM_SEL
 
 export type TaskDetailData = RawTaskDetail & { taskId: string; totalTimeLogged: number };
 export type TaskListItemData = RawTaskListItem & { taskId: string };
+export type ProjectBoardColumnData = {
+  status: {
+    id: string;
+    name: string;
+    color: string;
+    group: string;
+    position: number;
+    isDefault: boolean;
+    isProtected: boolean;
+    isClosed: boolean;
+  };
+  tasks: TaskListItemData[];
+  total: number;
+};
+export type ProjectBoardData = {
+  groupBy: 'status';
+  projectId: string;
+  columns: ProjectBoardColumnData[];
+  total: number;
+};
 export type TaskSearchResult = {
   items: TaskListItemData[];
   total: number;
@@ -70,7 +94,6 @@ export class TaskService {
   ): Promise<TaskDetailData> {
     await this.findListOrThrow(workspaceId, projectId, listId);
     await this.findStatusOrThrow(projectId, dto.statusId);
-
     if (dto.assigneeIds?.length) {
       await this.assertUsersAreMembers(workspaceId, dto.assigneeIds);
     }
@@ -185,6 +208,65 @@ export class TaskService {
     query: ListTasksQuery,
   ): Promise<TaskSearchResult> {
     return this.searchTasks({ workspaceId, userId }, query);
+  }
+
+  async getProjectBoard(
+    workspaceId: string,
+    userId: string,
+    projectId: string,
+    query: ListTasksQuery,
+  ): Promise<ProjectBoardData> {
+    await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+
+    const [statuses, tasks] = await Promise.all([
+      this.prisma.status.findMany({
+        where: { projectId, deletedAt: null },
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          group: true,
+          position: true,
+          isDefault: true,
+          isProtected: true,
+          isClosed: true,
+        },
+        orderBy: [{ group: 'asc' }, { position: 'asc' }],
+      }),
+      this.prisma.task.findMany({
+        where: this.buildTaskSearchWhere({ workspaceId, userId, projectId }, query),
+        select: TASK_LIST_ITEM_SELECT,
+        orderBy: [
+          { list: { position: 'asc' } },
+          { position: 'asc' },
+          { id: 'asc' },
+        ],
+      }),
+    ]);
+
+    const tasksByStatus = new Map<string, TaskListItemData[]>();
+    for (const task of tasks) {
+      const mapped = this.toListItem(task);
+      const columnTasks = tasksByStatus.get(mapped.status.id) ?? [];
+      columnTasks.push(mapped);
+      tasksByStatus.set(mapped.status.id, columnTasks);
+    }
+
+    const columns = statuses.map((status) => {
+      const columnTasks = tasksByStatus.get(status.id) ?? [];
+      return {
+        status,
+        tasks: columnTasks,
+        total: columnTasks.length,
+      };
+    });
+
+    return {
+      groupBy: 'status',
+      projectId,
+      columns,
+      total: tasks.length,
+    };
   }
 
   async findOne(workspaceId: string, taskId: string): Promise<TaskDetailData> {
@@ -649,6 +731,232 @@ export class TaskService {
     return this.findAllByList(workspaceId, projectId, listId);
   }
 
+  async reorderProjectBoard(
+    workspaceId: string,
+    userId: string,
+    projectId: string,
+    dto: ReorderBoardTasksDto,
+  ): Promise<ProjectBoardData> {
+    await this.findProjectOrThrow(workspaceId, projectId);
+
+    const task = await this.findTaskMinimalOrThrow(workspaceId, dto.taskId);
+    if (task.list.project.id !== projectId) throw new NotFoundException(TASK_NOT_FOUND);
+    if (task.depth !== 0) throw new BadRequestException(BOARD_REORDER_SUBTASK_FORBIDDEN);
+
+    const newStatus = await this.findStatusOrThrow(projectId, dto.toStatusId);
+    const targetList = dto.toListId
+      ? await this.findListForProjectOrThrow(projectId, dto.toListId)
+      : null;
+    const finalListId = targetList?.id ?? task.listId;
+    const finalListPosition = targetList?.position ?? task.list.position;
+
+    const activeTargetTasks = await this.prisma.task.findMany({
+      where: {
+        statusId: dto.toStatusId,
+        depth: 0,
+        deletedAt: null,
+        list: { projectId, deletedAt: null, isArchived: false },
+      },
+      select: {
+        id: true,
+        listId: true,
+        statusId: true,
+        position: true,
+        list: { select: { id: true, name: true, position: true } },
+      },
+      orderBy: [{ list: { position: 'asc' } }, { position: 'asc' }, { id: 'asc' }],
+    });
+
+    const expectedIds = new Set(activeTargetTasks.map((item) => item.id));
+    expectedIds.add(dto.taskId);
+
+    if (
+      dto.orderedTaskIds.length !== expectedIds.size ||
+      new Set(dto.orderedTaskIds).size !== dto.orderedTaskIds.length ||
+      dto.orderedTaskIds.some((id) => !expectedIds.has(id))
+    ) {
+      throw new BadRequestException(INVALID_BOARD_REORDER_PAYLOAD);
+    }
+
+    const targetTaskById = new Map(activeTargetTasks.map((item) => [item.id, item]));
+    let previousListPosition = Number.NEGATIVE_INFINITY;
+    for (const id of dto.orderedTaskIds) {
+      const listPosition = id === dto.taskId
+        ? finalListPosition
+        : targetTaskById.get(id)!.list.position;
+      if (listPosition < previousListPosition) {
+        throw new BadRequestException(BOARD_REORDER_IMPOSSIBLE_ORDER);
+      }
+      previousListPosition = listPosition;
+    }
+
+    const oldStatusId = task.statusId;
+    const oldStatusName = task.status.name;
+    const oldListId = task.listId;
+    const oldListName = task.list.name;
+    const listChanged = finalListId !== task.listId;
+    const statusChanged = dto.toStatusId !== task.statusId;
+    const finalListName = targetList?.name ?? task.list.name;
+    const finalListIdByTaskId = new Map<string, string>();
+    for (const item of activeTargetTasks) {
+      finalListIdByTaskId.set(item.id, item.id === dto.taskId ? finalListId : item.listId);
+    }
+    finalListIdByTaskId.set(dto.taskId, finalListId);
+
+    const affectedListIds = Array.from(new Set([
+      oldListId,
+      finalListId,
+      ...dto.orderedTaskIds.map((id) => finalListIdByTaskId.get(id)!),
+    ]));
+
+    const affectedListTasks = await this.prisma.task.findMany({
+      where: {
+        listId: { in: affectedListIds },
+        depth: 0,
+        deletedAt: null,
+        list: { projectId, deletedAt: null, isArchived: false },
+      },
+      select: { id: true, listId: true, statusId: true, position: true },
+      orderBy: [{ listId: 'asc' }, { position: 'asc' }, { id: 'asc' }],
+    });
+
+    const desiredDestinationIdsByList = new Map<string, string[]>();
+    for (const id of dto.orderedTaskIds) {
+      const listId = finalListIdByTaskId.get(id)!;
+      desiredDestinationIdsByList.set(listId, [
+        ...(desiredDestinationIdsByList.get(listId) ?? []),
+        id,
+      ]);
+    }
+
+    const finalSequencesByList = new Map<string, string[]>();
+    for (const listId of affectedListIds) {
+      const currentRows = affectedListTasks
+        .filter((item) => item.listId === listId)
+        .map((item) =>
+          item.id === dto.taskId && finalListId === listId
+            ? { ...item, statusId: dto.toStatusId, listId: finalListId }
+            : item,
+        )
+        .filter((item) => item.id !== dto.taskId || finalListId === listId);
+
+      if (finalListId === listId && !currentRows.some((item) => item.id === dto.taskId)) {
+        currentRows.push({
+          id: dto.taskId,
+          listId: finalListId,
+          statusId: dto.toStatusId,
+          position: task.position,
+        });
+        currentRows.sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
+      }
+
+      const desiredDestinationIds = desiredDestinationIdsByList.get(listId) ?? [];
+      const desiredSet = new Set(desiredDestinationIds);
+      const anchorIndexes = currentRows
+        .map((item, index) => (desiredSet.has(item.id) ? index : -1))
+        .filter((index) => index >= 0);
+      const anchorIndex = anchorIndexes.length ? Math.min(...anchorIndexes) : currentRows.length;
+      const before = currentRows
+        .slice(0, anchorIndex)
+        .map((item) => item.id)
+        .filter((id) => !desiredSet.has(id));
+      const after = currentRows
+        .slice(anchorIndex)
+        .map((item) => item.id)
+        .filter((id) => !desiredSet.has(id));
+
+      finalSequencesByList.set(listId, [...before, ...desiredDestinationIds, ...after]);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const taskIds of finalSequencesByList.values()) {
+        for (const [index, id] of taskIds.entries()) {
+          const isMovedTask = id === dto.taskId;
+          await tx.task.update({
+            where: { id },
+            data: {
+              position: (index + 1) * 1000,
+              ...(isMovedTask && statusChanged ? { statusId: dto.toStatusId } : {}),
+              ...(isMovedTask && listChanged ? { listId: finalListId } : {}),
+            },
+          });
+        }
+      }
+
+      const logs = [
+        ...(statusChanged
+          ? [
+              {
+                workspaceId,
+                entityType: 'task',
+                entityId: dto.taskId,
+                action: 'status_changed',
+                fieldName: 'status',
+                oldValue: oldStatusName,
+                newValue: newStatus.name,
+                metadata: {
+                  taskTitle: task.title,
+                  taskNumber: task.taskNumber,
+                  projectId,
+                  oldStatusId,
+                  newStatusId: dto.toStatusId,
+                  oldStatusName,
+                  newStatusName: newStatus.name,
+                },
+                performedBy: userId,
+              },
+            ]
+          : []),
+        ...(listChanged
+          ? [
+              {
+                workspaceId,
+                entityType: 'task',
+                entityId: dto.taskId,
+                action: 'moved',
+                fieldName: 'listId',
+                oldValue: oldListName,
+                newValue: finalListName,
+                metadata: {
+                  taskTitle: task.title,
+                  taskNumber: task.taskNumber,
+                  projectId,
+                  oldListId,
+                  newListId: finalListId,
+                },
+                performedBy: userId,
+              },
+            ]
+          : []),
+        {
+          workspaceId,
+          entityType: 'task',
+          entityId: dto.taskId,
+          action: 'reordered',
+          metadata: {
+            taskTitle: task.title,
+            taskNumber: task.taskNumber,
+            projectId,
+            statusId: dto.toStatusId,
+            listIds: affectedListIds,
+            taskIds: dto.orderedTaskIds,
+            view: 'board',
+          },
+          performedBy: userId,
+        },
+      ];
+
+      await this.activity.logMany(logs, tx);
+    });
+
+    return this.getProjectBoard(
+      workspaceId,
+      userId,
+      projectId,
+      this.defaultBoardQuery(),
+    );
+  }
+
   // ─── Private helpers ───────────────────────────────────────────────────────
 
   private async searchTasks(
@@ -949,6 +1257,15 @@ export class TaskService {
     return list;
   }
 
+  private async findListForProjectOrThrow(projectId: string, listId: string) {
+    const list = await this.prisma.taskList.findFirst({
+      where: { id: listId, projectId, deletedAt: null, isArchived: false },
+      select: { id: true, name: true, position: true },
+    });
+    if (!list) throw new NotFoundException(TASK_LIST_NOT_FOUND);
+    return list;
+  }
+
   private async findProjectOrThrow(
     workspaceId: string,
     projectId: string,
@@ -993,6 +1310,7 @@ export class TaskService {
         priority: true,
         startDate: true,
         dueDate: true,
+        position: true,
         isCompleted: true,
         taskNumber: true,
         createdBy: true,
@@ -1001,6 +1319,7 @@ export class TaskService {
           select: {
             id: true,
             name: true,
+            position: true,
             projectId: true,
             project: { select: { id: true, workspaceId: true, taskIdPrefix: true, name: true } },
           },
@@ -1065,6 +1384,40 @@ export class TaskService {
     return {
       ...raw,
       taskId: `${raw.list.project.taskIdPrefix}-${raw.taskNumber}`,
+    };
+  }
+
+  private defaultBoardQuery(): ListTasksQuery {
+    return {
+      q: undefined,
+      page: 1,
+      limit: 100,
+      sortBy: undefined,
+      sortOrder: 'asc',
+      statusIds: undefined,
+      statusGroups: undefined,
+      priorities: undefined,
+      dueDateFrom: undefined,
+      dueDateTo: undefined,
+      dueDate: undefined,
+      assigneeIds: undefined,
+      assigneeMatch: 'any',
+      tagIds: undefined,
+      tagMatch: 'any',
+      createdBy: undefined,
+      createdFrom: undefined,
+      createdTo: undefined,
+      updatedFrom: undefined,
+      updatedTo: undefined,
+      completedFrom: undefined,
+      completedTo: undefined,
+      includeSubtasks: false,
+      includeClosed: true,
+      includeArchived: false,
+      me: false,
+      hasAssignees: undefined,
+      hasDueDate: undefined,
+      completed: undefined,
     };
   }
 }

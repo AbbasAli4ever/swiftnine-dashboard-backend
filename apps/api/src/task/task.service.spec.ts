@@ -8,9 +8,12 @@ jest.mock('@app/database', () => ({
 describe('TaskService search and filter', () => {
   let prisma: {
     project: { findFirst: jest.Mock };
+    status: { findMany: jest.Mock; findFirst: jest.Mock };
     taskList: { findFirst: jest.Mock };
-    task: { count: jest.Mock; findMany: jest.Mock };
+    task: { count: jest.Mock; findMany: jest.Mock; findFirst: jest.Mock; update: jest.Mock };
+    $transaction: jest.Mock;
   };
+  let activity: { logMany: jest.Mock };
   let service: TaskService;
 
   const baseQuery = (overrides: Partial<ListTasksQuery> = {}): ListTasksQuery =>
@@ -30,14 +33,27 @@ describe('TaskService search and filter', () => {
   beforeEach(() => {
     prisma = {
       project: { findFirst: jest.fn().mockResolvedValue({ id: 'project-1' }) },
-      taskList: { findFirst: jest.fn().mockResolvedValue({ id: 'list-1' }) },
+      status: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findFirst: jest.fn().mockResolvedValue({ id: 'status-2', name: 'In Progress' }),
+      },
+      taskList: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'list-1', name: 'Sprint', position: 1000 }),
+      },
       task: {
         count: jest.fn().mockResolvedValue(0),
         findMany: jest.fn().mockResolvedValue([]),
+        findFirst: jest.fn(),
+        update: jest.fn().mockResolvedValue(undefined),
       },
+      $transaction: jest.fn(),
     };
+    prisma.$transaction.mockImplementation(async (callback: (tx: typeof prisma) => unknown) =>
+      callback(prisma),
+    );
 
-    service = new TaskService(prisma as never, {} as never);
+    activity = { logMany: jest.fn().mockResolvedValue(undefined) };
+    service = new TaskService(prisma as never, activity as never);
   });
 
   it('builds a paginated list query with stacked search filters', async () => {
@@ -157,4 +173,282 @@ describe('TaskService search and filter', () => {
       }),
     );
   });
+
+  it('returns project board columns grouped by status with board ordering', async () => {
+    prisma.status.findMany.mockResolvedValue([
+      {
+        id: 'status-1',
+        name: 'To Do',
+        color: '#94a3b8',
+        group: 'NOT_STARTED',
+        position: 1000,
+        isDefault: true,
+        isProtected: false,
+        isClosed: false,
+      },
+      {
+        id: 'status-2',
+        name: 'In Progress',
+        color: '#3b82f6',
+        group: 'ACTIVE',
+        position: 2000,
+        isDefault: true,
+        isProtected: false,
+        isClosed: false,
+      },
+    ]);
+    prisma.task.findMany.mockResolvedValue([
+      rawTask({ id: 'task-1', statusId: 'status-2', statusName: 'In Progress' }),
+      rawTask({ id: 'task-2', statusId: 'status-2', statusName: 'In Progress' }),
+    ]);
+
+    const result = await service.getProjectBoard(
+      'workspace-1',
+      'actor-1',
+      'project-1',
+      baseQuery({ q: 'api' }),
+    );
+
+    expect(prisma.task.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [
+          { list: { position: 'asc' } },
+          { position: 'asc' },
+          { id: 'asc' },
+        ],
+      }),
+    );
+    expect(result.columns).toHaveLength(2);
+    expect(result.columns[0].tasks).toHaveLength(0);
+    expect(result.columns[1].tasks.map((task) => task.id)).toEqual(['task-1', 'task-2']);
+    expect(result.total).toBe(2);
+  });
+
+  it('moves a board task into a status column and rewrites affected list positions', async () => {
+    prisma.task.findFirst.mockResolvedValue(
+      minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-1', statusName: 'To Do' }),
+    );
+    prisma.task.findMany
+      .mockResolvedValueOnce([
+        {
+          id: 'task-1',
+          listId: 'list-1',
+          statusId: 'status-2',
+          position: 1000,
+          list: { id: 'list-1', name: 'List 1', position: 1000 },
+        },
+        {
+          id: 'task-2',
+          listId: 'list-1',
+          statusId: 'status-2',
+          position: 2000,
+          list: { id: 'list-1', name: 'List 1', position: 1000 },
+        },
+        {
+          id: 'task-5',
+          listId: 'list-2',
+          statusId: 'status-2',
+          position: 2000,
+          list: { id: 'list-2', name: 'List 2', position: 2000 },
+        },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'task-1', listId: 'list-1', statusId: 'status-2', position: 1000 },
+        { id: 'task-2', listId: 'list-1', statusId: 'status-2', position: 2000 },
+        { id: 'task-4', listId: 'list-2', statusId: 'status-1', position: 1000 },
+        { id: 'task-5', listId: 'list-2', statusId: 'status-2', position: 2000 },
+        { id: 'task-6', listId: 'list-2', statusId: 'status-3', position: 3000 },
+      ])
+      .mockResolvedValueOnce([]);
+    prisma.status.findMany.mockResolvedValue([]);
+
+    await service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
+      mode: 'manual',
+      taskId: 'task-4',
+      toStatusId: 'status-2',
+      orderedTaskIds: ['task-1', 'task-2', 'task-5', 'task-4'],
+    });
+
+    expect(prisma.task.update).toHaveBeenCalledWith({
+      where: { id: 'task-4' },
+      data: { position: 2000, statusId: 'status-2' },
+    });
+    expect(prisma.task.update).toHaveBeenCalledWith({
+      where: { id: 'task-5' },
+      data: { position: 1000 },
+    });
+    expect(activity.logMany).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'status_changed',
+          oldValue: 'To Do',
+          newValue: 'In Progress',
+        }),
+        expect.objectContaining({
+          action: 'reordered',
+          metadata: expect.objectContaining({ view: 'board' }),
+        }),
+      ]),
+      prisma,
+    );
+  });
+
+  it('rejects board reorder orders that conflict with project list order', async () => {
+    prisma.task.findFirst.mockResolvedValue(
+      minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-2', statusName: 'In Progress' }),
+    );
+    prisma.task.findMany.mockResolvedValue([
+      {
+        id: 'task-1',
+        listId: 'list-1',
+        statusId: 'status-2',
+        position: 1000,
+        list: { id: 'list-1', name: 'List 1', position: 1000 },
+      },
+      {
+        id: 'task-2',
+        listId: 'list-1',
+        statusId: 'status-2',
+        position: 2000,
+        list: { id: 'list-1', name: 'List 1', position: 1000 },
+      },
+      {
+        id: 'task-4',
+        listId: 'list-2',
+        statusId: 'status-2',
+        position: 1000,
+        list: { id: 'list-2', name: 'List 2', position: 2000 },
+      },
+      {
+        id: 'task-5',
+        listId: 'list-2',
+        statusId: 'status-2',
+        position: 2000,
+        list: { id: 'list-2', name: 'List 2', position: 2000 },
+      },
+    ]);
+
+    await expect(
+      service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
+        mode: 'manual',
+        taskId: 'task-4',
+        toStatusId: 'status-2',
+        orderedTaskIds: ['task-5', 'task-1', 'task-2', 'task-4'],
+      }),
+    ).rejects.toThrow('Board reorder conflicts with project list order');
+  });
+
+  it('rejects partial board reorder payloads', async () => {
+    prisma.task.findFirst.mockResolvedValue(
+      minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-2', statusName: 'In Progress' }),
+    );
+    prisma.task.findMany.mockResolvedValue([
+      {
+        id: 'task-1',
+        listId: 'list-1',
+        statusId: 'status-2',
+        position: 1000,
+        list: { id: 'list-1', name: 'List 1', position: 1000 },
+      },
+      {
+        id: 'task-4',
+        listId: 'list-2',
+        statusId: 'status-2',
+        position: 1000,
+        list: { id: 'list-2', name: 'List 2', position: 2000 },
+      },
+      {
+        id: 'task-5',
+        listId: 'list-2',
+        statusId: 'status-2',
+        position: 2000,
+        list: { id: 'list-2', name: 'List 2', position: 2000 },
+      },
+    ]);
+
+    await expect(
+      service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
+        mode: 'manual',
+        taskId: 'task-4',
+        toStatusId: 'status-2',
+        orderedTaskIds: ['task-1', 'task-4'],
+      }),
+    ).rejects.toThrow('Board reorder payload must include every active top-level task');
+  });
 });
+
+function rawTask(overrides: {
+  id: string;
+  statusId: string;
+  statusName: string;
+}) {
+  return {
+    id: overrides.id,
+    taskNumber: 101,
+    title: 'Build board',
+    priority: 'HIGH',
+    startDate: null,
+    dueDate: null,
+    position: 1000,
+    depth: 0,
+    isCompleted: false,
+    completedAt: null,
+    createdAt: new Date('2026-04-23T10:00:00.000Z'),
+    updatedAt: new Date('2026-04-23T10:00:00.000Z'),
+    status: {
+      id: overrides.statusId,
+      name: overrides.statusName,
+      color: '#3b82f6',
+      group: 'ACTIVE',
+    },
+    assignees: [],
+    tags: [],
+    list: {
+      id: 'list-1',
+      name: 'Sprint',
+      project: {
+        id: 'project-1',
+        name: 'ClickUp Clone',
+        taskIdPrefix: 'CU',
+      },
+    },
+    _count: { children: 0 },
+  };
+}
+
+function minimalTask(overrides: {
+  id: string;
+  listId: string;
+  listPosition: number;
+  statusId: string;
+  statusName: string;
+}) {
+  return {
+    id: overrides.id,
+    listId: overrides.listId,
+    parentId: null,
+    depth: 0,
+    title: 'Build board',
+    description: null,
+    statusId: overrides.statusId,
+    priority: 'HIGH',
+    startDate: null,
+    dueDate: null,
+    isCompleted: false,
+    taskNumber: 101,
+    createdBy: 'actor-1',
+    status: { id: overrides.statusId, name: overrides.statusName, color: '#94a3b8' },
+    list: {
+      id: overrides.listId,
+      name: overrides.listId === 'list-1' ? 'List 1' : 'List 2',
+      position: overrides.listPosition,
+      projectId: 'project-1',
+      project: {
+        id: 'project-1',
+        workspaceId: 'workspace-1',
+        taskIdPrefix: 'CU',
+        name: 'ClickUp Clone',
+      },
+    },
+  };
+}

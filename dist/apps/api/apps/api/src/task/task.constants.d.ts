@@ -9,6 +9,9 @@ export declare const TAG_ALREADY_ON_TASK = "Tag is already added to this task";
 export declare const TAG_NOT_ON_TASK = "Tag is not on this task";
 export declare const FORBIDDEN_DELETE = "Only the task creator or workspace owner can delete this task";
 export declare const INVALID_REORDER_PAYLOAD = "Reorder payload must include every active task in the list exactly once";
+export declare const INVALID_BOARD_REORDER_PAYLOAD = "Board reorder payload must include every active top-level task in the destination status exactly once";
+export declare const BOARD_REORDER_SUBTASK_FORBIDDEN = "Board reorder supports top-level tasks only";
+export declare const BOARD_REORDER_IMPOSSIBLE_ORDER = "Board reorder conflicts with project list order; move the task to an earlier list or reorder the lists first";
 export declare const TASK_LIST_ITEM_SELECT: {
     id: true;
     taskNumber: true;
