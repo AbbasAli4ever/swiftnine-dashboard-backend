@@ -24,6 +24,7 @@ const task_module_1 = require("./task/task.module");
 const time_entry_module_1 = require("./time-entry/time-entry.module");
 const attachments_module_1 = require("./attachments/attachments.module");
 const activity_module_1 = require("./activity/activity.module");
+const comments_module_1 = require("./comments/comments.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -48,6 +49,7 @@ exports.AppModule = AppModule = __decorate([
             task_module_1.TaskModule,
             time_entry_module_1.TimeEntryModule,
             activity_module_1.ActivityModule,
+            comments_module_1.CommentsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

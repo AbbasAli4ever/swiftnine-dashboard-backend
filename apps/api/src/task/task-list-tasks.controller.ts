@@ -7,12 +7,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiHeader,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -22,8 +24,16 @@ import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { TaskService, type TaskDetailData, type TaskListItemData } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ReorderTasksDto } from './dto/reorder-tasks.dto';
+import { ListTasksQueryDto, type ListTasksQuery } from './dto/list-tasks-query.dto';
+import { PaginatedTasksResponseDto } from './dto/task-list-item-response.dto';
+import { TaskSearchSwaggerQueries } from './task-search.swagger';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { ok, type ApiResponse as ApiRes } from '@app/common';
+import {
+  ok,
+  paginated,
+  type ApiResponse as ApiRes,
+  type PaginatedApiResponse,
+} from '@app/common';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -55,19 +65,27 @@ export class TaskListTasksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all top-level tasks in a list (excludes subtasks)' })
-  @ApiResponse({ status: 200, description: 'Tasks returned ordered by position' })
+  @ApiOperation({
+    summary: 'Search and filter tasks in a list',
+    description:
+      'ClickUp-style list view query endpoint. Supports instant keyword search, stacked filters, Me Mode, subtasks-as-separate-tasks, sorting, and pagination.',
+  })
+  @TaskSearchSwaggerQueries()
+  @ApiOkResponse({ description: 'Paginated tasks returned', type: PaginatedTasksResponseDto })
   async findAll(
     @Req() req: WorkspaceRequest,
     @Param('projectId') projectId: string,
     @Param('listId') listId: string,
-  ): Promise<ApiRes<TaskListItemData[]>> {
-    const tasks = await this.taskService.findAllByList(
+    @Query() query: ListTasksQueryDto,
+  ): Promise<PaginatedApiResponse<TaskListItemData>> {
+    const result = await this.taskService.findTasksByList(
       req.workspaceContext.workspaceId,
+      req.user.id,
       projectId,
       listId,
+      query as ListTasksQuery,
     );
-    return ok(tasks);
+    return paginated(result.items, result.total, result.page, result.limit);
   }
 
   @Put('reorder')

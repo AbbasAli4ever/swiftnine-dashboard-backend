@@ -115,6 +115,7 @@ export type WorkspaceMemberWhereInput = {
     deletedAt?: Prisma.DateTimeNullableFilter<"WorkspaceMember"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    reactions?: Prisma.ReactionListRelationFilter;
 };
 export type WorkspaceMemberOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -126,6 +127,7 @@ export type WorkspaceMemberOrderByWithRelationInput = {
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     workspace?: Prisma.WorkspaceOrderByWithRelationInput;
     user?: Prisma.UserOrderByWithRelationInput;
+    reactions?: Prisma.ReactionOrderByRelationAggregateInput;
 };
 export type WorkspaceMemberWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -141,6 +143,7 @@ export type WorkspaceMemberWhereUniqueInput = Prisma.AtLeast<{
     deletedAt?: Prisma.DateTimeNullableFilter<"WorkspaceMember"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    reactions?: Prisma.ReactionListRelationFilter;
 }, "id" | "workspaceId_userId">;
 export type WorkspaceMemberOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -174,6 +177,7 @@ export type WorkspaceMemberCreateInput = {
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutMembersInput;
     user: Prisma.UserCreateNestedOneWithoutWorkspaceMembersInput;
+    reactions?: Prisma.ReactionCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberUncheckedCreateInput = {
     id?: string;
@@ -183,6 +187,7 @@ export type WorkspaceMemberUncheckedCreateInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -192,6 +197,7 @@ export type WorkspaceMemberUpdateInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMembersNestedInput;
     user?: Prisma.UserUpdateOneRequiredWithoutWorkspaceMembersNestedInput;
+    reactions?: Prisma.ReactionUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -201,6 +207,7 @@ export type WorkspaceMemberUncheckedUpdateInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    reactions?: Prisma.ReactionUncheckedUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberCreateManyInput = {
     id?: string;
@@ -265,6 +272,10 @@ export type WorkspaceMemberMinOrderByAggregateInput = {
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
+};
+export type WorkspaceMemberScalarRelationFilter = {
+    is?: Prisma.WorkspaceMemberWhereInput;
+    isNot?: Prisma.WorkspaceMemberWhereInput;
 };
 export type WorkspaceMemberCreateNestedManyWithoutUserInput = {
     create?: Prisma.XOR<Prisma.WorkspaceMemberCreateWithoutUserInput, Prisma.WorkspaceMemberUncheckedCreateWithoutUserInput> | Prisma.WorkspaceMemberCreateWithoutUserInput[] | Prisma.WorkspaceMemberUncheckedCreateWithoutUserInput[];
@@ -345,6 +356,18 @@ export type WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput = {
 export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role;
 };
+export type WorkspaceMemberCreateNestedOneWithoutReactionsInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceMemberCreateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedCreateWithoutReactionsInput>;
+    connectOrCreate?: Prisma.WorkspaceMemberCreateOrConnectWithoutReactionsInput;
+    connect?: Prisma.WorkspaceMemberWhereUniqueInput;
+};
+export type WorkspaceMemberUpdateOneRequiredWithoutReactionsNestedInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceMemberCreateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedCreateWithoutReactionsInput>;
+    connectOrCreate?: Prisma.WorkspaceMemberCreateOrConnectWithoutReactionsInput;
+    upsert?: Prisma.WorkspaceMemberUpsertWithoutReactionsInput;
+    connect?: Prisma.WorkspaceMemberWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceMemberUpdateToOneWithWhereWithoutReactionsInput, Prisma.WorkspaceMemberUpdateWithoutReactionsInput>, Prisma.WorkspaceMemberUncheckedUpdateWithoutReactionsInput>;
+};
 export type WorkspaceMemberCreateWithoutUserInput = {
     id?: string;
     role?: $Enums.Role;
@@ -352,6 +375,7 @@ export type WorkspaceMemberCreateWithoutUserInput = {
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutMembersInput;
+    reactions?: Prisma.ReactionCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberUncheckedCreateWithoutUserInput = {
     id?: string;
@@ -360,6 +384,7 @@ export type WorkspaceMemberUncheckedCreateWithoutUserInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberCreateOrConnectWithoutUserInput = {
     where: Prisma.WorkspaceMemberWhereUniqueInput;
@@ -401,6 +426,7 @@ export type WorkspaceMemberCreateWithoutWorkspaceInput = {
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     user: Prisma.UserCreateNestedOneWithoutWorkspaceMembersInput;
+    reactions?: Prisma.ReactionCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberUncheckedCreateWithoutWorkspaceInput = {
     id?: string;
@@ -409,6 +435,7 @@ export type WorkspaceMemberUncheckedCreateWithoutWorkspaceInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutMemberInput;
 };
 export type WorkspaceMemberCreateOrConnectWithoutWorkspaceInput = {
     where: Prisma.WorkspaceMemberWhereUniqueInput;
@@ -431,6 +458,55 @@ export type WorkspaceMemberUpdateManyWithWhereWithoutWorkspaceInput = {
     where: Prisma.WorkspaceMemberScalarWhereInput;
     data: Prisma.XOR<Prisma.WorkspaceMemberUpdateManyMutationInput, Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceInput>;
 };
+export type WorkspaceMemberCreateWithoutReactionsInput = {
+    id?: string;
+    role?: $Enums.Role;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutMembersInput;
+    user: Prisma.UserCreateNestedOneWithoutWorkspaceMembersInput;
+};
+export type WorkspaceMemberUncheckedCreateWithoutReactionsInput = {
+    id?: string;
+    workspaceId: string;
+    userId: string;
+    role?: $Enums.Role;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+};
+export type WorkspaceMemberCreateOrConnectWithoutReactionsInput = {
+    where: Prisma.WorkspaceMemberWhereUniqueInput;
+    create: Prisma.XOR<Prisma.WorkspaceMemberCreateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedCreateWithoutReactionsInput>;
+};
+export type WorkspaceMemberUpsertWithoutReactionsInput = {
+    update: Prisma.XOR<Prisma.WorkspaceMemberUpdateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedUpdateWithoutReactionsInput>;
+    create: Prisma.XOR<Prisma.WorkspaceMemberCreateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedCreateWithoutReactionsInput>;
+    where?: Prisma.WorkspaceMemberWhereInput;
+};
+export type WorkspaceMemberUpdateToOneWithWhereWithoutReactionsInput = {
+    where?: Prisma.WorkspaceMemberWhereInput;
+    data: Prisma.XOR<Prisma.WorkspaceMemberUpdateWithoutReactionsInput, Prisma.WorkspaceMemberUncheckedUpdateWithoutReactionsInput>;
+};
+export type WorkspaceMemberUpdateWithoutReactionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMembersNestedInput;
+    user?: Prisma.UserUpdateOneRequiredWithoutWorkspaceMembersNestedInput;
+};
+export type WorkspaceMemberUncheckedUpdateWithoutReactionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    userId?: Prisma.StringFieldUpdateOperationsInput | string;
+    role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
 export type WorkspaceMemberCreateManyUserInput = {
     id?: string;
     workspaceId: string;
@@ -446,6 +522,7 @@ export type WorkspaceMemberUpdateWithoutUserInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMembersNestedInput;
+    reactions?: Prisma.ReactionUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberUncheckedUpdateWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -454,6 +531,7 @@ export type WorkspaceMemberUncheckedUpdateWithoutUserInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    reactions?: Prisma.ReactionUncheckedUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberUncheckedUpdateManyWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -478,6 +556,7 @@ export type WorkspaceMemberUpdateWithoutWorkspaceInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     user?: Prisma.UserUpdateOneRequiredWithoutWorkspaceMembersNestedInput;
+    reactions?: Prisma.ReactionUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberUncheckedUpdateWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -486,6 +565,7 @@ export type WorkspaceMemberUncheckedUpdateWithoutWorkspaceInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    reactions?: Prisma.ReactionUncheckedUpdateManyWithoutMemberNestedInput;
 };
 export type WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -494,6 +574,18 @@ export type WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+export type WorkspaceMemberCountOutputType = {
+    reactions: number;
+};
+export type WorkspaceMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    reactions?: boolean | WorkspaceMemberCountOutputTypeCountReactionsArgs;
+};
+export type WorkspaceMemberCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.WorkspaceMemberCountOutputTypeSelect<ExtArgs> | null;
+};
+export type WorkspaceMemberCountOutputTypeCountReactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ReactionWhereInput;
 };
 export type WorkspaceMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -505,6 +597,8 @@ export type WorkspaceMemberSelect<ExtArgs extends runtime.Types.Extensions.Inter
     deletedAt?: boolean;
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    reactions?: boolean | Prisma.WorkspaceMember$reactionsArgs<ExtArgs>;
+    _count?: boolean | Prisma.WorkspaceMemberCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["workspaceMember"]>;
 export type WorkspaceMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -541,6 +635,8 @@ export type WorkspaceMemberOmit<ExtArgs extends runtime.Types.Extensions.Interna
 export type WorkspaceMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    reactions?: boolean | Prisma.WorkspaceMember$reactionsArgs<ExtArgs>;
+    _count?: boolean | Prisma.WorkspaceMemberCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type WorkspaceMemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
@@ -555,6 +651,7 @@ export type $WorkspaceMemberPayload<ExtArgs extends runtime.Types.Extensions.Int
     objects: {
         workspace: Prisma.$WorkspacePayload<ExtArgs>;
         user: Prisma.$UserPayload<ExtArgs>;
+        reactions: Prisma.$ReactionPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -618,6 +715,7 @@ export interface Prisma__WorkspaceMemberClient<T, Null = never, ExtArgs extends 
     readonly [Symbol.toStringTag]: "PrismaPromise";
     workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    reactions<T extends Prisma.WorkspaceMember$reactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceMember$reactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -730,6 +828,17 @@ export type WorkspaceMemberDeleteArgs<ExtArgs extends runtime.Types.Extensions.I
 export type WorkspaceMemberDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.WorkspaceMemberWhereInput;
     limit?: number;
+};
+export type WorkspaceMember$reactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ReactionSelect<ExtArgs> | null;
+    omit?: Prisma.ReactionOmit<ExtArgs> | null;
+    include?: Prisma.ReactionInclude<ExtArgs> | null;
+    where?: Prisma.ReactionWhereInput;
+    orderBy?: Prisma.ReactionOrderByWithRelationInput | Prisma.ReactionOrderByWithRelationInput[];
+    cursor?: Prisma.ReactionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ReactionScalarFieldEnum | Prisma.ReactionScalarFieldEnum[];
 };
 export type WorkspaceMemberDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.WorkspaceMemberSelect<ExtArgs> | null;

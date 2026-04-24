@@ -198,6 +198,7 @@ model WorkspaceMember {
   // Relations
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([workspaceId, userId])
   @@index([userId])
@@ -417,6 +418,7 @@ model Reaction {
   id         String   @id @default(uuid())
   commentId  String   @map("comment_id")
   memberId   String   @map("member_id")
+  reactFace  String   @default("") @map("react_face")
   createdAt  DateTime @default(now()) @map("created_at")
 
   // Relations

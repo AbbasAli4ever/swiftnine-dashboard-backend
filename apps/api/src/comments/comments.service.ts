@@ -3,12 +3,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { SseService } from './sse.service';
 
 @Injectable()
 export class CommentsService {
+  private readonly logger = new Logger(CommentsService.name);
   constructor(private readonly prisma: PrismaService, private readonly sse: SseService) {}
 
   async getCommentsForTask(workspaceId: string, taskId: string) {
@@ -93,7 +95,7 @@ export class CommentsService {
     this.sse.broadcast(comment.taskId, 'comment:deleted', { id: commentId });
   }
 
-  async addReaction(workspaceId: string, userId: string, commentId: string) {
+  async addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string) {
     const comment = await this.prisma.comment.findFirst({
       where: { id: commentId, deletedAt: null, task: { list: { project: { workspaceId, deletedAt: null } } } },
     });
@@ -105,7 +107,10 @@ export class CommentsService {
     });
     if (!member) throw new NotFoundException('Workspace member not found');
 
-    const reaction = await this.prisma.reaction.create({ data: { commentId, memberId: member.id }, include: { member: true } });
+    const reaction = await this.prisma.reaction.create({
+      data: { commentId, memberId: member.id, reactFace },
+      include: { member: true },
+    });
 
     this.sse.broadcast(comment.taskId, 'reaction:created', reaction);
 
@@ -126,20 +131,40 @@ export class CommentsService {
       throw new ForbiddenException('Only the reaction owner can delete it');
     }
 
-    // ensure reaction belongs to the same workspace
-    if (reaction.comment?.task) {
-      // no-op: we'll check workspace via task -> project -> workspace
-    }
+    // ensure reaction belongs to the same workspace — validated earlier by fetching member and reaction
 
     await this.prisma.reaction.delete({ where: { id: reactionId } });
 
     // broadcast
-    const taskId = reaction.commentId;
+    const taskId = reaction.comment?.taskId ?? null;
     this.sse.broadcast(taskId, 'reaction:deleted', { id: reactionId, commentId: reaction.commentId });
   }
 
   private async assertTaskInWorkspaceOrThrow(workspaceId: string, taskId: string) {
-    const task = await this.prisma.task.findFirst({ where: { id: taskId, deletedAt: null, list: { project: { workspaceId, deletedAt: null } } }, select: { id: true } });
-    if (!task) throw new NotFoundException('Task not found in workspace');
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, deletedAt: null },
+      include: { list: { include: { project: true } } },
+    });
+
+    if (!task) {
+      this.logger.warn(`assertTask: task not found or deleted - taskId=${taskId} workspaceId=${workspaceId}`);
+      throw new NotFoundException('Task not found in workspace');
+    }
+
+    const project = task.list?.project;
+    if (!project) {
+      this.logger.warn(`assertTask: task has no project - taskId=${taskId} workspaceId=${workspaceId}`);
+      throw new NotFoundException('Task not found in workspace');
+    }
+
+    if (project.deletedAt) {
+      this.logger.warn(`assertTask: project deleted - projectId=${project.id} taskId=${taskId} workspaceId=${workspaceId}`);
+      throw new NotFoundException('Task not found in workspace');
+    }
+
+    if (String(project.workspaceId).trim() !== String(workspaceId).trim()) {
+      this.logger.warn(`assertTask: workspace mismatch - task workspace=${project.workspaceId} requested=${workspaceId} taskId=${taskId}`);
+      throw new NotFoundException('Task not found in workspace');
+    }
   }
 }

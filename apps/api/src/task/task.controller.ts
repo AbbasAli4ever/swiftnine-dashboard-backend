@@ -8,12 +8,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiHeader,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -25,8 +27,16 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { AddAssigneesDto } from './dto/add-assignees.dto';
 import { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
+import { ListTasksQueryDto, type ListTasksQuery } from './dto/list-tasks-query.dto';
+import { PaginatedTasksResponseDto } from './dto/task-list-item-response.dto';
+import { TaskSearchSwaggerQueries } from './task-search.swagger';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { ok, type ApiResponse as ApiRes } from '@app/common';
+import {
+  ok,
+  paginated,
+  type ApiResponse as ApiRes,
+  type PaginatedApiResponse,
+} from '@app/common';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -37,6 +47,26 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   // ─── Task CRUD ─────────────────────────────────────────────────────────────
+
+  @Get()
+  @ApiOperation({
+    summary: 'Search and filter tasks across the active workspace',
+    description:
+      'Workspace-wide ClickUp-style task search. Use this for global task search, My Tasks, dashboard task widgets, and assignee-focused task views.',
+  })
+  @TaskSearchSwaggerQueries()
+  @ApiOkResponse({ description: 'Paginated workspace tasks returned', type: PaginatedTasksResponseDto })
+  async findWorkspaceTasks(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ListTasksQueryDto,
+  ): Promise<PaginatedApiResponse<TaskListItemData>> {
+    const result = await this.taskService.findTasksByWorkspace(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      query as ListTasksQuery,
+    );
+    return paginated(result.items, result.total, result.page, result.limit);
+  }
 
   @Get(':taskId')
   @ApiOperation({ summary: 'Get full task detail (assignees, tags, subtasks, time entries)' })

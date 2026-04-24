@@ -15,6 +15,7 @@ import { TaskModule } from './task/task.module';
 import { TimeEntryModule } from './time-entry/time-entry.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { ActivityModule } from './activity/activity.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ActivityModule } from './activity/activity.module';
     TaskModule,
     TimeEntryModule,
     ActivityModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

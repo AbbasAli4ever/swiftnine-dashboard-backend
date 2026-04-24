@@ -73,6 +73,9 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get comment(): Prisma.CommentDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get reaction(): Prisma.ReactionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get mention(): Prisma.MentionDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

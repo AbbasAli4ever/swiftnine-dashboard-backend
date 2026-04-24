@@ -22,11 +22,18 @@ const update_task_dto_1 = require("./dto/update-task.dto");
 const create_subtask_dto_1 = require("./dto/create-subtask.dto");
 const add_assignees_dto_1 = require("./dto/add-assignees.dto");
 const add_tag_to_task_dto_1 = require("./dto/add-tag-to-task.dto");
+const list_tasks_query_dto_1 = require("./dto/list-tasks-query.dto");
+const task_list_item_response_dto_1 = require("./dto/task-list-item-response.dto");
+const task_search_swagger_1 = require("./task-search.swagger");
 const common_2 = require("../../../../libs/common/src");
 let TaskController = class TaskController {
     taskService;
     constructor(taskService) {
         this.taskService = taskService;
+    }
+    async findWorkspaceTasks(req, query) {
+        const result = await this.taskService.findTasksByWorkspace(req.workspaceContext.workspaceId, req.user.id, query);
+        return (0, common_2.paginated)(result.items, result.total, result.page, result.limit);
     }
     async findOne(req, taskId) {
         const task = await this.taskService.findOne(req.workspaceContext.workspaceId, taskId);
@@ -74,6 +81,20 @@ let TaskController = class TaskController {
     }
 };
 exports.TaskController = TaskController;
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Search and filter tasks across the active workspace',
+        description: 'Workspace-wide ClickUp-style task search. Use this for global task search, My Tasks, dashboard task widgets, and assignee-focused task views.',
+    }),
+    (0, task_search_swagger_1.TaskSearchSwaggerQueries)(),
+    (0, swagger_1.ApiOkResponse)({ description: 'Paginated workspace tasks returned', type: task_list_item_response_dto_1.PaginatedTasksResponseDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, list_tasks_query_dto_1.ListTasksQueryDto]),
+    __metadata("design:returntype", Promise)
+], TaskController.prototype, "findWorkspaceTasks", null);
 __decorate([
     (0, common_1.Get)(':taskId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get full task detail (assignees, tags, subtasks, time entries)' }),

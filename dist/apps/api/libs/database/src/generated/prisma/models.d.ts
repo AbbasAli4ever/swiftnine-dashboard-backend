@@ -13,6 +13,7 @@ export type * from './models/Task.js';
 export type * from './models/TaskAssignee.js';
 export type * from './models/TaskTag.js';
 export type * from './models/Comment.js';
+export type * from './models/Reaction.js';
 export type * from './models/Mention.js';
 export type * from './models/Notification.js';
 export type * from './models/Attachment.js';

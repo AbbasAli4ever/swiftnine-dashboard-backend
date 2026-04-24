@@ -21,6 +21,7 @@ export type Task = Prisma.TaskModel;
 export type TaskAssignee = Prisma.TaskAssigneeModel;
 export type TaskTag = Prisma.TaskTagModel;
 export type Comment = Prisma.CommentModel;
+export type Reaction = Prisma.ReactionModel;
 export type Mention = Prisma.MentionModel;
 export type Notification = Prisma.NotificationModel;
 export type Attachment = Prisma.AttachmentModel;

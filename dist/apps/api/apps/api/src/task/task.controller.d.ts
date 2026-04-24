@@ -3,11 +3,13 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { AddAssigneesDto } from './dto/add-assignees.dto';
 import { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
+import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes, type PaginatedApiResponse } from "../../../../libs/common/src";
 export declare class TaskController {
     private readonly taskService;
     constructor(taskService: TaskService);
+    findWorkspaceTasks(req: WorkspaceRequest, query: ListTasksQueryDto): Promise<PaginatedApiResponse<TaskListItemData>>;
     findOne(req: WorkspaceRequest, taskId: string): Promise<ApiRes<TaskDetailData>>;
     update(req: WorkspaceRequest, taskId: string, dto: UpdateTaskDto): Promise<ApiRes<TaskDetailData>>;
     remove(req: WorkspaceRequest, taskId: string): Promise<ApiRes<null>>;

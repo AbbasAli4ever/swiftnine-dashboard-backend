@@ -235,6 +235,12 @@ Some small lists don't need pagination (statuses, tags, workspace members). Thes
 
 Filter params are passed as query strings. Multiple values use comma separation.
 
+Detailed ClickUp-style task search/filter behavior is documented in:
+
+```
+project_mngmnt/technical_docs/search_filter.md
+```
+
 ### Standard Filter Params (on task list endpoints)
 
 | Param           | Type               | Example                     | Description                           |

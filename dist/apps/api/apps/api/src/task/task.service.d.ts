@@ -7,6 +7,7 @@ import type { CreateSubtaskDto } from './dto/create-subtask.dto';
 import type { AddAssigneesDto } from './dto/add-assignees.dto';
 import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
+import type { ListTasksQuery } from './dto/list-tasks-query.dto';
 import { ActivityService } from '../activity/activity.service';
 type RawTaskDetail = Prisma.TaskGetPayload<{
     select: typeof TASK_DETAIL_SELECT;
@@ -21,12 +22,21 @@ export type TaskDetailData = RawTaskDetail & {
 export type TaskListItemData = RawTaskListItem & {
     taskId: string;
 };
+export type TaskSearchResult = {
+    items: TaskListItemData[];
+    total: number;
+    page: number;
+    limit: number;
+};
 export declare class TaskService {
     private readonly prisma;
     private readonly activity;
     constructor(prisma: PrismaService, activity: ActivityService);
     create(workspaceId: string, userId: string, projectId: string, listId: string, dto: CreateTaskDto): Promise<TaskDetailData>;
     findAllByList(workspaceId: string, projectId: string, listId: string): Promise<TaskListItemData[]>;
+    findTasksByList(workspaceId: string, userId: string, projectId: string, listId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
+    findTasksByProject(workspaceId: string, userId: string, projectId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
+    findTasksByWorkspace(workspaceId: string, userId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
     findOne(workspaceId: string, taskId: string): Promise<TaskDetailData>;
     update(workspaceId: string, userId: string, taskId: string, dto: UpdateTaskDto): Promise<TaskDetailData>;
     remove(workspaceId: string, userId: string, taskId: string, role: Role): Promise<void>;
@@ -39,7 +49,21 @@ export declare class TaskService {
     addTag(workspaceId: string, userId: string, taskId: string, dto: AddTagToTaskDto): Promise<TaskDetailData>;
     removeTag(workspaceId: string, userId: string, taskId: string, tagId: string): Promise<TaskDetailData>;
     reorder(workspaceId: string, userId: string, projectId: string, listId: string, dto: ReorderTasksDto): Promise<TaskListItemData[]>;
+    private searchTasks;
+    private buildTaskSearchWhere;
+    private buildTaskSearchOrderBy;
+    private buildDueDateFilter;
+    private buildAssigneeFilter;
+    private buildTagFilter;
+    private pushDateRangeFilter;
+    private getDueDatePresetRange;
+    private parseDateBoundary;
+    private startOfUtcDay;
+    private startOfUtcWeek;
+    private addUtcDays;
+    private extractTaskNumber;
     private findListOrThrow;
+    private findProjectOrThrow;
     private findStatusOrThrow;
     private findTaskMinimalOrThrow;
     private dateString;
