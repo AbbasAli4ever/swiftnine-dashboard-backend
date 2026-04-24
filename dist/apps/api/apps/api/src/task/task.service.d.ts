@@ -96,9 +96,11 @@ export declare class TaskService {
     private assertUsersAreMembers;
     private assertTagsInWorkspace;
     private getNextPosition;
+    private getNextBoardPosition;
     private getNextSubtaskPosition;
     private toDetail;
     private toListItem;
     private defaultBoardQuery;
+    private syncListsFromBoardOrder;
 }
 export {};

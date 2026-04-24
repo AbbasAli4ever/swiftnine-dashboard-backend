@@ -48,6 +48,7 @@ export declare class TaskListItemResponseDto {
     startDate: Date | null;
     dueDate: Date | null;
     position: number;
+    boardPosition: number;
     depth: number;
     isCompleted: boolean;
     completedAt: Date | null;

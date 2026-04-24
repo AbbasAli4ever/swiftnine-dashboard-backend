@@ -14,8 +14,6 @@ export const INVALID_REORDER_PAYLOAD = 'Reorder payload must include every activ
 export const INVALID_BOARD_REORDER_PAYLOAD =
   'Board reorder payload must include every active top-level task in the destination status exactly once';
 export const BOARD_REORDER_SUBTASK_FORBIDDEN = 'Board reorder supports top-level tasks only';
-export const BOARD_REORDER_IMPOSSIBLE_ORDER =
-  'Board reorder conflicts with project list order; move the task to an earlier list or reorder the lists first';
 
 // ─── Shared inline selects ────────────────────────────────────────────────────
 
@@ -66,6 +64,7 @@ export const TASK_LIST_ITEM_SELECT = {
   startDate: true,
   dueDate: true,
   position: true,
+  boardPosition: true,
   depth: true,
   isCompleted: true,
   completedAt: true,
@@ -91,6 +90,7 @@ export const TASK_DETAIL_SELECT = {
   startDate: true,
   dueDate: true,
   position: true,
+  boardPosition: true,
   isCompleted: true,
   completedAt: true,
   createdBy: true,

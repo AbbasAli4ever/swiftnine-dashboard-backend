@@ -14,14 +14,24 @@ const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 const swagger_1 = require("@nestjs/swagger");
 const UpdateCommentSchema = zod_1.z.object({
-    content: zod_1.z.string().min(1, 'Content is required').max(10000),
+    content: zod_1.z.string().trim().min(1, 'Content is required').max(10000),
+    mentionedUserIds: zod_1.z.array(zod_1.z.string().uuid('Invalid mentioned user id')).max(100).optional(),
 });
 class UpdateCommentDto extends (0, nestjs_zod_1.createZodDto)(UpdateCommentSchema) {
     content = '';
+    mentionedUserIds;
 }
 exports.UpdateCommentDto = UpdateCommentDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ type: String, description: 'Comment content', minLength: 1, maxLength: 10000 }),
     __metadata("design:type", String)
 ], UpdateCommentDto.prototype, "content", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: 'Mentioned workspace user ids. When omitted, existing mentions are preserved.',
+        example: ['cc6c4f04-6cae-4d0a-a3cb-864d53f92f29'],
+    }),
+    __metadata("design:type", Array)
+], UpdateCommentDto.prototype, "mentionedUserIds", void 0);
 //# sourceMappingURL=update-comment.dto.js.map

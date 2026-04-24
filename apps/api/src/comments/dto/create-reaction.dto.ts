@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ApiProperty } from '@nestjs/swagger';
 
 const CreateReactionSchema = z.object({
-  reactFace: z.string().min(1, 'reactFace is required'),
+  reactFace: z.string().trim().min(1, 'reactFace is required').max(64),
 });
 
 export class CreateReactionDto extends createZodDto(CreateReactionSchema) {

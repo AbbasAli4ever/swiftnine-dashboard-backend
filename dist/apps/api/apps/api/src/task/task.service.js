@@ -34,6 +34,7 @@ let TaskService = class TaskService {
             await this.assertTagsInWorkspace(workspaceId, dto.tagIds);
         }
         const position = await this.getNextPosition(listId);
+        const boardPosition = await this.getNextBoardPosition(projectId, dto.statusId);
         const raw = await this.prisma.$transaction(async (tx) => {
             const project = await tx.project.update({
                 where: { id: projectId },
@@ -50,6 +51,7 @@ let TaskService = class TaskService {
                     startDate: dto.startDate ?? null,
                     dueDate: dto.dueDate ?? null,
                     position,
+                    boardPosition,
                     taskNumber: project.taskCounter,
                     createdBy: userId,
                     ...(dto.assigneeIds?.length
@@ -139,8 +141,8 @@ let TaskService = class TaskService {
                 where: this.buildTaskSearchWhere({ workspaceId, userId, projectId }, query),
                 select: task_constants_1.TASK_LIST_ITEM_SELECT,
                 orderBy: [
-                    { list: { position: 'asc' } },
-                    { position: 'asc' },
+                    { boardPosition: 'asc' },
+                    { listId: 'asc' },
                     { id: 'asc' },
                 ],
             }),
@@ -210,6 +212,7 @@ let TaskService = class TaskService {
         if (dto.statusId !== undefined && dto.statusId !== task.statusId) {
             const newStatus = await this.findStatusOrThrow(task.list.project.id, dto.statusId);
             updateData.status = { connect: { id: dto.statusId } };
+            updateData.boardPosition = await this.getNextBoardPosition(task.list.project.id, dto.statusId);
             logEntries.push({
                 fieldName: 'status',
                 oldValue: task.status.name,
@@ -338,6 +341,7 @@ let TaskService = class TaskService {
             throw new common_1.BadRequestException(task_constants_1.SUBTASK_DEPTH_LIMIT);
         await this.findStatusOrThrow(parent.list.project.id, dto.statusId);
         const position = await this.getNextSubtaskPosition(parentTaskId);
+        const boardPosition = await this.getNextBoardPosition(parent.list.project.id, dto.statusId);
         const raw = await this.prisma.$transaction(async (tx) => {
             const project = await tx.project.update({
                 where: { id: parent.list.project.id },
@@ -356,6 +360,7 @@ let TaskService = class TaskService {
                     startDate: dto.startDate ?? null,
                     dueDate: dto.dueDate ?? null,
                     position,
+                    boardPosition,
                     taskNumber: project.taskCounter,
                     createdBy: userId,
                 },
@@ -535,7 +540,6 @@ let TaskService = class TaskService {
             ? await this.findListForProjectOrThrow(projectId, dto.toListId)
             : null;
         const finalListId = targetList?.id ?? task.listId;
-        const finalListPosition = targetList?.position ?? task.list.position;
         const activeTargetTasks = await this.prisma.task.findMany({
             where: {
                 statusId: dto.toStatusId,
@@ -543,14 +547,8 @@ let TaskService = class TaskService {
                 deletedAt: null,
                 list: { projectId, deletedAt: null, isArchived: false },
             },
-            select: {
-                id: true,
-                listId: true,
-                statusId: true,
-                position: true,
-                list: { select: { id: true, name: true, position: true } },
-            },
-            orderBy: [{ list: { position: 'asc' } }, { position: 'asc' }, { id: 'asc' }],
+            select: { id: true, listId: true, boardPosition: true },
+            orderBy: [{ boardPosition: 'asc' }, { id: 'asc' }],
         });
         const expectedIds = new Set(activeTargetTasks.map((item) => item.id));
         expectedIds.add(dto.taskId);
@@ -559,17 +557,6 @@ let TaskService = class TaskService {
             dto.orderedTaskIds.some((id) => !expectedIds.has(id))) {
             throw new common_1.BadRequestException(task_constants_1.INVALID_BOARD_REORDER_PAYLOAD);
         }
-        const targetTaskById = new Map(activeTargetTasks.map((item) => [item.id, item]));
-        let previousListPosition = Number.NEGATIVE_INFINITY;
-        for (const id of dto.orderedTaskIds) {
-            const listPosition = id === dto.taskId
-                ? finalListPosition
-                : targetTaskById.get(id).list.position;
-            if (listPosition < previousListPosition) {
-                throw new common_1.BadRequestException(task_constants_1.BOARD_REORDER_IMPOSSIBLE_ORDER);
-            }
-            previousListPosition = listPosition;
-        }
         const oldStatusId = task.statusId;
         const oldStatusName = task.status.name;
         const oldListId = task.listId;
@@ -577,81 +564,22 @@ let TaskService = class TaskService {
         const listChanged = finalListId !== task.listId;
         const statusChanged = dto.toStatusId !== task.statusId;
         const finalListName = targetList?.name ?? task.list.name;
-        const finalListIdByTaskId = new Map();
-        for (const item of activeTargetTasks) {
-            finalListIdByTaskId.set(item.id, item.id === dto.taskId ? finalListId : item.listId);
-        }
+        const finalListIdByTaskId = new Map(activeTargetTasks.map((item) => [item.id, item.listId]));
         finalListIdByTaskId.set(dto.taskId, finalListId);
-        const affectedListIds = Array.from(new Set([
-            oldListId,
-            finalListId,
-            ...dto.orderedTaskIds.map((id) => finalListIdByTaskId.get(id)),
-        ]));
-        const affectedListTasks = await this.prisma.task.findMany({
-            where: {
-                listId: { in: affectedListIds },
-                depth: 0,
-                deletedAt: null,
-                list: { projectId, deletedAt: null, isArchived: false },
-            },
-            select: { id: true, listId: true, statusId: true, position: true },
-            orderBy: [{ listId: 'asc' }, { position: 'asc' }, { id: 'asc' }],
-        });
-        const desiredDestinationIdsByList = new Map();
-        for (const id of dto.orderedTaskIds) {
-            const listId = finalListIdByTaskId.get(id);
-            desiredDestinationIdsByList.set(listId, [
-                ...(desiredDestinationIdsByList.get(listId) ?? []),
-                id,
-            ]);
-        }
-        const finalSequencesByList = new Map();
-        for (const listId of affectedListIds) {
-            const currentRows = affectedListTasks
-                .filter((item) => item.listId === listId)
-                .map((item) => item.id === dto.taskId && finalListId === listId
-                ? { ...item, statusId: dto.toStatusId, listId: finalListId }
-                : item)
-                .filter((item) => item.id !== dto.taskId || finalListId === listId);
-            if (finalListId === listId && !currentRows.some((item) => item.id === dto.taskId)) {
-                currentRows.push({
-                    id: dto.taskId,
-                    listId: finalListId,
-                    statusId: dto.toStatusId,
-                    position: task.position,
-                });
-                currentRows.sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
-            }
-            const desiredDestinationIds = desiredDestinationIdsByList.get(listId) ?? [];
-            const desiredSet = new Set(desiredDestinationIds);
-            const anchorIndexes = currentRows
-                .map((item, index) => (desiredSet.has(item.id) ? index : -1))
-                .filter((index) => index >= 0);
-            const anchorIndex = anchorIndexes.length ? Math.min(...anchorIndexes) : currentRows.length;
-            const before = currentRows
-                .slice(0, anchorIndex)
-                .map((item) => item.id)
-                .filter((id) => !desiredSet.has(id));
-            const after = currentRows
-                .slice(anchorIndex)
-                .map((item) => item.id)
-                .filter((id) => !desiredSet.has(id));
-            finalSequencesByList.set(listId, [...before, ...desiredDestinationIds, ...after]);
-        }
+        const affectedListIds = Array.from(new Set([oldListId, finalListId, ...Array.from(finalListIdByTaskId.values())]));
         await this.prisma.$transaction(async (tx) => {
-            for (const taskIds of finalSequencesByList.values()) {
-                for (const [index, id] of taskIds.entries()) {
-                    const isMovedTask = id === dto.taskId;
-                    await tx.task.update({
-                        where: { id },
-                        data: {
-                            position: (index + 1) * 1000,
-                            ...(isMovedTask && statusChanged ? { statusId: dto.toStatusId } : {}),
-                            ...(isMovedTask && listChanged ? { listId: finalListId } : {}),
-                        },
-                    });
-                }
+            for (const [index, id] of dto.orderedTaskIds.entries()) {
+                const isMovedTask = id === dto.taskId;
+                await tx.task.update({
+                    where: { id },
+                    data: {
+                        boardPosition: (index + 1) * 1000,
+                        ...(isMovedTask && statusChanged ? { statusId: dto.toStatusId } : {}),
+                        ...(isMovedTask && listChanged ? { listId: finalListId } : {}),
+                    },
+                });
             }
+            await this.syncListsFromBoardOrder(tx, projectId, affectedListIds);
             const logs = [
                 ...(statusChanged
                     ? [
@@ -1055,6 +983,19 @@ let TaskService = class TaskService {
         });
         return (last?.position ?? 0) + 1000;
     }
+    async getNextBoardPosition(projectId, statusId) {
+        const last = await this.prisma.task.findFirst({
+            where: {
+                statusId,
+                depth: 0,
+                deletedAt: null,
+                list: { projectId, deletedAt: null, isArchived: false },
+            },
+            orderBy: { boardPosition: 'desc' },
+            select: { boardPosition: true },
+        });
+        return (last?.boardPosition ?? 0) + 1000;
+    }
     async getNextSubtaskPosition(parentId) {
         const last = await this.prisma.task.findFirst({
             where: { parentId, deletedAt: null },
@@ -1108,6 +1049,67 @@ let TaskService = class TaskService {
             hasDueDate: undefined,
             completed: undefined,
         };
+    }
+    async syncListsFromBoardOrder(tx, projectId, affectedListIds) {
+        if (affectedListIds.length === 0)
+            return;
+        const tasks = await tx.task.findMany({
+            where: {
+                listId: { in: affectedListIds },
+                depth: 0,
+                deletedAt: null,
+                list: { projectId, deletedAt: null, isArchived: false },
+            },
+            select: {
+                id: true,
+                listId: true,
+                position: true,
+                boardPosition: true,
+                status: {
+                    select: {
+                        id: true,
+                        group: true,
+                        position: true,
+                    },
+                },
+            },
+        });
+        const statusGroupRank = {
+            NOT_STARTED: 0,
+            ACTIVE: 1,
+            DONE: 2,
+            CLOSED: 3,
+        };
+        const tasksByList = new Map();
+        for (const task of tasks) {
+            const listTasks = tasksByList.get(task.listId) ?? [];
+            listTasks.push(task);
+            tasksByList.set(task.listId, listTasks);
+        }
+        for (const listTasks of tasksByList.values()) {
+            const sortedTasks = [...listTasks].sort((left, right) => {
+                const leftGroupRank = statusGroupRank[left.status.group] ?? Number.MAX_SAFE_INTEGER;
+                const rightGroupRank = statusGroupRank[right.status.group] ?? Number.MAX_SAFE_INTEGER;
+                if (leftGroupRank !== rightGroupRank)
+                    return leftGroupRank - rightGroupRank;
+                if (left.status.position !== right.status.position) {
+                    return left.status.position - right.status.position;
+                }
+                if (left.boardPosition !== right.boardPosition) {
+                    return left.boardPosition - right.boardPosition;
+                }
+                return left.id.localeCompare(right.id);
+            });
+            await Promise.all(sortedTasks.map((task, index) => {
+                const nextPosition = (index + 1) * 1000;
+                if (task.position === nextPosition)
+                    return Promise.resolve();
+                return tx.task.update({
+                    where: { id: task.id },
+                    data: { position: nextPosition },
+                });
+            }));
+        }
     }
 };
 exports.TaskService = TaskService;

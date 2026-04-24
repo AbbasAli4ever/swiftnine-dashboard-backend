@@ -13,11 +13,13 @@ export type TaskAvgAggregateOutputType = {
     depth: number | null;
     taskNumber: number | null;
     position: number | null;
+    boardPosition: number | null;
 };
 export type TaskSumAggregateOutputType = {
     depth: number | null;
     taskNumber: number | null;
     position: number | null;
+    boardPosition: number | null;
 };
 export type TaskMinAggregateOutputType = {
     id: string | null;
@@ -32,6 +34,7 @@ export type TaskMinAggregateOutputType = {
     startDate: Date | null;
     dueDate: Date | null;
     position: number | null;
+    boardPosition: number | null;
     isCompleted: boolean | null;
     completedAt: Date | null;
     createdBy: string | null;
@@ -52,6 +55,7 @@ export type TaskMaxAggregateOutputType = {
     startDate: Date | null;
     dueDate: Date | null;
     position: number | null;
+    boardPosition: number | null;
     isCompleted: boolean | null;
     completedAt: Date | null;
     createdBy: string | null;
@@ -72,6 +76,7 @@ export type TaskCountAggregateOutputType = {
     startDate: number;
     dueDate: number;
     position: number;
+    boardPosition: number;
     isCompleted: number;
     completedAt: number;
     createdBy: number;
@@ -84,11 +89,13 @@ export type TaskAvgAggregateInputType = {
     depth?: true;
     taskNumber?: true;
     position?: true;
+    boardPosition?: true;
 };
 export type TaskSumAggregateInputType = {
     depth?: true;
     taskNumber?: true;
     position?: true;
+    boardPosition?: true;
 };
 export type TaskMinAggregateInputType = {
     id?: true;
@@ -103,6 +110,7 @@ export type TaskMinAggregateInputType = {
     startDate?: true;
     dueDate?: true;
     position?: true;
+    boardPosition?: true;
     isCompleted?: true;
     completedAt?: true;
     createdBy?: true;
@@ -123,6 +131,7 @@ export type TaskMaxAggregateInputType = {
     startDate?: true;
     dueDate?: true;
     position?: true;
+    boardPosition?: true;
     isCompleted?: true;
     completedAt?: true;
     createdBy?: true;
@@ -143,6 +152,7 @@ export type TaskCountAggregateInputType = {
     startDate?: true;
     dueDate?: true;
     position?: true;
+    boardPosition?: true;
     isCompleted?: true;
     completedAt?: true;
     createdBy?: true;
@@ -192,6 +202,7 @@ export type TaskGroupByOutputType = {
     startDate: Date | null;
     dueDate: Date | null;
     position: number;
+    boardPosition: number;
     isCompleted: boolean;
     completedAt: Date | null;
     createdBy: string;
@@ -223,6 +234,7 @@ export type TaskWhereInput = {
     startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     position?: Prisma.IntFilter<"Task"> | number;
+    boardPosition?: Prisma.IntFilter<"Task"> | number;
     isCompleted?: Prisma.BoolFilter<"Task"> | boolean;
     completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     createdBy?: Prisma.StringFilter<"Task"> | string;
@@ -253,6 +265,7 @@ export type TaskOrderByWithRelationInput = {
     startDate?: Prisma.SortOrderInput | Prisma.SortOrder;
     dueDate?: Prisma.SortOrderInput | Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
     isCompleted?: Prisma.SortOrder;
     completedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
@@ -286,6 +299,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
     startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     position?: Prisma.IntFilter<"Task"> | number;
+    boardPosition?: Prisma.IntFilter<"Task"> | number;
     isCompleted?: Prisma.BoolFilter<"Task"> | boolean;
     completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     createdBy?: Prisma.StringFilter<"Task"> | string;
@@ -316,6 +330,7 @@ export type TaskOrderByWithAggregationInput = {
     startDate?: Prisma.SortOrderInput | Prisma.SortOrder;
     dueDate?: Prisma.SortOrderInput | Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
     isCompleted?: Prisma.SortOrder;
     completedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
@@ -344,6 +359,7 @@ export type TaskScalarWhereWithAggregatesInput = {
     startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null;
     dueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null;
     position?: Prisma.IntWithAggregatesFilter<"Task"> | number;
+    boardPosition?: Prisma.IntWithAggregatesFilter<"Task"> | number;
     isCompleted?: Prisma.BoolWithAggregatesFilter<"Task"> | boolean;
     completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null;
     createdBy?: Prisma.StringWithAggregatesFilter<"Task"> | string;
@@ -361,6 +377,7 @@ export type TaskCreateInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -390,6 +407,7 @@ export type TaskUncheckedCreateInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -413,6 +431,7 @@ export type TaskUpdateInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -442,6 +461,7 @@ export type TaskUncheckedUpdateInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -468,6 +488,7 @@ export type TaskCreateManyInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -485,6 +506,7 @@ export type TaskUpdateManyMutationInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -504,6 +526,7 @@ export type TaskUncheckedUpdateManyInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -536,6 +559,7 @@ export type TaskCountOrderByAggregateInput = {
     startDate?: Prisma.SortOrder;
     dueDate?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
     isCompleted?: Prisma.SortOrder;
     completedAt?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
@@ -547,6 +571,7 @@ export type TaskAvgOrderByAggregateInput = {
     depth?: Prisma.SortOrder;
     taskNumber?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
 };
 export type TaskMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -561,6 +586,7 @@ export type TaskMaxOrderByAggregateInput = {
     startDate?: Prisma.SortOrder;
     dueDate?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
     isCompleted?: Prisma.SortOrder;
     completedAt?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
@@ -581,6 +607,7 @@ export type TaskMinOrderByAggregateInput = {
     startDate?: Prisma.SortOrder;
     dueDate?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
     isCompleted?: Prisma.SortOrder;
     completedAt?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
@@ -592,6 +619,7 @@ export type TaskSumOrderByAggregateInput = {
     depth?: Prisma.SortOrder;
     taskNumber?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    boardPosition?: Prisma.SortOrder;
 };
 export type TaskScalarRelationFilter = {
     is?: Prisma.TaskWhereInput;
@@ -836,6 +864,7 @@ export type TaskCreateWithoutCreatorInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -864,6 +893,7 @@ export type TaskUncheckedCreateWithoutCreatorInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -913,6 +943,7 @@ export type TaskScalarWhereInput = {
     startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     position?: Prisma.IntFilter<"Task"> | number;
+    boardPosition?: Prisma.IntFilter<"Task"> | number;
     isCompleted?: Prisma.BoolFilter<"Task"> | boolean;
     completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null;
     createdBy?: Prisma.StringFilter<"Task"> | string;
@@ -930,6 +961,7 @@ export type TaskCreateWithoutListInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -957,6 +989,7 @@ export type TaskUncheckedCreateWithoutListInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1001,6 +1034,7 @@ export type TaskCreateWithoutStatusInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1028,6 +1062,7 @@ export type TaskUncheckedCreateWithoutStatusInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1072,6 +1107,7 @@ export type TaskCreateWithoutChildrenInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1100,6 +1136,7 @@ export type TaskUncheckedCreateWithoutChildrenInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1126,6 +1163,7 @@ export type TaskCreateWithoutParentInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1153,6 +1191,7 @@ export type TaskUncheckedCreateWithoutParentInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1193,6 +1232,7 @@ export type TaskUpdateWithoutChildrenInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1221,6 +1261,7 @@ export type TaskUncheckedUpdateWithoutChildrenInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1256,6 +1297,7 @@ export type TaskCreateWithoutAssigneesInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1284,6 +1326,7 @@ export type TaskUncheckedCreateWithoutAssigneesInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1319,6 +1362,7 @@ export type TaskUpdateWithoutAssigneesInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1347,6 +1391,7 @@ export type TaskUncheckedUpdateWithoutAssigneesInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1369,6 +1414,7 @@ export type TaskCreateWithoutTagsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1397,6 +1443,7 @@ export type TaskUncheckedCreateWithoutTagsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1432,6 +1479,7 @@ export type TaskUpdateWithoutTagsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1460,6 +1508,7 @@ export type TaskUncheckedUpdateWithoutTagsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1482,6 +1531,7 @@ export type TaskCreateWithoutCommentsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1510,6 +1560,7 @@ export type TaskUncheckedCreateWithoutCommentsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1545,6 +1596,7 @@ export type TaskUpdateWithoutCommentsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1573,6 +1625,7 @@ export type TaskUncheckedUpdateWithoutCommentsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1595,6 +1648,7 @@ export type TaskCreateWithoutAttachmentsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1623,6 +1677,7 @@ export type TaskUncheckedCreateWithoutAttachmentsInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1658,6 +1713,7 @@ export type TaskUpdateWithoutAttachmentsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1686,6 +1742,7 @@ export type TaskUncheckedUpdateWithoutAttachmentsInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1708,6 +1765,7 @@ export type TaskCreateWithoutTimeEntriesInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1736,6 +1794,7 @@ export type TaskUncheckedCreateWithoutTimeEntriesInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1771,6 +1830,7 @@ export type TaskUpdateWithoutTimeEntriesInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1799,6 +1859,7 @@ export type TaskUncheckedUpdateWithoutTimeEntriesInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1824,6 +1885,7 @@ export type TaskCreateManyCreatorInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdAt?: Date | string;
@@ -1840,6 +1902,7 @@ export type TaskUpdateWithoutCreatorInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1868,6 +1931,7 @@ export type TaskUncheckedUpdateWithoutCreatorInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1893,6 +1957,7 @@ export type TaskUncheckedUpdateManyWithoutCreatorInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1911,6 +1976,7 @@ export type TaskCreateManyListInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -1928,6 +1994,7 @@ export type TaskUpdateWithoutListInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1955,6 +2022,7 @@ export type TaskUncheckedUpdateWithoutListInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1980,6 +2048,7 @@ export type TaskUncheckedUpdateManyWithoutListInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1999,6 +2068,7 @@ export type TaskCreateManyStatusInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -2016,6 +2086,7 @@ export type TaskUpdateWithoutStatusInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -2043,6 +2114,7 @@ export type TaskUncheckedUpdateWithoutStatusInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2068,6 +2140,7 @@ export type TaskUncheckedUpdateManyWithoutStatusInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2087,6 +2160,7 @@ export type TaskCreateManyParentInput = {
     startDate?: Date | string | null;
     dueDate?: Date | string | null;
     position?: number;
+    boardPosition?: number;
     isCompleted?: boolean;
     completedAt?: Date | string | null;
     createdBy: string;
@@ -2104,6 +2178,7 @@ export type TaskUpdateWithoutParentInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -2131,6 +2206,7 @@ export type TaskUncheckedUpdateWithoutParentInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2156,6 +2232,7 @@ export type TaskUncheckedUpdateManyWithoutParentInput = {
     startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    boardPosition?: Prisma.IntFieldUpdateOperationsInput | number;
     isCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2213,6 +2290,7 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
     startDate?: boolean;
     dueDate?: boolean;
     position?: boolean;
+    boardPosition?: boolean;
     isCompleted?: boolean;
     completedAt?: boolean;
     createdBy?: boolean;
@@ -2244,6 +2322,7 @@ export type TaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
     startDate?: boolean;
     dueDate?: boolean;
     position?: boolean;
+    boardPosition?: boolean;
     isCompleted?: boolean;
     completedAt?: boolean;
     createdBy?: boolean;
@@ -2268,6 +2347,7 @@ export type TaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
     startDate?: boolean;
     dueDate?: boolean;
     position?: boolean;
+    boardPosition?: boolean;
     isCompleted?: boolean;
     completedAt?: boolean;
     createdBy?: boolean;
@@ -2292,6 +2372,7 @@ export type TaskSelectScalar = {
     startDate?: boolean;
     dueDate?: boolean;
     position?: boolean;
+    boardPosition?: boolean;
     isCompleted?: boolean;
     completedAt?: boolean;
     createdBy?: boolean;
@@ -2299,7 +2380,7 @@ export type TaskSelectScalar = {
     updatedAt?: boolean;
     deletedAt?: boolean;
 };
-export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "listId" | "parentId" | "depth" | "title" | "description" | "statusId" | "priority" | "taskNumber" | "startDate" | "dueDate" | "position" | "isCompleted" | "completedAt" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["task"]>;
+export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "listId" | "parentId" | "depth" | "title" | "description" | "statusId" | "priority" | "taskNumber" | "startDate" | "dueDate" | "position" | "boardPosition" | "isCompleted" | "completedAt" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["task"]>;
 export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     list?: boolean | Prisma.TaskListDefaultArgs<ExtArgs>;
     parent?: boolean | Prisma.Task$parentArgs<ExtArgs>;
@@ -2352,6 +2433,7 @@ export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
         startDate: Date | null;
         dueDate: Date | null;
         position: number;
+        boardPosition: number;
         isCompleted: boolean;
         completedAt: Date | null;
         createdBy: string;
@@ -2437,6 +2519,7 @@ export interface TaskFieldRefs {
     readonly startDate: Prisma.FieldRef<"Task", 'DateTime'>;
     readonly dueDate: Prisma.FieldRef<"Task", 'DateTime'>;
     readonly position: Prisma.FieldRef<"Task", 'Int'>;
+    readonly boardPosition: Prisma.FieldRef<"Task", 'Int'>;
     readonly isCompleted: Prisma.FieldRef<"Task", 'Boolean'>;
     readonly completedAt: Prisma.FieldRef<"Task", 'DateTime'>;
     readonly createdBy: Prisma.FieldRef<"Task", 'String'>;

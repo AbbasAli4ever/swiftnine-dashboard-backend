@@ -14,7 +14,7 @@ const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 const swagger_1 = require("@nestjs/swagger");
 const CreateReactionSchema = zod_1.z.object({
-    reactFace: zod_1.z.string().min(1, 'reactFace is required'),
+    reactFace: zod_1.z.string().trim().min(1, 'reactFace is required').max(64),
 });
 class CreateReactionDto extends (0, nestjs_zod_1.createZodDto)(CreateReactionSchema) {
     reactFace = '';

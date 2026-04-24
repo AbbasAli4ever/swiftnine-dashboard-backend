@@ -1927,6 +1927,7 @@ export declare const TaskScalarFieldEnum: {
     readonly startDate: "startDate";
     readonly dueDate: "dueDate";
     readonly position: "position";
+    readonly boardPosition: "boardPosition";
     readonly isCompleted: "isCompleted";
     readonly completedAt: "completedAt";
     readonly createdBy: "createdBy";

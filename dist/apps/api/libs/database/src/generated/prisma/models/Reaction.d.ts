@@ -110,6 +110,7 @@ export type ReactionOrderByWithRelationInput = {
 };
 export type ReactionWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
+    commentId_memberId_reactFace?: Prisma.ReactionCommentIdMemberIdReactFaceCompoundUniqueInput;
     AND?: Prisma.ReactionWhereInput | Prisma.ReactionWhereInput[];
     OR?: Prisma.ReactionWhereInput[];
     NOT?: Prisma.ReactionWhereInput | Prisma.ReactionWhereInput[];
@@ -119,7 +120,7 @@ export type ReactionWhereUniqueInput = Prisma.AtLeast<{
     createdAt?: Prisma.DateTimeFilter<"Reaction"> | Date | string;
     comment?: Prisma.XOR<Prisma.CommentScalarRelationFilter, Prisma.CommentWhereInput>;
     member?: Prisma.XOR<Prisma.WorkspaceMemberScalarRelationFilter, Prisma.WorkspaceMemberWhereInput>;
-}, "id">;
+}, "id" | "commentId_memberId_reactFace">;
 export type ReactionOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
     commentId?: Prisma.SortOrder;
@@ -194,6 +195,11 @@ export type ReactionListRelationFilter = {
 };
 export type ReactionOrderByRelationAggregateInput = {
     _count?: Prisma.SortOrder;
+};
+export type ReactionCommentIdMemberIdReactFaceCompoundUniqueInput = {
+    commentId: string;
+    memberId: string;
+    reactFace: string;
 };
 export type ReactionCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;

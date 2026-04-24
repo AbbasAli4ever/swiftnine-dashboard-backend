@@ -14,14 +14,14 @@ const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 const swagger_1 = require("@nestjs/swagger");
 const CreateCommentSchema = zod_1.z.object({
-    content: zod_1.z.string().min(1, 'Content is required').max(10000),
+    content: zod_1.z.string().trim().min(1, 'Content is required').max(10000),
     parentId: zod_1.z.string().uuid('Invalid parentId').optional(),
-    mentions: zod_1.z.array(zod_1.z.string().uuid('Invalid member id')).optional(),
+    mentionedUserIds: zod_1.z.array(zod_1.z.string().uuid('Invalid mentioned user id')).max(100).optional(),
 });
 class CreateCommentDto extends (0, nestjs_zod_1.createZodDto)(CreateCommentSchema) {
     content = '';
     parentId;
-    mentions;
+    mentionedUserIds;
 }
 exports.CreateCommentDto = CreateCommentDto;
 __decorate([
@@ -29,11 +29,15 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCommentDto.prototype, "content", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, description: 'Parent comment id (optional)', required: false, format: 'uuid' }),
+    (0, swagger_1.ApiPropertyOptional)({ type: String, description: 'Parent comment id (optional)', format: 'uuid' }),
     __metadata("design:type", String)
 ], CreateCommentDto.prototype, "parentId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: [String], description: 'Mentioned workspace member ids or user ids', required: false }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: 'Mentioned workspace user ids',
+        example: ['cc6c4f04-6cae-4d0a-a3cb-864d53f92f29'],
+    }),
     __metadata("design:type", Array)
-], CreateCommentDto.prototype, "mentions", void 0);
+], CreateCommentDto.prototype, "mentionedUserIds", void 0);
 //# sourceMappingURL=create-comment.dto.js.map

@@ -146,6 +146,7 @@ class TaskListItemResponseDto {
     startDate;
     dueDate;
     position;
+    boardPosition;
     depth;
     isCompleted;
     completedAt;
@@ -193,6 +194,13 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 2000 }),
     __metadata("design:type", Number)
 ], TaskListItemResponseDto.prototype, "position", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 3000,
+        description: 'Manual board-column order inside the task status.',
+    }),
+    __metadata("design:type", Number)
+], TaskListItemResponseDto.prototype, "boardPosition", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 0, description: '0 for top-level tasks; greater than 0 for subtasks.' }),
     __metadata("design:type", Number)

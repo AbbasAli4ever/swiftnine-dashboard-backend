@@ -198,8 +198,8 @@ describe('TaskService search and filter', () => {
       },
     ]);
     prisma.task.findMany.mockResolvedValue([
-      rawTask({ id: 'task-1', statusId: 'status-2', statusName: 'In Progress' }),
-      rawTask({ id: 'task-2', statusId: 'status-2', statusName: 'In Progress' }),
+      rawTask({ id: 'task-2', statusId: 'status-2', statusName: 'In Progress', boardPosition: 1000 }),
+      rawTask({ id: 'task-1', statusId: 'status-2', statusName: 'In Progress', boardPosition: 2000 }),
     ]);
 
     const result = await service.getProjectBoard(
@@ -212,78 +212,113 @@ describe('TaskService search and filter', () => {
     expect(prisma.task.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: [
-          { list: { position: 'asc' } },
-          { position: 'asc' },
+          { boardPosition: 'asc' },
+          { listId: 'asc' },
           { id: 'asc' },
         ],
       }),
     );
     expect(result.columns).toHaveLength(2);
     expect(result.columns[0].tasks).toHaveLength(0);
-    expect(result.columns[1].tasks.map((task) => task.id)).toEqual(['task-1', 'task-2']);
+    expect(result.columns[1].tasks.map((task) => task.id)).toEqual(['task-2', 'task-1']);
     expect(result.total).toBe(2);
   });
 
-  it('moves a board task into a status column and rewrites affected list positions', async () => {
+  it('reorders board cards independently and syncs list-relative positions', async () => {
     prisma.task.findFirst.mockResolvedValue(
-      minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-1', statusName: 'To Do' }),
+      minimalTask({ id: 'task-5', listId: 'list-2', listPosition: 2000, statusId: 'status-2', statusName: 'In Progress' }),
     );
     prisma.task.findMany
       .mockResolvedValueOnce([
         {
           id: 'task-1',
           listId: 'list-1',
-          statusId: 'status-2',
-          position: 1000,
-          list: { id: 'list-1', name: 'List 1', position: 1000 },
+          boardPosition: 1000,
         },
         {
           id: 'task-2',
           listId: 'list-1',
-          statusId: 'status-2',
-          position: 2000,
-          list: { id: 'list-1', name: 'List 1', position: 1000 },
+          boardPosition: 2000,
+        },
+        {
+          id: 'task-3',
+          listId: 'list-1',
+          boardPosition: 3000,
+        },
+        {
+          id: 'task-4',
+          listId: 'list-2',
+          boardPosition: 4000,
         },
         {
           id: 'task-5',
           listId: 'list-2',
           statusId: 'status-2',
           position: 2000,
+          boardPosition: 5000,
           list: { id: 'list-2', name: 'List 2', position: 2000 },
         },
       ])
       .mockResolvedValueOnce([
-        { id: 'task-1', listId: 'list-1', statusId: 'status-2', position: 1000 },
-        { id: 'task-2', listId: 'list-1', statusId: 'status-2', position: 2000 },
-        { id: 'task-4', listId: 'list-2', statusId: 'status-1', position: 1000 },
-        { id: 'task-5', listId: 'list-2', statusId: 'status-2', position: 2000 },
-        { id: 'task-6', listId: 'list-2', statusId: 'status-3', position: 3000 },
+        {
+          id: 'task-1',
+          listId: 'list-1',
+          position: 1000,
+          boardPosition: 2000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: 'task-2',
+          listId: 'list-1',
+          position: 2000,
+          boardPosition: 3000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: 'task-3',
+          listId: 'list-1',
+          position: 3000,
+          boardPosition: 4000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: 'task-4',
+          listId: 'list-2',
+          position: 1000,
+          boardPosition: 5000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: 'task-5',
+          listId: 'list-2',
+          position: 2000,
+          boardPosition: 1000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
       ])
       .mockResolvedValueOnce([]);
     prisma.status.findMany.mockResolvedValue([]);
 
     await service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
       mode: 'manual',
-      taskId: 'task-4',
+      taskId: 'task-5',
       toStatusId: 'status-2',
-      orderedTaskIds: ['task-1', 'task-2', 'task-5', 'task-4'],
+      orderedTaskIds: ['task-5', 'task-1', 'task-2', 'task-3', 'task-4'],
     });
 
-    expect(prisma.task.update).toHaveBeenCalledWith({
-      where: { id: 'task-4' },
-      data: { position: 2000, statusId: 'status-2' },
-    });
-    expect(prisma.task.update).toHaveBeenCalledWith({
-      where: { id: 'task-5' },
-      data: { position: 1000 },
-    });
+    expect(prisma.task.update.mock.calls).toEqual(
+      expect.arrayContaining([
+        [{ where: { id: 'task-5' }, data: { boardPosition: 1000 } }],
+        [{ where: { id: 'task-1' }, data: { boardPosition: 2000 } }],
+        [{ where: { id: 'task-2' }, data: { boardPosition: 3000 } }],
+        [{ where: { id: 'task-3' }, data: { boardPosition: 4000 } }],
+        [{ where: { id: 'task-4' }, data: { boardPosition: 5000 } }],
+        [{ where: { id: 'task-5' }, data: { position: 1000 } }],
+        [{ where: { id: 'task-4' }, data: { position: 2000 } }],
+      ]),
+    );
     expect(activity.logMany).toHaveBeenCalledWith(
       expect.arrayContaining([
-        expect.objectContaining({
-          action: 'status_changed',
-          oldValue: 'To Do',
-          newValue: 'In Progress',
-        }),
         expect.objectContaining({
           action: 'reordered',
           metadata: expect.objectContaining({ view: 'board' }),
@@ -291,51 +326,6 @@ describe('TaskService search and filter', () => {
       ]),
       prisma,
     );
-  });
-
-  it('rejects board reorder orders that conflict with project list order', async () => {
-    prisma.task.findFirst.mockResolvedValue(
-      minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-2', statusName: 'In Progress' }),
-    );
-    prisma.task.findMany.mockResolvedValue([
-      {
-        id: 'task-1',
-        listId: 'list-1',
-        statusId: 'status-2',
-        position: 1000,
-        list: { id: 'list-1', name: 'List 1', position: 1000 },
-      },
-      {
-        id: 'task-2',
-        listId: 'list-1',
-        statusId: 'status-2',
-        position: 2000,
-        list: { id: 'list-1', name: 'List 1', position: 1000 },
-      },
-      {
-        id: 'task-4',
-        listId: 'list-2',
-        statusId: 'status-2',
-        position: 1000,
-        list: { id: 'list-2', name: 'List 2', position: 2000 },
-      },
-      {
-        id: 'task-5',
-        listId: 'list-2',
-        statusId: 'status-2',
-        position: 2000,
-        list: { id: 'list-2', name: 'List 2', position: 2000 },
-      },
-    ]);
-
-    await expect(
-      service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
-        mode: 'manual',
-        taskId: 'task-4',
-        toStatusId: 'status-2',
-        orderedTaskIds: ['task-5', 'task-1', 'task-2', 'task-4'],
-      }),
-    ).rejects.toThrow('Board reorder conflicts with project list order');
   });
 
   it('rejects partial board reorder payloads', async () => {
@@ -346,23 +336,17 @@ describe('TaskService search and filter', () => {
       {
         id: 'task-1',
         listId: 'list-1',
-        statusId: 'status-2',
-        position: 1000,
-        list: { id: 'list-1', name: 'List 1', position: 1000 },
+        boardPosition: 1000,
       },
       {
         id: 'task-4',
         listId: 'list-2',
-        statusId: 'status-2',
-        position: 1000,
-        list: { id: 'list-2', name: 'List 2', position: 2000 },
+        boardPosition: 2000,
       },
       {
         id: 'task-5',
         listId: 'list-2',
-        statusId: 'status-2',
-        position: 2000,
-        list: { id: 'list-2', name: 'List 2', position: 2000 },
+        boardPosition: 3000,
       },
     ]);
 
@@ -381,6 +365,7 @@ function rawTask(overrides: {
   id: string;
   statusId: string;
   statusName: string;
+  boardPosition?: number;
 }) {
   return {
     id: overrides.id,
@@ -390,6 +375,7 @@ function rawTask(overrides: {
     startDate: null,
     dueDate: null,
     position: 1000,
+    boardPosition: overrides.boardPosition ?? 1000,
     depth: 0,
     isCompleted: false,
     completedAt: null,
@@ -434,6 +420,7 @@ function minimalTask(overrides: {
     priority: 'HIGH',
     startDate: null,
     dueDate: null,
+    position: 1000,
     isCompleted: false,
     taskNumber: 101,
     createdBy: 'actor-1',

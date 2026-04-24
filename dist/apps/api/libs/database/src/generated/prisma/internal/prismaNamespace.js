@@ -225,6 +225,7 @@ exports.TaskScalarFieldEnum = {
     startDate: 'startDate',
     dueDate: 'dueDate',
     position: 'position',
+    boardPosition: 'boardPosition',
     isCompleted: 'isCompleted',
     completedAt: 'completedAt',
     createdBy: 'createdBy',

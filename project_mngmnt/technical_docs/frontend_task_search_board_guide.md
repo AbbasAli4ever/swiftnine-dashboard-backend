@@ -8,7 +8,7 @@ It explains:
 - how search and filters should be sent
 - how list ordering and board ordering work
 - when drag/drop reorder is allowed
-- how to handle valid vs invalid board moves
+- how board reorder syncs back into list view
 
 Base URL:
 
@@ -161,6 +161,7 @@ Shape:
       "startDate": null,
       "dueDate": "2026-04-30T18:00:00.000Z",
       "position": 2000,
+      "boardPosition": 3000,
       "depth": 0,
       "isCompleted": false,
       "completedAt": null,
@@ -204,6 +205,7 @@ Important fields frontend can rely on:
 
 - `taskId` for human-readable key like `CU-104`
 - `position` for manual list ordering
+- `boardPosition` for manual board-column ordering
 - `assignees[].user.fullName`
 - `assignees[].user.avatarUrl`
 - `assignees[].user.avatarColor`
@@ -263,37 +265,29 @@ Each board card is the same task shape used in list/search responses.
 
 This is the most important rule.
 
-There is **one canonical task ordering model**:
+There are **two related ordering models**:
 
-- `TaskList.position` decides which list comes first in a project
-- `Task.position` decides which task comes first inside that list
+- `Task.position` controls list view order inside a list
+- `Task.boardPosition` controls board order inside a status column
 
-Board view does **not** have a separate board-only order field.
-
-Board order is derived from:
+Board order is driven by:
 
 ```ts
 orderBy: [
-  { list: { position: 'asc' } },
-  { position: 'asc' },
+  { boardPosition: 'asc' },
+  { listId: 'asc' },
   { id: 'asc' }
 ]
 ```
 
 That means:
 
-- list reorder changes board stacking
-- task reorder changes both list view and board view
-- board reorder rewrites real task `position` values in affected lists
+- board cards can be freely reordered across tasks from different lists
+- list membership stays the same unless `toListId` is sent
+- board reorder also rewrites real task `position` values inside affected lists
+- list view stays aligned to the board-relative order for tasks from that list
 
 ### Example
-
-Project lists:
-
-```text
-List 1
-List 2
-```
 
 Tasks:
 
@@ -302,17 +296,23 @@ List 1: 1, 2, 3
 List 2: 4, 5
 ```
 
-Board column order becomes:
+Board column starts as:
 
 ```text
 1, 2, 3, 4, 5
 ```
 
-If List 2 is reordered above List 1, board becomes:
+If the user drags the last task to the top on the board:
 
 ```text
-4, 5, 1, 2, 3
+5, 1, 2, 3, 4
 ```
+
+Then:
+
+- board view stores `5, 1, 2, 3, 4` in `boardPosition`
+- List 1 stays `1, 2, 3`
+- List 2 becomes `5, 4`
 
 ---
 
@@ -381,11 +381,11 @@ The backend:
 1. validates the task/project/status/list
 2. rejects subtasks
 3. checks `orderedTaskIds` contains every active top-level task in the destination status
-4. checks the requested order is possible under project list order
-5. updates:
+4. updates:
+   - `boardPosition` for the destination status column
    - `statusId` if needed
    - `listId` if needed
-   - `position` in affected lists
+5. recomputes `position` in affected lists from board-relative order
 
 ### Important frontend rule
 
@@ -418,61 +418,19 @@ Enable board drag/drop only in **manual unfiltered board mode**.
 
 ---
 
-## 8. Impossible Order Rule
-
-A task from a later list cannot appear above tasks from an earlier list unless:
-
-- it moves into that earlier list with `toListId`, or
-- the lists themselves are reordered
-
-### Example
-
-Current state:
-
-```text
-List 1: 1, 2, 3
-List 2: 4, 5
-```
-
-Board order:
-
-```text
-1, 2, 3, 4, 5
-```
-
-If the frontend sends:
-
-```text
-5, 1, 2, 3, 4
-```
-
-while task `5` still belongs to List 2, the backend rejects it.
-
-Reason:
-
-- List 2 is below List 1 in project order
-- so List 2 tasks cannot render above List 1 tasks
-
-How to make that move valid:
-
-1. move task `5` into List 1 with `toListId`, or
-2. reorder List 2 above List 1 first
-
----
-
-## 9. Recommended Frontend Drag Logic
+## 8. Recommended Frontend Drag Logic
 
 ### Drag within same status and same list
 
 - allowed
 - send full destination status column order
-- backend rewrites affected list positions
+- backend updates board order and syncs list positions
 
 ### Drag within same status but across lists
 
-- only allow if UI also lets the user choose/change list
-- send `toListId`
-- otherwise reject on frontend
+- allowed
+- if the task should stay in its current list, omit `toListId`
+- if the task should move to another list, send `toListId`
 
 ### Drag across statuses
 
@@ -486,7 +444,7 @@ How to make that move valid:
 
 ---
 
-## 10. Suggested UI Rules
+## 9. Suggested UI Rules
 
 ### List screen
 
@@ -510,7 +468,7 @@ How to make that move valid:
 
 ---
 
-## 11. Example Flows
+## 10. Example Flows
 
 ### A. Instant search in a project
 

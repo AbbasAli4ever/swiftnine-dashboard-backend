@@ -31,17 +31,16 @@ let CommentsController = class CommentsController {
         this.sse = sse;
     }
     async stream(req, taskId, res) {
-        await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
-        this.sse.registerClient(taskId, res);
         const comments = await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
+        this.sse.registerClient(taskId, res);
         this.sse.sendToClient(res, 'comments:init', comments);
     }
     async create(req, taskId, dto) {
-        const comment = await this.commentsService.createComment(req.workspaceContext.workspaceId, req.user.id, taskId, dto.content, dto.parentId, dto.mentions ?? []);
+        const comment = await this.commentsService.createComment(req.workspaceContext.workspaceId, req.user.id, taskId, dto.content, dto.parentId, dto.mentionedUserIds);
         return (0, common_2.ok)(comment, 'Comment created');
     }
     async update(req, commentId, dto) {
-        const updated = await this.commentsService.updateComment(req.workspaceContext.workspaceId, req.user.id, commentId, dto.content);
+        const updated = await this.commentsService.updateComment(req.workspaceContext.workspaceId, req.user.id, commentId, dto.content, dto.mentionedUserIds);
         return (0, common_2.ok)(updated, 'Comment updated');
     }
     async remove(req, commentId) {

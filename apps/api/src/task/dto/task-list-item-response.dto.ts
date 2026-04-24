@@ -116,6 +116,12 @@ export class TaskListItemResponseDto {
   @ApiProperty({ example: 2000 })
   position!: number;
 
+  @ApiProperty({
+    example: 3000,
+    description: 'Manual board-column order inside the task status.',
+  })
+  boardPosition!: number;
+
   @ApiProperty({ example: 0, description: '0 for top-level tasks; greater than 0 for subtasks.' })
   depth!: number;
 

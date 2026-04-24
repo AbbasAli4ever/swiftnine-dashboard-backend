@@ -330,6 +330,7 @@ model Task {
   startDate   DateTime? @map("start_date")
   dueDate     DateTime? @map("due_date")
   position    Int       @default(1000)
+  boardPosition Int     @default(1000) @map("board_position")
   isCompleted Boolean   @default(false) @map("is_completed")
   completedAt DateTime? @map("completed_at")
   createdBy   String    @map("created_by")
@@ -352,6 +353,7 @@ model Task {
   @@index([listId, position])
   @@index([listId, parentId, position])
   @@index([statusId])
+  @@index([statusId, boardPosition])
   @@index([dueDate])
   @@map("tasks")
 }
@@ -427,6 +429,7 @@ model Reaction {
 
   @@index([commentId])
   @@index([memberId])
+  @@unique([commentId, memberId, reactFace])
   @@map("reactions")
 }
 

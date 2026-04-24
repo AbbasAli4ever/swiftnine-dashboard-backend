@@ -295,19 +295,19 @@ GET /api/v1/projects/:projectId/lists/:listId/tasks?sort_by=position
 The board view is different from list view:
 
 - List view uses `Task.position`, which is local to a single list.
-- Board view is derived from project list order plus task list order.
+- Board view uses `Task.boardPosition`, which is local to a status column across the whole project board.
 
-The board does not keep a separate board-only order. Inside a status column, tasks are ordered by:
+Inside a status column, tasks are ordered by:
 
 ```ts
 orderBy: [
-  { list: { position: 'asc' } },
-  { position: 'asc' },
+  { boardPosition: 'asc' },
+  { listId: 'asc' },
   { id: 'asc' }
 ]
 ```
 
-This means the existing project list reorder API controls which list's tasks appear first on the board, and task reorder controls the task order inside each list. This keeps list view and board view in sync.
+This means board drag/drop is free to mix tasks from different lists inside the same status column. List membership does not change unless `toListId` is explicitly sent during a move.
 
 ### Get Board Tasks
 
@@ -358,6 +358,34 @@ The board endpoint supports the same search and filter params as task search:
 - `me`
 - `tag_ids`
 - `created_by`
+
+### Board Reorder Behavior
+
+```http
+PUT /api/v1/projects/:projectId/board/tasks/reorder
+```
+
+Rules:
+
+- `orderedTaskIds` must contain every active top-level task in the destination status column exactly once.
+- Board reorder updates `Task.boardPosition` for that status column.
+- If `toStatusId` changes, the task status changes too.
+- If `toListId` is provided, the task moves to another list.
+- After board order is saved, the backend syncs `Task.position` inside every affected list using the board-relative order for tasks in that list.
+
+Example:
+
+- List 1 tasks: `1, 2, 3`
+- List 2 tasks: `4, 5`
+- Board column becomes: `5, 1, 2, 3, 4`
+
+Result:
+
+- Board order is saved exactly as `5, 1, 2, 3, 4`
+- List 1 stays `1, 2, 3`
+- List 2 becomes `5, 4`
+
+This gives the board its own flexible order while still keeping list view aligned inside each list.
 - date range filters
 - `include_subtasks`
 - `include_closed`

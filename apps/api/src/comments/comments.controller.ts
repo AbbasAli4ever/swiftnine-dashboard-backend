@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   Post,
   Put,
@@ -39,17 +37,10 @@ export class CommentsController {
     @Param('taskId') taskId: string,
     @Res() res: Response,
   ) {
-    // verify task exists in workspace
-    await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
-
-    // register SSE client
-    this.sse.registerClient(taskId, res);
-
-    // send initial payload
     const comments = await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
-    this.sse.sendToClient(res, 'comments:init', comments);
 
-    // keep connection open by not returning
+    this.sse.registerClient(taskId, res);
+    this.sse.sendToClient(res, 'comments:init', comments);
   }
 
   @Post('tasks/:taskId/comments')
@@ -69,7 +60,7 @@ export class CommentsController {
       taskId,
       dto.content,
       dto.parentId,
-      dto.mentions ?? [],
+      dto.mentionedUserIds,
     );
     return ok(comment, 'Comment created');
   }
@@ -90,6 +81,7 @@ export class CommentsController {
       req.user.id,
       commentId,
       dto.content,
+      dto.mentionedUserIds,
     );
     return ok(updated, 'Comment updated');
   }

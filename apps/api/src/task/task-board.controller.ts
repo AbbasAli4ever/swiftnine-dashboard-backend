@@ -30,7 +30,7 @@ export class TaskBoardController {
   @ApiOperation({
     summary: 'Get project board tasks grouped by status',
     description:
-      'Returns every active project status as a board column with filtered tasks from all lists in that project. Board order is derived from project list order and each task list position.',
+      'Returns every active project status as a board column with filtered tasks from all lists in that project. Cards inside each column are ordered by the task `boardPosition` value.',
   })
   @TaskSearchSwaggerQueries()
   @ApiOkResponse({ description: 'Project board returned', type: ProjectBoardResponseDto })
@@ -52,12 +52,12 @@ export class TaskBoardController {
   @ApiOperation({
     summary: 'Reorder or move a task on the project board',
     description:
-      'Use this endpoint for board drag/drop. Board order is canonical list order: project list position first, then task position. If `toStatusId` differs from the task status, the task status is changed. If `toListId` is provided, the task can also move to another list. The backend rewrites affected list positions so list view and board view stay in sync.',
+      'Use this endpoint for board drag/drop. Board order is independent from list order and is stored per status column. If `toStatusId` differs from the task status, the task status is changed. If `toListId` is provided, the task can also move to another list. After the board order is updated, the backend also rewrites `position` values inside affected lists so list view stays aligned with the relative board order for each list.',
   })
   @ApiBody({
     type: ReorderBoardTasksDto,
     description:
-      '`orderedTaskIds` must contain every active top-level task in the destination status after the move, exactly once. The order must be possible under project list order; a task cannot appear above tasks from an earlier list unless it moves to that earlier list or the lists are reordered.',
+      '`orderedTaskIds` must contain every active top-level task in the destination status after the move, exactly once. This is the full destination column order after drag/drop, not only the visible cards the user touched.',
     examples: {
       moveAcrossStatuses: {
         summary: 'Move card to another status column',
