@@ -1,10 +1,12 @@
 import { PrismaService } from "../../../../libs/database/src";
 import { SseService } from './sse.service';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class CommentsService {
     private readonly prisma;
     private readonly sse;
+    private readonly notifications;
     private readonly logger;
-    constructor(prisma: PrismaService, sse: SseService);
+    constructor(prisma: PrismaService, sse: SseService, notifications: NotificationsService);
     getCommentsForTask(workspaceId: string, taskId: string): Promise<({
         reactions: {
             id: string;
@@ -29,7 +31,7 @@ export declare class CommentsService {
         taskId: string;
         isEdited: boolean;
     })[]>;
-    createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string): Promise<{
+    createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentions?: string[]): Promise<{
         reactions: {
             id: string;
             createdAt: Date;

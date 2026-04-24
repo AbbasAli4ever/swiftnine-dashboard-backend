@@ -37,7 +37,7 @@ let CommentsController = class CommentsController {
         this.sse.sendToClient(res, 'comments:init', comments);
     }
     async create(req, taskId, dto) {
-        const comment = await this.commentsService.createComment(req.workspaceContext.workspaceId, req.user.id, taskId, dto.content, dto.parentId);
+        const comment = await this.commentsService.createComment(req.workspaceContext.workspaceId, req.user.id, taskId, dto.content, dto.parentId, dto.mentions ?? []);
         return (0, common_2.ok)(comment, 'Comment created');
     }
     async update(req, commentId, dto) {

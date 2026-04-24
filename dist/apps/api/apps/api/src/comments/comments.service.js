@@ -14,13 +14,16 @@ exports.CommentsService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const sse_service_1 = require("./sse.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let CommentsService = CommentsService_1 = class CommentsService {
     prisma;
     sse;
+    notifications;
     logger = new common_1.Logger(CommentsService_1.name);
-    constructor(prisma, sse) {
+    constructor(prisma, sse, notifications) {
         this.prisma = prisma;
         this.sse = sse;
+        this.notifications = notifications;
     }
     async getCommentsForTask(workspaceId, taskId) {
         await this.assertTaskInWorkspaceOrThrow(workspaceId, taskId);
@@ -31,7 +34,7 @@ let CommentsService = CommentsService_1 = class CommentsService {
         });
         return comments;
     }
-    async createComment(workspaceId, userId, taskId, content, parentId) {
+    async createComment(workspaceId, userId, taskId, content, parentId, mentions = []) {
         await this.assertTaskInWorkspaceOrThrow(workspaceId, taskId);
         if (parentId) {
             const parent = await this.prisma.comment.findFirst({ where: { id: parentId, taskId, deletedAt: null } });
@@ -42,7 +45,39 @@ let CommentsService = CommentsService_1 = class CommentsService {
             data: { taskId, userId, parentId: parentId ?? null, content: content.trim() },
             include: { author: { select: { id: true, fullName: true, avatarUrl: true } }, reactions: true },
         });
+        const mentionedUserIds = [];
+        if (mentions && mentions.length) {
+            for (const mentionId of mentions) {
+                let member = await this.prisma.workspaceMember.findFirst({
+                    where: { id: mentionId, workspaceId, deletedAt: null },
+                    select: { id: true, userId: true },
+                });
+                if (!member) {
+                    member = await this.prisma.workspaceMember.findFirst({
+                        where: { userId: mentionId, workspaceId, deletedAt: null },
+                        select: { id: true, userId: true },
+                    });
+                }
+                if (!member)
+                    continue;
+                try {
+                    await this.prisma.mention.create({ data: { commentId: comment.id, mentionedUserId: member.userId } });
+                    mentionedUserIds.push(member.userId);
+                }
+                catch (err) {
+                }
+            }
+        }
         this.sse.broadcast(taskId, 'comment:created', comment);
+        await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+            type: 'comment:created',
+            title: 'New comment on assigned task',
+            message: comment.content,
+            excludeUserIds: mentionedUserIds,
+        });
+        for (const mentionedUserId of mentionedUserIds) {
+            await this.notifications.createNotification(workspaceId, mentionedUserId, userId, 'mention', 'You were mentioned in a comment', comment.content, 'comment', comment.id);
+        }
         return comment;
     }
     async updateComment(workspaceId, userId, commentId, content) {
@@ -68,6 +103,11 @@ let CommentsService = CommentsService_1 = class CommentsService {
         });
         const taskId = updated.taskId;
         this.sse.broadcast(taskId, 'comment:updated', updated);
+        await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+            type: 'comment:updated',
+            title: 'Comment updated',
+            message: updated.content,
+        });
         return updated;
     }
     async deleteComment(workspaceId, userId, commentId, requesterRole) {
@@ -101,6 +141,11 @@ let CommentsService = CommentsService_1 = class CommentsService {
             include: { member: true },
         });
         this.sse.broadcast(comment.taskId, 'reaction:created', reaction);
+        await this.notifications.notifyTaskAssignees(workspaceId, comment.taskId, userId, {
+            type: 'reaction:created',
+            title: 'New reaction on assigned task',
+            message: reaction.reactFace,
+        });
         return reaction;
     }
     async deleteReaction(workspaceId, userId, reactionId) {
@@ -147,6 +192,8 @@ let CommentsService = CommentsService_1 = class CommentsService {
 exports.CommentsService = CommentsService;
 exports.CommentsService = CommentsService = CommentsService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService, sse_service_1.SseService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        sse_service_1.SseService,
+        notifications_service_1.NotificationsService])
 ], CommentsService);
 //# sourceMappingURL=comments.service.js.map

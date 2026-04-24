@@ -9,6 +9,7 @@ import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
 import type { ListTasksQuery } from './dto/list-tasks-query.dto';
 import { ActivityService } from '../activity/activity.service';
+import { NotificationsService } from '../notifications/notifications.service';
 type RawTaskDetail = Prisma.TaskGetPayload<{
     select: typeof TASK_DETAIL_SELECT;
 }>;
@@ -31,7 +32,8 @@ export type TaskSearchResult = {
 export declare class TaskService {
     private readonly prisma;
     private readonly activity;
-    constructor(prisma: PrismaService, activity: ActivityService);
+    private readonly notifications;
+    constructor(prisma: PrismaService, activity: ActivityService, notifications: NotificationsService);
     create(workspaceId: string, userId: string, projectId: string, listId: string, dto: CreateTaskDto): Promise<TaskDetailData>;
     findAllByList(workspaceId: string, projectId: string, listId: string): Promise<TaskListItemData[]>;
     findTasksByList(workspaceId: string, userId: string, projectId: string, listId: string, query: ListTasksQuery): Promise<TaskSearchResult>;

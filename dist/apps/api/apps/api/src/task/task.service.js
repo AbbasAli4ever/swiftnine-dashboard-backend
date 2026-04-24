@@ -14,12 +14,15 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const task_constants_1 = require("./task.constants");
 const activity_service_1 = require("../activity/activity.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let TaskService = class TaskService {
     prisma;
     activity;
-    constructor(prisma, activity) {
+    notifications;
+    constructor(prisma, activity, notifications) {
         this.prisma = prisma;
         this.activity = activity;
+        this.notifications = notifications;
     }
     async create(workspaceId, userId, projectId, listId, dto) {
         await this.findListOrThrow(workspaceId, projectId, listId);
@@ -83,6 +86,16 @@ let TaskService = class TaskService {
                 select: task_constants_1.TASK_DETAIL_SELECT,
             });
         });
+        if (dto.assigneeIds && dto.assigneeIds.length) {
+            for (const assigneeUserId of dto.assigneeIds) {
+                if (assigneeUserId === userId)
+                    continue;
+                try {
+                    await this.notifications.createNotification(dto.workspaceId ?? workspaceId, assigneeUserId, userId, 'task:assigned', 'You were assigned to a task', `Assigned to task ${raw.title}`, 'task', raw.id);
+                }
+                catch { }
+            }
+        }
         return this.toDetail(raw);
     }
     async findAllByList(workspaceId, projectId, listId) {
@@ -201,6 +214,12 @@ let TaskService = class TaskService {
                 },
                 performedBy: userId,
             })));
+            const changedFields = logEntries.map((e) => e.fieldName).join(', ');
+            await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+                type: 'task:updated',
+                title: 'Assigned task updated',
+                message: `Updated fields: ${changedFields}`,
+            });
         }
         return this.findOne(workspaceId, taskId);
     }
@@ -343,6 +362,14 @@ let TaskService = class TaskService {
                 metadata: { userIds: newUserIds, taskTitle: task.title, taskNumber: task.taskNumber },
                 performedBy: userId,
             });
+            for (const uid of newUserIds) {
+                if (uid === userId)
+                    continue;
+                try {
+                    await this.notifications.createNotification(workspaceId, uid, userId, 'task:assigned', 'You were assigned to a task', `You were added to task ${task.title}`, 'task', taskId);
+                }
+                catch { }
+            }
         }
         return this.findOne(workspaceId, taskId);
     }
@@ -799,6 +826,7 @@ exports.TaskService = TaskService;
 exports.TaskService = TaskService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
-        activity_service_1.ActivityService])
+        activity_service_1.ActivityService,
+        notifications_service_1.NotificationsService])
 ], TaskService);
 //# sourceMappingURL=task.service.js.map

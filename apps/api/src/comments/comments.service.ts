@@ -7,11 +7,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { SseService } from './sse.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
   private readonly logger = new Logger(CommentsService.name);
-  constructor(private readonly prisma: PrismaService, private readonly sse: SseService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sse: SseService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async getCommentsForTask(workspaceId: string, taskId: string) {
     await this.assertTaskInWorkspaceOrThrow(workspaceId, taskId);
@@ -25,7 +30,14 @@ export class CommentsService {
     return comments;
   }
 
-  async createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string) {
+  async createComment(
+    workspaceId: string,
+    userId: string,
+    taskId: string,
+    content: string,
+    parentId?: string,
+    mentions: string[] = [],
+  ) {
     await this.assertTaskInWorkspaceOrThrow(workspaceId, taskId);
 
     if (parentId) {
@@ -38,8 +50,56 @@ export class CommentsService {
       include: { author: { select: { id: true, fullName: true, avatarUrl: true } }, reactions: true },
     });
 
-    // broadcast
+    // create mention records (if any) and notify mentioned users
+    const mentionedUserIds: string[] = [];
+    if (mentions && mentions.length) {
+      for (const mentionId of mentions) {
+        // try to resolve workspace member by member id first then user id
+        let member = await this.prisma.workspaceMember.findFirst({
+          where: { id: mentionId, workspaceId, deletedAt: null },
+          select: { id: true, userId: true },
+        });
+        if (!member) {
+          member = await this.prisma.workspaceMember.findFirst({
+            where: { userId: mentionId, workspaceId, deletedAt: null },
+            select: { id: true, userId: true },
+          });
+        }
+        if (!member) continue;
+
+        try {
+          await this.prisma.mention.create({ data: { commentId: comment.id, mentionedUserId: member.userId } });
+          mentionedUserIds.push(member.userId);
+        } catch (err) {
+          // ignore duplicates
+        }
+      }
+    }
+
+    // broadcast to task-level comment stream
     this.sse.broadcast(taskId, 'comment:created', comment);
+
+    // notify assignees of the task, but exclude explicitly mentioned users to avoid duplicate alerts
+    await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+      type: 'comment:created',
+      title: 'New comment on assigned task',
+      message: comment.content,
+      excludeUserIds: mentionedUserIds,
+    });
+
+    // notify mentioned users directly
+    for (const mentionedUserId of mentionedUserIds) {
+      await this.notifications.createNotification(
+        workspaceId,
+        mentionedUserId,
+        userId,
+        'mention',
+        'You were mentioned in a comment',
+        comment.content,
+        'comment',
+        comment.id,
+      );
+    }
 
     return comment;
   }
@@ -69,9 +129,15 @@ export class CommentsService {
     });
 
     // broadcast
-    // extract taskId for broadcasting
     const taskId = updated.taskId;
     this.sse.broadcast(taskId, 'comment:updated', updated);
+
+    // notify assignees about comment update
+    await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+      type: 'comment:updated',
+      title: 'Comment updated',
+      message: updated.content,
+    });
 
     return updated;
   }
@@ -113,6 +179,13 @@ export class CommentsService {
     });
 
     this.sse.broadcast(comment.taskId, 'reaction:created', reaction);
+
+    // notify assignees on reaction
+    await this.notifications.notifyTaskAssignees(workspaceId, comment.taskId, userId, {
+      type: 'reaction:created',
+      title: 'New reaction on assigned task',
+      message: reaction.reactFace,
+    });
 
     return reaction;
   }

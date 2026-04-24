@@ -1,0 +1,30 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class NotificationResponseDto {
+  @ApiProperty({ type: String, description: 'Notification id' })
+  id!: string;
+
+  @ApiProperty({ type: String, description: 'Notification type' })
+  type!: string;
+
+  @ApiProperty({ type: String, description: 'Notification title' })
+  title!: string;
+
+  @ApiProperty({ type: String, description: 'Optional message', required: false })
+  message?: string | null;
+
+  @ApiProperty({ type: String, description: 'Reference entity type', required: false })
+  referenceType?: string | null;
+
+  @ApiProperty({ type: String, description: 'Reference entity id', required: false })
+  referenceId?: string | null;
+
+  @ApiProperty({ type: String, description: 'Actor user id performing the action', required: false })
+  actorId?: string | null;
+
+  @ApiProperty({ type: Boolean, description: 'Read state' })
+  isRead!: boolean;
+
+  @ApiProperty({ type: String, format: 'date-time', description: 'Created at timestamp' })
+  createdAt!: Date;
+}

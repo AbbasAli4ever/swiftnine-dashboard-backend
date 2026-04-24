@@ -30,6 +30,7 @@ import type { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import type { ReorderTasksDto } from './dto/reorder-tasks.dto';
 import type { ListTasksQuery } from './dto/list-tasks-query.dto';
 import { ActivityService } from '../activity/activity.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ export class TaskService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activity: ActivityService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(
@@ -138,6 +140,25 @@ export class TaskService {
         select: TASK_DETAIL_SELECT,
       });
     });
+
+    // Notify assignees created during task creation (if any)
+    if (dto.assigneeIds && dto.assigneeIds.length) {
+      for (const assigneeUserId of dto.assigneeIds) {
+        if (assigneeUserId === userId) continue;
+        try {
+          await this.notifications.createNotification(
+            (dto as any).workspaceId ?? workspaceId,
+            assigneeUserId,
+            userId,
+            'task:assigned',
+            'You were assigned to a task',
+            `Assigned to task ${raw.title}`,
+            'task',
+            raw.id,
+          );
+        } catch {}
+      }
+    }
 
     return this.toDetail(raw);
   }
@@ -301,6 +322,13 @@ export class TaskService {
           performedBy: userId,
         })),
       );
+      // notify assignees about updates
+      const changedFields = logEntries.map((e) => e.fieldName).join(', ');
+      await this.notifications.notifyTaskAssignees(workspaceId, taskId, userId, {
+        type: 'task:updated',
+        title: 'Assigned task updated',
+        message: `Updated fields: ${changedFields}`,
+      });
     }
 
     return this.findOne(workspaceId, taskId);
@@ -492,6 +520,22 @@ export class TaskService {
         metadata: { userIds: newUserIds, taskTitle: task.title, taskNumber: task.taskNumber },
         performedBy: userId,
       });
+      // notify newly added assignees
+      for (const uid of newUserIds) {
+        if (uid === userId) continue;
+        try {
+          await this.notifications.createNotification(
+            workspaceId,
+            uid,
+            userId,
+            'task:assigned',
+            'You were assigned to a task',
+            `You were added to task ${task.title}`,
+            'task',
+            taskId,
+          );
+        } catch {}
+      }
     }
 
     return this.findOne(workspaceId, taskId);

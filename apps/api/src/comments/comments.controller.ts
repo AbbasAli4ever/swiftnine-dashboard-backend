@@ -69,6 +69,7 @@ export class CommentsController {
       taskId,
       dto.content,
       dto.parentId,
+      dto.mentions ?? [],
     );
     return ok(comment, 'Comment created');
   }

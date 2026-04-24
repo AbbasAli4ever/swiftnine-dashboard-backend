@@ -16,10 +16,12 @@ const swagger_1 = require("@nestjs/swagger");
 const CreateCommentSchema = zod_1.z.object({
     content: zod_1.z.string().min(1, 'Content is required').max(10000),
     parentId: zod_1.z.string().uuid('Invalid parentId').optional(),
+    mentions: zod_1.z.array(zod_1.z.string().uuid('Invalid member id')).optional(),
 });
 class CreateCommentDto extends (0, nestjs_zod_1.createZodDto)(CreateCommentSchema) {
     content = '';
     parentId;
+    mentions;
 }
 exports.CreateCommentDto = CreateCommentDto;
 __decorate([
@@ -30,4 +32,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ type: String, description: 'Parent comment id (optional)', required: false, format: 'uuid' }),
     __metadata("design:type", String)
 ], CreateCommentDto.prototype, "parentId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [String], description: 'Mentioned workspace member ids or user ids', required: false }),
+    __metadata("design:type", Array)
+], CreateCommentDto.prototype, "mentions", void 0);
 //# sourceMappingURL=create-comment.dto.js.map

@@ -4,9 +4,10 @@ import { TaskController } from './task.controller';
 import { TaskListTasksController } from './task-list-tasks.controller';
 import { TaskProjectTasksController } from './task-project-tasks.controller';
 import { ActivityModule } from '../activity/activity.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [ActivityModule],
+  imports: [ActivityModule, NotificationsModule],
   controllers: [TaskController, TaskListTasksController, TaskProjectTasksController],
   providers: [TaskService],
   exports: [TaskService],

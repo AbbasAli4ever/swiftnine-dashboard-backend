@@ -6,21 +6,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommentsModule = void 0;
+exports.NotificationsModule = void 0;
 const common_1 = require("@nestjs/common");
-const comments_controller_1 = require("./comments.controller");
-const comments_service_1 = require("./comments.service");
+const notifications_controller_1 = require("./notifications.controller");
+const notifications_service_1 = require("./notifications.service");
 const sse_service_1 = require("./sse.service");
-const notifications_module_1 = require("../notifications/notifications.module");
-let CommentsModule = class CommentsModule {
+let NotificationsModule = class NotificationsModule {
 };
-exports.CommentsModule = CommentsModule;
-exports.CommentsModule = CommentsModule = __decorate([
+exports.NotificationsModule = NotificationsModule;
+exports.NotificationsModule = NotificationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [notifications_module_1.NotificationsModule],
-        controllers: [comments_controller_1.CommentsController],
-        providers: [comments_service_1.CommentsService, sse_service_1.SseService],
-        exports: [comments_service_1.CommentsService],
+        controllers: [notifications_controller_1.NotificationsController],
+        providers: [notifications_service_1.NotificationsService, sse_service_1.NotificationsSseService],
+        exports: [notifications_service_1.NotificationsService, sse_service_1.NotificationsSseService],
     })
-], CommentsModule);
-//# sourceMappingURL=comments.module.js.map
+], NotificationsModule);
+//# sourceMappingURL=notifications.module.js.map
