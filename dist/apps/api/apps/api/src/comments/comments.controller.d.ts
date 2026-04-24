@@ -15,17 +15,6 @@ export declare class CommentsController {
     update(req: WorkspaceRequest, commentId: string, dto: UpdateCommentDto): Promise<ApiRes<any>>;
     remove(req: WorkspaceRequest, commentId: string): Promise<ApiRes<null>>;
     addReaction(req: WorkspaceRequest, commentId: string, dto: CreateReactionDto): Promise<ApiRes<{
-        member: {
-            user: {
-                fullName: string;
-                id: string;
-                avatarUrl: string | null;
-            };
-            id: string;
-            userId: string;
-            role: import("@app/database/generated/prisma/enums").Role;
-        };
-    } & {
         id: string;
         createdAt: Date;
         commentId: string;

@@ -19,7 +19,7 @@ export declare const TASK_LIST_ITEM_SELECT: {
     startDate: true;
     dueDate: true;
     position: true;
-    boardPosition: true;
+    boardPosition: boolean;
     depth: true;
     isCompleted: true;
     completedAt: true;
@@ -91,7 +91,7 @@ export declare const TASK_DETAIL_SELECT: {
     startDate: true;
     dueDate: true;
     position: true;
-    boardPosition: true;
+    boardPosition: boolean;
     isCompleted: true;
     completedAt: true;
     createdBy: true;
