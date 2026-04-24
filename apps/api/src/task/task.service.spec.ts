@@ -328,6 +328,126 @@ describe('TaskService search and filter', () => {
     );
   });
 
+  it('allows cross-list board ordering while keeping list-relative order in sync', async () => {
+    prisma.task.findFirst.mockResolvedValue(
+      minimalTask({
+        id: '26a1fe8b-534e-410a-a519-ec5f979c4bda',
+        listId: 'list-2',
+        listPosition: 2000,
+        statusId: 'status-2',
+        statusName: 'In Progress',
+      }),
+    );
+    prisma.task.findMany
+      .mockResolvedValueOnce([
+        {
+          id: '5ba81d29-c9f2-480a-8c98-7759f87034a9',
+          listId: 'list-1',
+          boardPosition: 1000,
+        },
+        {
+          id: '4c6c49c6-b270-4023-849a-b9f7e0a55cc7',
+          listId: 'list-1',
+          boardPosition: 2000,
+        },
+        {
+          id: 'b65c94e8-1399-4164-951b-9d5ea22fd03d',
+          listId: 'list-1',
+          boardPosition: 3000,
+        },
+        {
+          id: '5eb035d8-4169-4109-ae0b-0bb7c1172518',
+          listId: 'list-1',
+          boardPosition: 4000,
+        },
+        {
+          id: '26a1fe8b-534e-410a-a519-ec5f979c4bda',
+          listId: 'list-2',
+          boardPosition: 5000,
+        },
+        {
+          id: '406275a5-106b-4ee4-b194-119194e80c1f',
+          listId: 'list-2',
+          boardPosition: 6000,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: '5ba81d29-c9f2-480a-8c98-7759f87034a9',
+          listId: 'list-1',
+          position: 1000,
+          boardPosition: 1000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: '4c6c49c6-b270-4023-849a-b9f7e0a55cc7',
+          listId: 'list-1',
+          position: 2000,
+          boardPosition: 2000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: 'b65c94e8-1399-4164-951b-9d5ea22fd03d',
+          listId: 'list-1',
+          position: 3000,
+          boardPosition: 3000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: '5eb035d8-4169-4109-ae0b-0bb7c1172518',
+          listId: 'list-1',
+          position: 4000,
+          boardPosition: 4000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: '26a1fe8b-534e-410a-a519-ec5f979c4bda',
+          listId: 'list-2',
+          position: 2000,
+          boardPosition: 5000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+        {
+          id: '406275a5-106b-4ee4-b194-119194e80c1f',
+          listId: 'list-2',
+          position: 1000,
+          boardPosition: 6000,
+          status: { id: 'status-2', group: 'ACTIVE', position: 2000 },
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    prisma.status.findMany.mockResolvedValue([]);
+
+    await expect(
+      service.reorderProjectBoard('workspace-1', 'actor-1', 'project-1', {
+        mode: 'manual',
+        taskId: '26a1fe8b-534e-410a-a519-ec5f979c4bda',
+        toStatusId: 'status-2',
+        orderedTaskIds: [
+          '5ba81d29-c9f2-480a-8c98-7759f87034a9',
+          '4c6c49c6-b270-4023-849a-b9f7e0a55cc7',
+          'b65c94e8-1399-4164-951b-9d5ea22fd03d',
+          '5eb035d8-4169-4109-ae0b-0bb7c1172518',
+          '26a1fe8b-534e-410a-a519-ec5f979c4bda',
+          '406275a5-106b-4ee4-b194-119194e80c1f',
+        ],
+      }),
+    ).resolves.toBeDefined();
+
+    expect(prisma.task.update).toHaveBeenCalledWith({
+      where: { id: '26a1fe8b-534e-410a-a519-ec5f979c4bda' },
+      data: { boardPosition: 5000 },
+    });
+    expect(prisma.task.update).toHaveBeenCalledWith({
+      where: { id: '406275a5-106b-4ee4-b194-119194e80c1f' },
+      data: { position: 2000 },
+    });
+    expect(prisma.task.update).toHaveBeenCalledWith({
+      where: { id: '26a1fe8b-534e-410a-a519-ec5f979c4bda' },
+      data: { position: 1000 },
+    });
+  });
+
   it('rejects partial board reorder payloads', async () => {
     prisma.task.findFirst.mockResolvedValue(
       minimalTask({ id: 'task-4', listId: 'list-2', listPosition: 2000, statusId: 'status-2', statusName: 'In Progress' }),

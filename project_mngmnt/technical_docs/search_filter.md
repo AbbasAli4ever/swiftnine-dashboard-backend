@@ -441,14 +441,14 @@ Example:
 }
 ```
 
-Impossible order example:
+Cross-list board order example:
 
 ```text
 List 1: 1, 2, 3
 List 2: 4, 5
 ```
 
-If the payload asks for a status column order of `5, 1, 2, 3, 4` while task `5` stays in List 2, the API rejects it because List 2 is below List 1. To make `5` appear before `1`, either move task `5` to List 1 using `toListId`, or reorder List 2 above List 1.
+If the payload asks for a status column order of `5, 1, 2, 3, 4` while task `5` stays in List 2, the API accepts that board order. The board column is driven by `boardPosition`, while each list still gets its own canonical `position` recomputed from the final board order for tasks that belong to that list.
 
 ## Pagination
 

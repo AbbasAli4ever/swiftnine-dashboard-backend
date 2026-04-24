@@ -514,7 +514,6 @@ Expected board reorder failures:
 | Error case | What frontend should do |
 | --- | --- |
 | partial destination column payload | refetch board and show light error |
-| impossible cross-list order | show message and reset board from refetch |
 | task/status/list stale or deleted | refetch board |
 | drag in filtered mode | prevent request from being sent |
 
