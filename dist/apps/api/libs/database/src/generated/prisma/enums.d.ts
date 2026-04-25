@@ -48,3 +48,8 @@ export declare const StatusGroup: {
     readonly CLOSED: "CLOSED";
 };
 export type StatusGroup = (typeof StatusGroup)[keyof typeof StatusGroup];
+export declare const ChannelPrivacy: {
+    readonly PUBLIC: "PUBLIC";
+    readonly PRIVATE: "PRIVATE";
+};
+export type ChannelPrivacy = (typeof ChannelPrivacy)[keyof typeof ChannelPrivacy];

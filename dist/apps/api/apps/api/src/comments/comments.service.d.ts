@@ -48,7 +48,12 @@ export declare class CommentsService {
         deletedAt: Date | null;
         taskId: string;
         userId: string;
+<<<<<<< HEAD
         content: string;
+=======
+        parentId: string | null;
+        taskId: string;
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
         isEdited: boolean;
     })[]>;
     createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<{
@@ -90,6 +95,7 @@ export declare class CommentsService {
         deletedAt: Date | null;
         taskId: string;
         userId: string;
+<<<<<<< HEAD
         content: string;
         isEdited: boolean;
     }>;
@@ -125,6 +131,27 @@ export declare class CommentsService {
             avatarUrl: string | null;
         };
     } & {
+=======
+        parentId: string | null;
+        taskId: string;
+        isEdited: boolean;
+    }>;
+    updateComment(workspaceId: string, userId: string, commentId: string, content: string): Promise<{
+        reactions: {
+            id: string;
+            createdAt: Date;
+            commentId: string;
+            memberId: string;
+            reactFace: string;
+        }[];
+        author: {
+            fullName: string;
+            id: string;
+            avatarUrl: string | null;
+        };
+    } & {
+        content: string;
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
         id: string;
         parentId: string | null;
         createdAt: Date;
@@ -132,11 +159,29 @@ export declare class CommentsService {
         deletedAt: Date | null;
         taskId: string;
         userId: string;
+<<<<<<< HEAD
         content: string;
+=======
+        parentId: string | null;
+        taskId: string;
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
         isEdited: boolean;
     }>;
     deleteComment(workspaceId: string, userId: string, commentId: string, requesterRole?: string): Promise<void>;
     addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<{
+<<<<<<< HEAD
+=======
+        member: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            userId: string;
+            role: import("@app/database/generated/prisma/enums").Role;
+            workspaceId: string;
+        };
+    } & {
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
         id: string;
         createdAt: Date;
         commentId: string;

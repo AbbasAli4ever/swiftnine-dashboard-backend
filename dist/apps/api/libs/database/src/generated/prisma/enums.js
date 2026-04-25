@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
+exports.ChannelPrivacy = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
     MEMBER: 'MEMBER'
@@ -44,5 +44,9 @@ exports.StatusGroup = {
     ACTIVE: 'ACTIVE',
     DONE: 'DONE',
     CLOSED: 'CLOSED'
+};
+exports.ChannelPrivacy = {
+    PUBLIC: 'PUBLIC',
+    PRIVATE: 'PRIVATE'
 };
 //# sourceMappingURL=enums.js.map

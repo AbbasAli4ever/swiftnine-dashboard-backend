@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -120,6 +121,26 @@ export class CommentsController {
       dto.reactFace,
     );
     return ok(reaction, 'Reaction created');
+  }
+
+  @Patch('reactions/:reactionId')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @ApiBearerAuth()
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiOperation({ summary: 'Update a reaction on a comment' })
+  @ApiResponse({ status: 200, description: 'Reaction updated' })
+  async updateReaction(
+    @Req() req: WorkspaceRequest,
+    @Param('reactionId') reactionId: string,
+    @Body() dto: CreateReactionDto,
+  ) {
+    const updated = await this.commentsService.updateReaction(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      reactionId,
+      dto.reactFace,
+    );
+    return ok(updated, 'Reaction updated');
   }
 
   @Delete('reactions/:reactionId')

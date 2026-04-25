@@ -15,6 +15,19 @@ export declare class CommentsController {
     update(req: WorkspaceRequest, commentId: string, dto: UpdateCommentDto): Promise<ApiRes<any>>;
     remove(req: WorkspaceRequest, commentId: string): Promise<ApiRes<null>>;
     addReaction(req: WorkspaceRequest, commentId: string, dto: CreateReactionDto): Promise<ApiRes<{
+<<<<<<< HEAD
+=======
+        member: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            userId: string;
+            role: import("@app/database/generated/prisma/enums").Role;
+            workspaceId: string;
+        };
+    } & {
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
         id: string;
         createdAt: Date;
         commentId: string;

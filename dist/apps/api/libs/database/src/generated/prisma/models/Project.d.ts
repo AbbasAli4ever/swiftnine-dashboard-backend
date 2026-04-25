@@ -182,6 +182,7 @@ export type ProjectWhereInput = {
     deletedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    channels?: Prisma.ChannelListRelationFilter;
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
 };
@@ -201,6 +202,7 @@ export type ProjectOrderByWithRelationInput = {
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     workspace?: Prisma.WorkspaceOrderByWithRelationInput;
     creator?: Prisma.UserOrderByWithRelationInput;
+    channels?: Prisma.ChannelOrderByRelationAggregateInput;
     taskLists?: Prisma.TaskListOrderByRelationAggregateInput;
     statuses?: Prisma.StatusOrderByRelationAggregateInput;
 };
@@ -224,6 +226,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
     deletedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    channels?: Prisma.ChannelListRelationFilter;
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
 }, "id" | "workspaceId_taskIdPrefix">;
@@ -279,6 +282,7 @@ export type ProjectCreateInput = {
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
 };
@@ -296,6 +300,7 @@ export type ProjectUncheckedCreateInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
 };
@@ -313,6 +318,7 @@ export type ProjectUpdateInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
 };
@@ -330,6 +336,7 @@ export type ProjectUncheckedUpdateInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
 };
@@ -443,6 +450,10 @@ export type ProjectScalarRelationFilter = {
     is?: Prisma.ProjectWhereInput;
     isNot?: Prisma.ProjectWhereInput;
 };
+export type ProjectNullableScalarRelationFilter = {
+    is?: Prisma.ProjectWhereInput | null;
+    isNot?: Prisma.ProjectWhereInput | null;
+};
 export type ProjectCreateNestedManyWithoutCreatorInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutCreatorInput, Prisma.ProjectUncheckedCreateWithoutCreatorInput> | Prisma.ProjectCreateWithoutCreatorInput[] | Prisma.ProjectUncheckedCreateWithoutCreatorInput[];
     connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutCreatorInput | Prisma.ProjectCreateOrConnectWithoutCreatorInput[];
@@ -550,6 +561,20 @@ export type ProjectUpdateOneRequiredWithoutStatusesNestedInput = {
     connect?: Prisma.ProjectWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutStatusesInput, Prisma.ProjectUpdateWithoutStatusesInput>, Prisma.ProjectUncheckedUpdateWithoutStatusesInput>;
 };
+export type ProjectCreateNestedOneWithoutChannelsInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutChannelsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneWithoutChannelsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutChannelsInput;
+    upsert?: Prisma.ProjectUpsertWithoutChannelsInput;
+    disconnect?: Prisma.ProjectWhereInput | boolean;
+    delete?: Prisma.ProjectWhereInput | boolean;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutChannelsInput, Prisma.ProjectUpdateWithoutChannelsInput>, Prisma.ProjectUncheckedUpdateWithoutChannelsInput>;
+};
 export type ProjectCreateWithoutCreatorInput = {
     id?: string;
     name: string;
@@ -563,6 +588,7 @@ export type ProjectCreateWithoutCreatorInput = {
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
 };
@@ -579,6 +605,7 @@ export type ProjectUncheckedCreateWithoutCreatorInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
 };
@@ -634,6 +661,7 @@ export type ProjectCreateWithoutWorkspaceInput = {
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
 };
@@ -650,6 +678,7 @@ export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
 };
@@ -688,6 +717,7 @@ export type ProjectCreateWithoutTaskListsInput = {
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutTaskListsInput = {
@@ -704,6 +734,7 @@ export type ProjectUncheckedCreateWithoutTaskListsInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutTaskListsInput = {
@@ -733,6 +764,7 @@ export type ProjectUpdateWithoutTaskListsInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutTaskListsInput = {
@@ -749,6 +781,7 @@ export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutStatusesInput = {
@@ -765,6 +798,7 @@ export type ProjectCreateWithoutStatusesInput = {
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutStatusesInput = {
@@ -781,6 +815,7 @@ export type ProjectUncheckedCreateWithoutStatusesInput = {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutStatusesInput = {
@@ -810,6 +845,7 @@ export type ProjectUpdateWithoutStatusesInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutStatusesInput = {
@@ -826,7 +862,89 @@ export type ProjectUncheckedUpdateWithoutStatusesInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectCreateWithoutChannelsInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutChannelsInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutChannelsInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
+};
+export type ProjectUpsertWithoutChannelsInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutChannelsInput, Prisma.ProjectUncheckedUpdateWithoutChannelsInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutChannelsInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutChannelsInput, Prisma.ProjectUncheckedUpdateWithoutChannelsInput>;
+};
+export type ProjectUpdateWithoutChannelsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutChannelsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateManyCreatorInput = {
     id?: string;
@@ -855,6 +973,7 @@ export type ProjectUpdateWithoutCreatorInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
 };
@@ -871,6 +990,7 @@ export type ProjectUncheckedUpdateWithoutCreatorInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
 };
@@ -915,6 +1035,7 @@ export type ProjectUpdateWithoutWorkspaceInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
 };
@@ -931,6 +1052,7 @@ export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
 };
@@ -949,15 +1071,20 @@ export type ProjectUncheckedUpdateManyWithoutWorkspaceInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 export type ProjectCountOutputType = {
+    channels: number;
     taskLists: number;
     statuses: number;
 };
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    channels?: boolean | ProjectCountOutputTypeCountChannelsArgs;
     taskLists?: boolean | ProjectCountOutputTypeCountTaskListsArgs;
     statuses?: boolean | ProjectCountOutputTypeCountStatusesArgs;
 };
 export type ProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectCountOutputTypeSelect<ExtArgs> | null;
+};
+export type ProjectCountOutputTypeCountChannelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ChannelWhereInput;
 };
 export type ProjectCountOutputTypeCountTaskListsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.TaskListWhereInput;
@@ -981,6 +1108,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     deletedAt?: boolean;
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    channels?: boolean | Prisma.Project$channelsArgs<ExtArgs>;
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1038,6 +1166,7 @@ export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    channels?: boolean | Prisma.Project$channelsArgs<ExtArgs>;
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1055,6 +1184,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     objects: {
         workspace: Prisma.$WorkspacePayload<ExtArgs>;
         creator: Prisma.$UserPayload<ExtArgs>;
+        channels: Prisma.$ChannelPayload<ExtArgs>[];
         taskLists: Prisma.$TaskListPayload<ExtArgs>[];
         statuses: Prisma.$StatusPayload<ExtArgs>[];
     };
@@ -1126,6 +1256,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
     readonly [Symbol.toStringTag]: "PrismaPromise";
     workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    channels<T extends Prisma.Project$channelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$channelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskLists<T extends Prisma.Project$taskListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$taskListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     statuses<T extends Prisma.Project$statusesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$statusesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StatusPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
@@ -1246,6 +1377,17 @@ export type ProjectDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ProjectWhereInput;
     limit?: number;
+};
+export type Project$channelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ChannelSelect<ExtArgs> | null;
+    omit?: Prisma.ChannelOmit<ExtArgs> | null;
+    include?: Prisma.ChannelInclude<ExtArgs> | null;
+    where?: Prisma.ChannelWhereInput;
+    orderBy?: Prisma.ChannelOrderByWithRelationInput | Prisma.ChannelOrderByWithRelationInput[];
+    cursor?: Prisma.ChannelWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ChannelScalarFieldEnum | Prisma.ChannelScalarFieldEnum[];
 };
 export type Project$taskListsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TaskListSelect<ExtArgs> | null;

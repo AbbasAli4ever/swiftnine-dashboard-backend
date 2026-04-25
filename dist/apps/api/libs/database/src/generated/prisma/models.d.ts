@@ -19,4 +19,6 @@ export type * from './models/Notification.js';
 export type * from './models/Attachment.js';
 export type * from './models/TimeEntry.js';
 export type * from './models/ActivityLog.js';
+export type * from './models/Channel.js';
+export type * from './models/ChannelMember.js';
 export type * from './commonInputTypes.js';

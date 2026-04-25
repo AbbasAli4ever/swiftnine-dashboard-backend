@@ -26,7 +26,11 @@ const attachments_module_1 = require("./attachments/attachments.module");
 const activity_module_1 = require("./activity/activity.module");
 const comments_module_1 = require("./comments/comments.module");
 const notifications_module_1 = require("./notifications/notifications.module");
+<<<<<<< HEAD
 const dashboard_module_1 = require("./dashboard/dashboard.module");
+=======
+const channels_module_1 = require("./channels/channels.module");
+>>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -52,6 +56,7 @@ exports.AppModule = AppModule = __decorate([
             time_entry_module_1.TimeEntryModule,
             activity_module_1.ActivityModule,
             comments_module_1.CommentsModule,
+            channels_module_1.ChannelsModule,
             notifications_module_1.NotificationsModule,
             dashboard_module_1.DashboardModule,
         ],

@@ -91,5 +91,11 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get activityLog(): Prisma.ActivityLogDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get channel(): Prisma.ChannelDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get channelMember(): Prisma.ChannelMemberDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

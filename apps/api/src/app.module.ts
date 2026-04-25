@@ -18,6 +18,7 @@ import { ActivityModule } from './activity/activity.module';
 import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ChannelsModule } from './channels/channels.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TimeEntryModule,
     ActivityModule,
     CommentsModule,
+    ChannelsModule,
     NotificationsModule,
     DashboardModule,
   ],

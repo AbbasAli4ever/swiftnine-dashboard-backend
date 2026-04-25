@@ -27,3 +27,5 @@ export type Notification = Prisma.NotificationModel;
 export type Attachment = Prisma.AttachmentModel;
 export type TimeEntry = Prisma.TimeEntryModel;
 export type ActivityLog = Prisma.ActivityLogModel;
+export type Channel = Prisma.ChannelModel;
+export type ChannelMember = Prisma.ChannelMemberModel;

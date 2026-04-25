@@ -326,6 +326,21 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
     _min?: Prisma.NestedIntNullableFilter<$PrismaModel>;
     _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
 };
+export type EnumChannelPrivacyFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+};
+export type EnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelPrivacyWithAggregatesFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
+};
 export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | Prisma.StringFieldRefInput<$PrismaModel>;
     in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>;
@@ -642,4 +657,19 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
     gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
     gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null;
+};
+export type NestedEnumChannelPrivacyFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+};
+export type NestedEnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelPrivacyWithAggregatesFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
 };
