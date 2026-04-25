@@ -457,7 +457,6 @@ export class CommentsService {
     const taskId = reaction.comment?.taskId ?? null;
     this.sse.broadcast(taskId, 'reaction:updated', updated);
 
-    // notify assignees on reaction update
     await this.notifications.notifyTaskAssignees(workspaceId, reaction.comment?.taskId ?? null, userId, {
       type: 'reaction:updated',
       title: 'Reaction updated',
@@ -491,80 +490,6 @@ export class CommentsService {
           },
         },
       },
-    });
-
-    if (!task) {
-      this.logger.warn(`task not found in workspace - taskId=${taskId} workspaceId=${workspaceId}`);
-      throw new NotFoundException('Task not found in workspace');
-    }
-
-    return task;
-  }
-
-<<<<<<< HEAD
-  private async findTaskInWorkspaceOrThrow(
-    workspaceId: string,
-    taskId: string,
-    client: Pick<PrismaService, 'task'> | TxClient = this.prisma,
-  ): Promise<TaskSummary> {
-    const task = await client.task.findFirst({
-      where: {
-        id: taskId,
-        deletedAt: null,
-        list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
-      },
-      select: {
-        id: true,
-        title: true,
-        taskNumber: true,
-        createdBy: true,
-        list: {
-          select: {
-            id: true,
-            name: true,
-            project: { select: { id: true, name: true, workspaceId: true } },
-          },
-        },
-      },
-=======
-  async updateReaction(workspaceId: string, userId: string, reactionId: string, reactFace: string) {
-    const reaction = await this.prisma.reaction.findFirst({
-      where: { id: reactionId },
-      include: { member: true, comment: true },
-    });
-    if (!reaction) throw new NotFoundException('Reaction not found');
-
-    const member = await this.prisma.workspaceMember.findFirst({ where: { id: reaction.memberId, deletedAt: null } });
-    if (!member) throw new NotFoundException('Member for reaction not found');
-
-    if (member.userId !== userId) {
-      throw new ForbiddenException('Only the reaction owner can update it');
-    }
-
-    const updated = await this.prisma.reaction.update({
-      where: { id: reactionId },
-      data: { reactFace },
-      include: { member: true },
-    });
-
-    const taskId = reaction.comment?.taskId ?? null;
-    this.sse.broadcast(taskId, 'reaction:updated', updated);
-
-    // notify assignees on reaction update
-    await this.notifications.notifyTaskAssignees(workspaceId, reaction.comment?.taskId ?? null, userId, {
-      type: 'reaction:updated',
-      title: 'Reaction updated',
-      message: updated.reactFace,
-    });
-
-    return updated;
-  }
-
-  private async assertTaskInWorkspaceOrThrow(workspaceId: string, taskId: string) {
-    const task = await this.prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
-      include: { list: { include: { project: true } } },
->>>>>>> 8b80e2f (added stuff about channels and added update reaction api)
     });
 
     if (!task) {

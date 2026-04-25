@@ -29,4 +29,7 @@
       "@app/database/*": ["./libs/database/src/*"]
     }
   }
+
+  ,
+  "exclude": ["dist", "node_modules"]
 }
