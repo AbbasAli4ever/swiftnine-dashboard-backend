@@ -18,9 +18,60 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
     prisma;
     sse;
     logger = new common_1.Logger(NotificationsService_1.name);
+    snoozeWatcher;
     constructor(prisma, sse) {
         this.prisma = prisma;
         this.sse = sse;
+        this.startSnoozeWatcher();
+    }
+    onModuleDestroy() {
+        if (this.snoozeWatcher)
+            clearInterval(this.snoozeWatcher);
+    }
+    startSnoozeWatcher() {
+        this.snoozeWatcher = setInterval(() => {
+            this.processExpiredSnoozes().catch((err) => this.logger.debug('Snooze watcher error', err));
+        }, 60_000);
+    }
+    async processExpiredSnoozes() {
+        const now = new Date();
+        const expired = await this.prisma.notification.findMany({
+            where: { isSnoozed: true, snoozedAt: { lte: now }, isCleared: false },
+        });
+        if (!expired || expired.length === 0)
+            return;
+        for (const notif of expired) {
+            const updated = await this.prisma.notification.update({
+                where: { id: notif.id },
+                data: { isSnoozed: false, snoozedAt: null },
+            });
+            const members = await this.prisma.workspaceMember.findMany({
+                where: { userId: updated.userId, deletedAt: null },
+                select: { id: true },
+            });
+            const payload = {
+                id: updated.id,
+                type: updated.type,
+                title: updated.title,
+                message: updated.message,
+                referenceType: updated.referenceType,
+                referenceId: updated.referenceId,
+                actorId: updated.actorId,
+                isRead: updated.isRead,
+                isCleared: updated.isCleared,
+                isSnoozed: updated.isSnoozed,
+                snoozedAt: updated.snoozedAt,
+                createdAt: updated.createdAt,
+            };
+            for (const m of members) {
+                try {
+                    this.sse.broadcastToMember(m.id, 'notification:created', payload);
+                }
+                catch (err) {
+                    this.logger.debug('Failed broadcasting unsnoozed notification', err);
+                }
+            }
+        }
     }
     async resolveWorkspaceMember(workspaceId, memberIdOrUserId) {
         let member = await this.prisma.workspaceMember.findFirst({
@@ -52,20 +103,31 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 referenceType: referenceType ?? '',
                 referenceId: referenceId ?? '',
                 actorId: actorUserId ?? undefined,
+                isCleared: false,
+                isSnoozed: false,
+                snoozedAt: null,
             },
         });
         try {
-            this.sse.broadcastToMember(member.id, 'notification:created', {
-                id: notif.id,
-                type: notif.type,
-                title: notif.title,
-                message: notif.message,
-                referenceType: notif.referenceType,
-                referenceId: notif.referenceId,
-                actorId: notif.actorId,
-                isRead: notif.isRead,
-                createdAt: notif.createdAt,
-            });
+            if (!notif.isCleared && !notif.isSnoozed) {
+                this.sse.broadcastToMember(member.id, 'notification:created', {
+                    id: notif.id,
+                    type: notif.type,
+                    title: notif.title,
+                    message: notif.message,
+                    referenceType: notif.referenceType,
+                    referenceId: notif.referenceId,
+                    actorId: notif.actorId,
+                    isRead: notif.isRead,
+                    isCleared: notif.isCleared,
+                    isSnoozed: notif.isSnoozed,
+                    snoozedAt: notif.snoozedAt,
+                    createdAt: notif.createdAt,
+                });
+            }
+            else {
+                this.logger.debug('Notification created but not broadcast (cleared or snoozed)');
+            }
         }
         catch (err) {
             this.logger.debug('Failed to broadcast notification SSE', err);

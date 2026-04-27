@@ -7,5 +7,8 @@ export declare class NotificationResponseDto {
     referenceId?: string | null;
     actorId?: string | null;
     isRead: boolean;
+    isCleared: boolean;
+    isSnoozed: boolean;
+    snoozedAt?: Date | null;
     createdAt: Date;
 }

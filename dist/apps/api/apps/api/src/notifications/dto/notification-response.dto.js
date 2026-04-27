@@ -20,6 +20,9 @@ class NotificationResponseDto {
     referenceId;
     actorId;
     isRead;
+    isCleared;
+    isSnoozed;
+    snoozedAt;
     createdAt;
 }
 exports.NotificationResponseDto = NotificationResponseDto;
@@ -55,6 +58,18 @@ __decorate([
     (0, swagger_1.ApiProperty)({ type: Boolean, description: 'Read state' }),
     __metadata("design:type", Boolean)
 ], NotificationResponseDto.prototype, "isRead", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Boolean, description: 'Cleared/archived state' }),
+    __metadata("design:type", Boolean)
+], NotificationResponseDto.prototype, "isCleared", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Boolean, description: 'Snoozed state' }),
+    __metadata("design:type", Boolean)
+], NotificationResponseDto.prototype, "isSnoozed", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: String, format: 'date-time', description: 'Snoozed until timestamp', required: false }),
+    __metadata("design:type", Object)
+], NotificationResponseDto.prototype, "snoozedAt", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: String, format: 'date-time', description: 'Created at timestamp' }),
     __metadata("design:type", Date)

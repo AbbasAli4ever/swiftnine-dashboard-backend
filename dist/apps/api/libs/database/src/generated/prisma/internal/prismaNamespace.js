@@ -283,6 +283,9 @@ exports.NotificationScalarFieldEnum = {
     actorId: 'actorId',
     isRead: 'isRead',
     readAt: 'readAt',
+    isCleared: 'isCleared',
+    isSnoozed: 'isSnoozed',
+    snoozedAt: 'snoozedAt',
     createdAt: 'createdAt'
 };
 exports.AttachmentScalarFieldEnum = {

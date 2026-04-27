@@ -2139,6 +2139,9 @@ export declare const NotificationScalarFieldEnum: {
     readonly actorId: "actorId";
     readonly isRead: "isRead";
     readonly readAt: "readAt";
+    readonly isCleared: "isCleared";
+    readonly isSnoozed: "isSnoozed";
+    readonly snoozedAt: "snoozedAt";
     readonly createdAt: "createdAt";
 };
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];

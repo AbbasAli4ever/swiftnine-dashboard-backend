@@ -25,6 +25,15 @@ export class NotificationResponseDto {
   @ApiProperty({ type: Boolean, description: 'Read state' })
   isRead!: boolean;
 
+  @ApiProperty({ type: Boolean, description: 'Cleared/archived state' })
+  isCleared!: boolean;
+
+  @ApiProperty({ type: Boolean, description: 'Snoozed state' })
+  isSnoozed!: boolean;
+
+  @ApiProperty({ type: String, format: 'date-time', description: 'Snoozed until timestamp', required: false })
+  snoozedAt?: Date | null;
+
   @ApiProperty({ type: String, format: 'date-time', description: 'Created at timestamp' })
   createdAt!: Date;
 }
