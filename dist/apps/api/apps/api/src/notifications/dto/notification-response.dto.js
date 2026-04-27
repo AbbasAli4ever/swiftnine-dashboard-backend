@@ -19,6 +19,9 @@ class NotificationResponseDto {
     referenceType;
     referenceId;
     taskId;
+    taskName;
+    commentId;
+    commentName;
     actorId;
     isRead;
     isCleared;
@@ -71,6 +74,30 @@ __decorate([
     }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "taskId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Task title resolved from the related task (maps to task.title)',
+        required: false,
+    }),
+    __metadata("design:type", Object)
+], NotificationResponseDto.prototype, "taskName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Comment id (only present when referenceType is comment)',
+        required: false,
+    }),
+    __metadata("design:type", Object)
+], NotificationResponseDto.prototype, "commentId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Comment content preview (only present when referenceType is comment)',
+        required: false,
+    }),
+    __metadata("design:type", Object)
+], NotificationResponseDto.prototype, "commentName", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,

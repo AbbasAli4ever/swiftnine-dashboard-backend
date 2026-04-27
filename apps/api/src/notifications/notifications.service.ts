@@ -8,6 +8,13 @@ type NotificationLike = {
   [key: string]: any;
 };
 
+type EnrichedNotification<T extends NotificationLike> = T & {
+  taskId: string | null;
+  taskName: string | null;
+  commentId: string | null;
+  commentName: string | null;
+};
+
 @Injectable()
 export class NotificationsService implements OnModuleDestroy {
   private readonly logger = new Logger(NotificationsService.name);
@@ -100,39 +107,82 @@ export class NotificationsService implements OnModuleDestroy {
 
   async addTaskIds<T extends NotificationLike>(
     notifications: T[],
-  ): Promise<Array<T & { taskId: string | null }>> {
-    const commentIds = Array.from(
+  ): Promise<Array<EnrichedNotification<T>>> {
+    // ── collect ids by reference type ───────────────────────────────────
+    const taskIds = Array.from(
       new Set(
         notifications
-          .filter(
-            (notification) =>
-              notification.referenceType === 'comment' &&
-              notification.referenceId,
-          )
-          .map((notification) => notification.referenceId as string),
+          .filter((n) => n.referenceType === 'task' && n.referenceId)
+          .map((n) => n.referenceId as string),
       ),
     );
 
+    const commentIds = Array.from(
+      new Set(
+        notifications
+          .filter((n) => n.referenceType === 'comment' && n.referenceId)
+          .map((n) => n.referenceId as string),
+      ),
+    );
+
+    // ── fetch tasks ──────────────────────────────────────────────────────
+    const tasks =
+      taskIds.length === 0
+        ? []
+        : await this.prisma.task.findMany({
+            where: { id: { in: taskIds } },
+            select: { id: true, title: true },
+          });
+    const taskMap = new Map(tasks.map((t) => [t.id, t.title]));
+
+    // ── fetch comments (with their parent task) ──────────────────────────
     const comments =
       commentIds.length === 0
         ? []
         : await this.prisma.comment.findMany({
             where: { id: { in: commentIds } },
-            select: { id: true, taskId: true },
+            select: { id: true, taskId: true, content: true },
           });
     const commentTaskIds = new Map(
-      comments.map((comment) => [comment.id, comment.taskId]),
+      comments.map((c) => [c.id, c.taskId]),
+    );
+    const commentContentMap = new Map(
+      comments.map((c) => [c.id, (c.content ?? '').toString().slice(0, 200)]),
     );
 
-    return notifications.map((notification) => ({
-      ...notification,
-      taskId: this.getTaskId(notification, commentTaskIds),
-    }));
+    // ── collect any task ids from comments so we can resolve their names ─
+    const commentParentTaskIds = Array.from(
+      new Set(comments.map((c) => c.taskId).filter(Boolean) as string[]),
+    ).filter((id) => !taskMap.has(id));
+
+    if (commentParentTaskIds.length > 0) {
+      const parentTasks = await this.prisma.task.findMany({
+        where: { id: { in: commentParentTaskIds } },
+        select: { id: true, title: true },
+      });
+      parentTasks.forEach((t) => taskMap.set(t.id, t.title));
+    }
+
+    // ── enrich ───────────────────────────────────────────────────────────
+    return notifications.map((notification) => {
+      const resolvedTaskId = this.getTaskId(notification, commentTaskIds);
+      const isComment = notification.referenceType === 'comment';
+
+      return {
+        ...notification,
+        taskId: resolvedTaskId,
+        taskName: resolvedTaskId ? (taskMap.get(resolvedTaskId) ?? null) : null,
+        commentId: isComment ? (notification.referenceId ?? null) : null,
+        commentName: isComment && notification.referenceId
+          ? (commentContentMap.get(notification.referenceId) ?? null)
+          : null,
+      };
+    });
   }
 
   async addTaskId<T extends NotificationLike>(
     notification: T,
-  ): Promise<T & { taskId: string | null }> {
+  ): Promise<EnrichedNotification<T>> {
     const [enriched] = await this.addTaskIds([notification]);
     return enriched;
   }
@@ -147,6 +197,9 @@ export class NotificationsService implements OnModuleDestroy {
       referenceType: enriched.referenceType,
       referenceId: enriched.referenceId,
       taskId: enriched.taskId,
+      taskName: enriched.taskName,
+      commentId: enriched.commentId,
+      commentName: enriched.commentName,
       actorId: enriched.actorId,
       isRead: enriched.isRead,
       isCleared: enriched.isCleared,

@@ -82,21 +82,48 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         return null;
     }
     async addTaskIds(notifications) {
+        const taskIds = Array.from(new Set(notifications
+            .filter((n) => n.referenceType === 'task' && n.referenceId)
+            .map((n) => n.referenceId)));
         const commentIds = Array.from(new Set(notifications
-            .filter((notification) => notification.referenceType === 'comment' &&
-            notification.referenceId)
-            .map((notification) => notification.referenceId)));
+            .filter((n) => n.referenceType === 'comment' && n.referenceId)
+            .map((n) => n.referenceId)));
+        const tasks = taskIds.length === 0
+            ? []
+            : await this.prisma.task.findMany({
+                where: { id: { in: taskIds } },
+                select: { id: true, title: true },
+            });
+        const taskMap = new Map(tasks.map((t) => [t.id, t.title]));
         const comments = commentIds.length === 0
             ? []
             : await this.prisma.comment.findMany({
                 where: { id: { in: commentIds } },
-                select: { id: true, taskId: true },
+                select: { id: true, taskId: true, content: true },
             });
-        const commentTaskIds = new Map(comments.map((comment) => [comment.id, comment.taskId]));
-        return notifications.map((notification) => ({
-            ...notification,
-            taskId: this.getTaskId(notification, commentTaskIds),
-        }));
+        const commentTaskIds = new Map(comments.map((c) => [c.id, c.taskId]));
+        const commentContentMap = new Map(comments.map((c) => [c.id, (c.content ?? '').toString().slice(0, 200)]));
+        const commentParentTaskIds = Array.from(new Set(comments.map((c) => c.taskId).filter(Boolean))).filter((id) => !taskMap.has(id));
+        if (commentParentTaskIds.length > 0) {
+            const parentTasks = await this.prisma.task.findMany({
+                where: { id: { in: commentParentTaskIds } },
+                select: { id: true, title: true },
+            });
+            parentTasks.forEach((t) => taskMap.set(t.id, t.title));
+        }
+        return notifications.map((notification) => {
+            const resolvedTaskId = this.getTaskId(notification, commentTaskIds);
+            const isComment = notification.referenceType === 'comment';
+            return {
+                ...notification,
+                taskId: resolvedTaskId,
+                taskName: resolvedTaskId ? (taskMap.get(resolvedTaskId) ?? null) : null,
+                commentId: isComment ? (notification.referenceId ?? null) : null,
+                commentName: isComment && notification.referenceId
+                    ? (commentContentMap.get(notification.referenceId) ?? null)
+                    : null,
+            };
+        });
     }
     async addTaskId(notification) {
         const [enriched] = await this.addTaskIds([notification]);
@@ -112,6 +139,9 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             referenceType: enriched.referenceType,
             referenceId: enriched.referenceId,
             taskId: enriched.taskId,
+            taskName: enriched.taskName,
+            commentId: enriched.commentId,
+            commentName: enriched.commentName,
             actorId: enriched.actorId,
             isRead: enriched.isRead,
             isCleared: enriched.isCleared,

@@ -6,6 +6,12 @@ type NotificationLike = {
     referenceId?: string | null;
     [key: string]: any;
 };
+type EnrichedNotification<T extends NotificationLike> = T & {
+    taskId: string | null;
+    taskName: string | null;
+    commentId: string | null;
+    commentName: string | null;
+};
 export declare class NotificationsService implements OnModuleDestroy {
     private readonly prisma;
     private readonly sse;
@@ -17,12 +23,8 @@ export declare class NotificationsService implements OnModuleDestroy {
     private processExpiredSnoozes;
     private resolveWorkspaceMember;
     private getTaskId;
-    addTaskIds<T extends NotificationLike>(notifications: T[]): Promise<Array<T & {
-        taskId: string | null;
-    }>>;
-    addTaskId<T extends NotificationLike>(notification: T): Promise<T & {
-        taskId: string | null;
-    }>;
+    addTaskIds<T extends NotificationLike>(notifications: T[]): Promise<Array<EnrichedNotification<T>>>;
+    addTaskId<T extends NotificationLike>(notification: T): Promise<EnrichedNotification<T>>;
     toNotificationPayload(notification: NotificationLike): Promise<{
         id: any;
         type: any;
@@ -31,6 +33,9 @@ export declare class NotificationsService implements OnModuleDestroy {
         referenceType: string | null | undefined;
         referenceId: string | null | undefined;
         taskId: string | null;
+        taskName: string | null;
+        commentId: string | null;
+        commentName: string | null;
         actorId: any;
         isRead: any;
         isCleared: any;

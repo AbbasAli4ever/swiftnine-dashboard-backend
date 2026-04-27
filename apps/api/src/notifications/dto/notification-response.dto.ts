@@ -41,6 +41,27 @@ export class NotificationResponseDto {
 
   @ApiProperty({
     type: String,
+    description: 'Task title resolved from the related task (maps to task.title)',
+    required: false,
+  })
+  taskName?: string | null;
+
+  @ApiProperty({
+    type: String,
+    description: 'Comment id (only present when referenceType is comment)',
+    required: false,
+  })
+  commentId?: string | null;
+
+  @ApiProperty({
+    type: String,
+    description: 'Comment content preview (only present when referenceType is comment)',
+    required: false,
+  })
+  commentName?: string | null;
+
+  @ApiProperty({
+    type: String,
     description: 'Actor user id performing the action',
     required: false,
   })
