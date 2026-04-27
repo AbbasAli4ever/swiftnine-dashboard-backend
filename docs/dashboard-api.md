@@ -63,6 +63,12 @@ What it returns
 - `lists[]`
   - one row per active, non-archived task list
   - each row includes `taskCount`, `completedCount`, `openCount`
+  - each row can also include optional overview metadata:
+    - `startDate`
+    - `endDate`
+    - `ownerUserId`
+    - `owner`
+    - `priority`
 - `attachments[]`
   - newest first
   - includes task context and uploader info
@@ -116,6 +122,16 @@ Response shape
         "id": "list-1",
         "name": "Backlog",
         "position": 1000,
+        "startDate": "2026-04-24",
+        "endDate": null,
+        "ownerUserId": "user-1",
+        "priority": "HIGH",
+        "owner": {
+          "id": "user-1",
+          "fullName": "Ayesha Khan",
+          "avatarUrl": null,
+          "avatarColor": "#6366f1"
+        },
         "taskCount": 2,
         "completedCount": 0,
         "openCount": 2
@@ -151,6 +167,103 @@ Frontend notes
 - Treat `docs` as a placeholder for now.
 - `attachments[]` is good for a recent-files widget, but not enough to preview/download files directly.
 - Zero-count statuses are intentionally included, so the frontend should render them instead of filtering them out.
+- List-level overview metadata is optional. Any of `startDate`, `endDate`, `ownerUserId`, `owner`, or `priority` may be `null`.
+
+## 1.1 Update List Overview Metadata
+
+Route
+- `PATCH /projects/:projectId/lists/:listId`
+
+Purpose
+- Use this when the user edits a list card/row from the project overview and wants to save optional list metadata.
+- This is the same task-list update endpoint; it now supports both renaming a list and updating its dashboard metadata.
+
+What can be updated
+- `name`
+- `startDate`
+- `endDate`
+- `ownerId`
+- `priority`
+
+Important rules
+- List creation still only requires `name`.
+- These fields are optional and can be added later from the overview UI.
+- `startDate` and `endDate` must be date-only strings in `YYYY-MM-DD` format.
+- If both dates are sent, `startDate` cannot be after `endDate`.
+- `priority` reuses the existing global enum:
+  - `URGENT`
+  - `HIGH`
+  - `NORMAL`
+  - `LOW`
+  - `NONE`
+- `ownerId` may be either:
+  - a `workspaceMemberId`
+  - or a `userId`
+- The backend resolves `ownerId` to a stored `ownerUserId`.
+
+How to clear optional fields
+- Send `null` for:
+  - `startDate`
+  - `endDate`
+  - `ownerId`
+  - `priority`
+
+Example request
+```json
+{
+  "startDate": "2026-04-24",
+  "endDate": "2026-04-30",
+  "ownerId": "workspace-member-or-user-id",
+  "priority": "HIGH"
+}
+```
+
+Example request to clear fields
+```json
+{
+  "ownerId": null,
+  "priority": null,
+  "endDate": null
+}
+```
+
+Response shape
+- Standard success envelope.
+- The returned list includes the saved optional metadata in normalized form.
+
+Example response
+```json
+{
+  "success": true,
+  "data": {
+    "id": "list-1",
+    "projectId": "project-1",
+    "name": "Backlog",
+    "position": 1000,
+    "startDate": "2026-04-24",
+    "endDate": "2026-04-30",
+    "ownerUserId": "user-1",
+    "priority": "HIGH",
+    "isArchived": false,
+    "createdBy": "user-9",
+    "createdAt": "2026-04-20T00:00:00.000Z",
+    "updatedAt": "2026-04-27T00:00:00.000Z",
+    "owner": {
+      "id": "user-1",
+      "fullName": "Ayesha Khan",
+      "avatarUrl": null,
+      "avatarColor": "#6366f1"
+    }
+  },
+  "message": "Task list updated successfully"
+}
+```
+
+Frontend recommendation
+- Use the `owner` object for display.
+- Use `ownerUserId` for saved/current state checks.
+- If your picker is based on workspace members, it is safe to submit `workspaceMemberId` as `ownerId`.
+- If the overview screen allows partial edits, send only the fields that changed.
 
 ## 2. Project Board Endpoints
 

@@ -16,6 +16,16 @@ declare class DashboardListSummaryDto {
     id: string;
     name: string;
     position: number;
+    startDate: string | null;
+    endDate: string | null;
+    ownerUserId: string | null;
+    priority: 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW' | 'NONE' | null;
+    owner: {
+        id: string;
+        fullName: string;
+        avatarUrl: string | null;
+        avatarColor: string;
+    } | null;
     taskCount: number;
     completedCount: number;
     openCount: number;

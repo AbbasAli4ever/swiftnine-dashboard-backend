@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
-import type { StatusGroup } from '@app/database/generated/prisma/client';
+import type { Priority, StatusGroup } from '@app/database/generated/prisma/client';
 
 type ProjectRecord = {
   id: string;
@@ -22,6 +22,16 @@ type ListRecord = {
   id: string;
   name: string;
   position: number;
+  startDate: Date | null;
+  endDate: Date | null;
+  ownerUserId: string | null;
+  priority: Priority | null;
+  owner: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+    avatarColor: string;
+  } | null;
 };
 
 type TaskStatsRecord = {
@@ -72,6 +82,16 @@ export type ProjectDashboardData = {
     id: string;
     name: string;
     position: number;
+    startDate: string | null;
+    endDate: string | null;
+    ownerUserId: string | null;
+    priority: Priority | null;
+    owner: {
+      id: string;
+      fullName: string;
+      avatarUrl: string | null;
+      avatarColor: string;
+    } | null;
     taskCount: number;
     completedCount: number;
     openCount: number;
@@ -131,6 +151,18 @@ export class DashboardService {
           id: true,
           name: true,
           position: true,
+          startDate: true,
+          endDate: true,
+          ownerUserId: true,
+          priority: true,
+          owner: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+              avatarColor: true,
+            },
+          },
         },
         orderBy: { position: 'asc' },
       }),
@@ -259,6 +291,11 @@ export class DashboardService {
         id: list.id,
         name: list.name,
         position: list.position,
+        startDate: this.formatDateOnly(list.startDate),
+        endDate: this.formatDateOnly(list.endDate),
+        ownerUserId: list.ownerUserId,
+        priority: list.priority,
+        owner: list.owner,
         taskCount: current.taskCount,
         completedCount: current.completedCount,
         openCount: current.taskCount - current.completedCount,
@@ -283,6 +320,10 @@ export class DashboardService {
       createdAt: attachment.createdAt,
       uploadedBy: attachment.uploader,
     }));
+  }
+
+  private formatDateOnly(value: Date | null): string | null {
+    return value ? value.toISOString().slice(0, 10) : null;
   }
 
   private async findProjectOrThrow(

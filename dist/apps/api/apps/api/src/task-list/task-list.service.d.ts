@@ -4,9 +4,13 @@ import { TASK_LIST_SELECT } from './task-list.constants';
 import type { CreateTaskListDto } from './dto/create-task-list.dto';
 import type { UpdateTaskListDto } from './dto/update-task-list.dto';
 import type { ReorderTaskListsDto } from './dto/reorder-task-lists.dto';
-export type TaskListData = Prisma.TaskListGetPayload<{
+type TaskListRecord = Prisma.TaskListGetPayload<{
     select: typeof TASK_LIST_SELECT;
 }>;
+export type TaskListData = Omit<TaskListRecord, 'startDate' | 'endDate'> & {
+    startDate: string | null;
+    endDate: string | null;
+};
 export declare class TaskListService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -19,6 +23,11 @@ export declare class TaskListService {
     restore(workspaceId: string, userId: string, projectId: string, listId: string): Promise<TaskListData>;
     private findProjectOrThrow;
     private findListOrThrow;
+    private resolveOwnerOrThrow;
     private assertUniqueName;
     private getNextPosition;
+    private parseDateOnly;
+    private formatDateOnly;
+    private toTaskListData;
 }
+export {};

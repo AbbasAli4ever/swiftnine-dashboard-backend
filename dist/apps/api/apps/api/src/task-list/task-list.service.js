@@ -42,11 +42,11 @@ let TaskListService = class TaskListService {
                 performedBy: userId,
             },
         });
-        return list;
+        return this.toTaskListData(list);
     }
     async findAll(workspaceId, projectId, includeArchived) {
         await this.findProjectOrThrow(workspaceId, projectId);
-        return this.prisma.taskList.findMany({
+        const lists = await this.prisma.taskList.findMany({
             where: {
                 projectId,
                 deletedAt: null,
@@ -55,34 +55,97 @@ let TaskListService = class TaskListService {
             select: task_list_constants_1.TASK_LIST_SELECT,
             orderBy: { position: 'asc' },
         });
+        return lists.map((list) => this.toTaskListData(list));
     }
     async update(workspaceId, userId, projectId, listId, dto) {
         await this.findProjectOrThrow(workspaceId, projectId);
         const list = await this.findListOrThrow(projectId, listId);
-        const name = dto.name.trim();
-        if (name === list.name) {
-            return list;
+        const updateData = {};
+        const logs = [];
+        if (dto.name !== undefined) {
+            const name = dto.name.trim();
+            if (name !== list.name) {
+                await this.assertUniqueName(projectId, name, listId);
+                updateData.name = name;
+                logs.push({ fieldName: 'name', oldValue: list.name, newValue: name });
+            }
         }
-        await this.assertUniqueName(projectId, name, listId);
+        const nextStartDate = dto.startDate === undefined ? list.startDate : this.parseDateOnly(dto.startDate);
+        const nextEndDate = dto.endDate === undefined ? list.endDate : this.parseDateOnly(dto.endDate);
+        if (nextStartDate && nextEndDate && nextStartDate.getTime() > nextEndDate.getTime()) {
+            throw new common_1.BadRequestException(task_list_constants_1.TASK_LIST_INVALID_DATE_RANGE);
+        }
+        if (dto.startDate !== undefined) {
+            updateData.startDate = nextStartDate;
+            logs.push({
+                fieldName: 'startDate',
+                oldValue: this.formatDateOnly(list.startDate),
+                newValue: this.formatDateOnly(nextStartDate),
+            });
+        }
+        if (dto.endDate !== undefined) {
+            updateData.endDate = nextEndDate;
+            logs.push({
+                fieldName: 'endDate',
+                oldValue: this.formatDateOnly(list.endDate),
+                newValue: this.formatDateOnly(nextEndDate),
+            });
+        }
+        if (dto.priority !== undefined) {
+            updateData.priority = dto.priority;
+            logs.push({
+                fieldName: 'priority',
+                oldValue: list.priority,
+                newValue: dto.priority,
+            });
+        }
+        if (dto.ownerId !== undefined) {
+            if (dto.ownerId === null) {
+                if (list.ownerUserId !== null) {
+                    updateData.owner = { disconnect: true };
+                    logs.push({
+                        fieldName: 'ownerUserId',
+                        oldValue: list.owner?.fullName ?? null,
+                        newValue: null,
+                    });
+                }
+            }
+            else {
+                const owner = await this.resolveOwnerOrThrow(workspaceId, dto.ownerId);
+                if (owner.userId !== list.ownerUserId) {
+                    updateData.owner = { connect: { id: owner.userId } };
+                    logs.push({
+                        fieldName: 'ownerUserId',
+                        oldValue: list.owner?.fullName ?? null,
+                        newValue: owner.fullName,
+                    });
+                }
+            }
+        }
+        if (Object.keys(updateData).length === 0) {
+            return this.toTaskListData(list);
+        }
         const updated = await this.prisma.taskList.update({
             where: { id: listId },
-            data: { name },
+            data: updateData,
             select: task_list_constants_1.TASK_LIST_SELECT,
         });
-        await this.prisma.activityLog.create({
-            data: {
-                workspaceId,
-                entityType: 'task_list',
-                entityId: listId,
-                action: 'updated',
-                fieldName: 'name',
-                oldValue: list.name,
-                newValue: name,
-                metadata: {},
-                performedBy: userId,
-            },
-        });
-        return updated;
+        if (logs.length > 0) {
+            await this.prisma.activityLog.createMany({
+                data: logs.map((log) => ({
+                    workspaceId,
+                    entityType: 'task_list',
+                    entityId: listId,
+                    action: 'updated',
+                    fieldName: log.fieldName,
+                    oldValue: log.oldValue,
+                    newValue: log.newValue,
+                    metadata: {},
+                    performedBy: userId,
+                })),
+            });
+        }
+        return this.toTaskListData(updated);
     }
     async remove(workspaceId, userId, projectId, listId) {
         await this.findProjectOrThrow(workspaceId, projectId);
@@ -160,7 +223,7 @@ let TaskListService = class TaskListService {
                 performedBy: userId,
             },
         });
-        return updated;
+        return this.toTaskListData(updated);
     }
     async restore(workspaceId, userId, projectId, listId) {
         await this.findProjectOrThrow(workspaceId, projectId);
@@ -184,7 +247,7 @@ let TaskListService = class TaskListService {
                 performedBy: userId,
             },
         });
-        return updated;
+        return this.toTaskListData(updated);
     }
     async findProjectOrThrow(workspaceId, projectId) {
         const project = await this.prisma.project.findFirst({
@@ -211,6 +274,47 @@ let TaskListService = class TaskListService {
         }
         return list;
     }
+    async resolveOwnerOrThrow(workspaceId, ownerId) {
+        let member = await this.prisma.workspaceMember.findFirst({
+            where: { id: ownerId, workspaceId, deletedAt: null },
+            select: {
+                userId: true,
+                user: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        avatarUrl: true,
+                        avatarColor: true,
+                    },
+                },
+            },
+        });
+        if (!member) {
+            member = await this.prisma.workspaceMember.findFirst({
+                where: { userId: ownerId, workspaceId, deletedAt: null },
+                select: {
+                    userId: true,
+                    user: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            avatarUrl: true,
+                            avatarColor: true,
+                        },
+                    },
+                },
+            });
+        }
+        if (!member) {
+            throw new common_1.BadRequestException(task_list_constants_1.TASK_LIST_OWNER_NOT_IN_WORKSPACE);
+        }
+        return {
+            userId: member.userId,
+            fullName: member.user.fullName,
+            avatarUrl: member.user.avatarUrl,
+            avatarColor: member.user.avatarColor,
+        };
+    }
     async assertUniqueName(projectId, name, ignoreListId) {
         const existing = await this.prisma.taskList.findFirst({
             where: {
@@ -232,6 +336,19 @@ let TaskListService = class TaskListService {
             select: { position: true },
         });
         return (last?.position ?? 0) + 1000;
+    }
+    parseDateOnly(value) {
+        return value ? new Date(`${value}T00:00:00.000Z`) : null;
+    }
+    formatDateOnly(value) {
+        return value ? value.toISOString().slice(0, 10) : null;
+    }
+    toTaskListData(list) {
+        return {
+            ...list,
+            startDate: this.formatDateOnly(list.startDate),
+            endDate: this.formatDateOnly(list.endDate),
+        };
     }
 };
 exports.TaskListService = TaskListService;

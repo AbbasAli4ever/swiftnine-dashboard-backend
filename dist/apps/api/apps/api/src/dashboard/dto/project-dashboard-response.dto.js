@@ -65,10 +65,37 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 12 }),
     __metadata("design:type", Number)
 ], DashboardStatusSummaryDto.prototype, "count", void 0);
+class DashboardListOwnerDto {
+    id;
+    fullName;
+    avatarUrl;
+    avatarColor;
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'f3387da6-3af5-4d9e-a004-6cc67b586b8a' }),
+    __metadata("design:type", String)
+], DashboardListOwnerDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Ayesha Khan' }),
+    __metadata("design:type", String)
+], DashboardListOwnerDto.prototype, "fullName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'https://cdn.example.com/avatar.png', nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListOwnerDto.prototype, "avatarUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '#6366f1' }),
+    __metadata("design:type", String)
+], DashboardListOwnerDto.prototype, "avatarColor", void 0);
 class DashboardListSummaryDto {
     id;
     name;
     position;
+    startDate;
+    endDate;
+    ownerUserId;
+    priority;
+    owner;
     taskCount;
     completedCount;
     openCount;
@@ -85,6 +112,26 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 1000 }),
     __metadata("design:type", Number)
 ], DashboardListSummaryDto.prototype, "position", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2026-04-27', nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListSummaryDto.prototype, "startDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2026-05-03', nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListSummaryDto.prototype, "endDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'f3387da6-3af5-4d9e-a004-6cc67b586b8a', nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListSummaryDto.prototype, "ownerUserId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: ['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE'], example: 'HIGH', nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListSummaryDto.prototype, "priority", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: DashboardListOwnerDto, nullable: true }),
+    __metadata("design:type", Object)
+], DashboardListSummaryDto.prototype, "owner", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 8 }),
     __metadata("design:type", Number)

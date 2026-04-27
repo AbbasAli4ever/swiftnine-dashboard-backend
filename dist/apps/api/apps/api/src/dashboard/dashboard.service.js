@@ -42,6 +42,18 @@ let DashboardService = class DashboardService {
                     id: true,
                     name: true,
                     position: true,
+                    startDate: true,
+                    endDate: true,
+                    ownerUserId: true,
+                    priority: true,
+                    owner: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            avatarUrl: true,
+                            avatarColor: true,
+                        },
+                    },
                 },
                 orderBy: { position: 'asc' },
             }),
@@ -157,6 +169,11 @@ let DashboardService = class DashboardService {
                 id: list.id,
                 name: list.name,
                 position: list.position,
+                startDate: this.formatDateOnly(list.startDate),
+                endDate: this.formatDateOnly(list.endDate),
+                ownerUserId: list.ownerUserId,
+                priority: list.priority,
+                owner: list.owner,
                 taskCount: current.taskCount,
                 completedCount: current.completedCount,
                 openCount: current.taskCount - current.completedCount,
@@ -177,6 +194,9 @@ let DashboardService = class DashboardService {
             createdAt: attachment.createdAt,
             uploadedBy: attachment.uploader,
         }));
+    }
+    formatDateOnly(value) {
+        return value ? value.toISOString().slice(0, 10) : null;
     }
     async findProjectOrThrow(workspaceId, projectId) {
         const project = await this.prisma.project.findFirst({

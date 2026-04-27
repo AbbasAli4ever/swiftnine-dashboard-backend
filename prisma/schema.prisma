@@ -101,6 +101,7 @@ model User {
   workspaceInvitesSent    WorkspaceInvite[]    @relation("InviteSender")
   projectsCreated         Project[]            @relation("ProjectCreator")
   taskListsCreated        TaskList[]           @relation("TaskListCreator")
+  taskListsOwned          TaskList[]           @relation("TaskListOwner")
   tasksCreated            Task[]               @relation("TaskCreator")
   taskAssignments         TaskAssignee[]       @relation("AssignedUser")
   taskAssignmentsMade     TaskAssignee[]       @relation("AssignedByUser")
@@ -258,22 +259,28 @@ model Project {
 
 /// Task lists inside a project — gap-based positioning
 model TaskList {
-  id         String   @id @default(uuid())
-  projectId  String   @map("project_id")
-  name       String
-  position   Int      @default(1000)
-  isArchived Boolean  @default(false) @map("is_archived")
-  createdBy  String   @map("created_by")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  deletedAt  DateTime? @map("deleted_at")
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  name        String
+  position    Int       @default(1000)
+  startDate   DateTime? @db.Date @map("start_date")
+  endDate     DateTime? @db.Date @map("end_date")
+  ownerUserId String?   @map("owner_user_id")
+  priority    Priority?
+  isArchived  Boolean   @default(false) @map("is_archived")
+  createdBy   String    @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   creator User    @relation("TaskListCreator", fields: [createdBy], references: [id])
+  owner   User?   @relation("TaskListOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   tasks   Task[]
 
   @@index([projectId, position])
+  @@index([ownerUserId])
   @@map("task_lists")
 }
 

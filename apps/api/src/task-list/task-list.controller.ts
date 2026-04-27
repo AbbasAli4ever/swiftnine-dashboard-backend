@@ -91,7 +91,7 @@ export class TaskListController {
   }
 
   @Patch(':listId')
-  @ApiOperation({ summary: 'Rename a task list' })
+  @ApiOperation({ summary: 'Update a task list and its optional dashboard metadata' })
   @ApiResponse({ status: 200, description: 'Task list updated' })
   @ApiResponse({ status: 404, description: 'Task list not found' })
   async update(

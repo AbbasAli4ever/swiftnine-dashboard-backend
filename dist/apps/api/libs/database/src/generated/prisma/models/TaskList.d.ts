@@ -1,4 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
+import type * as $Enums from "../enums.js";
 import type * as Prisma from "../internal/prismaNamespace.js";
 export type TaskListModel = runtime.Types.Result.DefaultSelection<Prisma.$TaskListPayload>;
 export type AggregateTaskList = {
@@ -19,6 +20,10 @@ export type TaskListMinAggregateOutputType = {
     projectId: string | null;
     name: string | null;
     position: number | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    ownerUserId: string | null;
+    priority: $Enums.Priority | null;
     isArchived: boolean | null;
     createdBy: string | null;
     createdAt: Date | null;
@@ -30,6 +35,10 @@ export type TaskListMaxAggregateOutputType = {
     projectId: string | null;
     name: string | null;
     position: number | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    ownerUserId: string | null;
+    priority: $Enums.Priority | null;
     isArchived: boolean | null;
     createdBy: string | null;
     createdAt: Date | null;
@@ -41,6 +50,10 @@ export type TaskListCountAggregateOutputType = {
     projectId: number;
     name: number;
     position: number;
+    startDate: number;
+    endDate: number;
+    ownerUserId: number;
+    priority: number;
     isArchived: number;
     createdBy: number;
     createdAt: number;
@@ -59,6 +72,10 @@ export type TaskListMinAggregateInputType = {
     projectId?: true;
     name?: true;
     position?: true;
+    startDate?: true;
+    endDate?: true;
+    ownerUserId?: true;
+    priority?: true;
     isArchived?: true;
     createdBy?: true;
     createdAt?: true;
@@ -70,6 +87,10 @@ export type TaskListMaxAggregateInputType = {
     projectId?: true;
     name?: true;
     position?: true;
+    startDate?: true;
+    endDate?: true;
+    ownerUserId?: true;
+    priority?: true;
     isArchived?: true;
     createdBy?: true;
     createdAt?: true;
@@ -81,6 +102,10 @@ export type TaskListCountAggregateInputType = {
     projectId?: true;
     name?: true;
     position?: true;
+    startDate?: true;
+    endDate?: true;
+    ownerUserId?: true;
+    priority?: true;
     isArchived?: true;
     createdBy?: true;
     createdAt?: true;
@@ -121,6 +146,10 @@ export type TaskListGroupByOutputType = {
     projectId: string;
     name: string;
     position: number;
+    startDate: Date | null;
+    endDate: Date | null;
+    ownerUserId: string | null;
+    priority: $Enums.Priority | null;
     isArchived: boolean;
     createdBy: string;
     createdAt: Date;
@@ -143,6 +172,10 @@ export type TaskListWhereInput = {
     projectId?: Prisma.StringFilter<"TaskList"> | string;
     name?: Prisma.StringFilter<"TaskList"> | string;
     position?: Prisma.IntFilter<"TaskList"> | number;
+    startDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    endDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    ownerUserId?: Prisma.StringNullableFilter<"TaskList"> | string | null;
+    priority?: Prisma.EnumPriorityNullableFilter<"TaskList"> | $Enums.Priority | null;
     isArchived?: Prisma.BoolFilter<"TaskList"> | boolean;
     createdBy?: Prisma.StringFilter<"TaskList"> | string;
     createdAt?: Prisma.DateTimeFilter<"TaskList"> | Date | string;
@@ -150,6 +183,7 @@ export type TaskListWhereInput = {
     deletedAt?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
     project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    owner?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
     tasks?: Prisma.TaskListRelationFilter;
 };
 export type TaskListOrderByWithRelationInput = {
@@ -157,6 +191,10 @@ export type TaskListOrderByWithRelationInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    startDate?: Prisma.SortOrderInput | Prisma.SortOrder;
+    endDate?: Prisma.SortOrderInput | Prisma.SortOrder;
+    ownerUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    priority?: Prisma.SortOrderInput | Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -164,6 +202,7 @@ export type TaskListOrderByWithRelationInput = {
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     project?: Prisma.ProjectOrderByWithRelationInput;
     creator?: Prisma.UserOrderByWithRelationInput;
+    owner?: Prisma.UserOrderByWithRelationInput;
     tasks?: Prisma.TaskOrderByRelationAggregateInput;
 };
 export type TaskListWhereUniqueInput = Prisma.AtLeast<{
@@ -174,6 +213,10 @@ export type TaskListWhereUniqueInput = Prisma.AtLeast<{
     projectId?: Prisma.StringFilter<"TaskList"> | string;
     name?: Prisma.StringFilter<"TaskList"> | string;
     position?: Prisma.IntFilter<"TaskList"> | number;
+    startDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    endDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    ownerUserId?: Prisma.StringNullableFilter<"TaskList"> | string | null;
+    priority?: Prisma.EnumPriorityNullableFilter<"TaskList"> | $Enums.Priority | null;
     isArchived?: Prisma.BoolFilter<"TaskList"> | boolean;
     createdBy?: Prisma.StringFilter<"TaskList"> | string;
     createdAt?: Prisma.DateTimeFilter<"TaskList"> | Date | string;
@@ -181,6 +224,7 @@ export type TaskListWhereUniqueInput = Prisma.AtLeast<{
     deletedAt?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
     project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    owner?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
     tasks?: Prisma.TaskListRelationFilter;
 }, "id">;
 export type TaskListOrderByWithAggregationInput = {
@@ -188,6 +232,10 @@ export type TaskListOrderByWithAggregationInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    startDate?: Prisma.SortOrderInput | Prisma.SortOrder;
+    endDate?: Prisma.SortOrderInput | Prisma.SortOrder;
+    ownerUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    priority?: Prisma.SortOrderInput | Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -207,6 +255,10 @@ export type TaskListScalarWhereWithAggregatesInput = {
     projectId?: Prisma.StringWithAggregatesFilter<"TaskList"> | string;
     name?: Prisma.StringWithAggregatesFilter<"TaskList"> | string;
     position?: Prisma.IntWithAggregatesFilter<"TaskList"> | number;
+    startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"TaskList"> | Date | string | null;
+    endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"TaskList"> | Date | string | null;
+    ownerUserId?: Prisma.StringNullableWithAggregatesFilter<"TaskList"> | string | null;
+    priority?: Prisma.EnumPriorityNullableWithAggregatesFilter<"TaskList"> | $Enums.Priority | null;
     isArchived?: Prisma.BoolWithAggregatesFilter<"TaskList"> | boolean;
     createdBy?: Prisma.StringWithAggregatesFilter<"TaskList"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"TaskList"> | Date | string;
@@ -217,12 +269,16 @@ export type TaskListCreateInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     project: Prisma.ProjectCreateNestedOneWithoutTaskListsInput;
     creator: Prisma.UserCreateNestedOneWithoutTaskListsCreatedInput;
+    owner?: Prisma.UserCreateNestedOneWithoutTaskListsOwnedInput;
     tasks?: Prisma.TaskCreateNestedManyWithoutListInput;
 };
 export type TaskListUncheckedCreateInput = {
@@ -230,6 +286,10 @@ export type TaskListUncheckedCreateInput = {
     projectId: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdBy: string;
     createdAt?: Date | string;
@@ -241,12 +301,16 @@ export type TaskListUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     project?: Prisma.ProjectUpdateOneRequiredWithoutTaskListsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutTaskListsCreatedNestedInput;
+    owner?: Prisma.UserUpdateOneWithoutTaskListsOwnedNestedInput;
     tasks?: Prisma.TaskUpdateManyWithoutListNestedInput;
 };
 export type TaskListUncheckedUpdateInput = {
@@ -254,6 +318,10 @@ export type TaskListUncheckedUpdateInput = {
     projectId?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -266,6 +334,10 @@ export type TaskListCreateManyInput = {
     projectId: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdBy: string;
     createdAt?: Date | string;
@@ -276,6 +348,9 @@ export type TaskListUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -286,6 +361,10 @@ export type TaskListUncheckedUpdateManyInput = {
     projectId?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -305,6 +384,10 @@ export type TaskListCountOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    startDate?: Prisma.SortOrder;
+    endDate?: Prisma.SortOrder;
+    ownerUserId?: Prisma.SortOrder;
+    priority?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -319,6 +402,10 @@ export type TaskListMaxOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    startDate?: Prisma.SortOrder;
+    endDate?: Prisma.SortOrder;
+    ownerUserId?: Prisma.SortOrder;
+    priority?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -330,6 +417,10 @@ export type TaskListMinOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     position?: Prisma.SortOrder;
+    startDate?: Prisma.SortOrder;
+    endDate?: Prisma.SortOrder;
+    ownerUserId?: Prisma.SortOrder;
+    priority?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -349,10 +440,22 @@ export type TaskListCreateNestedManyWithoutCreatorInput = {
     createMany?: Prisma.TaskListCreateManyCreatorInputEnvelope;
     connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
 };
+export type TaskListCreateNestedManyWithoutOwnerInput = {
+    create?: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput> | Prisma.TaskListCreateWithoutOwnerInput[] | Prisma.TaskListUncheckedCreateWithoutOwnerInput[];
+    connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutOwnerInput | Prisma.TaskListCreateOrConnectWithoutOwnerInput[];
+    createMany?: Prisma.TaskListCreateManyOwnerInputEnvelope;
+    connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+};
 export type TaskListUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: Prisma.XOR<Prisma.TaskListCreateWithoutCreatorInput, Prisma.TaskListUncheckedCreateWithoutCreatorInput> | Prisma.TaskListCreateWithoutCreatorInput[] | Prisma.TaskListUncheckedCreateWithoutCreatorInput[];
     connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutCreatorInput | Prisma.TaskListCreateOrConnectWithoutCreatorInput[];
     createMany?: Prisma.TaskListCreateManyCreatorInputEnvelope;
+    connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+};
+export type TaskListUncheckedCreateNestedManyWithoutOwnerInput = {
+    create?: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput> | Prisma.TaskListCreateWithoutOwnerInput[] | Prisma.TaskListUncheckedCreateWithoutOwnerInput[];
+    connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutOwnerInput | Prisma.TaskListCreateOrConnectWithoutOwnerInput[];
+    createMany?: Prisma.TaskListCreateManyOwnerInputEnvelope;
     connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
 };
 export type TaskListUpdateManyWithoutCreatorNestedInput = {
@@ -368,6 +471,19 @@ export type TaskListUpdateManyWithoutCreatorNestedInput = {
     updateMany?: Prisma.TaskListUpdateManyWithWhereWithoutCreatorInput | Prisma.TaskListUpdateManyWithWhereWithoutCreatorInput[];
     deleteMany?: Prisma.TaskListScalarWhereInput | Prisma.TaskListScalarWhereInput[];
 };
+export type TaskListUpdateManyWithoutOwnerNestedInput = {
+    create?: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput> | Prisma.TaskListCreateWithoutOwnerInput[] | Prisma.TaskListUncheckedCreateWithoutOwnerInput[];
+    connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutOwnerInput | Prisma.TaskListCreateOrConnectWithoutOwnerInput[];
+    upsert?: Prisma.TaskListUpsertWithWhereUniqueWithoutOwnerInput | Prisma.TaskListUpsertWithWhereUniqueWithoutOwnerInput[];
+    createMany?: Prisma.TaskListCreateManyOwnerInputEnvelope;
+    set?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    disconnect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    delete?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    update?: Prisma.TaskListUpdateWithWhereUniqueWithoutOwnerInput | Prisma.TaskListUpdateWithWhereUniqueWithoutOwnerInput[];
+    updateMany?: Prisma.TaskListUpdateManyWithWhereWithoutOwnerInput | Prisma.TaskListUpdateManyWithWhereWithoutOwnerInput[];
+    deleteMany?: Prisma.TaskListScalarWhereInput | Prisma.TaskListScalarWhereInput[];
+};
 export type TaskListUncheckedUpdateManyWithoutCreatorNestedInput = {
     create?: Prisma.XOR<Prisma.TaskListCreateWithoutCreatorInput, Prisma.TaskListUncheckedCreateWithoutCreatorInput> | Prisma.TaskListCreateWithoutCreatorInput[] | Prisma.TaskListUncheckedCreateWithoutCreatorInput[];
     connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutCreatorInput | Prisma.TaskListCreateOrConnectWithoutCreatorInput[];
@@ -379,6 +495,19 @@ export type TaskListUncheckedUpdateManyWithoutCreatorNestedInput = {
     connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
     update?: Prisma.TaskListUpdateWithWhereUniqueWithoutCreatorInput | Prisma.TaskListUpdateWithWhereUniqueWithoutCreatorInput[];
     updateMany?: Prisma.TaskListUpdateManyWithWhereWithoutCreatorInput | Prisma.TaskListUpdateManyWithWhereWithoutCreatorInput[];
+    deleteMany?: Prisma.TaskListScalarWhereInput | Prisma.TaskListScalarWhereInput[];
+};
+export type TaskListUncheckedUpdateManyWithoutOwnerNestedInput = {
+    create?: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput> | Prisma.TaskListCreateWithoutOwnerInput[] | Prisma.TaskListUncheckedCreateWithoutOwnerInput[];
+    connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutOwnerInput | Prisma.TaskListCreateOrConnectWithoutOwnerInput[];
+    upsert?: Prisma.TaskListUpsertWithWhereUniqueWithoutOwnerInput | Prisma.TaskListUpsertWithWhereUniqueWithoutOwnerInput[];
+    createMany?: Prisma.TaskListCreateManyOwnerInputEnvelope;
+    set?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    disconnect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    delete?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    connect?: Prisma.TaskListWhereUniqueInput | Prisma.TaskListWhereUniqueInput[];
+    update?: Prisma.TaskListUpdateWithWhereUniqueWithoutOwnerInput | Prisma.TaskListUpdateWithWhereUniqueWithoutOwnerInput[];
+    updateMany?: Prisma.TaskListUpdateManyWithWhereWithoutOwnerInput | Prisma.TaskListUpdateManyWithWhereWithoutOwnerInput[];
     deleteMany?: Prisma.TaskListScalarWhereInput | Prisma.TaskListScalarWhereInput[];
 };
 export type TaskListCreateNestedManyWithoutProjectInput = {
@@ -419,6 +548,9 @@ export type TaskListUncheckedUpdateManyWithoutProjectNestedInput = {
     updateMany?: Prisma.TaskListUpdateManyWithWhereWithoutProjectInput | Prisma.TaskListUpdateManyWithWhereWithoutProjectInput[];
     deleteMany?: Prisma.TaskListScalarWhereInput | Prisma.TaskListScalarWhereInput[];
 };
+export type NullableEnumPriorityFieldUpdateOperationsInput = {
+    set?: $Enums.Priority | null;
+};
 export type TaskListCreateNestedOneWithoutTasksInput = {
     create?: Prisma.XOR<Prisma.TaskListCreateWithoutTasksInput, Prisma.TaskListUncheckedCreateWithoutTasksInput>;
     connectOrCreate?: Prisma.TaskListCreateOrConnectWithoutTasksInput;
@@ -435,11 +567,15 @@ export type TaskListCreateWithoutCreatorInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     project: Prisma.ProjectCreateNestedOneWithoutTaskListsInput;
+    owner?: Prisma.UserCreateNestedOneWithoutTaskListsOwnedInput;
     tasks?: Prisma.TaskCreateNestedManyWithoutListInput;
 };
 export type TaskListUncheckedCreateWithoutCreatorInput = {
@@ -447,6 +583,10 @@ export type TaskListUncheckedCreateWithoutCreatorInput = {
     projectId: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
@@ -459,6 +599,44 @@ export type TaskListCreateOrConnectWithoutCreatorInput = {
 };
 export type TaskListCreateManyCreatorInputEnvelope = {
     data: Prisma.TaskListCreateManyCreatorInput | Prisma.TaskListCreateManyCreatorInput[];
+    skipDuplicates?: boolean;
+};
+export type TaskListCreateWithoutOwnerInput = {
+    id?: string;
+    name: string;
+    position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
+    isArchived?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    project: Prisma.ProjectCreateNestedOneWithoutTaskListsInput;
+    creator: Prisma.UserCreateNestedOneWithoutTaskListsCreatedInput;
+    tasks?: Prisma.TaskCreateNestedManyWithoutListInput;
+};
+export type TaskListUncheckedCreateWithoutOwnerInput = {
+    id?: string;
+    projectId: string;
+    name: string;
+    position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
+    isArchived?: boolean;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutListInput;
+};
+export type TaskListCreateOrConnectWithoutOwnerInput = {
+    where: Prisma.TaskListWhereUniqueInput;
+    create: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput>;
+};
+export type TaskListCreateManyOwnerInputEnvelope = {
+    data: Prisma.TaskListCreateManyOwnerInput | Prisma.TaskListCreateManyOwnerInput[];
     skipDuplicates?: boolean;
 };
 export type TaskListUpsertWithWhereUniqueWithoutCreatorInput = {
@@ -482,27 +660,52 @@ export type TaskListScalarWhereInput = {
     projectId?: Prisma.StringFilter<"TaskList"> | string;
     name?: Prisma.StringFilter<"TaskList"> | string;
     position?: Prisma.IntFilter<"TaskList"> | number;
+    startDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    endDate?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
+    ownerUserId?: Prisma.StringNullableFilter<"TaskList"> | string | null;
+    priority?: Prisma.EnumPriorityNullableFilter<"TaskList"> | $Enums.Priority | null;
     isArchived?: Prisma.BoolFilter<"TaskList"> | boolean;
     createdBy?: Prisma.StringFilter<"TaskList"> | string;
     createdAt?: Prisma.DateTimeFilter<"TaskList"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"TaskList"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableFilter<"TaskList"> | Date | string | null;
 };
+export type TaskListUpsertWithWhereUniqueWithoutOwnerInput = {
+    where: Prisma.TaskListWhereUniqueInput;
+    update: Prisma.XOR<Prisma.TaskListUpdateWithoutOwnerInput, Prisma.TaskListUncheckedUpdateWithoutOwnerInput>;
+    create: Prisma.XOR<Prisma.TaskListCreateWithoutOwnerInput, Prisma.TaskListUncheckedCreateWithoutOwnerInput>;
+};
+export type TaskListUpdateWithWhereUniqueWithoutOwnerInput = {
+    where: Prisma.TaskListWhereUniqueInput;
+    data: Prisma.XOR<Prisma.TaskListUpdateWithoutOwnerInput, Prisma.TaskListUncheckedUpdateWithoutOwnerInput>;
+};
+export type TaskListUpdateManyWithWhereWithoutOwnerInput = {
+    where: Prisma.TaskListScalarWhereInput;
+    data: Prisma.XOR<Prisma.TaskListUpdateManyMutationInput, Prisma.TaskListUncheckedUpdateManyWithoutOwnerInput>;
+};
 export type TaskListCreateWithoutProjectInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     creator: Prisma.UserCreateNestedOneWithoutTaskListsCreatedInput;
+    owner?: Prisma.UserCreateNestedOneWithoutTaskListsOwnedInput;
     tasks?: Prisma.TaskCreateNestedManyWithoutListInput;
 };
 export type TaskListUncheckedCreateWithoutProjectInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdBy: string;
     createdAt?: Date | string;
@@ -535,18 +738,26 @@ export type TaskListCreateWithoutTasksInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     project: Prisma.ProjectCreateNestedOneWithoutTaskListsInput;
     creator: Prisma.UserCreateNestedOneWithoutTaskListsCreatedInput;
+    owner?: Prisma.UserCreateNestedOneWithoutTaskListsOwnedInput;
 };
 export type TaskListUncheckedCreateWithoutTasksInput = {
     id?: string;
     projectId: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdBy: string;
     createdAt?: Date | string;
@@ -570,18 +781,26 @@ export type TaskListUpdateWithoutTasksInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     project?: Prisma.ProjectUpdateOneRequiredWithoutTaskListsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutTaskListsCreatedNestedInput;
+    owner?: Prisma.UserUpdateOneWithoutTaskListsOwnedNestedInput;
 };
 export type TaskListUncheckedUpdateWithoutTasksInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -593,7 +812,25 @@ export type TaskListCreateManyCreatorInput = {
     projectId: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+};
+export type TaskListCreateManyOwnerInput = {
+    id?: string;
+    projectId: string;
+    name: string;
+    position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    priority?: $Enums.Priority | null;
+    isArchived?: boolean;
+    createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -602,11 +839,15 @@ export type TaskListUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     project?: Prisma.ProjectUpdateOneRequiredWithoutTaskListsNestedInput;
+    owner?: Prisma.UserUpdateOneWithoutTaskListsOwnedNestedInput;
     tasks?: Prisma.TaskUpdateManyWithoutListNestedInput;
 };
 export type TaskListUncheckedUpdateWithoutCreatorInput = {
@@ -614,6 +855,10 @@ export type TaskListUncheckedUpdateWithoutCreatorInput = {
     projectId?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -625,7 +870,55 @@ export type TaskListUncheckedUpdateManyWithoutCreatorInput = {
     projectId?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+export type TaskListUpdateWithoutOwnerInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    project?: Prisma.ProjectUpdateOneRequiredWithoutTaskListsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutTaskListsCreatedNestedInput;
+    tasks?: Prisma.TaskUpdateManyWithoutListNestedInput;
+};
+export type TaskListUncheckedUpdateWithoutOwnerInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    projectId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    tasks?: Prisma.TaskUncheckedUpdateManyWithoutListNestedInput;
+};
+export type TaskListUncheckedUpdateManyWithoutOwnerInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    projectId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -634,6 +927,10 @@ export type TaskListCreateManyProjectInput = {
     id?: string;
     name: string;
     position?: number;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    ownerUserId?: string | null;
+    priority?: $Enums.Priority | null;
     isArchived?: boolean;
     createdBy: string;
     createdAt?: Date | string;
@@ -644,17 +941,25 @@ export type TaskListUpdateWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     creator?: Prisma.UserUpdateOneRequiredWithoutTaskListsCreatedNestedInput;
+    owner?: Prisma.UserUpdateOneWithoutTaskListsOwnedNestedInput;
     tasks?: Prisma.TaskUpdateManyWithoutListNestedInput;
 };
 export type TaskListUncheckedUpdateWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -666,6 +971,10 @@ export type TaskListUncheckedUpdateManyWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     name?: Prisma.StringFieldUpdateOperationsInput | string;
     position?: Prisma.IntFieldUpdateOperationsInput | number;
+    startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    priority?: Prisma.NullableEnumPriorityFieldUpdateOperationsInput | $Enums.Priority | null;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -689,6 +998,10 @@ export type TaskListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     projectId?: boolean;
     name?: boolean;
     position?: boolean;
+    startDate?: boolean;
+    endDate?: boolean;
+    ownerUserId?: boolean;
+    priority?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -696,6 +1009,7 @@ export type TaskListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     deletedAt?: boolean;
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
     tasks?: boolean | Prisma.TaskList$tasksArgs<ExtArgs>;
     _count?: boolean | Prisma.TaskListCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["taskList"]>;
@@ -704,6 +1018,10 @@ export type TaskListSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
     projectId?: boolean;
     name?: boolean;
     position?: boolean;
+    startDate?: boolean;
+    endDate?: boolean;
+    ownerUserId?: boolean;
+    priority?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -711,12 +1029,17 @@ export type TaskListSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
     deletedAt?: boolean;
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
 }, ExtArgs["result"]["taskList"]>;
 export type TaskListSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     projectId?: boolean;
     name?: boolean;
     position?: boolean;
+    startDate?: boolean;
+    endDate?: boolean;
+    ownerUserId?: boolean;
+    priority?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -724,38 +1047,47 @@ export type TaskListSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
     deletedAt?: boolean;
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
 }, ExtArgs["result"]["taskList"]>;
 export type TaskListSelectScalar = {
     id?: boolean;
     projectId?: boolean;
     name?: boolean;
     position?: boolean;
+    startDate?: boolean;
+    endDate?: boolean;
+    ownerUserId?: boolean;
+    priority?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
 };
-export type TaskListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "position" | "isArchived" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["taskList"]>;
+export type TaskListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "position" | "startDate" | "endDate" | "ownerUserId" | "priority" | "isArchived" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["taskList"]>;
 export type TaskListInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
     tasks?: boolean | Prisma.TaskList$tasksArgs<ExtArgs>;
     _count?: boolean | Prisma.TaskListCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type TaskListIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
 };
 export type TaskListIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.TaskList$ownerArgs<ExtArgs>;
 };
 export type $TaskListPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "TaskList";
     objects: {
         project: Prisma.$ProjectPayload<ExtArgs>;
         creator: Prisma.$UserPayload<ExtArgs>;
+        owner: Prisma.$UserPayload<ExtArgs> | null;
         tasks: Prisma.$TaskPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -763,6 +1095,10 @@ export type $TaskListPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
         projectId: string;
         name: string;
         position: number;
+        startDate: Date | null;
+        endDate: Date | null;
+        ownerUserId: string | null;
+        priority: $Enums.Priority | null;
         isArchived: boolean;
         createdBy: string;
         createdAt: Date;
@@ -822,6 +1158,7 @@ export interface Prisma__TaskListClient<T, Null = never, ExtArgs extends runtime
     readonly [Symbol.toStringTag]: "PrismaPromise";
     project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    owner<T extends Prisma.TaskList$ownerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskList$ownerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     tasks<T extends Prisma.TaskList$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskList$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
@@ -832,6 +1169,10 @@ export interface TaskListFieldRefs {
     readonly projectId: Prisma.FieldRef<"TaskList", 'String'>;
     readonly name: Prisma.FieldRef<"TaskList", 'String'>;
     readonly position: Prisma.FieldRef<"TaskList", 'Int'>;
+    readonly startDate: Prisma.FieldRef<"TaskList", 'DateTime'>;
+    readonly endDate: Prisma.FieldRef<"TaskList", 'DateTime'>;
+    readonly ownerUserId: Prisma.FieldRef<"TaskList", 'String'>;
+    readonly priority: Prisma.FieldRef<"TaskList", 'Priority'>;
     readonly isArchived: Prisma.FieldRef<"TaskList", 'Boolean'>;
     readonly createdBy: Prisma.FieldRef<"TaskList", 'String'>;
     readonly createdAt: Prisma.FieldRef<"TaskList", 'DateTime'>;
@@ -937,6 +1278,12 @@ export type TaskListDeleteArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type TaskListDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.TaskListWhereInput;
     limit?: number;
+};
+export type TaskList$ownerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.UserSelect<ExtArgs> | null;
+    omit?: Prisma.UserOmit<ExtArgs> | null;
+    include?: Prisma.UserInclude<ExtArgs> | null;
+    where?: Prisma.UserWhereInput;
 };
 export type TaskList$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TaskSelect<ExtArgs> | null;

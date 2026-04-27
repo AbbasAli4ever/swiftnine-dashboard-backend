@@ -10,16 +10,23 @@ import {
   INVALID_REORDER_PAYLOAD,
   PROJECT_NOT_FOUND,
   TASK_LIST_ALREADY_ARCHIVED,
+  TASK_LIST_INVALID_DATE_RANGE,
   TASK_LIST_NAME_TAKEN,
   TASK_LIST_NOT_ARCHIVED,
   TASK_LIST_NOT_FOUND,
+  TASK_LIST_OWNER_NOT_IN_WORKSPACE,
   TASK_LIST_SELECT,
 } from './task-list.constants';
 import type { CreateTaskListDto } from './dto/create-task-list.dto';
 import type { UpdateTaskListDto } from './dto/update-task-list.dto';
 import type { ReorderTaskListsDto } from './dto/reorder-task-lists.dto';
 
-export type TaskListData = Prisma.TaskListGetPayload<{ select: typeof TASK_LIST_SELECT }>;
+type TaskListRecord = Prisma.TaskListGetPayload<{ select: typeof TASK_LIST_SELECT }>;
+
+export type TaskListData = Omit<TaskListRecord, 'startDate' | 'endDate'> & {
+  startDate: string | null;
+  endDate: string | null;
+};
 
 @Injectable()
 export class TaskListService {
@@ -58,7 +65,7 @@ export class TaskListService {
       },
     });
 
-    return list;
+    return this.toTaskListData(list);
   }
 
   async findAll(
@@ -68,7 +75,7 @@ export class TaskListService {
   ): Promise<TaskListData[]> {
     await this.findProjectOrThrow(workspaceId, projectId);
 
-    return this.prisma.taskList.findMany({
+    const lists = await this.prisma.taskList.findMany({
       where: {
         projectId,
         deletedAt: null,
@@ -77,6 +84,8 @@ export class TaskListService {
       select: TASK_LIST_SELECT,
       orderBy: { position: 'asc' },
     });
+
+    return lists.map((list) => this.toTaskListData(list));
   }
 
   async update(
@@ -88,35 +97,108 @@ export class TaskListService {
   ): Promise<TaskListData> {
     await this.findProjectOrThrow(workspaceId, projectId);
     const list = await this.findListOrThrow(projectId, listId);
-    const name = dto.name.trim();
+    const updateData: Prisma.TaskListUpdateInput = {};
+    const logs: Array<{
+      fieldName: string;
+      oldValue: string | null;
+      newValue: string | null;
+    }> = [];
 
-    if (name === list.name) {
-      return list;
+    if (dto.name !== undefined) {
+      const name = dto.name.trim();
+      if (name !== list.name) {
+        await this.assertUniqueName(projectId, name, listId);
+        updateData.name = name;
+        logs.push({ fieldName: 'name', oldValue: list.name, newValue: name });
+      }
     }
 
-    await this.assertUniqueName(projectId, name, listId);
+    const nextStartDate =
+      dto.startDate === undefined ? list.startDate : this.parseDateOnly(dto.startDate);
+    const nextEndDate =
+      dto.endDate === undefined ? list.endDate : this.parseDateOnly(dto.endDate);
+
+    if (nextStartDate && nextEndDate && nextStartDate.getTime() > nextEndDate.getTime()) {
+      throw new BadRequestException(TASK_LIST_INVALID_DATE_RANGE);
+    }
+
+    if (dto.startDate !== undefined) {
+      updateData.startDate = nextStartDate;
+      logs.push({
+        fieldName: 'startDate',
+        oldValue: this.formatDateOnly(list.startDate),
+        newValue: this.formatDateOnly(nextStartDate),
+      });
+    }
+
+    if (dto.endDate !== undefined) {
+      updateData.endDate = nextEndDate;
+      logs.push({
+        fieldName: 'endDate',
+        oldValue: this.formatDateOnly(list.endDate),
+        newValue: this.formatDateOnly(nextEndDate),
+      });
+    }
+
+    if (dto.priority !== undefined) {
+      updateData.priority = dto.priority;
+      logs.push({
+        fieldName: 'priority',
+        oldValue: list.priority,
+        newValue: dto.priority,
+      });
+    }
+
+    if (dto.ownerId !== undefined) {
+      if (dto.ownerId === null) {
+        if (list.ownerUserId !== null) {
+          updateData.owner = { disconnect: true };
+          logs.push({
+            fieldName: 'ownerUserId',
+            oldValue: list.owner?.fullName ?? null,
+            newValue: null,
+          });
+        }
+      } else {
+        const owner = await this.resolveOwnerOrThrow(workspaceId, dto.ownerId);
+        if (owner.userId !== list.ownerUserId) {
+          updateData.owner = { connect: { id: owner.userId } };
+          logs.push({
+            fieldName: 'ownerUserId',
+            oldValue: list.owner?.fullName ?? null,
+            newValue: owner.fullName,
+          });
+        }
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return this.toTaskListData(list);
+    }
 
     const updated = await this.prisma.taskList.update({
       where: { id: listId },
-      data: { name },
+      data: updateData,
       select: TASK_LIST_SELECT,
     });
 
-    await this.prisma.activityLog.create({
-      data: {
-        workspaceId,
-        entityType: 'task_list',
-        entityId: listId,
-        action: 'updated',
-        fieldName: 'name',
-        oldValue: list.name,
-        newValue: name,
-        metadata: {},
-        performedBy: userId,
-      },
-    });
+    if (logs.length > 0) {
+      await this.prisma.activityLog.createMany({
+        data: logs.map((log) => ({
+          workspaceId,
+          entityType: 'task_list',
+          entityId: listId,
+          action: 'updated',
+          fieldName: log.fieldName,
+          oldValue: log.oldValue,
+          newValue: log.newValue,
+          metadata: {},
+          performedBy: userId,
+        })),
+      });
+    }
 
-    return updated;
+    return this.toTaskListData(updated);
   }
 
   async remove(
@@ -231,7 +313,7 @@ export class TaskListService {
       },
     });
 
-    return updated;
+    return this.toTaskListData(updated);
   }
 
   async restore(
@@ -266,10 +348,8 @@ export class TaskListService {
       },
     });
 
-    return updated;
+    return this.toTaskListData(updated);
   }
-
-  // --- Private helpers ---
 
   private async findProjectOrThrow(
     workspaceId: string,
@@ -291,13 +371,13 @@ export class TaskListService {
     projectId: string,
     listId: string,
     includeArchived = false,
-  ): Promise<TaskListData> {
+  ): Promise<TaskListRecord> {
     const list = await this.prisma.taskList.findFirst({
       where: {
         id: listId,
         projectId,
         deletedAt: null,
-        ...(includeArchived ? {} : {}), // archived lists are still findable by id
+        ...(includeArchived ? {} : {}),
       },
       select: TASK_LIST_SELECT,
     });
@@ -307,6 +387,59 @@ export class TaskListService {
     }
 
     return list;
+  }
+
+  private async resolveOwnerOrThrow(
+    workspaceId: string,
+    ownerId: string,
+  ): Promise<{
+    userId: string;
+    fullName: string;
+    avatarUrl: string | null;
+    avatarColor: string;
+  }> {
+    let member = await this.prisma.workspaceMember.findFirst({
+      where: { id: ownerId, workspaceId, deletedAt: null },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            avatarUrl: true,
+            avatarColor: true,
+          },
+        },
+      },
+    });
+
+    if (!member) {
+      member = await this.prisma.workspaceMember.findFirst({
+        where: { userId: ownerId, workspaceId, deletedAt: null },
+        select: {
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+              avatarColor: true,
+            },
+          },
+        },
+      });
+    }
+
+    if (!member) {
+      throw new BadRequestException(TASK_LIST_OWNER_NOT_IN_WORKSPACE);
+    }
+
+    return {
+      userId: member.userId,
+      fullName: member.user.fullName,
+      avatarUrl: member.user.avatarUrl,
+      avatarColor: member.user.avatarColor,
+    };
   }
 
   private async assertUniqueName(
@@ -337,5 +470,21 @@ export class TaskListService {
     });
 
     return (last?.position ?? 0) + 1000;
+  }
+
+  private parseDateOnly(value: string | null): Date | null {
+    return value ? new Date(`${value}T00:00:00.000Z`) : null;
+  }
+
+  private formatDateOnly(value: Date | null): string | null {
+    return value ? value.toISOString().slice(0, 10) : null;
+  }
+
+  private toTaskListData(list: TaskListRecord): TaskListData {
+    return {
+      ...list,
+      startDate: this.formatDateOnly(list.startDate),
+      endDate: this.formatDateOnly(list.endDate),
+    };
   }
 }

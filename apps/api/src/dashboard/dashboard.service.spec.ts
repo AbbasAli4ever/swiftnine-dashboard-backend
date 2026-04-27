@@ -79,8 +79,31 @@ describe('DashboardService', () => {
       },
     ]);
     prisma.taskList.findMany.mockResolvedValue([
-      { id: 'list-1', name: 'Backlog', position: 1000 },
-      { id: 'list-2', name: 'Current Sprint', position: 2000 },
+      {
+        id: 'list-1',
+        name: 'Backlog',
+        position: 1000,
+        startDate: new Date('2026-04-24T00:00:00.000Z'),
+        endDate: null,
+        ownerUserId: 'user-1',
+        priority: 'HIGH',
+        owner: {
+          id: 'user-1',
+          fullName: 'Ayesha Khan',
+          avatarUrl: null,
+          avatarColor: '#6366f1',
+        },
+      },
+      {
+        id: 'list-2',
+        name: 'Current Sprint',
+        position: 2000,
+        startDate: null,
+        endDate: new Date('2026-04-30T00:00:00.000Z'),
+        ownerUserId: null,
+        priority: null,
+        owner: null,
+      },
     ]);
     prisma.task.findMany.mockResolvedValue([
       { statusId: 'status-1', listId: 'list-1', isCompleted: false },
@@ -151,6 +174,16 @@ describe('DashboardService', () => {
         id: 'list-1',
         name: 'Backlog',
         position: 1000,
+        startDate: '2026-04-24',
+        endDate: null,
+        ownerUserId: 'user-1',
+        priority: 'HIGH',
+        owner: {
+          id: 'user-1',
+          fullName: 'Ayesha Khan',
+          avatarUrl: null,
+          avatarColor: '#6366f1',
+        },
         taskCount: 2,
         completedCount: 0,
         openCount: 2,
@@ -159,6 +192,11 @@ describe('DashboardService', () => {
         id: 'list-2',
         name: 'Current Sprint',
         position: 2000,
+        startDate: null,
+        endDate: '2026-04-30',
+        ownerUserId: null,
+        priority: null,
+        owner: null,
         taskCount: 1,
         completedCount: 1,
         openCount: 0,
@@ -290,7 +328,16 @@ describe('DashboardService', () => {
       },
     ]);
     prisma.taskList.findMany.mockResolvedValue([
-      { id: 'list-1', name: 'Backlog', position: 1000 },
+      {
+        id: 'list-1',
+        name: 'Backlog',
+        position: 1000,
+        startDate: null,
+        endDate: null,
+        ownerUserId: null,
+        priority: null,
+        owner: null,
+      },
     ]);
     prisma.task.findMany.mockResolvedValue([]);
     prisma.attachment.findMany.mockResolvedValue([]);
@@ -303,6 +350,11 @@ describe('DashboardService', () => {
         id: 'list-1',
         name: 'Backlog',
         position: 1000,
+        startDate: null,
+        endDate: null,
+        ownerUserId: null,
+        priority: null,
+        owner: null,
         taskCount: 0,
         completedCount: 0,
         openCount: 0,

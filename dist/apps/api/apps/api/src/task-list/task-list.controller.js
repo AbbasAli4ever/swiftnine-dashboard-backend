@@ -94,7 +94,7 @@ __decorate([
 ], TaskListController.prototype, "reorder", null);
 __decorate([
     (0, common_1.Patch)(':listId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Rename a task list' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a task list and its optional dashboard metadata' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task list updated' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Task list not found' }),
     __param(0, (0, common_1.Req)()),

@@ -34,6 +34,20 @@ class DashboardStatusSummaryDto {
   count!: number;
 }
 
+class DashboardListOwnerDto {
+  @ApiProperty({ example: 'f3387da6-3af5-4d9e-a004-6cc67b586b8a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Ayesha Khan' })
+  fullName!: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/avatar.png', nullable: true })
+  avatarUrl!: string | null;
+
+  @ApiProperty({ example: '#6366f1' })
+  avatarColor!: string;
+}
+
 class DashboardListSummaryDto {
   @ApiProperty({ example: 'f34f824e-9d99-40ec-b8f8-a9777c7ed3d6' })
   id!: string;
@@ -43,6 +57,26 @@ class DashboardListSummaryDto {
 
   @ApiProperty({ example: 1000 })
   position!: number;
+
+  @ApiPropertyOptional({ example: '2026-04-27', nullable: true })
+  startDate!: string | null;
+
+  @ApiPropertyOptional({ example: '2026-05-03', nullable: true })
+  endDate!: string | null;
+
+  @ApiPropertyOptional({ example: 'f3387da6-3af5-4d9e-a004-6cc67b586b8a', nullable: true })
+  ownerUserId!: string | null;
+
+  @ApiPropertyOptional({ enum: ['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE'], example: 'HIGH', nullable: true })
+  priority!: 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW' | 'NONE' | null;
+
+  @ApiPropertyOptional({ type: DashboardListOwnerDto, nullable: true })
+  owner!: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+    avatarColor: string;
+  } | null;
 
   @ApiProperty({ example: 8 })
   taskCount!: number;

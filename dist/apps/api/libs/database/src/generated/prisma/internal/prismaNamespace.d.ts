@@ -2032,6 +2032,10 @@ export declare const TaskListScalarFieldEnum: {
     readonly projectId: "projectId";
     readonly name: "name";
     readonly position: "position";
+    readonly startDate: "startDate";
+    readonly endDate: "endDate";
+    readonly ownerUserId: "ownerUserId";
+    readonly priority: "priority";
     readonly isArchived: "isArchived";
     readonly createdBy: "createdBy";
     readonly createdAt: "createdAt";
@@ -2247,10 +2251,10 @@ export type EnumInviteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 export type ListEnumInviteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InviteStatus[]'>;
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>;
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>;
-export type EnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup'>;
-export type ListEnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup[]'>;
 export type EnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority'>;
 export type ListEnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority[]'>;
+export type EnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup'>;
+export type ListEnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup[]'>;
 export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>;
 export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>;
 export type EnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy'>;
