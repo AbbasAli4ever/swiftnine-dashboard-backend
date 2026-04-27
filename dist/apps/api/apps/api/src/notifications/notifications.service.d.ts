@@ -1,6 +1,11 @@
 import { OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from "../../../../libs/database/src";
 import { NotificationsSseService } from './sse.service';
+type NotificationLike = {
+    referenceType?: string | null;
+    referenceId?: string | null;
+    [key: string]: any;
+};
 export declare class NotificationsService implements OnModuleDestroy {
     private readonly prisma;
     private readonly sse;
@@ -11,6 +16,28 @@ export declare class NotificationsService implements OnModuleDestroy {
     private startSnoozeWatcher;
     private processExpiredSnoozes;
     private resolveWorkspaceMember;
+    private getTaskId;
+    addTaskIds<T extends NotificationLike>(notifications: T[]): Promise<Array<T & {
+        taskId: string | null;
+    }>>;
+    addTaskId<T extends NotificationLike>(notification: T): Promise<T & {
+        taskId: string | null;
+    }>;
+    toNotificationPayload(notification: NotificationLike): Promise<{
+        id: any;
+        type: any;
+        title: any;
+        message: any;
+        referenceType: string | null | undefined;
+        referenceId: string | null | undefined;
+        taskId: string | null;
+        actorId: any;
+        isRead: any;
+        isCleared: any;
+        isSnoozed: any;
+        snoozedAt: any;
+        createdAt: any;
+    }>;
     createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string): Promise<{
         message: string | null;
         type: string;
@@ -34,3 +61,4 @@ export declare class NotificationsService implements OnModuleDestroy {
         excludeUserIds?: string[];
     }): Promise<void>;
 }
+export {};

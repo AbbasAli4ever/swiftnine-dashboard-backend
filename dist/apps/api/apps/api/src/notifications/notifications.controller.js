@@ -22,66 +22,69 @@ const database_1 = require("../../../../libs/database/src");
 const patch_notification_clear_dto_1 = require("./dto/patch-notification-clear.dto");
 const patch_notification_snooze_dto_1 = require("./dto/patch-notification-snooze.dto");
 const patch_notification_read_dto_1 = require("./dto/patch-notification-read.dto");
+const notifications_service_1 = require("./notifications.service");
 let NotificationsController = class NotificationsController {
     sse;
     prisma;
-    constructor(sse, prisma) {
+    notifications;
+    constructor(sse, prisma, notifications) {
         this.sse = sse;
         this.prisma = prisma;
+        this.notifications = notifications;
     }
     async findOwnedNotification(req, id) {
         const notif = await this.prisma.notification.findUnique({ where: { id } });
         if (!notif)
             throw new common_1.NotFoundException('Notification not found');
         if (notif.userId !== req.user.id)
-            throw new common_1.ForbiddenException('Cannot modify another user\'s notification');
+            throw new common_1.ForbiddenException("Cannot modify another user's notification");
         return notif;
     }
     async getCurrentWorkspaceMember(req) {
         const member = await this.prisma.workspaceMember.findFirst({
-            where: { userId: req.user.id, workspaceId: req.workspaceContext.workspaceId, deletedAt: null },
+            where: {
+                userId: req.user.id,
+                workspaceId: req.workspaceContext.workspaceId,
+                deletedAt: null,
+            },
             select: { id: true, userId: true },
         });
         if (!member)
             throw new common_1.NotFoundException('Member not found');
         return member;
     }
-    toNotificationPayload(notification) {
-        return {
-            id: notification.id,
-            type: notification.type,
-            title: notification.title,
-            message: notification.message,
-            referenceType: notification.referenceType,
-            referenceId: notification.referenceId,
-            actorId: notification.actorId,
-            isRead: notification.isRead,
-            isCleared: notification.isCleared,
-            isSnoozed: notification.isSnoozed,
-            snoozedAt: notification.snoozedAt,
-            createdAt: notification.createdAt,
-        };
-    }
     async broadcastUpdatedNotification(req, notification) {
         const member = await this.prisma.workspaceMember.findFirst({
-            where: { userId: req.user.id, workspaceId: req.workspaceContext.workspaceId, deletedAt: null },
+            where: {
+                userId: req.user.id,
+                workspaceId: req.workspaceContext.workspaceId,
+                deletedAt: null,
+            },
             select: { id: true },
         });
         if (!member)
             return;
         try {
-            this.sse.broadcastToMember(member.id, 'notification:updated', this.toNotificationPayload(notification));
+            this.sse.broadcastToMember(member.id, 'notification:updated', await this.notifications.toNotificationPayload(notification));
         }
         catch (err) { }
     }
     async stream(req, memberId, res) {
         let member = await this.prisma.workspaceMember.findFirst({
-            where: { id: memberId, workspaceId: req.workspaceContext.workspaceId, deletedAt: null },
+            where: {
+                id: memberId,
+                workspaceId: req.workspaceContext.workspaceId,
+                deletedAt: null,
+            },
             select: { id: true, userId: true },
         });
         if (!member) {
             member = await this.prisma.workspaceMember.findFirst({
-                where: { userId: memberId, workspaceId: req.workspaceContext.workspaceId, deletedAt: null },
+                where: {
+                    userId: memberId,
+                    workspaceId: req.workspaceContext.workspaceId,
+                    deletedAt: null,
+                },
                 select: { id: true, userId: true },
             });
         }
@@ -91,7 +94,11 @@ let NotificationsController = class NotificationsController {
             throw new common_1.ForbiddenException('Cannot open notification stream for another member');
         this.sse.registerClient(member.id, res);
         await this.prisma.notification.updateMany({
-            where: { userId: member.userId, isSnoozed: true, snoozedAt: { lte: new Date() } },
+            where: {
+                userId: member.userId,
+                isSnoozed: true,
+                snoozedAt: { lte: new Date() },
+            },
             data: { isSnoozed: false, snoozedAt: null },
         });
         const notifs = await this.prisma.notification.findMany({
@@ -99,7 +106,7 @@ let NotificationsController = class NotificationsController {
             orderBy: { createdAt: 'desc' },
             take: 200,
         });
-        this.sse.sendToClient(res, 'notifications:init', notifs);
+        this.sse.sendToClient(res, 'notifications:init', await this.notifications.addTaskIds(notifs));
     }
     async updateNotificationClear(req, id, dto) {
         await this.findOwnedNotification(req, id);
@@ -113,9 +120,12 @@ let NotificationsController = class NotificationsController {
             updateData.isRead = false;
             updateData.readAt = null;
         }
-        const updated = await this.prisma.notification.update({ where: { id }, data: updateData });
+        const updated = await this.prisma.notification.update({
+            where: { id },
+            data: updateData,
+        });
         await this.broadcastUpdatedNotification(req, updated);
-        return updated;
+        return (await this.notifications.addTaskId(updated));
     }
     async updateNotificationSnooze(req, id, dto) {
         await this.findOwnedNotification(req, id);
@@ -147,9 +157,12 @@ let NotificationsController = class NotificationsController {
             updateData.isRead = false;
             updateData.readAt = null;
         }
-        const updated = await this.prisma.notification.update({ where: { id }, data: updateData });
+        const updated = await this.prisma.notification.update({
+            where: { id },
+            data: updateData,
+        });
         await this.broadcastUpdatedNotification(req, updated);
-        return updated;
+        return (await this.notifications.addTaskId(updated));
     }
     async updateNotificationRead(req, id, dto) {
         await this.findOwnedNotification(req, id);
@@ -165,9 +178,12 @@ let NotificationsController = class NotificationsController {
             updateData.isSnoozed = false;
             updateData.snoozedAt = null;
         }
-        const updated = await this.prisma.notification.update({ where: { id }, data: updateData });
+        const updated = await this.prisma.notification.update({
+            where: { id },
+            data: updateData,
+        });
         await this.broadcastUpdatedNotification(req, updated);
-        return updated;
+        return (await this.notifications.addTaskId(updated));
     }
     async getCleared(req) {
         const member = await this.getCurrentWorkspaceMember(req);
@@ -176,12 +192,16 @@ let NotificationsController = class NotificationsController {
             orderBy: { createdAt: 'desc' },
             take: 500,
         });
-        return notifs;
+        return (await this.notifications.addTaskIds(notifs));
     }
     async getSnoozed(req) {
         const member = await this.getCurrentWorkspaceMember(req);
         await this.prisma.notification.updateMany({
-            where: { userId: member.userId, isSnoozed: true, snoozedAt: { lte: new Date() } },
+            where: {
+                userId: member.userId,
+                isSnoozed: true,
+                snoozedAt: { lte: new Date() },
+            },
             data: { isSnoozed: false, snoozedAt: null },
         });
         const notifs = await this.prisma.notification.findMany({
@@ -189,7 +209,7 @@ let NotificationsController = class NotificationsController {
             orderBy: { snoozedAt: 'asc' },
             take: 500,
         });
-        return notifs;
+        return (await this.notifications.addTaskIds(notifs));
     }
 };
 exports.NotificationsController = NotificationsController;
@@ -198,7 +218,9 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
-    (0, swagger_1.ApiOperation)({ summary: 'Open SSE stream for workspace member notifications' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Open SSE stream for workspace member notifications',
+    }),
     (0, swagger_1.ApiParam)({ name: 'memberId', description: 'Workspace member id or user id' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('memberId')),
@@ -223,7 +245,9 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id/snooze'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
-    (0, swagger_1.ApiOperation)({ summary: 'Set notification snooze state and optional snooze expiry' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Set notification snooze state and optional snooze expiry',
+    }),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     __param(0, (0, common_1.Req)()),
@@ -260,7 +284,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)('snoozed'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
-    (0, swagger_1.ApiOperation)({ summary: 'Get currently snoozed notifications for current member' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get currently snoozed notifications for current member',
+    }),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     __param(0, (0, common_1.Req)()),
@@ -271,6 +297,8 @@ __decorate([
 exports.NotificationsController = NotificationsController = __decorate([
     (0, swagger_1.ApiTags)('notifications'),
     (0, common_1.Controller)('notifications'),
-    __metadata("design:paramtypes", [sse_service_1.NotificationsSseService, database_1.PrismaService])
+    __metadata("design:paramtypes", [sse_service_1.NotificationsSseService,
+        database_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], NotificationsController);
 //# sourceMappingURL=notifications.controller.js.map

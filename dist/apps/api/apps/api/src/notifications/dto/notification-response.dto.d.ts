@@ -5,6 +5,7 @@ export declare class NotificationResponseDto {
     message?: string | null;
     referenceType?: string | null;
     referenceId?: string | null;
+    taskId?: string | null;
     actorId?: string | null;
     isRead: boolean;
     isCleared: boolean;

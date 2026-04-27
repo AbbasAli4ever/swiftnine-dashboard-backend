@@ -6,13 +6,14 @@ import { NotificationResponseDto } from './dto/notification-response.dto';
 import { PatchNotificationClearDto } from './dto/patch-notification-clear.dto';
 import { PatchNotificationSnoozeDto } from './dto/patch-notification-snooze.dto';
 import { PatchNotificationReadDto } from './dto/patch-notification-read.dto';
+import { NotificationsService } from './notifications.service';
 export declare class NotificationsController {
     private readonly sse;
     private readonly prisma;
-    constructor(sse: NotificationsSseService, prisma: PrismaService);
+    private readonly notifications;
+    constructor(sse: NotificationsSseService, prisma: PrismaService, notifications: NotificationsService);
     private findOwnedNotification;
     private getCurrentWorkspaceMember;
-    private toNotificationPayload;
     private broadcastUpdatedNotification;
     stream(req: WorkspaceRequest, memberId: string, res: Response): Promise<void>;
     updateNotificationClear(req: WorkspaceRequest, id: string, dto: PatchNotificationClearDto): Promise<NotificationResponseDto>;

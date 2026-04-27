@@ -49,20 +49,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 where: { userId: updated.userId, deletedAt: null },
                 select: { id: true },
             });
-            const payload = {
-                id: updated.id,
-                type: updated.type,
-                title: updated.title,
-                message: updated.message,
-                referenceType: updated.referenceType,
-                referenceId: updated.referenceId,
-                actorId: updated.actorId,
-                isRead: updated.isRead,
-                isCleared: updated.isCleared,
-                isSnoozed: updated.isSnoozed,
-                snoozedAt: updated.snoozedAt,
-                createdAt: updated.createdAt,
-            };
+            const payload = await this.toNotificationPayload(updated);
             for (const m of members) {
                 try {
                     this.sse.broadcastToMember(m.id, 'notification:created', payload);
@@ -85,6 +72,53 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             });
         }
         return member;
+    }
+    getTaskId(notification, commentTaskIds) {
+        if (notification.referenceType === 'task')
+            return notification.referenceId ?? null;
+        if (notification.referenceType === 'comment' && notification.referenceId) {
+            return commentTaskIds.get(notification.referenceId) ?? null;
+        }
+        return null;
+    }
+    async addTaskIds(notifications) {
+        const commentIds = Array.from(new Set(notifications
+            .filter((notification) => notification.referenceType === 'comment' &&
+            notification.referenceId)
+            .map((notification) => notification.referenceId)));
+        const comments = commentIds.length === 0
+            ? []
+            : await this.prisma.comment.findMany({
+                where: { id: { in: commentIds } },
+                select: { id: true, taskId: true },
+            });
+        const commentTaskIds = new Map(comments.map((comment) => [comment.id, comment.taskId]));
+        return notifications.map((notification) => ({
+            ...notification,
+            taskId: this.getTaskId(notification, commentTaskIds),
+        }));
+    }
+    async addTaskId(notification) {
+        const [enriched] = await this.addTaskIds([notification]);
+        return enriched;
+    }
+    async toNotificationPayload(notification) {
+        const enriched = await this.addTaskId(notification);
+        return {
+            id: enriched.id,
+            type: enriched.type,
+            title: enriched.title,
+            message: enriched.message,
+            referenceType: enriched.referenceType,
+            referenceId: enriched.referenceId,
+            taskId: enriched.taskId,
+            actorId: enriched.actorId,
+            isRead: enriched.isRead,
+            isCleared: enriched.isCleared,
+            isSnoozed: enriched.isSnoozed,
+            snoozedAt: enriched.snoozedAt,
+            createdAt: enriched.createdAt,
+        };
     }
     async createNotification(workspaceId, targetMemberIdOrUserId, actorUserId, type, title, message, referenceType, referenceId) {
         const member = await this.resolveWorkspaceMember(workspaceId, targetMemberIdOrUserId);
@@ -110,20 +144,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         });
         try {
             if (!notif.isCleared && !notif.isSnoozed) {
-                this.sse.broadcastToMember(member.id, 'notification:created', {
-                    id: notif.id,
-                    type: notif.type,
-                    title: notif.title,
-                    message: notif.message,
-                    referenceType: notif.referenceType,
-                    referenceId: notif.referenceId,
-                    actorId: notif.actorId,
-                    isRead: notif.isRead,
-                    isCleared: notif.isCleared,
-                    isSnoozed: notif.isSnoozed,
-                    snoozedAt: notif.snoozedAt,
-                    createdAt: notif.createdAt,
-                });
+                this.sse.broadcastToMember(member.id, 'notification:created', await this.toNotificationPayload(notif));
             }
             else {
                 this.logger.debug('Notification created but not broadcast (cleared or snoozed)');
@@ -135,7 +156,10 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         return notif;
     }
     async notifyTaskAssignees(workspaceId, taskId, actorUserId, opts) {
-        const assignees = await this.prisma.taskAssignee.findMany({ where: { taskId }, select: { userId: true } });
+        const assignees = await this.prisma.taskAssignee.findMany({
+            where: { taskId },
+            select: { userId: true },
+        });
         const exclude = new Set(opts?.excludeUserIds ?? []);
         for (const a of assignees) {
             if (a.userId === actorUserId)
@@ -149,6 +173,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
 exports.NotificationsService = NotificationsService;
 exports.NotificationsService = NotificationsService = NotificationsService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService, sse_service_1.NotificationsSseService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        sse_service_1.NotificationsSseService])
 ], NotificationsService);
 //# sourceMappingURL=notifications.service.js.map

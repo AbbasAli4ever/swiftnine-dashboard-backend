@@ -10,16 +10,40 @@ export class NotificationResponseDto {
   @ApiProperty({ type: String, description: 'Notification title' })
   title!: string;
 
-  @ApiProperty({ type: String, description: 'Optional message', required: false })
+  @ApiProperty({
+    type: String,
+    description: 'Optional message',
+    required: false,
+  })
   message?: string | null;
 
-  @ApiProperty({ type: String, description: 'Reference entity type', required: false })
+  @ApiProperty({
+    type: String,
+    description: 'Reference entity type',
+    required: false,
+  })
   referenceType?: string | null;
 
-  @ApiProperty({ type: String, description: 'Reference entity id', required: false })
+  @ApiProperty({
+    type: String,
+    description: 'Reference entity id',
+    required: false,
+  })
   referenceId?: string | null;
 
-  @ApiProperty({ type: String, description: 'Actor user id performing the action', required: false })
+  @ApiProperty({
+    type: String,
+    description:
+      'Task id related to this notification, resolved from task or comment reference',
+    required: false,
+  })
+  taskId?: string | null;
+
+  @ApiProperty({
+    type: String,
+    description: 'Actor user id performing the action',
+    required: false,
+  })
   actorId?: string | null;
 
   @ApiProperty({ type: Boolean, description: 'Read state' })
@@ -31,9 +55,18 @@ export class NotificationResponseDto {
   @ApiProperty({ type: Boolean, description: 'Snoozed state' })
   isSnoozed!: boolean;
 
-  @ApiProperty({ type: String, format: 'date-time', description: 'Snoozed until timestamp', required: false })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    description: 'Snoozed until timestamp',
+    required: false,
+  })
   snoozedAt?: Date | null;
 
-  @ApiProperty({ type: String, format: 'date-time', description: 'Created at timestamp' })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    description: 'Created at timestamp',
+  })
   createdAt!: Date;
 }

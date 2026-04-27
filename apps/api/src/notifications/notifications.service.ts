@@ -2,12 +2,21 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { NotificationsSseService } from './sse.service';
 
+type NotificationLike = {
+  referenceType?: string | null;
+  referenceId?: string | null;
+  [key: string]: any;
+};
+
 @Injectable()
 export class NotificationsService implements OnModuleDestroy {
   private readonly logger = new Logger(NotificationsService.name);
   private snoozeWatcher?: NodeJS.Timeout;
 
-  constructor(private readonly prisma: PrismaService, private readonly sse: NotificationsSseService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sse: NotificationsSseService,
+  ) {
     this.startSnoozeWatcher();
   }
 
@@ -18,7 +27,9 @@ export class NotificationsService implements OnModuleDestroy {
   private startSnoozeWatcher() {
     // unsnooze expired notifications every minute
     this.snoozeWatcher = setInterval(() => {
-      this.processExpiredSnoozes().catch((err) => this.logger.debug('Snooze watcher error', err as any));
+      this.processExpiredSnoozes().catch((err) =>
+        this.logger.debug('Snooze watcher error', err as any),
+      );
     }, 60_000);
   }
 
@@ -41,32 +52,25 @@ export class NotificationsService implements OnModuleDestroy {
         select: { id: true },
       });
 
-      const payload = {
-        id: updated.id,
-        type: updated.type,
-        title: updated.title,
-        message: updated.message,
-        referenceType: updated.referenceType,
-        referenceId: updated.referenceId,
-        actorId: updated.actorId,
-        isRead: updated.isRead,
-        isCleared: updated.isCleared,
-        isSnoozed: updated.isSnoozed,
-        snoozedAt: updated.snoozedAt,
-        createdAt: updated.createdAt,
-      };
+      const payload = await this.toNotificationPayload(updated);
 
       for (const m of members) {
         try {
           this.sse.broadcastToMember(m.id, 'notification:created', payload);
         } catch (err) {
-          this.logger.debug('Failed broadcasting unsnoozed notification', err as any);
+          this.logger.debug(
+            'Failed broadcasting unsnoozed notification',
+            err as any,
+          );
         }
       }
     }
   }
 
-  private async resolveWorkspaceMember(workspaceId: string, memberIdOrUserId: string) {
+  private async resolveWorkspaceMember(
+    workspaceId: string,
+    memberIdOrUserId: string,
+  ) {
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberIdOrUserId, workspaceId, deletedAt: null },
       select: { id: true, userId: true },
@@ -82,6 +86,76 @@ export class NotificationsService implements OnModuleDestroy {
     return member;
   }
 
+  private getTaskId(
+    notification: NotificationLike,
+    commentTaskIds: Map<string, string>,
+  ) {
+    if (notification.referenceType === 'task')
+      return notification.referenceId ?? null;
+    if (notification.referenceType === 'comment' && notification.referenceId) {
+      return commentTaskIds.get(notification.referenceId) ?? null;
+    }
+    return null;
+  }
+
+  async addTaskIds<T extends NotificationLike>(
+    notifications: T[],
+  ): Promise<Array<T & { taskId: string | null }>> {
+    const commentIds = Array.from(
+      new Set(
+        notifications
+          .filter(
+            (notification) =>
+              notification.referenceType === 'comment' &&
+              notification.referenceId,
+          )
+          .map((notification) => notification.referenceId as string),
+      ),
+    );
+
+    const comments =
+      commentIds.length === 0
+        ? []
+        : await this.prisma.comment.findMany({
+            where: { id: { in: commentIds } },
+            select: { id: true, taskId: true },
+          });
+    const commentTaskIds = new Map(
+      comments.map((comment) => [comment.id, comment.taskId]),
+    );
+
+    return notifications.map((notification) => ({
+      ...notification,
+      taskId: this.getTaskId(notification, commentTaskIds),
+    }));
+  }
+
+  async addTaskId<T extends NotificationLike>(
+    notification: T,
+  ): Promise<T & { taskId: string | null }> {
+    const [enriched] = await this.addTaskIds([notification]);
+    return enriched;
+  }
+
+  async toNotificationPayload(notification: NotificationLike) {
+    const enriched = await this.addTaskId(notification);
+    return {
+      id: enriched.id,
+      type: enriched.type,
+      title: enriched.title,
+      message: enriched.message,
+      referenceType: enriched.referenceType,
+      referenceId: enriched.referenceId,
+      taskId: enriched.taskId,
+      actorId: enriched.actorId,
+      isRead: enriched.isRead,
+      isCleared: enriched.isCleared,
+      isSnoozed: enriched.isSnoozed,
+      snoozedAt: enriched.snoozedAt,
+      createdAt: enriched.createdAt,
+    };
+  }
+
   async createNotification(
     workspaceId: string,
     targetMemberIdOrUserId: string,
@@ -92,9 +166,14 @@ export class NotificationsService implements OnModuleDestroy {
     referenceType?: string,
     referenceId?: string,
   ) {
-    const member = await this.resolveWorkspaceMember(workspaceId, targetMemberIdOrUserId);
+    const member = await this.resolveWorkspaceMember(
+      workspaceId,
+      targetMemberIdOrUserId,
+    );
     if (!member) {
-      this.logger.debug(`Notification: no member found for target ${targetMemberIdOrUserId} workspace=${workspaceId}`);
+      this.logger.debug(
+        `Notification: no member found for target ${targetMemberIdOrUserId} workspace=${workspaceId}`,
+      );
       return null;
     }
 
@@ -116,22 +195,15 @@ export class NotificationsService implements OnModuleDestroy {
     });
     try {
       if (!notif.isCleared && !notif.isSnoozed) {
-        this.sse.broadcastToMember(member.id, 'notification:created', {
-          id: notif.id,
-          type: notif.type,
-          title: notif.title,
-          message: notif.message,
-          referenceType: notif.referenceType,
-          referenceId: notif.referenceId,
-          actorId: notif.actorId,
-          isRead: notif.isRead,
-          isCleared: notif.isCleared,
-          isSnoozed: notif.isSnoozed,
-          snoozedAt: notif.snoozedAt,
-          createdAt: notif.createdAt,
-        });
+        this.sse.broadcastToMember(
+          member.id,
+          'notification:created',
+          await this.toNotificationPayload(notif),
+        );
       } else {
-        this.logger.debug('Notification created but not broadcast (cleared or snoozed)');
+        this.logger.debug(
+          'Notification created but not broadcast (cleared or snoozed)',
+        );
       }
     } catch (err) {
       this.logger.debug('Failed to broadcast notification SSE', err as any);
@@ -143,9 +215,17 @@ export class NotificationsService implements OnModuleDestroy {
     workspaceId: string,
     taskId: string,
     actorUserId: string,
-    opts?: { type?: string; title?: string; message?: string; excludeUserIds?: string[] },
+    opts?: {
+      type?: string;
+      title?: string;
+      message?: string;
+      excludeUserIds?: string[];
+    },
   ) {
-    const assignees = await this.prisma.taskAssignee.findMany({ where: { taskId }, select: { userId: true } });
+    const assignees = await this.prisma.taskAssignee.findMany({
+      where: { taskId },
+      select: { userId: true },
+    });
     const exclude = new Set(opts?.excludeUserIds ?? []);
     for (const a of assignees) {
       if (a.userId === actorUserId) continue;

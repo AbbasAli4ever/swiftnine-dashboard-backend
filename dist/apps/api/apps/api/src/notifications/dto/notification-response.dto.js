@@ -18,6 +18,7 @@ class NotificationResponseDto {
     message;
     referenceType;
     referenceId;
+    taskId;
     actorId;
     isRead;
     isCleared;
@@ -39,19 +40,43 @@ __decorate([
     __metadata("design:type", String)
 ], NotificationResponseDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, description: 'Optional message', required: false }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Optional message',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "message", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, description: 'Reference entity type', required: false }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Reference entity type',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "referenceType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, description: 'Reference entity id', required: false }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Reference entity id',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "referenceId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, description: 'Actor user id performing the action', required: false }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Task id related to this notification, resolved from task or comment reference',
+        required: false,
+    }),
+    __metadata("design:type", Object)
+], NotificationResponseDto.prototype, "taskId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Actor user id performing the action',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "actorId", void 0);
 __decorate([
@@ -67,11 +92,20 @@ __decorate([
     __metadata("design:type", Boolean)
 ], NotificationResponseDto.prototype, "isSnoozed", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, format: 'date-time', description: 'Snoozed until timestamp', required: false }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        format: 'date-time',
+        description: 'Snoozed until timestamp',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], NotificationResponseDto.prototype, "snoozedAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String, format: 'date-time', description: 'Created at timestamp' }),
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        format: 'date-time',
+        description: 'Created at timestamp',
+    }),
     __metadata("design:type", Date)
 ], NotificationResponseDto.prototype, "createdAt", void 0);
 //# sourceMappingURL=notification-response.dto.js.map
