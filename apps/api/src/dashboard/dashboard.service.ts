@@ -37,7 +37,6 @@ type ListRecord = {
 type TaskStatsRecord = {
   statusId: string;
   listId: string;
-  isCompleted: boolean;
 };
 
 type AttachmentRecord = {
@@ -184,7 +183,6 @@ export class DashboardService {
         select: {
           statusId: true,
           listId: true,
-          isCompleted: true,
         },
       }),
       this.prisma.attachment.findMany({
@@ -244,7 +242,7 @@ export class DashboardService {
         icon: project.icon,
       },
       statusSummary: this.buildStatusSummary(statuses, tasks),
-      lists: this.buildListSummary(lists, tasks),
+      lists: this.buildListSummary(lists, tasks, statuses),
       attachments: this.buildAttachments(attachments, project.taskIdPrefix),
       docs: [],
     };
@@ -273,13 +271,17 @@ export class DashboardService {
   private buildListSummary(
     lists: ListRecord[],
     tasks: TaskStatsRecord[],
+    statuses: StatusRecord[],
   ): ProjectDashboardData['lists'] {
+    const closedStatusIds = new Set(
+      statuses.filter((status) => status.group === 'CLOSED').map((status) => status.id),
+    );
     const listStats = new Map<string, { taskCount: number; completedCount: number }>();
 
     for (const task of tasks) {
       const current = listStats.get(task.listId) ?? { taskCount: 0, completedCount: 0 };
       current.taskCount += 1;
-      if (task.isCompleted) {
+      if (closedStatusIds.has(task.statusId)) {
         current.completedCount += 1;
       }
       listStats.set(task.listId, current);

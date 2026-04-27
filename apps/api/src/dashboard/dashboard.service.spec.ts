@@ -77,6 +77,13 @@ describe('DashboardService', () => {
         group: 'DONE',
         position: 1000,
       },
+      {
+        id: 'status-4',
+        name: 'Closed',
+        color: '#16a34a',
+        group: 'CLOSED',
+        position: 1000,
+      },
     ]);
     prisma.taskList.findMany.mockResolvedValue([
       {
@@ -106,9 +113,9 @@ describe('DashboardService', () => {
       },
     ]);
     prisma.task.findMany.mockResolvedValue([
-      { statusId: 'status-1', listId: 'list-1', isCompleted: false },
-      { statusId: 'status-2', listId: 'list-1', isCompleted: false },
-      { statusId: 'status-2', listId: 'list-2', isCompleted: true },
+      { statusId: 'status-1', listId: 'list-1' },
+      { statusId: 'status-2', listId: 'list-1' },
+      { statusId: 'status-4', listId: 'list-2' },
     ]);
     prisma.attachment.findMany.mockResolvedValue([
       {
@@ -158,7 +165,7 @@ describe('DashboardService', () => {
         color: '#3b82f6',
         group: 'ACTIVE',
         position: 1000,
-        count: 2,
+        count: 1,
       },
       {
         statusId: 'status-3',
@@ -167,6 +174,14 @@ describe('DashboardService', () => {
         group: 'DONE',
         position: 1000,
         count: 0,
+      },
+      {
+        statusId: 'status-4',
+        name: 'Closed',
+        color: '#16a34a',
+        group: 'CLOSED',
+        position: 1000,
+        count: 1,
       },
     ]);
     expect(result.lists).toEqual([
@@ -258,7 +273,6 @@ describe('DashboardService', () => {
       select: {
         statusId: true,
         listId: true,
-        isCompleted: true,
       },
     });
     expect(prisma.attachment.findMany).toHaveBeenCalledWith({
