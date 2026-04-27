@@ -102,7 +102,12 @@ let NotificationsController = class NotificationsController {
             data: { isSnoozed: false, snoozedAt: null },
         });
         const notifs = await this.prisma.notification.findMany({
-            where: { userId: member.userId, isCleared: false, isSnoozed: false },
+            where: {
+                userId: member.userId,
+                isRead: false,
+                isCleared: false,
+                isSnoozed: false,
+            },
             orderBy: { createdAt: 'desc' },
             take: 200,
         });

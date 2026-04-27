@@ -4,4 +4,5 @@ export declare class WorkspaceGuard implements CanActivate {
     private readonly prisma;
     constructor(prisma: PrismaService);
     canActivate(context: ExecutionContext): Promise<boolean>;
+    private getHeaderValue;
 }

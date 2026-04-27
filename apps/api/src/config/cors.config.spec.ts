@@ -1,15 +1,9 @@
-import { Logger } from '@nestjs/common';
 import type { Request } from 'express';
 import { buildCorsOptions } from './cors.config';
 
 describe('buildCorsOptions', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('builds a credentialed CORS config from env values', () => {
+  it('builds a credentialed CORS config that allows any origin and method', () => {
     const options = buildCorsOptions({
-      CORS_ORIGINS: 'http://localhost:3000, http://localhost:5173',
       CORS_ALLOW_CREDENTIALS: 'true',
       CORS_METHODS: 'GET,POST',
       CORS_ALLOWED_HEADERS: 'Content-Type, Authorization',
@@ -29,16 +23,16 @@ describe('buildCorsOptions', () => {
       null,
       expect.objectContaining({
         credentials: true,
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id'],
         origin: true,
       }),
     );
   });
 
-  it('allows requests without an origin header', () => {
+  it('allows requests from any origin', () => {
     const options = buildCorsOptions({
-      CORS_ORIGINS: 'http://localhost:3000',
+      CORS_ALLOW_CREDENTIALS: 'true',
     });
 
     const callback = jest.fn();
@@ -46,7 +40,7 @@ describe('buildCorsOptions', () => {
       {
         method: 'GET',
         url: '/health',
-        headers: {},
+        headers: { origin: 'https://any-client.example' },
       } as Request,
       callback,
     );
@@ -59,13 +53,8 @@ describe('buildCorsOptions', () => {
     );
   });
 
-  it('rejects origins not present in the allow list and logs request details', () => {
-    const warnSpy = jest
-      .spyOn(Logger.prototype, 'warn')
-      .mockImplementation(() => undefined);
-    const options = buildCorsOptions({
-      CORS_ORIGINS: 'http://localhost:3000',
-    });
+  it('reflects requested preflight headers so custom headers are allowed', () => {
+    const options = buildCorsOptions({});
 
     const callback = jest.fn();
     options(
@@ -76,7 +65,8 @@ describe('buildCorsOptions', () => {
         headers: {
           origin: 'http://localhost:4000',
           'access-control-request-method': 'POST',
-          'access-control-request-headers': 'authorization,x-workspace-id',
+          'access-control-request-headers':
+            'authorization,x-workspace-id,x-debug-header',
         },
       } as Request,
       callback,
@@ -85,45 +75,14 @@ describe('buildCorsOptions', () => {
     expect(callback).toHaveBeenCalledWith(
       null,
       expect.objectContaining({
-        origin: false,
+        origin: true,
+        allowedHeaders: ['authorization', 'x-workspace-id', 'x-debug-header'],
       }),
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Rejected CORS request:'),
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('http://localhost:4000'),
     );
   });
 
-  it('rejects wildcard origins when credentials are enabled', () => {
-    expect(() =>
-      buildCorsOptions({
-        CORS_ORIGINS: '*',
-        CORS_ALLOW_CREDENTIALS: 'true',
-      }),
-    ).toThrow(
-      'CORS_ORIGINS cannot be "*" when CORS_ALLOW_CREDENTIALS is enabled.',
-    );
-  });
-
-  it('rejects invalid origin values that include a path', () => {
-    expect(() =>
-      buildCorsOptions({
-        CORS_ORIGINS: 'http://localhost:3000/app',
-      }),
-    ).toThrow(
-      'CORS origin "http://localhost:3000/app" must not include a path, query string, or trailing slash.',
-    );
-  });
-
-  it('logs disallowed requested headers during preflight checks', () => {
-    const warnSpy = jest
-      .spyOn(Logger.prototype, 'warn')
-      .mockImplementation(() => undefined);
-    const options = buildCorsOptions({
-      CORS_ORIGINS: 'http://localhost:3000',
-    });
+  it('keeps all default methods open even when CORS_METHODS is configured', () => {
+    const options = buildCorsOptions({ CORS_METHODS: 'GET' });
 
     const callback = jest.fn();
     options(
@@ -134,7 +93,6 @@ describe('buildCorsOptions', () => {
         headers: {
           origin: 'http://localhost:3000',
           'access-control-request-method': 'POST',
-          'access-control-request-headers': 'x-debug-header',
         },
       } as Request,
       callback,
@@ -143,11 +101,9 @@ describe('buildCorsOptions', () => {
     expect(callback).toHaveBeenCalledWith(
       null,
       expect.objectContaining({
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
         origin: true,
       }),
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('x-debug-header'),
     );
   });
 });

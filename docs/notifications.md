@@ -30,7 +30,8 @@ Headers:
 
 Authorization rules:
 
-- The member must exist in the workspace from `x-workspace-id`.
+- The authenticated user must be an active member of the workspace from `x-workspace-id`.
+- The `memberId` path param must resolve to a member in the same workspace from `x-workspace-id`.
 - The resolved member's `userId` must match the authenticated user.
 - Opening another user's notification stream returns `403 Forbidden`.
 
@@ -38,7 +39,7 @@ Return:
 
 - HTTP response content type is `text/event-stream`.
 - The connection stays open and sends SSE frames.
-- The first event is always `notifications:init` with the current active notification list.
+- The first event is always `notifications:init` with the existing unread, uncleared, unsnoozed notification list.
 - Later events are sent as notifications are created or updated.
 - Heartbeat comments are sent every 15 seconds as `:heartbeat`.
 
@@ -62,7 +63,7 @@ Payload:
 - Array of full Prisma `Notification` records.
 - Ordered by `createdAt` descending.
 - Limited to 200 items.
-- Only includes notifications where `isCleared=false` and `isSnoozed=false`.
+- Only includes existing DB notifications where `isRead=false`, `isCleared=false`, and `isSnoozed=false`.
 - Expired snoozes are unsnoozed before the list is loaded.
 
 Example:

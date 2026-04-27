@@ -14,33 +14,34 @@ export declare class CommentsService {
             id: string;
             mentionedUserId: string;
             mentionedUser: {
-                id: string;
                 fullName: string;
                 email: string;
+                id: string;
                 avatarUrl: string | null;
             };
         }[];
         reactions: {
             id: string;
             createdAt: Date;
-            reactFace: string;
             member: {
+                user: {
+                    fullName: string;
+                    id: string;
+                    avatarUrl: string | null;
+                };
                 id: string;
                 userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
-                user: {
-                    id: string;
-                    fullName: string;
-                    avatarUrl: string | null;
-                };
             };
+            reactFace: string;
         }[];
         author: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
     } & {
+        content: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -48,7 +49,6 @@ export declare class CommentsService {
         userId: string;
         parentId: string | null;
         taskId: string;
-        content: string;
         isEdited: boolean;
     })[]>;
     createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<{
@@ -56,33 +56,34 @@ export declare class CommentsService {
             id: string;
             mentionedUserId: string;
             mentionedUser: {
-                id: string;
                 fullName: string;
                 email: string;
+                id: string;
                 avatarUrl: string | null;
             };
         }[];
         reactions: {
             id: string;
             createdAt: Date;
-            reactFace: string;
             member: {
+                user: {
+                    fullName: string;
+                    id: string;
+                    avatarUrl: string | null;
+                };
                 id: string;
                 userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
-                user: {
-                    id: string;
-                    fullName: string;
-                    avatarUrl: string | null;
-                };
             };
+            reactFace: string;
         }[];
         author: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
     } & {
+        content: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -90,7 +91,6 @@ export declare class CommentsService {
         userId: string;
         parentId: string | null;
         taskId: string;
-        content: string;
         isEdited: boolean;
     }>;
     updateComment(workspaceId: string, userId: string, commentId: string, content: string, mentionedUserIds?: string[]): Promise<{
@@ -98,33 +98,34 @@ export declare class CommentsService {
             id: string;
             mentionedUserId: string;
             mentionedUser: {
-                id: string;
                 fullName: string;
                 email: string;
+                id: string;
                 avatarUrl: string | null;
             };
         }[];
         reactions: {
             id: string;
             createdAt: Date;
-            reactFace: string;
             member: {
+                user: {
+                    fullName: string;
+                    id: string;
+                    avatarUrl: string | null;
+                };
                 id: string;
                 userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
-                user: {
-                    id: string;
-                    fullName: string;
-                    avatarUrl: string | null;
-                };
             };
+            reactFace: string;
         }[];
         author: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
     } & {
+        content: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -132,20 +133,19 @@ export declare class CommentsService {
         userId: string;
         parentId: string | null;
         taskId: string;
-        content: string;
         isEdited: boolean;
     }>;
     deleteComment(workspaceId: string, userId: string, commentId: string, requesterRole?: string): Promise<void>;
     addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<{
         member: {
+            user: {
+                fullName: string;
+                id: string;
+                avatarUrl: string | null;
+            };
             id: string;
             userId: string;
             role: import("@app/database/generated/prisma/enums").Role;
-            user: {
-                id: string;
-                fullName: string;
-                avatarUrl: string | null;
-            };
         };
     } & {
         id: string;
@@ -162,8 +162,8 @@ export declare class CommentsService {
             updatedAt: Date;
             deletedAt: Date | null;
             userId: string;
-            workspaceId: string;
             role: import("@app/database/generated/prisma/enums").Role;
+            workspaceId: string;
         };
     } & {
         id: string;

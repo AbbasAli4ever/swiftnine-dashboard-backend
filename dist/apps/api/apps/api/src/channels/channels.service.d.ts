@@ -5,6 +5,7 @@ export declare class ChannelsService {
     constructor(prisma: PrismaService);
     create(workspaceId: string, userId: string, dto: CreateChannelDto): Promise<({
         project: {
+            description: string | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
@@ -12,7 +13,6 @@ export declare class ChannelsService {
             name: string;
             createdBy: string;
             workspaceId: string;
-            description: string | null;
             color: string;
             icon: string | null;
             taskIdPrefix: string;
@@ -21,8 +21,8 @@ export declare class ChannelsService {
         } | null;
         members: ({
             user: {
-                id: string;
                 fullName: string;
+                id: string;
                 avatarUrl: string | null;
             };
         } & {
@@ -33,13 +33,13 @@ export declare class ChannelsService {
             channelId: string;
         })[];
     } & {
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         name: string;
         createdBy: string;
         workspaceId: string;
-        description: string | null;
         projectId: string | null;
         privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
     }) | null>;

@@ -140,7 +140,12 @@ export class NotificationsController {
 
     // send initial notifications (recent first) then keep connection open
     const notifs = await this.prisma.notification.findMany({
-      where: { userId: member.userId, isCleared: false, isSnoozed: false },
+      where: {
+        userId: member.userId,
+        isRead: false,
+        isCleared: false,
+        isSnoozed: false,
+      },
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
