@@ -404,6 +404,23 @@ Route
 Purpose
 - Use this for recent activity cards.
 - You can scope it to a project with `projectId`.
+- This is the endpoint the project dashboard should call for "Recent Activity".
+- Recent activity is not embedded inside `GET /projects/:projectId/dashboard`; fetch it separately from this route.
+
+Recommended dashboard request
+- `GET /activity?projectId=<projectId>&limit=10`
+- Send the same auth headers used by the rest of the dashboard routes:
+  - `Authorization: Bearer <token>`
+  - `x-workspace-id: <workspace-uuid>`
+
+What project scoping includes
+- the project row itself
+- activity on that project's statuses
+- activity on that project's task lists
+- activity on tasks in that project
+- related comment activity for those tasks
+- related attachment activity for those tasks
+- related time-entry activity for those tasks
 
 Useful query params
 - `projectId`
@@ -419,13 +436,81 @@ Useful query params
 - `cursor`
 - `limit`
 
+Common dashboard examples
+- Most recent project activity:
+  - `GET /activity?projectId=project-uuid&limit=10`
+- Only comments and file activity:
+  - `GET /activity?projectId=project-uuid&categories=comments,attachments&limit=10`
+- Only my activity in that project:
+  - `GET /activity?projectId=project-uuid&me=true&limit=10`
+- Paginate older activity:
+  - `GET /activity?projectId=project-uuid&limit=10&cursor=<nextCursor>`
+
 Response shape
 ```json
 {
   "success": true,
   "data": {
-    "items": [],
-    "nextCursor": null
+    "items": [
+      {
+        "id": "activity-1",
+        "kind": "activity",
+        "category": "status",
+        "entityType": "task",
+        "entityId": "task-1",
+        "action": "status_changed",
+        "fieldName": "status",
+        "oldValue": "To Do",
+        "newValue": "In Progress",
+        "metadata": {
+          "taskTitle": "Implement filters",
+          "projectId": "project-1",
+          "listId": "list-2"
+        },
+        "actor": {
+          "id": "user-1",
+          "fullName": "Ayesha Khan",
+          "email": "ayesha@example.com",
+          "avatarUrl": null,
+          "avatarColor": "#6366f1"
+        },
+        "displayText": "Ayesha Khan changed status from To Do to In Progress",
+        "createdAt": "2026-04-27T09:15:00.000Z"
+      },
+      {
+        "id": "activity-2",
+        "kind": "activity",
+        "category": "attachments",
+        "entityType": "attachment",
+        "entityId": "attachment-1",
+        "action": "file_uploaded",
+        "fieldName": null,
+        "oldValue": null,
+        "newValue": null,
+        "metadata": {
+          "taskId": "task-1",
+          "taskTitle": "Implement filters",
+          "taskNumber": 104,
+          "projectId": "project-1",
+          "projectName": "Backend API",
+          "listId": "list-2",
+          "listName": "Current Sprint",
+          "fileName": "api-contract.pdf",
+          "mimeType": "application/pdf",
+          "fileSize": 245760
+        },
+        "actor": {
+          "id": "user-2",
+          "fullName": "Ali Raza",
+          "email": "ali@example.com",
+          "avatarUrl": null,
+          "avatarColor": "#0ea5e9"
+        },
+        "displayText": "Ali Raza updated attachments on Implement filters",
+        "createdAt": "2026-04-27T08:55:00.000Z"
+      }
+    ],
+    "nextCursor": "activity-2"
   },
   "message": null
 }
@@ -443,6 +528,13 @@ Useful item fields
 - `actor`
 - `displayText`
 - `createdAt`
+
+Frontend usage notes
+- Use `displayText` directly for the simple activity line in a dashboard card.
+- Use `actor`, `category`, and `createdAt` for avatar, badge, and timestamp UI.
+- Use `metadata.taskTitle`, `metadata.fileName`, `metadata.projectName`, and similar fields when you want richer custom rendering.
+- Use `nextCursor` for "Load more" or infinite scroll behavior.
+- If you only need a small dashboard widget, request a small `limit` like `5` or `10`.
 
 ### Task side-panel activity
 
@@ -487,8 +579,9 @@ Frontend recommendation
 Overview page
 1. Call `GET /projects/:projectId/dashboard`.
 2. Render project header, status summary, per-list stats, and recent attachments.
-3. If the user clicks an attachment, call `POST /attachments/view` for that task.
-4. If the page has an activity card, call `GET /activity?projectId=<projectId>&limit=<n>`.
+3. In parallel, call `GET /activity?projectId=<projectId>&limit=<n>` for the Recent Activity card.
+4. Render each activity row from `data.items`.
+5. If the user clicks an attachment, call `POST /attachments/view` for that task.
 
 Board page
 1. Call `GET /projects/:projectId/board/tasks` with the active board filters.
