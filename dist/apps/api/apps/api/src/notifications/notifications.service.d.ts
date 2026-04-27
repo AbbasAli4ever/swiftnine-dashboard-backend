@@ -7,17 +7,17 @@ export declare class NotificationsService {
     constructor(prisma: PrismaService, sse: NotificationsSseService);
     private resolveWorkspaceMember;
     createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string): Promise<{
+        message: string | null;
+        type: string;
+        title: string;
         id: string;
         createdAt: Date;
         userId: string;
-        title: string;
-        type: string;
-        message: string | null;
         referenceType: string;
         referenceId: string;
-        actorId: string | null;
         isRead: boolean;
         readAt: Date | null;
+        actorId: string | null;
     } | null>;
     notifyTaskAssignees(workspaceId: string, taskId: string, actorUserId: string, opts?: {
         type?: string;
