@@ -10,8 +10,8 @@ CREATE TABLE "channels" (
     "description" TEXT,
     "privacy" "ChannelPrivacy" NOT NULL DEFAULT 'PUBLIC',
     "created_by" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "channels_pkey" PRIMARY KEY ("id")
 );
