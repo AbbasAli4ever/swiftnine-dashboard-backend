@@ -63,7 +63,7 @@ export class NotificationsService implements OnModuleDestroy {
 
       for (const m of members) {
         try {
-          this.sse.broadcastToMember(m.id, 'notification:created', payload);
+          this.sse.broadcastToMember(m.id, 'notification:updated', payload);
         } catch (err) {
           this.logger.debug(
             'Failed broadcasting unsnoozed notification',
