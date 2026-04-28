@@ -33,6 +33,8 @@ import {
   BatchInviteMembersDto,
   BatchInviteResponseDto,
 } from './dto/batch-invite-members.dto';
+import { AddMemberDto } from './dto/add-member.dto';
+import { BatchAddMembersDto, BatchAddResponseDto } from './dto/batch-add-members.dto';
 import {
   ClaimInviteDto,
   ClaimInviteResponseDto,
@@ -45,6 +47,7 @@ import type { Request, Response } from 'express';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import type {
   BatchInviteResult,
+  BatchAddResult,
   InviteClaimResult,
   InviteNextStep,
   WorkspaceData,
@@ -221,6 +224,57 @@ export class WorkspaceController {
       dto,
     );
     return ok(result, 'Batch invite processed');
+  }
+
+  @Post(':workspaceId/members')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Add an existing user to a workspace (OWNER only)' })
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiResponse({ status: 200, description: 'Member added' })
+  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({ status: 404, description: 'Workspace or user not found' })
+  async addMember(
+    @Req() req: WorkspaceRequest,
+    @Body() dto: AddMemberDto,
+  ): Promise<ApiRes<null>> {
+    await this.workspaceService.addMemberByUserId(
+      req.workspaceContext.workspaceId,
+      dto.userId,
+      dto.role,
+      req.user.id,
+    );
+    return ok(null, 'Member added successfully');
+  }
+
+  @Post(':workspaceId/members/batch')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Add multiple existing users to a workspace (OWNER only)' })
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiResponse({
+    status: 200,
+    type: BatchAddResponseDto,
+    description: 'Batch add processed',
+  })
+  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiResponse({ status: 422, description: 'Validation failed' })
+  async addMembersBatch(
+    @Req() req: WorkspaceRequest,
+    @Body() dto: BatchAddMembersDto,
+  ): Promise<ApiRes<BatchAddResult>> {
+    const result = await this.workspaceService.addMembersByUserIds(
+      req.workspaceContext.workspaceId,
+      dto.userIds,
+      dto.role,
+      req.user.id,
+    );
+    return ok(result, 'Batch members processed');
   }
 
   @Get('invite/:token')

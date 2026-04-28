@@ -66,6 +66,22 @@ export type BatchInviteResult = {
   };
 };
 
+export type BatchAddStatus = 'added' | 'already_member' | 'failed';
+export type BatchAddMemberResult = {
+  userId: string;
+  status: BatchAddStatus;
+  message: string | null;
+};
+export type BatchAddResult = {
+  results: BatchAddMemberResult[];
+  summary: {
+    total: number;
+    added: number;
+    alreadyMember: number;
+    failed: number;
+  };
+};
+
 type InviteContext = {
   workspaceId: string;
   workspaceName: string;
@@ -883,5 +899,108 @@ export class WorkspaceService {
         performedBy: actorId,
       },
     });
+  }
+
+  async addMemberByUserId(
+    workspaceId: string,
+    userId: string,
+    role: Role,
+    actorId: string,
+  ): Promise<void> {
+    await this.assertActorIsOwner(workspaceId, actorId);
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: { id: true, fullName: true },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.prisma.workspaceMember.findFirst({
+      where: { workspaceId, userId: user.id, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (existing) throw new ConflictException('User is already a member of the workspace');
+
+    await this.prisma.$transaction([
+      this.prisma.workspaceMember.create({
+        data: { workspaceId, userId: user.id, role },
+      }),
+      this.prisma.activityLog.create({
+        data: {
+          workspaceId,
+          entityType: 'workspace',
+          entityId: workspaceId,
+          action: 'member_added',
+          metadata: { memberId: user.id, memberName: user.fullName },
+          performedBy: actorId,
+        },
+      }),
+    ]);
+  }
+
+  async addMembersByUserIds(
+    workspaceId: string,
+    userIds: string[],
+    role: Role,
+    actorId: string,
+  ): Promise<BatchAddResult> {
+    await this.assertActorIsOwner(workspaceId, actorId);
+
+    const uniqueIds = [...new Set(userIds.map((id) => id.trim()))];
+    const results: BatchAddMemberResult[] = [];
+
+    for (const uid of uniqueIds) {
+      try {
+        const user = await this.prisma.user.findFirst({
+          where: { id: uid, deletedAt: null },
+          select: { id: true, fullName: true },
+        });
+
+        if (!user) {
+          results.push({ userId: uid, status: 'failed', message: 'User not found' });
+          continue;
+        }
+
+        const existing = await this.prisma.workspaceMember.findFirst({
+          where: { workspaceId, userId: user.id, deletedAt: null },
+          select: { id: true },
+        });
+
+        if (existing) {
+          results.push({ userId: uid, status: 'already_member', message: null });
+          continue;
+        }
+
+        await this.prisma.$transaction([
+          this.prisma.workspaceMember.create({ data: { workspaceId, userId: user.id, role } }),
+          this.prisma.activityLog.create({
+            data: {
+              workspaceId,
+              entityType: 'workspace',
+              entityId: workspaceId,
+              action: 'member_added',
+              metadata: { memberId: user.id, memberName: user.fullName },
+              performedBy: actorId,
+            },
+          }),
+        ]);
+
+        results.push({ userId: uid, status: 'added', message: null });
+      } catch (err: any) {
+        results.push({ userId: uid, status: 'failed', message: err?.message ?? 'Failed to add user' });
+      }
+    }
+
+    return {
+      results,
+      summary: {
+        total: results.length,
+        added: results.filter((r) => r.status === 'added').length,
+        alreadyMember: results.filter((r) => r.status === 'already_member').length,
+        failed: results.filter((r) => r.status === 'failed').length,
+      },
+    };
   }
 }
