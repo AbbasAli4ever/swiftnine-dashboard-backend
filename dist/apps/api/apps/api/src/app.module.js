@@ -28,6 +28,7 @@ const comments_module_1 = require("./comments/comments.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const channels_module_1 = require("./channels/channels.module");
+const docs_module_1 = require("./docs/docs.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -56,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
             channels_module_1.ChannelsModule,
             notifications_module_1.NotificationsModule,
             dashboard_module_1.DashboardModule,
+            docs_module_1.DocsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

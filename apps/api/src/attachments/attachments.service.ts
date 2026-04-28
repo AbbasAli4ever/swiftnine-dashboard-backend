@@ -1,10 +1,17 @@
-import { Injectable, InternalServerErrorException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 import type { PresignAttachmentDto } from './dto/presign-attachment.dto';
 import { PrismaService } from '@app/database';
 import { ActivityService } from '../activity/activity.service';
+import { DocPermissionsService } from '../docs/doc-permissions.service';
 
 @Injectable()
 export class AttachmentsService {
@@ -13,6 +20,7 @@ export class AttachmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activity: ActivityService,
+    private readonly docPermissions: DocPermissionsService,
   ) {
     this.s3 = new S3Client({
       region: process.env.AWS_REGION,
@@ -40,8 +48,19 @@ export class AttachmentsService {
     const rawBasePrefix = process.env.AWS_S3_PREFIX ?? 'swiftnine/docs/app';
     const basePrefix = rawBasePrefix.replace(/^\/+|\/+$/g, '');
 
+    if ([dto.taskId, dto.docId, dto.workspaceId].filter(Boolean).length > 1) {
+      throw new BadRequestException('Only one upload scope can be provided');
+    }
+
+    if (dto.docId) {
+      const doc = await this.findDocOrThrow(dto.docId);
+      await this.docPermissions.assertCanEdit(userId, doc);
+    }
+
     const rawScopePrefix = dto.taskId
       ? `attachments/task-${dto.taskId}`
+      : dto.docId
+      ? `attachments/doc-${dto.docId}`
       : dto.workspaceId
       ? `attachments/workspace-${dto.workspaceId}`
       : `attachments/user-${userId}`;
@@ -101,43 +120,21 @@ export class AttachmentsService {
       throw new ForbiddenException('Actor must be the same as member');
     }
 
-    const bucket = process.env.AWS_S3_BUCKET;
-    if (!bucket) throw new InternalServerErrorException('S3 bucket is not configured');
-
-    // Resolve metadata from S3 when not provided by client
-    let resolvedFileName: string = fileName ?? s3Key.split('/').pop() ?? s3Key;
-    let resolvedMimeType: string = mimeType ?? 'application/octet-stream';
-    let resolvedFileSize: bigint;
-
-    if (fileSize !== undefined) {
-      resolvedFileSize = BigInt(fileSize);
-    } else {
-      try {
-        const head = await this.s3.send(new HeadObjectCommand({ Bucket: bucket, Key: s3Key }));
-        if (head.ContentLength === undefined || head.ContentLength === null) {
-          throw new InternalServerErrorException('Unable to determine file size from S3 metadata');
-        }
-        resolvedFileSize = BigInt(head.ContentLength);
-        resolvedMimeType = head.ContentType ?? resolvedMimeType;
-        // allow S3 object metadata to override filename if present
-        if (!fileName && head.Metadata && Object.keys(head.Metadata).length > 0) {
-          const possibleName = head.Metadata['filename'] || head.Metadata['file-name'] || head.Metadata['originalname'];
-          if (possibleName) resolvedFileName = possibleName;
-        }
-      } catch (err) {
-        // If HeadObject failed, surface a clear error
-        throw new InternalServerErrorException('Failed to fetch S3 object metadata');
-      }
-    }
+    const metadata = await this.resolveUploadedFileMetadata(
+      s3Key,
+      fileName,
+      mimeType,
+      fileSize,
+    );
 
     const attachment = await this.prisma.attachment.create({
       data: {
         taskId,
         uploadedBy: member.userId,
-        fileName: resolvedFileName,
+        fileName: metadata.fileName,
         s3Key,
-        mimeType: resolvedMimeType,
-        fileSize: resolvedFileSize,
+        mimeType: metadata.mimeType,
+        fileSize: metadata.fileSize,
       },
       select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
     });
@@ -155,6 +152,58 @@ export class AttachmentsService {
         projectName: task.list.project.name,
         listId: task.list.id,
         listName: task.list.name,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        fileSize: Number(attachment.fileSize),
+      },
+      performedBy: actorId,
+    });
+
+    return {
+      ...attachment,
+      fileSize: Number(attachment.fileSize),
+    };
+  }
+
+  async createAttachmentForDoc(
+    actorId: string,
+    docId: string,
+    s3Key: string,
+    fileName?: string,
+    mimeType?: string,
+    fileSize?: number,
+  ) {
+    const doc = await this.findDocOrThrow(docId);
+    await this.docPermissions.assertCanEdit(actorId, doc);
+    this.assertDocAttachmentKey(docId, s3Key);
+
+    const metadata = await this.resolveUploadedFileMetadata(
+      s3Key,
+      fileName,
+      mimeType,
+      fileSize,
+    );
+
+    const attachment = await this.prisma.attachment.create({
+      data: {
+        docId,
+        uploadedBy: actorId,
+        fileName: metadata.fileName,
+        s3Key,
+        mimeType: metadata.mimeType,
+        fileSize: metadata.fileSize,
+      },
+      select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
+    });
+
+    await this.activity.log({
+      workspaceId: doc.workspaceId,
+      entityType: 'attachment',
+      entityId: attachment.id,
+      action: 'file_uploaded',
+      metadata: {
+        docId,
+        docTitle: doc.title,
         fileName: attachment.fileName,
         mimeType: attachment.mimeType,
         fileSize: Number(attachment.fileSize),
@@ -212,6 +261,19 @@ export class AttachmentsService {
     );
 
     return results;
+  }
+
+  async listAttachmentsForDoc(actorId: string, docId: string) {
+    const doc = await this.findDocOrThrow(docId);
+    await this.docPermissions.assertCanView(actorId, doc);
+
+    const attachments = await this.prisma.attachment.findMany({
+      where: { docId, deletedAt: null },
+      select: { id: true, fileName: true, mimeType: true, s3Key: true, fileSize: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return Promise.all(attachments.map((att) => this.toViewAttachment(att)));
   }
 
   async deleteAttachment(actorId: string, taskId: string, memberId: string, s3Key: string) {
@@ -273,6 +335,40 @@ export class AttachmentsService {
     return { id: attachment.id, s3Key };
   }
 
+  async deleteAttachmentForDoc(actorId: string, docId: string, s3Key: string) {
+    const doc = await this.findDocOrThrow(docId);
+    await this.docPermissions.assertCanEdit(actorId, doc);
+    this.assertDocAttachmentKey(docId, s3Key);
+
+    const attachment = await this.prisma.attachment.findFirst({
+      where: { docId, s3Key, deletedAt: null },
+      select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true },
+    });
+    if (!attachment) throw new NotFoundException('Attachment not found');
+
+    await this.prisma.attachment.update({
+      where: { id: attachment.id },
+      data: { deletedAt: new Date() },
+    });
+
+    await this.activity.log({
+      workspaceId: doc.workspaceId,
+      entityType: 'attachment',
+      entityId: attachment.id,
+      action: 'file_deleted',
+      metadata: {
+        docId,
+        docTitle: doc.title,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        fileSize: Number(attachment.fileSize),
+      },
+      performedBy: actorId,
+    });
+
+    return { id: attachment.id, s3Key };
+  }
+
   private async resolveWorkspaceMember(workspaceId: string, memberId: string) {
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
@@ -287,5 +383,88 @@ export class AttachmentsService {
     }
 
     return member;
+  }
+
+  private async findDocOrThrow(docId: string) {
+    const doc = await this.prisma.doc.findFirst({
+      where: { id: docId, deletedAt: null },
+      select: {
+        id: true,
+        workspaceId: true,
+        projectId: true,
+        ownerId: true,
+        scope: true,
+        title: true,
+      },
+    });
+
+    if (!doc) throw new NotFoundException('Document not found');
+    return doc;
+  }
+
+  private async resolveUploadedFileMetadata(
+    s3Key: string,
+    fileName?: string,
+    mimeType?: string,
+    fileSize?: number,
+  ): Promise<{ fileName: string; mimeType: string; fileSize: bigint }> {
+    const bucket = process.env.AWS_S3_BUCKET;
+    if (!bucket) throw new InternalServerErrorException('S3 bucket is not configured');
+
+    let resolvedFileName: string = fileName ?? s3Key.split('/').pop() ?? s3Key;
+    let resolvedMimeType: string = mimeType ?? 'application/octet-stream';
+    let resolvedFileSize: bigint;
+
+    if (fileSize !== undefined) {
+      resolvedFileSize = BigInt(fileSize);
+    } else {
+      try {
+        const head = await this.s3.send(new HeadObjectCommand({ Bucket: bucket, Key: s3Key }));
+        if (head.ContentLength === undefined || head.ContentLength === null) {
+          throw new InternalServerErrorException('Unable to determine file size from S3 metadata');
+        }
+        resolvedFileSize = BigInt(head.ContentLength);
+        resolvedMimeType = head.ContentType ?? resolvedMimeType;
+        if (!fileName && head.Metadata && Object.keys(head.Metadata).length > 0) {
+          const possibleName = head.Metadata['filename'] || head.Metadata['file-name'] || head.Metadata['originalname'];
+          if (possibleName) resolvedFileName = possibleName;
+        }
+      } catch {
+        throw new InternalServerErrorException('Failed to fetch S3 object metadata');
+      }
+    }
+
+    return {
+      fileName: resolvedFileName,
+      mimeType: resolvedMimeType,
+      fileSize: resolvedFileSize,
+    };
+  }
+
+  private assertDocAttachmentKey(docId: string, s3Key: string): void {
+    const rawBasePrefix = process.env.AWS_S3_PREFIX ?? 'swiftnine/docs/app';
+    const basePrefix = rawBasePrefix.replace(/^\/+|\/+$/g, '');
+    const expectedPrefix = `${basePrefix}/attachments/doc-${docId}/`;
+
+    if (!s3Key.startsWith(expectedPrefix)) {
+      throw new BadRequestException('S3 key does not belong to this document');
+    }
+  }
+
+  private async toViewAttachment(att: {
+    id: string;
+    fileName: string;
+    mimeType: string;
+    s3Key: string;
+    fileSize: bigint;
+  }) {
+    const cmd = new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: att.s3Key });
+    const url = await getSignedUrl(this.s3, cmd, { expiresIn: 60 * 15 });
+    return {
+      ...att,
+      fileSize: Number(att.fileSize),
+      url,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    };
   }
 }

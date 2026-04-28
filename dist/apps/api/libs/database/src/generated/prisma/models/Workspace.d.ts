@@ -136,6 +136,7 @@ export type WorkspaceWhereInput = {
     channels?: Prisma.ChannelListRelationFilter;
     tags?: Prisma.TagListRelationFilter;
     activityLogs?: Prisma.ActivityLogListRelationFilter;
+    docs?: Prisma.DocListRelationFilter;
 };
 export type WorkspaceOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -154,6 +155,7 @@ export type WorkspaceOrderByWithRelationInput = {
     channels?: Prisma.ChannelOrderByRelationAggregateInput;
     tags?: Prisma.TagOrderByRelationAggregateInput;
     activityLogs?: Prisma.ActivityLogOrderByRelationAggregateInput;
+    docs?: Prisma.DocOrderByRelationAggregateInput;
 };
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -175,6 +177,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
     channels?: Prisma.ChannelListRelationFilter;
     tags?: Prisma.TagListRelationFilter;
     activityLogs?: Prisma.ActivityLogListRelationFilter;
+    docs?: Prisma.DocListRelationFilter;
 }, "id">;
 export type WorkspaceOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -220,6 +223,7 @@ export type WorkspaceCreateInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateInput = {
     id?: string;
@@ -237,6 +241,7 @@ export type WorkspaceUncheckedCreateInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -254,6 +259,7 @@ export type WorkspaceUpdateInput = {
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -271,6 +277,7 @@ export type WorkspaceUncheckedUpdateInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateManyInput = {
     id?: string;
@@ -465,6 +472,18 @@ export type WorkspaceUpdateOneRequiredWithoutChannelsNestedInput = {
     connect?: Prisma.WorkspaceWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutChannelsInput, Prisma.WorkspaceUpdateWithoutChannelsInput>, Prisma.WorkspaceUncheckedUpdateWithoutChannelsInput>;
 };
+export type WorkspaceCreateNestedOneWithoutDocsInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocsInput, Prisma.WorkspaceUncheckedCreateWithoutDocsInput>;
+    connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutDocsInput;
+    connect?: Prisma.WorkspaceWhereUniqueInput;
+};
+export type WorkspaceUpdateOneRequiredWithoutDocsNestedInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocsInput, Prisma.WorkspaceUncheckedCreateWithoutDocsInput>;
+    connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutDocsInput;
+    upsert?: Prisma.WorkspaceUpsertWithoutDocsInput;
+    connect?: Prisma.WorkspaceWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutDocsInput, Prisma.WorkspaceUpdateWithoutDocsInput>, Prisma.WorkspaceUncheckedUpdateWithoutDocsInput>;
+};
 export type WorkspaceCreateWithoutCreatorInput = {
     id?: string;
     name: string;
@@ -480,6 +499,7 @@ export type WorkspaceCreateWithoutCreatorInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutCreatorInput = {
     id?: string;
@@ -496,6 +516,7 @@ export type WorkspaceUncheckedCreateWithoutCreatorInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutCreatorInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -547,6 +568,7 @@ export type WorkspaceCreateWithoutMembersInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutMembersInput = {
     id?: string;
@@ -563,6 +585,7 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutMembersInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -592,6 +615,7 @@ export type WorkspaceUpdateWithoutMembersInput = {
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -608,6 +632,7 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutInvitesInput = {
     id?: string;
@@ -624,6 +649,7 @@ export type WorkspaceCreateWithoutInvitesInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutInvitesInput = {
     id?: string;
@@ -640,6 +666,7 @@ export type WorkspaceUncheckedCreateWithoutInvitesInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutInvitesInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -669,6 +696,7 @@ export type WorkspaceUpdateWithoutInvitesInput = {
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -685,6 +713,7 @@ export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutProjectsInput = {
     id?: string;
@@ -701,6 +730,7 @@ export type WorkspaceCreateWithoutProjectsInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutProjectsInput = {
     id?: string;
@@ -717,6 +747,7 @@ export type WorkspaceUncheckedCreateWithoutProjectsInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutProjectsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -746,6 +777,7 @@ export type WorkspaceUpdateWithoutProjectsInput = {
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -762,6 +794,7 @@ export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutTagsInput = {
     id?: string;
@@ -778,6 +811,7 @@ export type WorkspaceCreateWithoutTagsInput = {
     projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutTagsInput = {
     id?: string;
@@ -794,6 +828,7 @@ export type WorkspaceUncheckedCreateWithoutTagsInput = {
     projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput;
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutTagsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -823,6 +858,7 @@ export type WorkspaceUpdateWithoutTagsInput = {
     projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutTagsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -839,6 +875,7 @@ export type WorkspaceUncheckedUpdateWithoutTagsInput = {
     projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutActivityLogsInput = {
     id?: string;
@@ -855,6 +892,7 @@ export type WorkspaceCreateWithoutActivityLogsInput = {
     projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutActivityLogsInput = {
     id?: string;
@@ -871,6 +909,7 @@ export type WorkspaceUncheckedCreateWithoutActivityLogsInput = {
     projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput;
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutActivityLogsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -900,6 +939,7 @@ export type WorkspaceUpdateWithoutActivityLogsInput = {
     projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutActivityLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -916,6 +956,7 @@ export type WorkspaceUncheckedUpdateWithoutActivityLogsInput = {
     projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutChannelsInput = {
     id?: string;
@@ -932,6 +973,7 @@ export type WorkspaceCreateWithoutChannelsInput = {
     projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutChannelsInput = {
     id?: string;
@@ -948,6 +990,7 @@ export type WorkspaceUncheckedCreateWithoutChannelsInput = {
     projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput;
     tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
     activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutChannelsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -977,6 +1020,7 @@ export type WorkspaceUpdateWithoutChannelsInput = {
     projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutChannelsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -991,6 +1035,88 @@ export type WorkspaceUncheckedUpdateWithoutChannelsInput = {
     members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput;
     invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
+};
+export type WorkspaceCreateWithoutDocsInput = {
+    id?: string;
+    name: string;
+    logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    creator: Prisma.UserCreateNestedOneWithoutWorkspacesCreatedInput;
+    members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput;
+    invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput;
+    projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
+    tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+};
+export type WorkspaceUncheckedCreateWithoutDocsInput = {
+    id?: string;
+    name: string;
+    logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput;
+    invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput;
+    projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
+    tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+};
+export type WorkspaceCreateOrConnectWithoutDocsInput = {
+    where: Prisma.WorkspaceWhereUniqueInput;
+    create: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocsInput, Prisma.WorkspaceUncheckedCreateWithoutDocsInput>;
+};
+export type WorkspaceUpsertWithoutDocsInput = {
+    update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutDocsInput, Prisma.WorkspaceUncheckedUpdateWithoutDocsInput>;
+    create: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocsInput, Prisma.WorkspaceUncheckedCreateWithoutDocsInput>;
+    where?: Prisma.WorkspaceWhereInput;
+};
+export type WorkspaceUpdateToOneWithWhereWithoutDocsInput = {
+    where?: Prisma.WorkspaceWhereInput;
+    data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutDocsInput, Prisma.WorkspaceUncheckedUpdateWithoutDocsInput>;
+};
+export type WorkspaceUpdateWithoutDocsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    creator?: Prisma.UserUpdateOneRequiredWithoutWorkspacesCreatedNestedInput;
+    members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput;
+    invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput;
+    projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
+    tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+};
+export type WorkspaceUncheckedUpdateWithoutDocsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
@@ -1019,6 +1145,7 @@ export type WorkspaceUpdateWithoutCreatorInput = {
     channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1035,6 +1162,7 @@ export type WorkspaceUncheckedUpdateWithoutCreatorInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateManyWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1053,6 +1181,7 @@ export type WorkspaceCountOutputType = {
     channels: number;
     tags: number;
     activityLogs: number;
+    docs: number;
 };
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     members?: boolean | WorkspaceCountOutputTypeCountMembersArgs;
@@ -1061,6 +1190,7 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
     channels?: boolean | WorkspaceCountOutputTypeCountChannelsArgs;
     tags?: boolean | WorkspaceCountOutputTypeCountTagsArgs;
     activityLogs?: boolean | WorkspaceCountOutputTypeCountActivityLogsArgs;
+    docs?: boolean | WorkspaceCountOutputTypeCountDocsArgs;
 };
 export type WorkspaceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.WorkspaceCountOutputTypeSelect<ExtArgs> | null;
@@ -1083,6 +1213,9 @@ export type WorkspaceCountOutputTypeCountTagsArgs<ExtArgs extends runtime.Types.
 export type WorkspaceCountOutputTypeCountActivityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ActivityLogWhereInput;
 };
+export type WorkspaceCountOutputTypeCountDocsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.DocWhereInput;
+};
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     name?: boolean;
@@ -1100,6 +1233,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
     channels?: boolean | Prisma.Workspace$channelsArgs<ExtArgs>;
     tags?: boolean | Prisma.Workspace$tagsArgs<ExtArgs>;
     activityLogs?: boolean | Prisma.Workspace$activityLogsArgs<ExtArgs>;
+    docs?: boolean | Prisma.Workspace$docsArgs<ExtArgs>;
     _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["workspace"]>;
 export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1146,6 +1280,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
     channels?: boolean | Prisma.Workspace$channelsArgs<ExtArgs>;
     tags?: boolean | Prisma.Workspace$tagsArgs<ExtArgs>;
     activityLogs?: boolean | Prisma.Workspace$activityLogsArgs<ExtArgs>;
+    docs?: boolean | Prisma.Workspace$docsArgs<ExtArgs>;
     _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1164,6 +1299,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
         channels: Prisma.$ChannelPayload<ExtArgs>[];
         tags: Prisma.$TagPayload<ExtArgs>[];
         activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[];
+        docs: Prisma.$DocPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1234,6 +1370,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
     channels<T extends Prisma.Workspace$channelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$channelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     tags<T extends Prisma.Workspace$tagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     activityLogs<T extends Prisma.Workspace$activityLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    docs<T extends Prisma.Workspace$docsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$docsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -1414,6 +1551,17 @@ export type Workspace$activityLogsArgs<ExtArgs extends runtime.Types.Extensions.
     take?: number;
     skip?: number;
     distinct?: Prisma.ActivityLogScalarFieldEnum | Prisma.ActivityLogScalarFieldEnum[];
+};
+export type Workspace$docsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.DocSelect<ExtArgs> | null;
+    omit?: Prisma.DocOmit<ExtArgs> | null;
+    include?: Prisma.DocInclude<ExtArgs> | null;
+    where?: Prisma.DocWhereInput;
+    orderBy?: Prisma.DocOrderByWithRelationInput | Prisma.DocOrderByWithRelationInput[];
+    cursor?: Prisma.DocWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.DocScalarFieldEnum | Prisma.DocScalarFieldEnum[];
 };
 export type WorkspaceDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.WorkspaceSelect<ExtArgs> | null;

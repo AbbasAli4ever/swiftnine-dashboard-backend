@@ -59,7 +59,7 @@ type AttachmentRecord = {
       id: string;
       name: string;
     };
-  };
+  } | null;
 };
 
 export type ProjectDashboardData = {
@@ -309,7 +309,7 @@ export class DashboardService {
     attachments: AttachmentRecord[],
     taskIdPrefix: string,
   ): ProjectDashboardData['attachments'] {
-    return attachments.map((attachment) => ({
+    return attachments.flatMap((attachment) => attachment.task ? [{
       id: attachment.id,
       taskId: attachment.task.id,
       taskKey: `${taskIdPrefix}-${attachment.task.taskNumber}`,
@@ -321,7 +321,7 @@ export class DashboardService {
       fileSize: Number(attachment.fileSize),
       createdAt: attachment.createdAt,
       uploadedBy: attachment.uploader,
-    }));
+    }] : []);
   }
 
   private formatDateOnly(value: Date | null): string | null {

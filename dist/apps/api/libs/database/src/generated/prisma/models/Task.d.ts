@@ -835,10 +835,12 @@ export type TaskCreateNestedOneWithoutAttachmentsInput = {
     connectOrCreate?: Prisma.TaskCreateOrConnectWithoutAttachmentsInput;
     connect?: Prisma.TaskWhereUniqueInput;
 };
-export type TaskUpdateOneRequiredWithoutAttachmentsNestedInput = {
+export type TaskUpdateOneWithoutAttachmentsNestedInput = {
     create?: Prisma.XOR<Prisma.TaskCreateWithoutAttachmentsInput, Prisma.TaskUncheckedCreateWithoutAttachmentsInput>;
     connectOrCreate?: Prisma.TaskCreateOrConnectWithoutAttachmentsInput;
     upsert?: Prisma.TaskUpsertWithoutAttachmentsInput;
+    disconnect?: Prisma.TaskWhereInput | boolean;
+    delete?: Prisma.TaskWhereInput | boolean;
     connect?: Prisma.TaskWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.TaskUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.TaskUpdateWithoutAttachmentsInput>, Prisma.TaskUncheckedUpdateWithoutAttachmentsInput>;
 };

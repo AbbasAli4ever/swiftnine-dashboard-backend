@@ -75,7 +75,6 @@ let DashboardService = class DashboardService {
                 select: {
                     statusId: true,
                     listId: true,
-                    isCompleted: true,
                 },
             }),
             this.prisma.attachment.findMany({
@@ -134,7 +133,7 @@ let DashboardService = class DashboardService {
                 icon: project.icon,
             },
             statusSummary: this.buildStatusSummary(statuses, tasks),
-            lists: this.buildListSummary(lists, tasks),
+            lists: this.buildListSummary(lists, tasks, statuses),
             attachments: this.buildAttachments(attachments, project.taskIdPrefix),
             docs: [],
         };
@@ -153,12 +152,13 @@ let DashboardService = class DashboardService {
             count: taskCountByStatus.get(status.id) ?? 0,
         }));
     }
-    buildListSummary(lists, tasks) {
+    buildListSummary(lists, tasks, statuses) {
+        const closedStatusIds = new Set(statuses.filter((status) => status.group === 'CLOSED').map((status) => status.id));
         const listStats = new Map();
         for (const task of tasks) {
             const current = listStats.get(task.listId) ?? { taskCount: 0, completedCount: 0 };
             current.taskCount += 1;
-            if (task.isCompleted) {
+            if (closedStatusIds.has(task.statusId)) {
                 current.completedCount += 1;
             }
             listStats.set(task.listId, current);
@@ -181,19 +181,19 @@ let DashboardService = class DashboardService {
         });
     }
     buildAttachments(attachments, taskIdPrefix) {
-        return attachments.map((attachment) => ({
-            id: attachment.id,
-            taskId: attachment.task.id,
-            taskKey: `${taskIdPrefix}-${attachment.task.taskNumber}`,
-            taskTitle: attachment.task.title,
-            listId: attachment.task.list.id,
-            listName: attachment.task.list.name,
-            fileName: attachment.fileName,
-            mimeType: attachment.mimeType,
-            fileSize: Number(attachment.fileSize),
-            createdAt: attachment.createdAt,
-            uploadedBy: attachment.uploader,
-        }));
+        return attachments.flatMap((attachment) => attachment.task ? [{
+                id: attachment.id,
+                taskId: attachment.task.id,
+                taskKey: `${taskIdPrefix}-${attachment.task.taskNumber}`,
+                taskTitle: attachment.task.title,
+                listId: attachment.task.list.id,
+                listName: attachment.task.list.name,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                fileSize: Number(attachment.fileSize),
+                createdAt: attachment.createdAt,
+                uploadedBy: attachment.uploader,
+            }] : []);
     }
     formatDateOnly(value) {
         return value ? value.toISOString().slice(0, 10) : null;

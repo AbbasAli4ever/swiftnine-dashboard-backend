@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChannelPrivacy = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
+exports.DocVersionType = exports.DocRole = exports.DocScope = exports.ChannelPrivacy = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
     MEMBER: 'MEMBER'
@@ -48,5 +48,21 @@ exports.StatusGroup = {
 exports.ChannelPrivacy = {
     PUBLIC: 'PUBLIC',
     PRIVATE: 'PRIVATE'
+};
+exports.DocScope = {
+    WORKSPACE: 'WORKSPACE',
+    PROJECT: 'PROJECT',
+    PERSONAL: 'PERSONAL'
+};
+exports.DocRole = {
+    VIEWER: 'VIEWER',
+    COMMENTER: 'COMMENTER',
+    EDITOR: 'EDITOR',
+    OWNER: 'OWNER'
+};
+exports.DocVersionType = {
+    AUTO: 'AUTO',
+    MANUAL: 'MANUAL',
+    RESTORE_SAFETY: 'RESTORE_SAFETY'
 };
 //# sourceMappingURL=enums.js.map

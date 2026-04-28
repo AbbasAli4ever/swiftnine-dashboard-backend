@@ -53,3 +53,22 @@ export declare const ChannelPrivacy: {
     readonly PRIVATE: "PRIVATE";
 };
 export type ChannelPrivacy = (typeof ChannelPrivacy)[keyof typeof ChannelPrivacy];
+export declare const DocScope: {
+    readonly WORKSPACE: "WORKSPACE";
+    readonly PROJECT: "PROJECT";
+    readonly PERSONAL: "PERSONAL";
+};
+export type DocScope = (typeof DocScope)[keyof typeof DocScope];
+export declare const DocRole: {
+    readonly VIEWER: "VIEWER";
+    readonly COMMENTER: "COMMENTER";
+    readonly EDITOR: "EDITOR";
+    readonly OWNER: "OWNER";
+};
+export type DocRole = (typeof DocRole)[keyof typeof DocRole];
+export declare const DocVersionType: {
+    readonly AUTO: "AUTO";
+    readonly MANUAL: "MANUAL";
+    readonly RESTORE_SAFETY: "RESTORE_SAFETY";
+};
+export type DocVersionType = (typeof DocVersionType)[keyof typeof DocVersionType];

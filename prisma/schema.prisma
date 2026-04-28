@@ -112,6 +112,13 @@ model User {
   attachmentsUploaded     Attachment[]
   timeEntries             TimeEntry[]
   activityLogs            ActivityLog[]
+  docsOwned               Doc[]                @relation("DocOwner")
+  docVersionsCreated      DocVersion[]         @relation("DocVersionCreator")
+  docPermissionsGranted   DocPermission[]      @relation("DocPermissionGranter")
+  docPermissionsReceived  DocPermission[]      @relation("DocPermissionGrantee")
+  docThreadsCreated       DocCommentThread[]   @relation("DocThreadCreator")
+  docCommentsAuthored     DocComment[]         @relation("DocCommentAuthor")
+  docShareLinksCreated    DocShareLink[]       @relation("DocShareLinkCreator")
 
   @@map("users")
 }
@@ -184,6 +191,7 @@ model Workspace {
   channels     Channel[]
   tags         Tag[]
   activityLogs ActivityLog[]
+  docs         Doc[]
 
   @@map("workspaces")
 }
@@ -251,6 +259,7 @@ model Project {
   channels   Channel[]
   taskLists TaskList[]
   statuses  Status[]
+  docs      Doc[]
 
   @@unique([workspaceId, taskIdPrefix])
   @@index([workspaceId])
@@ -483,10 +492,11 @@ model Notification {
   @@map("notifications")
 }
 
-/// File attachments on tasks — stored in AWS S3
+/// File attachments on tasks or docs — stored in AWS S3
 model Attachment {
   id         String   @id @default(uuid())
-  taskId     String   @map("task_id")
+  taskId     String?  @map("task_id")
+  docId      String?  @map("doc_id")
   uploadedBy String   @map("uploaded_by")
   fileName   String   @map("file_name")
   s3Key      String   @unique @map("s3_key")
@@ -496,10 +506,12 @@ model Attachment {
   deletedAt  DateTime? @map("deleted_at")
 
   // Relations
-  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task     Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  doc      Doc?  @relation(fields: [docId], references: [id], onDelete: Cascade)
   uploader User @relation(fields: [uploadedBy], references: [id])
 
   @@index([taskId])
+  @@index([docId])
   @@map("attachments")
 }
 
@@ -589,4 +601,154 @@ model ChannelMember {
   @@unique([channelId, userId])
   @@index([userId])
   @@map("channel_members")
+}
+
+// ============================================================
+// DOCS FEATURE
+// ============================================================
+
+enum DocScope {
+  WORKSPACE
+  PROJECT
+  PERSONAL
+}
+
+enum DocRole {
+  VIEWER
+  COMMENTER
+  EDITOR
+  OWNER
+}
+
+enum DocVersionType {
+  AUTO
+  MANUAL
+  RESTORE_SAFETY
+}
+
+/// A document — belongs to a workspace, optionally a project, always has an owner
+model Doc {
+  id               String    @id @default(uuid())
+  workspaceId      String    @map("workspace_id")
+  projectId        String?   @map("project_id")
+  ownerId          String    @map("owner_id")
+  scope            DocScope
+  title            String
+  contentJson      Json      @default("{}") @map("content_json")
+  plaintext        String    @default("") // denormalized text extracted from contentJson for full-text search
+  version          Int       @default(0)
+  lastCheckpointAt DateTime? @map("last_checkpoint_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  // Relations
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  owner       User               @relation("DocOwner", fields: [ownerId], references: [id])
+  versions    DocVersion[]
+  permissions DocPermission[]
+  threads     DocCommentThread[]
+  shareLinks  DocShareLink[]
+  attachments Attachment[]
+
+  @@index([workspaceId, scope, deletedAt])
+  @@index([projectId])
+  @@index([ownerId])
+  @@map("docs")
+}
+
+/// Point-in-time snapshot of a Doc — auto every 20 min or manual by user
+model DocVersion {
+  id          String         @id @default(uuid())
+  docId       String         @map("doc_id")
+  contentJson Json           @map("content_json")
+  type        DocVersionType
+  label       String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  createdById String         @map("created_by_id")
+
+  // Relations
+  doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
+  createdBy User @relation("DocVersionCreator", fields: [createdById], references: [id])
+
+  @@index([docId, createdAt])
+  @@map("doc_versions")
+}
+
+/// Per-doc role override — supplements inherited workspace/project role
+model DocPermission {
+  id          String   @id @default(uuid())
+  docId       String   @map("doc_id")
+  userId      String   @map("user_id")
+  role        DocRole
+  grantedById String   @map("granted_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
+  user      User @relation("DocPermissionGrantee", fields: [userId], references: [id])
+  grantedBy User @relation("DocPermissionGranter", fields: [grantedById], references: [id])
+
+  @@unique([docId, userId])
+  @@index([userId])
+  @@map("doc_permissions")
+}
+
+/// A comment thread anchored to a block selection or the doc as a whole
+model DocCommentThread {
+  id            String   @id @default(uuid())
+  docId         String   @map("doc_id")
+  anchorBlockId String?  @map("anchor_block_id")
+  anchorMeta    Json?    @map("anchor_meta") // { charStart, charEnd } — null when doc-level or orphaned
+  resolved      Boolean  @default(false)
+  isOrphan      Boolean  @default(false) @map("is_orphan")
+  createdById   String   @map("created_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  doc       Doc          @relation(fields: [docId], references: [id], onDelete: Cascade)
+  createdBy User         @relation("DocThreadCreator", fields: [createdById], references: [id])
+  comments  DocComment[]
+
+  @@index([docId, resolved])
+  @@map("doc_comment_threads")
+}
+
+/// Single reply within a DocCommentThread
+model DocComment {
+  id        String    @id @default(uuid())
+  threadId  String    @map("thread_id")
+  authorId  String    @map("author_id")
+  body      String
+  editedAt  DateTime? @map("edited_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  thread DocCommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User             @relation("DocCommentAuthor", fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@map("doc_comments")
+}
+
+/// Public share link — time-limited, role-scoped, revocable
+model DocShareLink {
+  id          String    @id @default(uuid())
+  docId       String    @map("doc_id")
+  token       String    @unique
+  role        DocRole   // VIEWER or COMMENTER only
+  expiresAt   DateTime? @map("expires_at")
+  createdById String    @map("created_by_id")
+  revokedAt   DateTime? @map("revoked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
+  createdBy User @relation("DocShareLinkCreator", fields: [createdById], references: [id])
+
+  @@index([docId])
+  @@map("doc_share_links")
 }

@@ -14,6 +14,9 @@ import { AttachmentDto } from './dto/attachment.dto';
 import { ViewAttachmentResponseDto } from './dto/view-attachment-response.dto';
 import { DeleteAttachmentResponseDto } from './dto/delete-attachment-response.dto';
 import { ApiNotFoundResponse, ApiForbiddenResponse } from '@nestjs/swagger';
+import { CreateDocAttachmentDto } from './dto/create-doc-attachment.dto';
+import { ViewDocAttachmentsDto } from './dto/view-doc-attachments.dto';
+import { DeleteDocAttachmentDto } from './dto/delete-doc-attachment.dto';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
@@ -54,6 +57,26 @@ export class AttachmentsController {
     return ok(result, 'Attachment created');
   }
 
+  @Post('docs')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create attachment record for a document after upload' })
+  @ApiBody({ type: CreateDocAttachmentDto })
+  @ApiResponse({ status: 200, description: 'Document attachment recorded', type: AttachmentDto })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiForbiddenResponse({ description: 'Document edit access required' })
+  async createForDoc(@Req() req: AuthenticatedRequest, @Body() dto: CreateDocAttachmentDto) {
+    const result = await this.attachmentsService.createAttachmentForDoc(
+      req.user.id,
+      dto.docId,
+      dto.s3Key,
+      dto.fileName,
+      dto.mimeType,
+      dto.fileSize,
+    );
+    return ok(result, 'Attachment created');
+  }
+
   @Post('view')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -65,6 +88,17 @@ export class AttachmentsController {
     return ok(result, 'Attachments returned');
   }
 
+  @Post('docs/view')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List and get presigned view URLs for attachments on a document' })
+  @ApiBody({ type: ViewDocAttachmentsDto })
+  @ApiResponse({ status: 200, description: 'Document attachment URLs returned', type: ViewAttachmentResponseDto, isArray: true })
+  async viewForDoc(@Req() req: AuthenticatedRequest, @Body() dto: ViewDocAttachmentsDto) {
+    const result = await this.attachmentsService.listAttachmentsForDoc(req.user.id, dto.docId);
+    return ok(result, 'Attachments returned');
+  }
+
   @Delete()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -73,6 +107,17 @@ export class AttachmentsController {
   @ApiResponse({ status: 200, description: 'Attachment deleted', type: DeleteAttachmentResponseDto })
   async remove(@Req() req: AuthenticatedRequest, @Body() dto: DeleteAttachmentDto) {
     const result = await this.attachmentsService.deleteAttachment(req.user.id, dto.taskId, dto.memberId, dto.s3Key);
+    return ok(result, 'Attachment deleted');
+  }
+
+  @Delete('docs')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete an attachment for a document' })
+  @ApiBody({ type: DeleteDocAttachmentDto })
+  @ApiResponse({ status: 200, description: 'Document attachment deleted', type: DeleteAttachmentResponseDto })
+  async removeForDoc(@Req() req: AuthenticatedRequest, @Body() dto: DeleteDocAttachmentDto) {
+    const result = await this.attachmentsService.deleteAttachmentForDoc(req.user.id, dto.docId, dto.s3Key);
     return ok(result, 'Attachment deleted');
   }
 }

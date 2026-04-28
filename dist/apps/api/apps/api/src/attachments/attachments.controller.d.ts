@@ -5,6 +5,9 @@ import type { AuthUser } from '../auth/auth.service';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { ViewAttachmentsDto } from './dto/view-attachments.dto';
 import { DeleteAttachmentDto } from './dto/delete-attachment.dto';
+import { CreateDocAttachmentDto } from './dto/create-doc-attachment.dto';
+import { ViewDocAttachmentsDto } from './dto/view-doc-attachments.dto';
+import { DeleteDocAttachmentDto } from './dto/delete-doc-attachment.dto';
 type AuthenticatedRequest = Request & {
     user: AuthUser;
 };
@@ -24,6 +27,14 @@ export declare class AttachmentsController {
         s3Key: string;
         mimeType: string;
     }>>;
+    createForDoc(req: AuthenticatedRequest, dto: CreateDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
+        fileSize: number;
+        id: string;
+        createdAt: Date;
+        fileName: string;
+        s3Key: string;
+        mimeType: string;
+    }>>;
     view(req: AuthenticatedRequest, dto: ViewAttachmentsDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;
         url: string;
@@ -33,7 +44,20 @@ export declare class AttachmentsController {
         s3Key: string;
         mimeType: string;
     }[]>>;
+    viewForDoc(req: AuthenticatedRequest, dto: ViewDocAttachmentsDto): Promise<import("@app/common").ApiResponse<{
+        fileSize: number;
+        url: string;
+        expiresAt: Date;
+        id: string;
+        fileName: string;
+        mimeType: string;
+        s3Key: string;
+    }[]>>;
     remove(req: AuthenticatedRequest, dto: DeleteAttachmentDto): Promise<import("@app/common").ApiResponse<{
+        id: string;
+        s3Key: string;
+    }>>;
+    removeForDoc(req: AuthenticatedRequest, dto: DeleteDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
         id: string;
         s3Key: string;
     }>>;

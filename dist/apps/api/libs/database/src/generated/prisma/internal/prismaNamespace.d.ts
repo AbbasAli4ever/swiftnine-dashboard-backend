@@ -180,6 +180,12 @@ export declare const ModelName: {
     readonly ActivityLog: "ActivityLog";
     readonly Channel: "Channel";
     readonly ChannelMember: "ChannelMember";
+    readonly Doc: "Doc";
+    readonly DocVersion: "DocVersion";
+    readonly DocPermission: "DocPermission";
+    readonly DocCommentThread: "DocCommentThread";
+    readonly DocComment: "DocComment";
+    readonly DocShareLink: "DocShareLink";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export interface TypeMapCb<GlobalOmitOptions = {}> extends runtime.Types.Utils.Fn<{
@@ -192,7 +198,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -1898,6 +1904,450 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 };
             };
         };
+        Doc: {
+            payload: Prisma.$DocPayload<ExtArgs>;
+            fields: Prisma.DocFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>[];
+                };
+                create: {
+                    args: Prisma.DocCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                update: {
+                    args: Prisma.DocUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDoc>;
+                };
+                groupBy: {
+                    args: Prisma.DocGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocCountAggregateOutputType> | number;
+                };
+            };
+        };
+        DocVersion: {
+            payload: Prisma.$DocVersionPayload<ExtArgs>;
+            fields: Prisma.DocVersionFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocVersionFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocVersionFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocVersionFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocVersionFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocVersionFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>[];
+                };
+                create: {
+                    args: Prisma.DocVersionCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocVersionCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocVersionCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocVersionDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                update: {
+                    args: Prisma.DocVersionUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocVersionDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocVersionUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocVersionUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocVersionUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocVersionPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocVersionAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDocVersion>;
+                };
+                groupBy: {
+                    args: Prisma.DocVersionGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocVersionGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocVersionCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocVersionCountAggregateOutputType> | number;
+                };
+            };
+        };
+        DocPermission: {
+            payload: Prisma.$DocPermissionPayload<ExtArgs>;
+            fields: Prisma.DocPermissionFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocPermissionFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocPermissionFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocPermissionFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocPermissionFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocPermissionFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>[];
+                };
+                create: {
+                    args: Prisma.DocPermissionCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocPermissionCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocPermissionCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocPermissionDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                update: {
+                    args: Prisma.DocPermissionUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocPermissionDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocPermissionUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocPermissionUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocPermissionUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocPermissionPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocPermissionAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDocPermission>;
+                };
+                groupBy: {
+                    args: Prisma.DocPermissionGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocPermissionGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocPermissionCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocPermissionCountAggregateOutputType> | number;
+                };
+            };
+        };
+        DocCommentThread: {
+            payload: Prisma.$DocCommentThreadPayload<ExtArgs>;
+            fields: Prisma.DocCommentThreadFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocCommentThreadFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocCommentThreadFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocCommentThreadFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocCommentThreadFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocCommentThreadFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>[];
+                };
+                create: {
+                    args: Prisma.DocCommentThreadCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocCommentThreadCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocCommentThreadCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocCommentThreadDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                update: {
+                    args: Prisma.DocCommentThreadUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocCommentThreadDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocCommentThreadUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocCommentThreadUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocCommentThreadUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentThreadPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocCommentThreadAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDocCommentThread>;
+                };
+                groupBy: {
+                    args: Prisma.DocCommentThreadGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocCommentThreadGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocCommentThreadCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocCommentThreadCountAggregateOutputType> | number;
+                };
+            };
+        };
+        DocComment: {
+            payload: Prisma.$DocCommentPayload<ExtArgs>;
+            fields: Prisma.DocCommentFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocCommentFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocCommentFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocCommentFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocCommentFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocCommentFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>[];
+                };
+                create: {
+                    args: Prisma.DocCommentCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocCommentCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocCommentCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocCommentDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                update: {
+                    args: Prisma.DocCommentUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocCommentDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocCommentUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocCommentUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocCommentUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocCommentPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocCommentAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDocComment>;
+                };
+                groupBy: {
+                    args: Prisma.DocCommentGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocCommentGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocCommentCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocCommentCountAggregateOutputType> | number;
+                };
+            };
+        };
+        DocShareLink: {
+            payload: Prisma.$DocShareLinkPayload<ExtArgs>;
+            fields: Prisma.DocShareLinkFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.DocShareLinkFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.DocShareLinkFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                findFirst: {
+                    args: Prisma.DocShareLinkFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.DocShareLinkFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                findMany: {
+                    args: Prisma.DocShareLinkFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>[];
+                };
+                create: {
+                    args: Prisma.DocShareLinkCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                createMany: {
+                    args: Prisma.DocShareLinkCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.DocShareLinkCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>[];
+                };
+                delete: {
+                    args: Prisma.DocShareLinkDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                update: {
+                    args: Prisma.DocShareLinkUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.DocShareLinkDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.DocShareLinkUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.DocShareLinkUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>[];
+                };
+                upsert: {
+                    args: Prisma.DocShareLinkUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$DocShareLinkPayload>;
+                };
+                aggregate: {
+                    args: Prisma.DocShareLinkAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateDocShareLink>;
+                };
+                groupBy: {
+                    args: Prisma.DocShareLinkGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocShareLinkGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.DocShareLinkCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.DocShareLinkCountAggregateOutputType> | number;
+                };
+            };
+        };
     };
 } & {
     other: {
@@ -2152,6 +2602,7 @@ export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[k
 export declare const AttachmentScalarFieldEnum: {
     readonly id: "id";
     readonly taskId: "taskId";
+    readonly docId: "docId";
     readonly uploadedBy: "uploadedBy";
     readonly fileName: "fileName";
     readonly s3Key: "s3Key";
@@ -2209,6 +2660,74 @@ export declare const ChannelMemberScalarFieldEnum: {
     readonly createdAt: "createdAt";
 };
 export type ChannelMemberScalarFieldEnum = (typeof ChannelMemberScalarFieldEnum)[keyof typeof ChannelMemberScalarFieldEnum];
+export declare const DocScalarFieldEnum: {
+    readonly id: "id";
+    readonly workspaceId: "workspaceId";
+    readonly projectId: "projectId";
+    readonly ownerId: "ownerId";
+    readonly scope: "scope";
+    readonly title: "title";
+    readonly contentJson: "contentJson";
+    readonly plaintext: "plaintext";
+    readonly version: "version";
+    readonly lastCheckpointAt: "lastCheckpointAt";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly deletedAt: "deletedAt";
+};
+export type DocScalarFieldEnum = (typeof DocScalarFieldEnum)[keyof typeof DocScalarFieldEnum];
+export declare const DocVersionScalarFieldEnum: {
+    readonly id: "id";
+    readonly docId: "docId";
+    readonly contentJson: "contentJson";
+    readonly type: "type";
+    readonly label: "label";
+    readonly createdAt: "createdAt";
+    readonly createdById: "createdById";
+};
+export type DocVersionScalarFieldEnum = (typeof DocVersionScalarFieldEnum)[keyof typeof DocVersionScalarFieldEnum];
+export declare const DocPermissionScalarFieldEnum: {
+    readonly id: "id";
+    readonly docId: "docId";
+    readonly userId: "userId";
+    readonly role: "role";
+    readonly grantedById: "grantedById";
+    readonly createdAt: "createdAt";
+};
+export type DocPermissionScalarFieldEnum = (typeof DocPermissionScalarFieldEnum)[keyof typeof DocPermissionScalarFieldEnum];
+export declare const DocCommentThreadScalarFieldEnum: {
+    readonly id: "id";
+    readonly docId: "docId";
+    readonly anchorBlockId: "anchorBlockId";
+    readonly anchorMeta: "anchorMeta";
+    readonly resolved: "resolved";
+    readonly isOrphan: "isOrphan";
+    readonly createdById: "createdById";
+    readonly createdAt: "createdAt";
+};
+export type DocCommentThreadScalarFieldEnum = (typeof DocCommentThreadScalarFieldEnum)[keyof typeof DocCommentThreadScalarFieldEnum];
+export declare const DocCommentScalarFieldEnum: {
+    readonly id: "id";
+    readonly threadId: "threadId";
+    readonly authorId: "authorId";
+    readonly body: "body";
+    readonly editedAt: "editedAt";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly deletedAt: "deletedAt";
+};
+export type DocCommentScalarFieldEnum = (typeof DocCommentScalarFieldEnum)[keyof typeof DocCommentScalarFieldEnum];
+export declare const DocShareLinkScalarFieldEnum: {
+    readonly id: "id";
+    readonly docId: "docId";
+    readonly token: "token";
+    readonly role: "role";
+    readonly expiresAt: "expiresAt";
+    readonly createdById: "createdById";
+    readonly revokedAt: "revokedAt";
+    readonly createdAt: "createdAt";
+};
+export type DocShareLinkScalarFieldEnum = (typeof DocShareLinkScalarFieldEnum)[keyof typeof DocShareLinkScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";
@@ -2218,6 +2737,11 @@ export declare const JsonNullValueInput: {
     readonly JsonNull: runtime.JsonNullClass;
 };
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
+export declare const NullableJsonNullValueInput: {
+    readonly DbNull: runtime.DbNullClass;
+    readonly JsonNull: runtime.JsonNullClass;
+};
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput];
 export declare const QueryMode: {
     readonly default: "default";
     readonly insensitive: "insensitive";
@@ -2259,6 +2783,12 @@ export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>;
 export type EnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy'>;
 export type ListEnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy[]'>;
+export type EnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope'>;
+export type ListEnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope[]'>;
+export type EnumDocVersionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocVersionType'>;
+export type ListEnumDocVersionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocVersionType[]'>;
+export type EnumDocRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocRole'>;
+export type ListEnumDocRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocRole[]'>;
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>;
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>;
 export type BatchPayload = {
@@ -2308,6 +2838,12 @@ export type GlobalOmitConfig = {
     activityLog?: Prisma.ActivityLogOmit;
     channel?: Prisma.ChannelOmit;
     channelMember?: Prisma.ChannelMemberOmit;
+    doc?: Prisma.DocOmit;
+    docVersion?: Prisma.DocVersionOmit;
+    docPermission?: Prisma.DocPermissionOmit;
+    docCommentThread?: Prisma.DocCommentThreadOmit;
+    docComment?: Prisma.DocCommentOmit;
+    docShareLink?: Prisma.DocShareLinkOmit;
 };
 export type LogLevel = 'info' | 'query' | 'warn' | 'error';
 export type LogDefinition = {

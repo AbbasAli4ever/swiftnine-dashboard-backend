@@ -97,5 +97,23 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get channelMember(): Prisma.ChannelMemberDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get doc(): Prisma.DocDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get docVersion(): Prisma.DocVersionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get docPermission(): Prisma.DocPermissionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get docCommentThread(): Prisma.DocCommentThreadDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get docComment(): Prisma.DocCommentDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get docShareLink(): Prisma.DocShareLinkDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

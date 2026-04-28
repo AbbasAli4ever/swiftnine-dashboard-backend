@@ -33,7 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.JsonNullValueInput = exports.SortOrder = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -82,7 +83,13 @@ exports.ModelName = {
     TimeEntry: 'TimeEntry',
     ActivityLog: 'ActivityLog',
     Channel: 'Channel',
-    ChannelMember: 'ChannelMember'
+    ChannelMember: 'ChannelMember',
+    Doc: 'Doc',
+    DocVersion: 'DocVersion',
+    DocPermission: 'DocPermission',
+    DocCommentThread: 'DocCommentThread',
+    DocComment: 'DocComment',
+    DocShareLink: 'DocShareLink'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -295,6 +302,7 @@ exports.NotificationScalarFieldEnum = {
 exports.AttachmentScalarFieldEnum = {
     id: 'id',
     taskId: 'taskId',
+    docId: 'docId',
     uploadedBy: 'uploadedBy',
     fileName: 'fileName',
     s3Key: 's3Key',
@@ -347,11 +355,77 @@ exports.ChannelMemberScalarFieldEnum = {
     role: 'role',
     createdAt: 'createdAt'
 };
+exports.DocScalarFieldEnum = {
+    id: 'id',
+    workspaceId: 'workspaceId',
+    projectId: 'projectId',
+    ownerId: 'ownerId',
+    scope: 'scope',
+    title: 'title',
+    contentJson: 'contentJson',
+    plaintext: 'plaintext',
+    version: 'version',
+    lastCheckpointAt: 'lastCheckpointAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+};
+exports.DocVersionScalarFieldEnum = {
+    id: 'id',
+    docId: 'docId',
+    contentJson: 'contentJson',
+    type: 'type',
+    label: 'label',
+    createdAt: 'createdAt',
+    createdById: 'createdById'
+};
+exports.DocPermissionScalarFieldEnum = {
+    id: 'id',
+    docId: 'docId',
+    userId: 'userId',
+    role: 'role',
+    grantedById: 'grantedById',
+    createdAt: 'createdAt'
+};
+exports.DocCommentThreadScalarFieldEnum = {
+    id: 'id',
+    docId: 'docId',
+    anchorBlockId: 'anchorBlockId',
+    anchorMeta: 'anchorMeta',
+    resolved: 'resolved',
+    isOrphan: 'isOrphan',
+    createdById: 'createdById',
+    createdAt: 'createdAt'
+};
+exports.DocCommentScalarFieldEnum = {
+    id: 'id',
+    threadId: 'threadId',
+    authorId: 'authorId',
+    body: 'body',
+    editedAt: 'editedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+};
+exports.DocShareLinkScalarFieldEnum = {
+    id: 'id',
+    docId: 'docId',
+    token: 'token',
+    role: 'role',
+    expiresAt: 'expiresAt',
+    createdById: 'createdById',
+    revokedAt: 'revokedAt',
+    createdAt: 'createdAt'
+};
 exports.SortOrder = {
     asc: 'asc',
     desc: 'desc'
 };
 exports.JsonNullValueInput = {
+    JsonNull: exports.JsonNull
+};
+exports.NullableJsonNullValueInput = {
+    DbNull: exports.DbNull,
     JsonNull: exports.JsonNull
 };
 exports.QueryMode = {

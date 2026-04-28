@@ -19,6 +19,7 @@ import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ChannelsModule } from './channels/channels.module';
+import { DocsModule } from './docs/docs.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ChannelsModule } from './channels/channels.module';
     ChannelsModule,
     NotificationsModule,
     DashboardModule,
+    DocsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

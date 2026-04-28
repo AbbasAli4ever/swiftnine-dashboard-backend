@@ -27,6 +27,9 @@ const attachment_dto_1 = require("./dto/attachment.dto");
 const view_attachment_response_dto_1 = require("./dto/view-attachment-response.dto");
 const delete_attachment_response_dto_1 = require("./dto/delete-attachment-response.dto");
 const swagger_2 = require("@nestjs/swagger");
+const create_doc_attachment_dto_1 = require("./dto/create-doc-attachment.dto");
+const view_doc_attachments_dto_1 = require("./dto/view-doc-attachments.dto");
+const delete_doc_attachment_dto_1 = require("./dto/delete-doc-attachment.dto");
 let AttachmentsController = class AttachmentsController {
     attachmentsService;
     constructor(attachmentsService) {
@@ -40,12 +43,24 @@ let AttachmentsController = class AttachmentsController {
         const result = await this.attachmentsService.createAttachment(req.user.id, dto.taskId, dto.memberId, dto.s3Key, dto.fileName, dto.mimeType, dto.fileSize);
         return (0, common_2.ok)(result, 'Attachment created');
     }
+    async createForDoc(req, dto) {
+        const result = await this.attachmentsService.createAttachmentForDoc(req.user.id, dto.docId, dto.s3Key, dto.fileName, dto.mimeType, dto.fileSize);
+        return (0, common_2.ok)(result, 'Attachment created');
+    }
     async view(req, dto) {
         const result = await this.attachmentsService.listAttachmentsForTask(req.user.id, dto.taskId, dto.memberId);
         return (0, common_2.ok)(result, 'Attachments returned');
     }
+    async viewForDoc(req, dto) {
+        const result = await this.attachmentsService.listAttachmentsForDoc(req.user.id, dto.docId);
+        return (0, common_2.ok)(result, 'Attachments returned');
+    }
     async remove(req, dto) {
         const result = await this.attachmentsService.deleteAttachment(req.user.id, dto.taskId, dto.memberId, dto.s3Key);
+        return (0, common_2.ok)(result, 'Attachment deleted');
+    }
+    async removeForDoc(req, dto) {
+        const result = await this.attachmentsService.deleteAttachmentForDoc(req.user.id, dto.docId, dto.s3Key);
         return (0, common_2.ok)(result, 'Attachment deleted');
     }
 };
@@ -79,6 +94,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "create", null);
 __decorate([
+    (0, common_1.Post)('docs'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create attachment record for a document after upload' }),
+    (0, swagger_1.ApiBody)({ type: create_doc_attachment_dto_1.CreateDocAttachmentDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment recorded', type: attachment_dto_1.AttachmentDto }),
+    (0, swagger_2.ApiNotFoundResponse)({ description: 'Document not found' }),
+    (0, swagger_2.ApiForbiddenResponse)({ description: 'Document edit access required' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, create_doc_attachment_dto_1.CreateDocAttachmentDto]),
+    __metadata("design:returntype", Promise)
+], AttachmentsController.prototype, "createForDoc", null);
+__decorate([
     (0, common_1.Post)('view'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
@@ -92,6 +122,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "view", null);
 __decorate([
+    (0, common_1.Post)('docs/view'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'List and get presigned view URLs for attachments on a document' }),
+    (0, swagger_1.ApiBody)({ type: view_doc_attachments_dto_1.ViewDocAttachmentsDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment URLs returned', type: view_attachment_response_dto_1.ViewAttachmentResponseDto, isArray: true }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, view_doc_attachments_dto_1.ViewDocAttachmentsDto]),
+    __metadata("design:returntype", Promise)
+], AttachmentsController.prototype, "viewForDoc", null);
+__decorate([
     (0, common_1.Delete)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
@@ -104,6 +147,19 @@ __decorate([
     __metadata("design:paramtypes", [Object, delete_attachment_dto_1.DeleteAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Delete)('docs'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete an attachment for a document' }),
+    (0, swagger_1.ApiBody)({ type: delete_doc_attachment_dto_1.DeleteDocAttachmentDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment deleted', type: delete_attachment_response_dto_1.DeleteAttachmentResponseDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, delete_doc_attachment_dto_1.DeleteDocAttachmentDto]),
+    __metadata("design:returntype", Promise)
+], AttachmentsController.prototype, "removeForDoc", null);
 exports.AttachmentsController = AttachmentsController = __decorate([
     (0, swagger_1.ApiTags)('attachments'),
     (0, common_1.Controller)('attachments'),
