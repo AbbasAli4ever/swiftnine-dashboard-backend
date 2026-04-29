@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "notifications_user_id_is_read_is_cleared_is_snoozed_created_at_" RENAME TO "notifications_user_id_is_read_is_cleared_is_snoozed_created_idx";
