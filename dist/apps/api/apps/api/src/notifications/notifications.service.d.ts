@@ -36,6 +36,8 @@ export declare class NotificationsService implements OnModuleDestroy {
         taskName: string | null;
         commentId: string | null;
         commentName: string | null;
+        replyCommentId: string | null;
+        repliedToCommentId: any;
         actorId: any;
         isRead: any;
         isCleared: any;
@@ -44,7 +46,7 @@ export declare class NotificationsService implements OnModuleDestroy {
         snoozedAt: any;
         createdAt: any;
     }>;
-    createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean): Promise<{
+    createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean, meta?: Record<string, any>): Promise<{
         message: string | null;
         type: string;
         title: string;

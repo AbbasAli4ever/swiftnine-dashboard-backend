@@ -579,19 +579,20 @@ export class CommentsService {
     // If this comment is a reply, notify the author of the parent comment
     if (parentId) {
       const parent = await this.prisma.comment.findFirst({ where: { id: parentId, deletedAt: null }, select: { userId: true } });
-      if (parent && parent.userId !== actorId) {
-        await this.notifications.createNotification(
-          workspaceId,
-          parent.userId,
-          actorId,
-          'comment:reply',
-          `New reply to your comment on ${task.title}`,
-          content,
-          'comment',
-          commentId,
-          false,
-        );
-      }
+            if (parent && parent.userId !== actorId) {
+                await this.notifications.createNotification(
+                    workspaceId,
+                    parent.userId,
+                    actorId,
+                    'comment:reply',
+                    `New reply to your comment on ${task.title}`,
+                    content,
+                    'comment',
+                    commentId,
+                    false,
+                    { parentCommentId: parentId },
+                );
+            }
     }
   }
 
