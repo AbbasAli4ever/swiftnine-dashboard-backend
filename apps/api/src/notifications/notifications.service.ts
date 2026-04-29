@@ -204,6 +204,7 @@ export class NotificationsService implements OnModuleDestroy {
       isRead: enriched.isRead,
       isCleared: enriched.isCleared,
       isSnoozed: enriched.isSnoozed,
+      isCommented: enriched.isCommented,
       snoozedAt: enriched.snoozedAt,
       createdAt: enriched.createdAt,
     };
@@ -218,6 +219,7 @@ export class NotificationsService implements OnModuleDestroy {
     message?: string,
     referenceType?: string,
     referenceId?: string,
+    isCommented?: boolean,
   ) {
     const member = await this.resolveWorkspaceMember(
       workspaceId,
@@ -241,6 +243,7 @@ export class NotificationsService implements OnModuleDestroy {
         referenceType: referenceType ?? '',
         referenceId: referenceId ?? '',
         actorId: actorUserId ?? undefined,
+        isCommented: isCommented ?? false,
         isCleared: false,
         isSnoozed: false,
         snoozedAt: null,

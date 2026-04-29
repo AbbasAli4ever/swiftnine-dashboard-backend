@@ -143,7 +143,15 @@ export class CommentsService {
     });
 
     this.sse.broadcast(taskId, 'comment:created', comment);
-    await this.notifyOnCommentCreated(workspaceId, userId, task, comment.id, normalizedContent, mentionedUsers);
+    await this.notifyOnCommentCreated(
+      workspaceId,
+      userId,
+      task,
+      comment.id,
+      normalizedContent,
+      mentionedUsers,
+      comment.parentId,
+    );
 
     return comment;
   }
@@ -540,6 +548,7 @@ export class CommentsService {
     commentId: string,
     content: string,
     mentionedUsers: MentionedUser[],
+    parentId?: string | null,
   ) {
     const mentionedUserIds = mentionedUsers.map((mentionedUser) => mentionedUser.userId);
     const excludedAssignees = Array.from(new Set([task.createdBy, ...mentionedUserIds]));
@@ -561,10 +570,29 @@ export class CommentsService {
         content,
         'comment',
         commentId,
+        false,
       );
     }
 
     await this.notifyMentionedUsers(workspaceId, actorId, task, commentId, content, mentionedUsers);
+
+    // If this comment is a reply, notify the author of the parent comment
+    if (parentId) {
+      const parent = await this.prisma.comment.findFirst({ where: { id: parentId, deletedAt: null }, select: { userId: true } });
+      if (parent && parent.userId !== actorId) {
+        await this.notifications.createNotification(
+          workspaceId,
+          parent.userId,
+          actorId,
+          'comment:reply',
+          `New reply to your comment on ${task.title}`,
+          content,
+          'comment',
+          commentId,
+          false,
+        );
+      }
+    }
   }
 
   private async notifyMentionedUsers(
@@ -585,6 +613,7 @@ export class CommentsService {
         content,
         'comment',
         commentId,
+        true,
       );
     }
   }

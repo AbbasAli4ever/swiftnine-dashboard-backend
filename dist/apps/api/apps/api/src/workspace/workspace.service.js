@@ -695,6 +695,87 @@ let WorkspaceService = class WorkspaceService {
             },
         });
     }
+    async addMemberByUserId(workspaceId, userId, role, actorId) {
+        await this.assertActorIsOwner(workspaceId, actorId);
+        const user = await this.prisma.user.findFirst({
+            where: { id: userId, deletedAt: null },
+            select: { id: true, fullName: true },
+        });
+        if (!user)
+            throw new common_1.NotFoundException('User not found');
+        const existing = await this.prisma.workspaceMember.findFirst({
+            where: { workspaceId, userId: user.id, deletedAt: null },
+            select: { id: true },
+        });
+        if (existing)
+            throw new common_1.ConflictException('User is already a member of the workspace');
+        await this.prisma.$transaction([
+            this.prisma.workspaceMember.create({
+                data: { workspaceId, userId: user.id, role },
+            }),
+            this.prisma.activityLog.create({
+                data: {
+                    workspaceId,
+                    entityType: 'workspace',
+                    entityId: workspaceId,
+                    action: 'member_added',
+                    metadata: { memberId: user.id, memberName: user.fullName },
+                    performedBy: actorId,
+                },
+            }),
+        ]);
+    }
+    async addMembersByUserIds(workspaceId, userIds, role, actorId) {
+        await this.assertActorIsOwner(workspaceId, actorId);
+        const uniqueIds = [...new Set(userIds.map((id) => id.trim()))];
+        const results = [];
+        for (const uid of uniqueIds) {
+            try {
+                const user = await this.prisma.user.findFirst({
+                    where: { id: uid, deletedAt: null },
+                    select: { id: true, fullName: true },
+                });
+                if (!user) {
+                    results.push({ userId: uid, status: 'failed', message: 'User not found' });
+                    continue;
+                }
+                const existing = await this.prisma.workspaceMember.findFirst({
+                    where: { workspaceId, userId: user.id, deletedAt: null },
+                    select: { id: true },
+                });
+                if (existing) {
+                    results.push({ userId: uid, status: 'already_member', message: null });
+                    continue;
+                }
+                await this.prisma.$transaction([
+                    this.prisma.workspaceMember.create({ data: { workspaceId, userId: user.id, role } }),
+                    this.prisma.activityLog.create({
+                        data: {
+                            workspaceId,
+                            entityType: 'workspace',
+                            entityId: workspaceId,
+                            action: 'member_added',
+                            metadata: { memberId: user.id, memberName: user.fullName },
+                            performedBy: actorId,
+                        },
+                    }),
+                ]);
+                results.push({ userId: uid, status: 'added', message: null });
+            }
+            catch (err) {
+                results.push({ userId: uid, status: 'failed', message: err?.message ?? 'Failed to add user' });
+            }
+        }
+        return {
+            results,
+            summary: {
+                total: results.length,
+                added: results.filter((r) => r.status === 'added').length,
+                alreadyMember: results.filter((r) => r.status === 'already_member').length,
+                failed: results.filter((r) => r.status === 'failed').length,
+            },
+        };
+    }
 };
 exports.WorkspaceService = WorkspaceService;
 exports.WorkspaceService = WorkspaceService = __decorate([

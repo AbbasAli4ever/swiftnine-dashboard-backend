@@ -40,6 +40,21 @@ export type BatchInviteResult = {
         failed: number;
     };
 };
+export type BatchAddStatus = 'added' | 'already_member' | 'failed';
+export type BatchAddMemberResult = {
+    userId: string;
+    status: BatchAddStatus;
+    message: string | null;
+};
+export type BatchAddResult = {
+    results: BatchAddMemberResult[];
+    summary: {
+        total: number;
+        added: number;
+        alreadyMember: number;
+        failed: number;
+    };
+};
 export declare class WorkspaceService {
     private readonly prisma;
     private readonly email;
@@ -103,5 +118,7 @@ export declare class WorkspaceService {
     private assertActorIsOwner;
     removeMember(workspaceId: string, memberId: string, actorId: string): Promise<void>;
     changeMemberRole(workspaceId: string, memberId: string, newRole: Role, actorId: string): Promise<void>;
+    addMemberByUserId(workspaceId: string, userId: string, role: Role, actorId: string): Promise<void>;
+    addMembersByUserIds(workspaceId: string, userIds: string[], role: Role, actorId: string): Promise<BatchAddResult>;
 }
 export {};

@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as Prisma from "../internal/prismaNamespace";
 export type CommentModel = runtime.Types.Result.DefaultSelection<Prisma.$CommentPayload>;
 export type AggregateComment = {
     _count: CommentCountAggregateOutputType | null;

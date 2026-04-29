@@ -19,6 +19,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
 const create_channel_dto_1 = require("./dto/create-channel.dto");
 const channels_service_1 = require("./channels.service");
+const channel_member_dto_1 = require("./dto/channel-member.dto");
 const common_2 = require("../../../../libs/common/src");
 let ChannelsController = class ChannelsController {
     channelsService;
@@ -28,6 +29,18 @@ let ChannelsController = class ChannelsController {
     async create(req, dto) {
         const channel = await this.channelsService.create(req.workspaceContext.workspaceId, req.user.id, dto);
         return (0, common_2.ok)(channel, 'Channel created');
+    }
+    async addMember(req, channelId, dto) {
+        const member = await this.channelsService.addChannelMember(req.workspaceContext.workspaceId, channelId, req.user.id, dto.userId, dto.role);
+        return (0, common_2.ok)(member, 'Member added to channel');
+    }
+    async addMembersBulk(req, channelId, dto) {
+        const members = await this.channelsService.addChannelMembersBulk(req.workspaceContext.workspaceId, channelId, req.user.id, dto.members.map((m) => ({ userId: m.userId, role: m.role })));
+        return (0, common_2.ok)(members, 'Members processed');
+    }
+    async removeMember(req, channelId, memberId) {
+        await this.channelsService.removeChannelMember(req.workspaceContext.workspaceId, channelId, req.user.id, memberId);
+        return (0, common_2.ok)(null, 'Member removed from channel');
     }
 };
 exports.ChannelsController = ChannelsController;
@@ -42,6 +55,48 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_channel_dto_1.CreateChannelDto]),
     __metadata("design:returntype", Promise)
 ], ChannelsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)(':id/members'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, swagger_1.ApiOperation)({ summary: 'Add a member to a channel (channel admin only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' }),
+    (0, swagger_1.ApiBody)({ type: channel_member_dto_1.AddChannelMemberDto }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Member added to channel' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, channel_member_dto_1.AddChannelMemberDto]),
+    __metadata("design:returntype", Promise)
+], ChannelsController.prototype, "addMember", null);
+__decorate([
+    (0, common_1.Post)(':id/members/bulk'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Bulk add members to a channel (channel admin only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' }),
+    (0, swagger_1.ApiBody)({ type: channel_member_dto_1.BulkAddChannelMembersDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Members added/updated' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, channel_member_dto_1.BulkAddChannelMembersDto]),
+    __metadata("design:returntype", Promise)
+], ChannelsController.prototype, "addMembersBulk", null);
+__decorate([
+    (0, common_1.Delete)(':id/members/:memberId'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove a member from a channel (channel admin only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' }),
+    (0, swagger_1.ApiParam)({ name: 'memberId', description: 'Channel member id (channel_members.id)', example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Member removed from channel' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('memberId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChannelsController.prototype, "removeMember", null);
 exports.ChannelsController = ChannelsController = __decorate([
     (0, swagger_1.ApiTags)('channels'),
     (0, swagger_1.ApiBearerAuth)(),

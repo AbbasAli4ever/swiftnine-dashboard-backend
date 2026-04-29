@@ -19,6 +19,7 @@ datasource db {
 
 enum Role {
   OWNER
+  ADMIN
   MEMBER
 }
 
@@ -487,6 +488,7 @@ model Notification {
   // Relations
   recipient User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor     User? @relation("NotificationActor", fields: [actorId], references: [id])
+  isCommented  Boolean   @default(false) @map("is_commented")
 
   @@index([userId, isRead, isCleared, isSnoozed, createdAt])
   @@map("notifications")

@@ -3,7 +3,7 @@ export declare class MemberDetailResponseDto {
     workspaceMemberId: string;
     fullName: string;
     email: string;
-    role: 'OWNER' | 'MEMBER';
+    role: 'OWNER' | 'ADMIN' | 'MEMBER';
     avatarUrl: string | null;
     avatarColor: string | null;
     designation: string | null;

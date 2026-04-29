@@ -1,7 +1,7 @@
 import * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../models.js";
-import { type PrismaClient } from "./class.js";
-export type * from '../models.js';
+import type * as Prisma from "../models";
+import { type PrismaClient } from "./class";
+export type * from '../models';
 export type DMMF = typeof runtime.DMMF;
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>;
 export declare const PrismaClientKnownRequestError: typeof runtime.PrismaClientKnownRequestError;
@@ -2597,6 +2597,7 @@ export declare const NotificationScalarFieldEnum: {
     readonly isSnoozed: "isSnoozed";
     readonly snoozedAt: "snoozedAt";
     readonly createdAt: "createdAt";
+    readonly isCommented: "isCommented";
 };
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
 export declare const AttachmentScalarFieldEnum: {

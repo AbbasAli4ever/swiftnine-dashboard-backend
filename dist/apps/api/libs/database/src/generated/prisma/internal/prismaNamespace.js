@@ -297,7 +297,8 @@ exports.NotificationScalarFieldEnum = {
     isCleared: 'isCleared',
     isSnoozed: 'isSnoozed',
     snoozedAt: 'snoozedAt',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    isCommented: 'isCommented'
 };
 exports.AttachmentScalarFieldEnum = {
     id: 'id',

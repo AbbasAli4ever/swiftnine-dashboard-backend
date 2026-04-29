@@ -1,9 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Req, UseGuards, Param } from '@nestjs/common';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags, ApiBody, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { ChannelsService } from './channels.service';
+import { AddChannelMemberDto, BulkAddChannelMembersDto } from './dto/channel-member.dto';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 
@@ -22,5 +23,38 @@ export class ChannelsController {
   async create(@Req() req: WorkspaceRequest, @Body() dto: CreateChannelDto): Promise<ApiRes<any>> {
     const channel = await this.channelsService.create(req.workspaceContext.workspaceId, req.user.id, dto);
     return ok(channel, 'Channel created');
+  }
+
+  @Post(':id/members')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a member to a channel (channel admin only)' })
+  @ApiParam({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
+  @ApiBody({ type: AddChannelMemberDto })
+  @ApiResponse({ status: 201, description: 'Member added to channel' })
+  async addMember(@Req() req: WorkspaceRequest, @Param('id') channelId: string, @Body() dto: AddChannelMemberDto): Promise<ApiRes<any>> {
+    const member = await this.channelsService.addChannelMember(req.workspaceContext.workspaceId, channelId, req.user.id, dto.userId, dto.role);
+    return ok(member, 'Member added to channel');
+  }
+
+  @Post(':id/members/bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Bulk add members to a channel (channel admin only)' })
+  @ApiParam({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
+  @ApiBody({ type: BulkAddChannelMembersDto })
+  @ApiResponse({ status: 200, description: 'Members added/updated' })
+  async addMembersBulk(@Req() req: WorkspaceRequest, @Param('id') channelId: string, @Body() dto: BulkAddChannelMembersDto): Promise<ApiRes<any>> {
+    const members = await this.channelsService.addChannelMembersBulk(req.workspaceContext.workspaceId, channelId, req.user.id, dto.members.map((m) => ({ userId: m.userId, role: m.role })));
+    return ok(members, 'Members processed');
+  }
+
+  @Delete(':id/members/:memberId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove a member from a channel (channel admin only)' })
+  @ApiParam({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
+  @ApiParam({ name: 'memberId', description: 'Channel member id (channel_members.id)', example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab' })
+  @ApiResponse({ status: 200, description: 'Member removed from channel' })
+  async removeMember(@Req() req: WorkspaceRequest, @Param('id') channelId: string, @Param('memberId') memberId: string): Promise<ApiRes<any>> {
+    await this.channelsService.removeChannelMember(req.workspaceContext.workspaceId, channelId, req.user.id, memberId);
+    return ok(null, 'Member removed from channel');
   }
 }

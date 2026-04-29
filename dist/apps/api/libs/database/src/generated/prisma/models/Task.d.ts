@@ -1,6 +1,6 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as $Enums from "../enums.js";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as $Enums from "../enums";
+import type * as Prisma from "../internal/prismaNamespace";
 export type TaskModel = runtime.Types.Result.DefaultSelection<Prisma.$TaskPayload>;
 export type AggregateTask = {
     _count: TaskCountAggregateOutputType | null;

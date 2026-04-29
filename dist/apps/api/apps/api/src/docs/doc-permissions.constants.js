@@ -9,6 +9,7 @@ exports.DOC_ROLE_RANK = {
 };
 exports.WORKSPACE_ROLE_TO_DOC_ROLE = {
     OWNER: 'OWNER',
+    ADMIN: 'EDITOR',
     MEMBER: 'EDITOR',
 };
 exports.DOC_NOT_FOUND = 'Document not found';

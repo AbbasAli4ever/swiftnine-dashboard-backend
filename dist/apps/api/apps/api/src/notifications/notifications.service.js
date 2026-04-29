@@ -146,11 +146,12 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             isRead: enriched.isRead,
             isCleared: enriched.isCleared,
             isSnoozed: enriched.isSnoozed,
+            isCommented: enriched.isCommented,
             snoozedAt: enriched.snoozedAt,
             createdAt: enriched.createdAt,
         };
     }
-    async createNotification(workspaceId, targetMemberIdOrUserId, actorUserId, type, title, message, referenceType, referenceId) {
+    async createNotification(workspaceId, targetMemberIdOrUserId, actorUserId, type, title, message, referenceType, referenceId, isCommented) {
         const member = await this.resolveWorkspaceMember(workspaceId, targetMemberIdOrUserId);
         if (!member) {
             this.logger.debug(`Notification: no member found for target ${targetMemberIdOrUserId} workspace=${workspaceId}`);
@@ -167,6 +168,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 referenceType: referenceType ?? '',
                 referenceId: referenceId ?? '',
                 actorId: actorUserId ?? undefined,
+                isCommented: isCommented ?? false,
                 isCleared: false,
                 isSnoozed: false,
                 snoozedAt: null,

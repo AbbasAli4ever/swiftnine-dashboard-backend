@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as Prisma from "../internal/prismaNamespace";
 export type DocCommentThreadModel = runtime.Types.Result.DefaultSelection<Prisma.$DocCommentThreadPayload>;
 export type AggregateDocCommentThread = {
     _count: DocCommentThreadCountAggregateOutputType | null;
