@@ -4,12 +4,12 @@ exports.normalizeDocContent = normalizeDocContent;
 exports.defaultDocContent = defaultDocContent;
 exports.extractPlaintext = extractPlaintext;
 exports.assertContentSize = assertContentSize;
-const node_crypto_1 = require("node:crypto");
 const common_1 = require("@nestjs/common");
 const doc_permissions_constants_1 = require("./doc-permissions.constants");
+const doc_blocks_util_1 = require("./doc-blocks.util");
 function normalizeDocContent(value) {
     assertPlainObject(value);
-    const contentJson = normalizeNode(value);
+    const { contentJson } = (0, doc_blocks_util_1.normalizeDocBlockIds)(value);
     assertContentSize(contentJson);
     return {
         contentJson: contentJson,
@@ -32,27 +32,6 @@ function assertContentSize(value) {
     if (bytes > doc_permissions_constants_1.DOC_CONTENT_MAX_BYTES) {
         throw new common_1.PayloadTooLargeException(doc_permissions_constants_1.DOC_CONTENT_TOO_LARGE);
     }
-}
-function normalizeNode(value) {
-    if (Array.isArray(value)) {
-        return value.map((item) => normalizeNode(item));
-    }
-    if (!isPlainObject(value))
-        return value;
-    const node = {};
-    for (const [key, child] of Object.entries(value)) {
-        node[key] = normalizeNode(child);
-    }
-    if (typeof node['type'] === 'string' && isBlockNode(node)) {
-        const attrs = isPlainObject(node['attrs'])
-            ? { ...node['attrs'] }
-            : {};
-        if (typeof attrs['id'] !== 'string' || !attrs['id'].trim()) {
-            attrs['id'] = (0, node_crypto_1.randomUUID)();
-        }
-        node['attrs'] = attrs;
-    }
-    return node;
 }
 function collectText(value, parts) {
     if (Array.isArray(value)) {
@@ -79,29 +58,5 @@ function assertPlainObject(value) {
 }
 function isPlainObject(value) {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-function isBlockNode(node) {
-    if (node['type'] === 'doc')
-        return false;
-    return (Array.isArray(node['content']) ||
-        [
-            'paragraph',
-            'heading',
-            'blockquote',
-            'codeBlock',
-            'bulletList',
-            'orderedList',
-            'listItem',
-            'taskList',
-            'taskItem',
-            'table',
-            'tableRow',
-            'tableCell',
-            'tableHeader',
-            'image',
-            'horizontalRule',
-            'taskCard',
-            'embed',
-        ].includes(String(node['type'])));
 }
 //# sourceMappingURL=doc-content.js.map

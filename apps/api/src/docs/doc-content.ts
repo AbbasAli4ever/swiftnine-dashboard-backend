@@ -1,10 +1,10 @@
-import { randomUUID } from 'node:crypto';
 import { BadRequestException, PayloadTooLargeException } from '@nestjs/common';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import {
   DOC_CONTENT_MAX_BYTES,
   DOC_CONTENT_TOO_LARGE,
 } from './doc-permissions.constants';
+import { normalizeDocBlockIds } from './doc-blocks.util';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -15,7 +15,7 @@ export type NormalizedDocContent = {
 
 export function normalizeDocContent(value: unknown): NormalizedDocContent {
   assertPlainObject(value);
-  const contentJson = normalizeNode(value as JsonRecord);
+  const { contentJson } = normalizeDocBlockIds(value as JsonRecord);
   assertContentSize(contentJson);
 
   return {
@@ -42,31 +42,6 @@ export function assertContentSize(value: unknown): void {
   if (bytes > DOC_CONTENT_MAX_BYTES) {
     throw new PayloadTooLargeException(DOC_CONTENT_TOO_LARGE);
   }
-}
-
-function normalizeNode(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map((item) => normalizeNode(item));
-  }
-
-  if (!isPlainObject(value)) return value;
-
-  const node: JsonRecord = {};
-  for (const [key, child] of Object.entries(value)) {
-    node[key] = normalizeNode(child);
-  }
-
-  if (typeof node['type'] === 'string' && isBlockNode(node)) {
-    const attrs = isPlainObject(node['attrs'])
-      ? { ...(node['attrs'] as JsonRecord) }
-      : {};
-    if (typeof attrs['id'] !== 'string' || !attrs['id'].trim()) {
-      attrs['id'] = randomUUID();
-    }
-    node['attrs'] = attrs;
-  }
-
-  return node;
 }
 
 function collectText(value: unknown, parts: string[]): void {
@@ -101,31 +76,4 @@ function assertPlainObject(value: unknown): asserts value is JsonRecord {
 
 function isPlainObject(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isBlockNode(node: JsonRecord): boolean {
-  if (node['type'] === 'doc') return false;
-
-  return (
-    Array.isArray(node['content']) ||
-    [
-      'paragraph',
-      'heading',
-      'blockquote',
-      'codeBlock',
-      'bulletList',
-      'orderedList',
-      'listItem',
-      'taskList',
-      'taskItem',
-      'table',
-      'tableRow',
-      'tableCell',
-      'tableHeader',
-      'image',
-      'horizontalRule',
-      'taskCard',
-      'embed',
-    ].includes(String(node['type']))
-  );
 }

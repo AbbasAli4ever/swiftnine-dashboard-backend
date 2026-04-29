@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -13,17 +14,50 @@ import {
   DOC_TITLE_REQUIRED,
   DOC_TITLE_TOO_LONG,
   DOC_TITLE_MAX_LENGTH,
+  AUTOSAVE_MAX_RATE_MS,
 } from './doc-permissions.constants';
 import { DocPermissionsService } from './doc-permissions.service';
 import { defaultDocContent, normalizeDocContent } from './doc-content';
+import {
+  diffDocBlocks,
+  extractDocBlocks,
+  intersectBlockIds,
+  mergeDocBlocks,
+} from './doc-blocks.util';
 import type { CreateDocInput } from './dto/create-doc.dto';
 import type { UpdateDocInput } from './dto/update-doc.dto';
 import type { ListDocsQuery } from './dto/list-docs-query.dto';
 
 export type DocData = Prisma.DocGetPayload<{ select: typeof DOC_SELECT }>;
 
+export type AutosaveDocInput = {
+  docId: string;
+  contentJson: unknown;
+  baseVersion: number;
+  lockedBlockIds: Iterable<string>;
+};
+
+export type AutosaveDocResult = {
+  doc: DocData;
+  changedBlockIds: string[];
+  orphanedThreadCount: number;
+};
+
+export class DocSaveConflictException extends ConflictException {
+  constructor(
+    readonly conflictBlockIds: string[],
+    readonly reason: string,
+  ) {
+    super({ conflictBlockIds, reason });
+  }
+}
+
 @Injectable()
 export class DocsService {
+  // NOTE: single-instance only - autosave throttle/version snapshots need Redis to scale out.
+  private readonly autosaveTimestamps = new Map<string, number>();
+  private readonly contentSnapshots = new Map<string, unknown>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly permissions: DocPermissionsService,
@@ -103,6 +137,121 @@ export class DocsService {
       data,
       select: DOC_SELECT,
     });
+  }
+
+  async assertCanEditDoc(userId: string, docId: string): Promise<DocData> {
+    const doc = await this.findDocOrThrow(docId);
+    await this.permissions.assertCanEdit(userId, doc);
+    return doc;
+  }
+
+  async autosave(
+    userId: string,
+    input: AutosaveDocInput,
+    now = Date.now(),
+  ): Promise<AutosaveDocResult> {
+    const throttleKey = `${userId}:${input.docId}`;
+    const lastSaveAt = this.autosaveTimestamps.get(throttleKey);
+    if (lastSaveAt !== undefined && now - lastSaveAt < AUTOSAVE_MAX_RATE_MS) {
+      throw new DocSaveConflictException([], 'Autosave throttled');
+    }
+
+    const doc = await this.findDocOrThrow(input.docId);
+    await this.permissions.assertCanEdit(userId, doc);
+
+    if (!Number.isInteger(input.baseVersion) || input.baseVersion < 0) {
+      throw new BadRequestException('baseVersion must be a non-negative integer');
+    }
+
+    this.rememberSnapshot(doc.id, doc.version, doc.contentJson);
+
+    const normalized = normalizeDocContent(input.contentJson);
+    const lockedBlockIds = new Set(input.lockedBlockIds);
+    const currentBlocks = extractDocBlocks(doc.contentJson);
+    const incomingBlocks = extractDocBlocks(normalized.contentJson);
+
+    let contentToPersist: Prisma.InputJsonValue = normalized.contentJson;
+    let changedBlockIds = diffDocBlocks(currentBlocks, incomingBlocks);
+    let lockBaseBlocks = currentBlocks;
+
+    if (input.baseVersion > doc.version) {
+      throw new DocSaveConflictException([], 'Client base version is ahead of the server');
+    }
+
+    if (input.baseVersion < doc.version) {
+      const baseContent = this.getSnapshot(doc.id, input.baseVersion);
+      if (!baseContent) {
+        throw new DocSaveConflictException([], 'Base version is no longer available');
+      }
+
+      const baseBlocks = extractDocBlocks(baseContent);
+      const serverChangedBlockIds = diffDocBlocks(baseBlocks, currentBlocks);
+      const clientChangedBlockIds = diffDocBlocks(baseBlocks, incomingBlocks);
+      const overlap = intersectBlockIds(serverChangedBlockIds, clientChangedBlockIds);
+
+      if (overlap.length > 0) {
+        throw new DocSaveConflictException(overlap, 'Stale save overlaps with server changes');
+      }
+
+      contentToPersist = mergeDocBlocks(
+        normalized.contentJson,
+        doc.contentJson,
+        serverChangedBlockIds,
+      ) as Prisma.InputJsonValue;
+      changedBlockIds = clientChangedBlockIds;
+      lockBaseBlocks = baseBlocks;
+    }
+
+    const modifiedExistingBlockIds = Array.from(changedBlockIds).filter((blockId) =>
+      lockBaseBlocks.has(blockId),
+    );
+    const unlockedBlockIds = modifiedExistingBlockIds.filter(
+      (blockId) => !lockedBlockIds.has(blockId),
+    );
+
+    if (unlockedBlockIds.length > 0) {
+      throw new DocSaveConflictException(
+        unlockedBlockIds,
+        'Modified blocks must be locked by the saving user',
+      );
+    }
+
+    const persistedContent = normalizeDocContent(contentToPersist);
+    const persistedBlocks = extractDocBlocks(persistedContent.contentJson);
+
+    const { doc: savedDoc, orphanedThreadCount } = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const orphaned = await tx.docCommentThread.updateMany({
+          where: {
+            docId: doc.id,
+            isOrphan: false,
+            anchorBlockId: { not: null, notIn: Array.from(persistedBlocks.keys()) },
+          },
+          data: { isOrphan: true },
+        });
+
+        const saved = await tx.doc.update({
+          where: { id: doc.id },
+          data: {
+            contentJson: persistedContent.contentJson,
+            plaintext: persistedContent.plaintext,
+            version: { increment: 1 },
+          },
+          select: DOC_SELECT,
+        });
+
+        return { doc: saved, orphanedThreadCount: orphaned.count };
+      },
+    );
+
+    this.autosaveTimestamps.set(throttleKey, now);
+    this.rememberSnapshot(savedDoc.id, savedDoc.version, savedDoc.contentJson);
+
+    return {
+      doc: savedDoc,
+      changedBlockIds: Array.from(changedBlockIds),
+      orphanedThreadCount,
+    };
   }
 
   async remove(userId: string, docId: string): Promise<void> {
@@ -185,5 +334,17 @@ export class DocsService {
       throw new BadRequestException(DOC_TITLE_TOO_LONG);
     }
     return normalized;
+  }
+
+  private rememberSnapshot(docId: string, version: number, contentJson: unknown): void {
+    this.contentSnapshots.set(this.snapshotKey(docId, version), contentJson);
+  }
+
+  private getSnapshot(docId: string, version: number): unknown | undefined {
+    return this.contentSnapshots.get(this.snapshotKey(docId, version));
+  }
+
+  private snapshotKey(docId: string, version: number): string {
+    return `${docId}:${version}`;
   }
 }

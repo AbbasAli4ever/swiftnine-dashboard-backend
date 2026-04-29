@@ -15,6 +15,7 @@ import {
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiProperty,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -31,6 +32,32 @@ import type { Request } from 'express';
 
 type AuthenticatedRequest = Request & { user: AuthUser };
 
+class DocResponse {
+  @ApiProperty() id!: string;
+  @ApiProperty() workspaceId!: string;
+  @ApiProperty({ nullable: true, type: String }) projectId!: string | null;
+  @ApiProperty() ownerId!: string;
+  @ApiProperty({ enum: ['WORKSPACE', 'PROJECT', 'PERSONAL'] }) scope!: string;
+  @ApiProperty() title!: string;
+  @ApiProperty({ description: 'TipTap JSON document' }) contentJson!: object;
+  @ApiProperty() plaintext!: string;
+  @ApiProperty({ description: 'Monotonically increasing save counter' }) version!: number;
+  @ApiProperty() createdAt!: Date;
+  @ApiProperty() updatedAt!: Date;
+  @ApiProperty({ nullable: true, type: String }) deletedAt!: string | null;
+}
+
+class DocSearchResultResponse {
+  @ApiProperty() id!: string;
+  @ApiProperty() title!: string;
+  @ApiProperty({ enum: ['WORKSPACE', 'PROJECT', 'PERSONAL'] }) scope!: string;
+  @ApiProperty() workspaceId!: string;
+  @ApiProperty({ nullable: true, type: String }) projectId!: string | null;
+  @ApiProperty() ownerId!: string;
+  @ApiProperty() updatedAt!: Date;
+  @ApiProperty({ nullable: true, type: String, description: 'Highlighted excerpt matching the query' }) snippet!: string | null;
+}
+
 @ApiTags('docs')
 @ApiBearerAuth()
 @Controller('docs')
@@ -44,7 +71,7 @@ export class DocsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a document' })
-  @ApiResponse({ status: 201, description: 'Document created' })
+  @ApiResponse({ status: 201, description: 'Document created', type: DocResponse })
   async create(
     @Req() req: AuthenticatedRequest,
     @Body() dto: CreateDocDto,
@@ -55,7 +82,7 @@ export class DocsController {
 
   @Get()
   @ApiOperation({ summary: 'List documents in a workspace or project' })
-  @ApiResponse({ status: 200, description: 'Documents returned' })
+  @ApiResponse({ status: 200, description: 'Documents returned', type: [DocResponse] })
   async findAll(
     @Req() req: AuthenticatedRequest,
     @Query() query: ListDocsQueryDto,
@@ -66,7 +93,7 @@ export class DocsController {
 
   @Get('search')
   @ApiOperation({ summary: 'Search documents by title and plaintext content' })
-  @ApiResponse({ status: 200, description: 'Search results returned' })
+  @ApiResponse({ status: 200, description: 'Search results returned', type: [DocSearchResultResponse] })
   async search(
     @Req() req: AuthenticatedRequest,
     @Query() query: SearchDocsQueryDto,
@@ -82,7 +109,7 @@ export class DocsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a document' })
-  @ApiResponse({ status: 200, description: 'Document returned' })
+  @ApiResponse({ status: 200, description: 'Document returned', type: DocResponse })
   @ApiResponse({ status: 403, description: 'Document access denied' })
   @ApiResponse({ status: 404, description: 'Document not found' })
   async findOne(
@@ -94,8 +121,8 @@ export class DocsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a document' })
-  @ApiResponse({ status: 200, description: 'Document updated' })
+  @ApiOperation({ summary: 'Update a document — prefer WebSocket doc:autosave for content edits' })
+  @ApiResponse({ status: 200, description: 'Document updated', type: DocResponse })
   async update(
     @Req() req: AuthenticatedRequest,
     @Param('id') docId: string,
