@@ -96,6 +96,23 @@ type Doc = {
 
 ---
 
+### Doc scoping
+
+Every doc belongs to exactly one scope level:
+
+| `scope` | `projectId` | Meaning |
+|---|---|---|
+| `WORKSPACE` | `null` | Visible to all workspace members |
+| `PROJECT` | required UUID | Bound to a specific project |
+| `PERSONAL` | `null` | Private to the creator |
+
+Validation rules:
+- `scope = PROJECT` without `projectId` → `400`
+- `scope = PROJECT` with a `projectId` that doesn't exist in the workspace → `400`
+- `scope != PROJECT` with `projectId` provided → `400`
+
+---
+
 ### Create doc
 
 ```
@@ -106,15 +123,14 @@ POST /docs
 
 ```json
 {
-  "title": "Product Roadmap",
+  "title": "Sprint Planning",
   "scope": "PROJECT",
   "workspaceId": "uuid",
-  "projectId": "uuid",        // required when scope = PROJECT, omit otherwise
+  "projectId": "uuid",        // required when scope = PROJECT, null/omit otherwise
   "contentJson": { ... }      // optional, defaults to empty TipTap doc
 }
 ```
 
-- `scope` values: `WORKSPACE`, `PROJECT`, `PERSONAL`
 - `title` max 256 characters
 
 **Response:** `201 Created` — `data: Doc`
