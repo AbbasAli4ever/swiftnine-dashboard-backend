@@ -122,7 +122,7 @@ let ChannelsService = class ChannelsService {
         if (!channel)
             throw new common_1.NotFoundException('Channel not found in workspace');
         const callerMembership = await this.prisma.channelMember.findFirst({ where: { channelId, userId: callerUserId } });
-        if (!callerMembership || callerMembership.role !== 'OWNER') {
+        if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
             throw new common_1.ForbiddenException('Only channel admins can add members');
         }
         const userIds = Array.from(new Set(members.map((m) => m.userId)));
