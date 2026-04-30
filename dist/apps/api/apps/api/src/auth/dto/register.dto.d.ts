@@ -1,9 +1,4 @@
-import { z } from 'zod';
-declare const RegisterDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    fullName: z.ZodString;
-    email: z.ZodString;
-    password: z.ZodString;
-}, z.core.$strip>, false>;
+declare const RegisterDto_base: any;
 export declare class RegisterDto extends RegisterDto_base {
 }
 export {};

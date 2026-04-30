@@ -2,7 +2,7 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { ChannelsService } from './channels.service';
 import { AddChannelMemberDto, BulkAddChannelMembersDto } from './dto/channel-member.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes } from '@app/common';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 export declare class ChannelsController {
     private readonly channelsService;

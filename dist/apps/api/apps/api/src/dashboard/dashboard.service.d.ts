@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Priority, StatusGroup } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Priority, StatusGroup } from '@app/database/generated/prisma/client';
 export type ProjectDashboardData = {
     project: {
         id: string;

@@ -1,6 +1,5 @@
 export declare const Role: {
     readonly OWNER: "OWNER";
-    readonly ADMIN: "ADMIN";
     readonly MEMBER: "MEMBER";
 };
 export type Role = (typeof Role)[keyof typeof Role];

@@ -1,7 +1,4 @@
-import { z } from 'zod';
-declare const ListStatusesDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    projectId: z.ZodString;
-}, z.core.$strip>, false>;
+declare const ListStatusesDto_base: any;
 export declare class ListStatusesDto extends ListStatusesDto_base {
 }
 export {};

@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Prisma, Role } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import { TASK_DETAIL_SELECT, TASK_LIST_ITEM_SELECT } from './task.constants';
 import type { CreateTaskDto } from './dto/create-task.dto';
 import type { UpdateTaskDto } from './dto/update-task.dto';

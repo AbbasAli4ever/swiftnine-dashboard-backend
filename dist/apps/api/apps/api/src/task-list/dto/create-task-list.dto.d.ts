@@ -1,7 +1,4 @@
-import { z } from 'zod';
-declare const CreateTaskListDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    name: z.ZodString;
-}, z.core.$strip>, false>;
+declare const CreateTaskListDto_base: any;
 export declare class CreateTaskListDto extends CreateTaskListDto_base {
 }
 export {};

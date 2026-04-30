@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a, _b, _c, _d, _e, _f, _g;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AttachmentsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -75,7 +76,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, presign_attachment_dto_1.PresignAttachmentDto]),
+    __metadata("design:paramtypes", [typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object, presign_attachment_dto_1.PresignAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "presign", null);
 __decorate([
@@ -90,7 +91,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_attachment_dto_1.CreateAttachmentDto]),
+    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object, create_attachment_dto_1.CreateAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "create", null);
 __decorate([
@@ -105,7 +106,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_doc_attachment_dto_1.CreateDocAttachmentDto]),
+    __metadata("design:paramtypes", [typeof (_c = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _c : Object, create_doc_attachment_dto_1.CreateDocAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "createForDoc", null);
 __decorate([
@@ -118,7 +119,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, view_attachments_dto_1.ViewAttachmentsDto]),
+    __metadata("design:paramtypes", [typeof (_d = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _d : Object, view_attachments_dto_1.ViewAttachmentsDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "view", null);
 __decorate([
@@ -131,7 +132,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, view_doc_attachments_dto_1.ViewDocAttachmentsDto]),
+    __metadata("design:paramtypes", [typeof (_e = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _e : Object, view_doc_attachments_dto_1.ViewDocAttachmentsDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "viewForDoc", null);
 __decorate([
@@ -144,7 +145,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, delete_attachment_dto_1.DeleteAttachmentDto]),
+    __metadata("design:paramtypes", [typeof (_f = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _f : Object, delete_attachment_dto_1.DeleteAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "remove", null);
 __decorate([
@@ -157,7 +158,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, delete_doc_attachment_dto_1.DeleteDocAttachmentDto]),
+    __metadata("design:paramtypes", [typeof (_g = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _g : Object, delete_doc_attachment_dto_1.DeleteDocAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "removeForDoc", null);
 exports.AttachmentsController = AttachmentsController = __decorate([

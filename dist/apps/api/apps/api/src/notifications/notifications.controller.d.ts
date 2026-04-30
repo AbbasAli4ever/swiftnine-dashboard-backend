@@ -1,5 +1,5 @@
 import { NotificationsSseService } from './sse.service';
-import { PrismaService } from "../../../../libs/database/src";
+import { PrismaService } from '@app/database';
 import type { Response } from 'express';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { NotificationResponseDto } from './dto/notification-response.dto';

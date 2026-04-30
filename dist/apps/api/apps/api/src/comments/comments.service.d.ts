@@ -1,4 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
+import { PrismaService } from '@app/database';
+import type { Prisma } from '@app/database/generated/prisma/client';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SseService } from './sse.service';
@@ -9,169 +10,13 @@ export declare class CommentsService {
     private readonly notifications;
     private readonly logger;
     constructor(prisma: PrismaService, sse: SseService, activity: ActivityService, notifications: NotificationsService);
-    getCommentsForTask(workspaceId: string, taskId: string): Promise<({
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                fullName: string;
-                email: string;
-                id: string;
-                avatarUrl: string | null;
-            };
-        }[];
-        reactions: {
-            id: string;
-            createdAt: Date;
-            member: {
-                user: {
-                    fullName: string;
-                    id: string;
-                    avatarUrl: string | null;
-                };
-                id: string;
-                userId: string;
-                role: import("@app/database/generated/prisma/enums").Role;
-            };
-            reactFace: string;
-        }[];
-        author: {
-            fullName: string;
-            id: string;
-            avatarUrl: string | null;
-        };
-    } & {
-        content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        parentId: string | null;
-        taskId: string;
-        isEdited: boolean;
-    })[]>;
-    createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<{
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                fullName: string;
-                email: string;
-                id: string;
-                avatarUrl: string | null;
-            };
-        }[];
-        reactions: {
-            id: string;
-            createdAt: Date;
-            member: {
-                user: {
-                    fullName: string;
-                    id: string;
-                    avatarUrl: string | null;
-                };
-                id: string;
-                userId: string;
-                role: import("@app/database/generated/prisma/enums").Role;
-            };
-            reactFace: string;
-        }[];
-        author: {
-            fullName: string;
-            id: string;
-            avatarUrl: string | null;
-        };
-    } & {
-        content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        parentId: string | null;
-        taskId: string;
-        isEdited: boolean;
-    }>;
-    updateComment(workspaceId: string, userId: string, commentId: string, content: string, mentionedUserIds?: string[]): Promise<{
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                fullName: string;
-                email: string;
-                id: string;
-                avatarUrl: string | null;
-            };
-        }[];
-        reactions: {
-            id: string;
-            createdAt: Date;
-            member: {
-                user: {
-                    fullName: string;
-                    id: string;
-                    avatarUrl: string | null;
-                };
-                id: string;
-                userId: string;
-                role: import("@app/database/generated/prisma/enums").Role;
-            };
-            reactFace: string;
-        }[];
-        author: {
-            fullName: string;
-            id: string;
-            avatarUrl: string | null;
-        };
-    } & {
-        content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        parentId: string | null;
-        taskId: string;
-        isEdited: boolean;
-    }>;
+    getCommentsForTask(workspaceId: string, taskId: string): Promise<runtime.Types.Public.PrismaPromise<T>>;
+    createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<runtime.Types.Utils.JsPromise<R>>;
+    updateComment(workspaceId: string, userId: string, commentId: string, content: string, mentionedUserIds?: string[]): Promise<runtime.Types.Utils.JsPromise<R>>;
     deleteComment(workspaceId: string, userId: string, commentId: string, requesterRole?: string): Promise<void>;
-    addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<{
-        member: {
-            user: {
-                fullName: string;
-                id: string;
-                avatarUrl: string | null;
-            };
-            id: string;
-            userId: string;
-            role: import("@app/database/generated/prisma/enums").Role;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        commentId: string;
-        memberId: string;
-        reactFace: string;
-    }>;
+    addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<any>;
     deleteReaction(workspaceId: string, userId: string, reactionId: string): Promise<void>;
-    updateReaction(workspaceId: string, userId: string, reactionId: string, reactFace: string): Promise<{
-        member: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            userId: string;
-            role: import("@app/database/generated/prisma/enums").Role;
-            workspaceId: string;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        commentId: string;
-        memberId: string;
-        reactFace: string;
-    }>;
+    updateReaction(workspaceId: string, userId: string, reactionId: string, reactFace: string): Promise<runtime.Types.Result.GetResult<Prisma.$ReactionPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     private findTaskInWorkspaceOrThrow;
     private resolveMentionedUsers;
     private notifyOnCommentCreated;

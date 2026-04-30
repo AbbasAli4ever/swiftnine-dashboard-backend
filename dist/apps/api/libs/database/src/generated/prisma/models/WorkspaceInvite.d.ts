@@ -1,6 +1,6 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as $Enums from "../enums";
-import type * as Prisma from "../internal/prismaNamespace";
+import type * as $Enums from "../enums.js";
+import type * as Prisma from "../internal/prismaNamespace.js";
 export type WorkspaceInviteModel = runtime.Types.Result.DefaultSelection<Prisma.$WorkspaceInvitePayload>;
 export type AggregateWorkspaceInvite = {
     _count: WorkspaceInviteCountAggregateOutputType | null;

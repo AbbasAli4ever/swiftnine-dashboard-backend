@@ -1,4 +1,4 @@
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes } from '@app/common';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { TaskListService, type TaskListData } from './task-list.service';
 import { CreateTaskListDto } from './dto/create-task-list.dto';

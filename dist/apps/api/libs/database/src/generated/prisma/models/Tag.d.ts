@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace";
+import type * as Prisma from "../internal/prismaNamespace.js";
 export type TagModel = runtime.Types.Result.DefaultSelection<Prisma.$TagPayload>;
 export type AggregateTag = {
     _count: TagCountAggregateOutputType | null;

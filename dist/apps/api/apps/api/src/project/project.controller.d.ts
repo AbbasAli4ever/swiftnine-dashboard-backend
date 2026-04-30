@@ -2,7 +2,7 @@ import { ProjectService, type ProjectWithDetails } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes } from '@app/common';
 export declare class ProjectController {
     private readonly projectService;
     constructor(projectService: ProjectService);

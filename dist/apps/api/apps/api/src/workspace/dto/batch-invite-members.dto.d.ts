@@ -1,11 +1,4 @@
-import { z } from 'zod';
-declare const BatchInviteMembersDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    emails: z.ZodArray<z.ZodString>;
-    role: z.ZodDefault<z.ZodEnum<{
-        OWNER: "OWNER";
-        MEMBER: "MEMBER";
-    }>>;
-}, z.core.$strip>, false>;
+declare const BatchInviteMembersDto_base: any;
 export declare class BatchInviteMembersDto extends BatchInviteMembersDto_base {
 }
 export declare class BatchInviteMemberResultDto {

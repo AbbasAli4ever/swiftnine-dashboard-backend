@@ -1,4 +1,4 @@
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes } from '@app/common';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import { ReorderBoardTasksDto } from './dto/reorder-board-tasks.dto';

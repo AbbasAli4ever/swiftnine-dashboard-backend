@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Prisma, Role } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import type { CreateProjectDto } from './dto/create-project.dto';
 import type { UpdateProjectDto } from './dto/update-project.dto';
 import { PROJECT_SELECT, PROJECT_WITH_STATUSES_SELECT } from './project.constants';

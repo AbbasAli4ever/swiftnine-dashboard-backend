@@ -1,5 +1,5 @@
 import { OnModuleDestroy } from '@nestjs/common';
-import { PrismaService } from "../../../../libs/database/src";
+import { PrismaService } from '@app/database';
 import { NotificationsSseService } from './sse.service';
 type NotificationLike = {
     referenceType?: string | null;
@@ -46,23 +46,7 @@ export declare class NotificationsService implements OnModuleDestroy {
         snoozedAt: any;
         createdAt: any;
     }>;
-    createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean, meta?: Record<string, any>): Promise<{
-        message: string | null;
-        type: string;
-        title: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        referenceType: string;
-        referenceId: string;
-        isRead: boolean;
-        readAt: Date | null;
-        isCleared: boolean;
-        isSnoozed: boolean;
-        snoozedAt: Date | null;
-        isCommented: boolean;
-        actorId: string | null;
-    } | null>;
+    createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean, meta?: Record<string, any>): Promise<any>;
     notifyTaskAssignees(workspaceId: string, taskId: string, actorUserId: string, opts?: {
         type?: string;
         title?: string;

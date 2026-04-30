@@ -1,4 +1,4 @@
-import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
+import type { Prisma } from '@app/database/generated/prisma/client';
 export type NormalizedDocContent = {
     contentJson: Prisma.InputJsonValue;
     plaintext: string;

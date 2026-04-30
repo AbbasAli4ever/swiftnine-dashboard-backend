@@ -15,50 +15,20 @@ export declare class AttachmentsController {
     private readonly attachmentsService;
     constructor(attachmentsService: AttachmentsService);
     presign(req: AuthenticatedRequest, dto: PresignAttachmentDto): Promise<import("@app/common").ApiResponse<{
-        uploadUrl: string;
+        uploadUrl: any;
         s3Key: string;
         expiresAt: Date;
     }>>;
-    create(req: AuthenticatedRequest, dto: CreateAttachmentDto): Promise<import("@app/common").ApiResponse<{
-        fileSize: number;
-        id: string;
-        createdAt: Date;
-        fileName: string;
-        s3Key: string;
-        mimeType: string;
-    }>>;
-    createForDoc(req: AuthenticatedRequest, dto: CreateDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
-        fileSize: number;
-        id: string;
-        createdAt: Date;
-        fileName: string;
-        s3Key: string;
-        mimeType: string;
-    }>>;
-    view(req: AuthenticatedRequest, dto: ViewAttachmentsDto): Promise<import("@app/common").ApiResponse<{
-        fileSize: number;
-        url: string;
-        expiresAt: Date;
-        id: string;
-        fileName: string;
-        s3Key: string;
-        mimeType: string;
-    }[]>>;
-    viewForDoc(req: AuthenticatedRequest, dto: ViewDocAttachmentsDto): Promise<import("@app/common").ApiResponse<{
-        fileSize: number;
-        url: string;
-        expiresAt: Date;
-        id: string;
-        fileName: string;
-        mimeType: string;
-        s3Key: string;
-    }[]>>;
+    create(req: AuthenticatedRequest, dto: CreateAttachmentDto): Promise<import("@app/common").ApiResponse<any>>;
+    createForDoc(req: AuthenticatedRequest, dto: CreateDocAttachmentDto): Promise<import("@app/common").ApiResponse<any>>;
+    view(req: AuthenticatedRequest, dto: ViewAttachmentsDto): Promise<import("@app/common").ApiResponse<any>>;
+    viewForDoc(req: AuthenticatedRequest, dto: ViewDocAttachmentsDto): Promise<import("@app/common").ApiResponse<any>>;
     remove(req: AuthenticatedRequest, dto: DeleteAttachmentDto): Promise<import("@app/common").ApiResponse<{
-        id: string;
+        id: any;
         s3Key: string;
     }>>;
     removeForDoc(req: AuthenticatedRequest, dto: DeleteDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
-        id: string;
+        id: any;
         s3Key: string;
     }>>;
 }

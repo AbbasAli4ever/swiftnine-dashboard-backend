@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from "../../../../libs/database/src";
-import { EmailService } from "../../../../libs/common/src";
-import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import { EmailService } from '@app/common';
+import type { Prisma } from '@app/database/generated/prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { AUTH_USER_SELECT } from './auth.constants';
 export type AuthUser = Prisma.UserGetPayload<{

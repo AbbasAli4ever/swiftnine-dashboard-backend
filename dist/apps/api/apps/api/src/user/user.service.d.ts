@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Role } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Role } from '@app/database/generated/prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserPresenceStatus } from './dto/profile-status.enum';

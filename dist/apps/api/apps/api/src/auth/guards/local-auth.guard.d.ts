@@ -1,8 +1,8 @@
 import { ExecutionContext } from '@nestjs/common';
 import type { AuthUser } from '../auth.service';
-declare const LocalAuthGuard_base: import("@nestjs/passport").Type<import("@nestjs/passport").IAuthGuard>;
+declare const LocalAuthGuard_base: any;
 export declare class LocalAuthGuard extends LocalAuthGuard_base {
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | import("rxjs").Observable<boolean>;
+    canActivate(context: ExecutionContext): any;
     handleRequest<TUser = AuthUser>(err: unknown, user: TUser | false | null | undefined, info?: {
         message?: string;
     }): TUser;

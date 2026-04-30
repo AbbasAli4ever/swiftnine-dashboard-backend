@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace";
+import type * as Prisma from "../internal/prismaNamespace.js";
 export type NotificationModel = runtime.Types.Result.DefaultSelection<Prisma.$NotificationPayload>;
 export type AggregateNotification = {
     _count: NotificationCountAggregateOutputType | null;
@@ -21,7 +21,6 @@ export type NotificationMinAggregateOutputType = {
     isSnoozed: boolean | null;
     snoozedAt: Date | null;
     createdAt: Date | null;
-    isCommented: boolean | null;
 };
 export type NotificationMaxAggregateOutputType = {
     id: string | null;
@@ -38,7 +37,6 @@ export type NotificationMaxAggregateOutputType = {
     isSnoozed: boolean | null;
     snoozedAt: Date | null;
     createdAt: Date | null;
-    isCommented: boolean | null;
 };
 export type NotificationCountAggregateOutputType = {
     id: number;
@@ -55,7 +53,6 @@ export type NotificationCountAggregateOutputType = {
     isSnoozed: number;
     snoozedAt: number;
     createdAt: number;
-    isCommented: number;
     _all: number;
 };
 export type NotificationMinAggregateInputType = {
@@ -73,7 +70,6 @@ export type NotificationMinAggregateInputType = {
     isSnoozed?: true;
     snoozedAt?: true;
     createdAt?: true;
-    isCommented?: true;
 };
 export type NotificationMaxAggregateInputType = {
     id?: true;
@@ -90,7 +86,6 @@ export type NotificationMaxAggregateInputType = {
     isSnoozed?: true;
     snoozedAt?: true;
     createdAt?: true;
-    isCommented?: true;
 };
 export type NotificationCountAggregateInputType = {
     id?: true;
@@ -107,7 +102,6 @@ export type NotificationCountAggregateInputType = {
     isSnoozed?: true;
     snoozedAt?: true;
     createdAt?: true;
-    isCommented?: true;
     _all?: true;
 };
 export type NotificationAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -149,7 +143,6 @@ export type NotificationGroupByOutputType = {
     isSnoozed: boolean;
     snoozedAt: Date | null;
     createdAt: Date;
-    isCommented: boolean;
     _count: NotificationCountAggregateOutputType | null;
     _min: NotificationMinAggregateOutputType | null;
     _max: NotificationMaxAggregateOutputType | null;
@@ -175,7 +168,6 @@ export type NotificationWhereInput = {
     isSnoozed?: Prisma.BoolFilter<"Notification"> | boolean;
     snoozedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string;
-    isCommented?: Prisma.BoolFilter<"Notification"> | boolean;
     recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
 };
@@ -194,7 +186,6 @@ export type NotificationOrderByWithRelationInput = {
     isSnoozed?: Prisma.SortOrder;
     snoozedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
-    isCommented?: Prisma.SortOrder;
     recipient?: Prisma.UserOrderByWithRelationInput;
     actor?: Prisma.UserOrderByWithRelationInput;
 };
@@ -216,7 +207,6 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
     isSnoozed?: Prisma.BoolFilter<"Notification"> | boolean;
     snoozedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string;
-    isCommented?: Prisma.BoolFilter<"Notification"> | boolean;
     recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
 }, "id">;
@@ -235,7 +225,6 @@ export type NotificationOrderByWithAggregationInput = {
     isSnoozed?: Prisma.SortOrder;
     snoozedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
-    isCommented?: Prisma.SortOrder;
     _count?: Prisma.NotificationCountOrderByAggregateInput;
     _max?: Prisma.NotificationMaxOrderByAggregateInput;
     _min?: Prisma.NotificationMinOrderByAggregateInput;
@@ -258,7 +247,6 @@ export type NotificationScalarWhereWithAggregatesInput = {
     isSnoozed?: Prisma.BoolWithAggregatesFilter<"Notification"> | boolean;
     snoozedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Notification"> | Date | string;
-    isCommented?: Prisma.BoolWithAggregatesFilter<"Notification"> | boolean;
 };
 export type NotificationCreateInput = {
     id?: string;
@@ -273,7 +261,6 @@ export type NotificationCreateInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
     recipient: Prisma.UserCreateNestedOneWithoutNotificationsReceivedInput;
     actor?: Prisma.UserCreateNestedOneWithoutNotificationsTriggeredInput;
 };
@@ -292,7 +279,6 @@ export type NotificationUncheckedCreateInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -307,7 +293,6 @@ export type NotificationUpdateInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     recipient?: Prisma.UserUpdateOneRequiredWithoutNotificationsReceivedNestedInput;
     actor?: Prisma.UserUpdateOneWithoutNotificationsTriggeredNestedInput;
 };
@@ -326,7 +311,6 @@ export type NotificationUncheckedUpdateInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationCreateManyInput = {
     id?: string;
@@ -343,7 +327,6 @@ export type NotificationCreateManyInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -358,7 +341,6 @@ export type NotificationUpdateManyMutationInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -375,7 +357,6 @@ export type NotificationUncheckedUpdateManyInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationListRelationFilter = {
     every?: Prisma.NotificationWhereInput;
@@ -400,7 +381,6 @@ export type NotificationCountOrderByAggregateInput = {
     isSnoozed?: Prisma.SortOrder;
     snoozedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
-    isCommented?: Prisma.SortOrder;
 };
 export type NotificationMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -417,7 +397,6 @@ export type NotificationMaxOrderByAggregateInput = {
     isSnoozed?: Prisma.SortOrder;
     snoozedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
-    isCommented?: Prisma.SortOrder;
 };
 export type NotificationMinOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -434,7 +413,6 @@ export type NotificationMinOrderByAggregateInput = {
     isSnoozed?: Prisma.SortOrder;
     snoozedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
-    isCommented?: Prisma.SortOrder;
 };
 export type NotificationCreateNestedManyWithoutRecipientInput = {
     create?: Prisma.XOR<Prisma.NotificationCreateWithoutRecipientInput, Prisma.NotificationUncheckedCreateWithoutRecipientInput> | Prisma.NotificationCreateWithoutRecipientInput[] | Prisma.NotificationUncheckedCreateWithoutRecipientInput[];
@@ -525,7 +503,6 @@ export type NotificationCreateWithoutRecipientInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
     actor?: Prisma.UserCreateNestedOneWithoutNotificationsTriggeredInput;
 };
 export type NotificationUncheckedCreateWithoutRecipientInput = {
@@ -542,7 +519,6 @@ export type NotificationUncheckedCreateWithoutRecipientInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationCreateOrConnectWithoutRecipientInput = {
     where: Prisma.NotificationWhereUniqueInput;
@@ -565,7 +541,6 @@ export type NotificationCreateWithoutActorInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
     recipient: Prisma.UserCreateNestedOneWithoutNotificationsReceivedInput;
 };
 export type NotificationUncheckedCreateWithoutActorInput = {
@@ -582,7 +557,6 @@ export type NotificationUncheckedCreateWithoutActorInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationCreateOrConnectWithoutActorInput = {
     where: Prisma.NotificationWhereUniqueInput;
@@ -623,7 +597,6 @@ export type NotificationScalarWhereInput = {
     isSnoozed?: Prisma.BoolFilter<"Notification"> | boolean;
     snoozedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string;
-    isCommented?: Prisma.BoolFilter<"Notification"> | boolean;
 };
 export type NotificationUpsertWithWhereUniqueWithoutActorInput = {
     where: Prisma.NotificationWhereUniqueInput;
@@ -652,7 +625,6 @@ export type NotificationCreateManyRecipientInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationCreateManyActorInput = {
     id?: string;
@@ -668,7 +640,6 @@ export type NotificationCreateManyActorInput = {
     isSnoozed?: boolean;
     snoozedAt?: Date | string | null;
     createdAt?: Date | string;
-    isCommented?: boolean;
 };
 export type NotificationUpdateWithoutRecipientInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -683,7 +654,6 @@ export type NotificationUpdateWithoutRecipientInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     actor?: Prisma.UserUpdateOneWithoutNotificationsTriggeredNestedInput;
 };
 export type NotificationUncheckedUpdateWithoutRecipientInput = {
@@ -700,7 +670,6 @@ export type NotificationUncheckedUpdateWithoutRecipientInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationUncheckedUpdateManyWithoutRecipientInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -716,7 +685,6 @@ export type NotificationUncheckedUpdateManyWithoutRecipientInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationUpdateWithoutActorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -731,7 +699,6 @@ export type NotificationUpdateWithoutActorInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     recipient?: Prisma.UserUpdateOneRequiredWithoutNotificationsReceivedNestedInput;
 };
 export type NotificationUncheckedUpdateWithoutActorInput = {
@@ -748,7 +715,6 @@ export type NotificationUncheckedUpdateWithoutActorInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationUncheckedUpdateManyWithoutActorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -764,7 +730,6 @@ export type NotificationUncheckedUpdateManyWithoutActorInput = {
     isSnoozed?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     snoozedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    isCommented?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 };
 export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -781,7 +746,6 @@ export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.Internal
     isSnoozed?: boolean;
     snoozedAt?: boolean;
     createdAt?: boolean;
-    isCommented?: boolean;
     recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>;
 }, ExtArgs["result"]["notification"]>;
@@ -800,7 +764,6 @@ export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
     isSnoozed?: boolean;
     snoozedAt?: boolean;
     createdAt?: boolean;
-    isCommented?: boolean;
     recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>;
 }, ExtArgs["result"]["notification"]>;
@@ -819,7 +782,6 @@ export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
     isSnoozed?: boolean;
     snoozedAt?: boolean;
     createdAt?: boolean;
-    isCommented?: boolean;
     recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>;
 }, ExtArgs["result"]["notification"]>;
@@ -838,9 +800,8 @@ export type NotificationSelectScalar = {
     isSnoozed?: boolean;
     snoozedAt?: boolean;
     createdAt?: boolean;
-    isCommented?: boolean;
 };
-export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "title" | "message" | "referenceType" | "referenceId" | "actorId" | "isRead" | "readAt" | "isCleared" | "isSnoozed" | "snoozedAt" | "createdAt" | "isCommented", ExtArgs["result"]["notification"]>;
+export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "title" | "message" | "referenceType" | "referenceId" | "actorId" | "isRead" | "readAt" | "isCleared" | "isSnoozed" | "snoozedAt" | "createdAt", ExtArgs["result"]["notification"]>;
 export type NotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>;
@@ -874,7 +835,6 @@ export type $NotificationPayload<ExtArgs extends runtime.Types.Extensions.Intern
         isSnoozed: boolean;
         snoozedAt: Date | null;
         createdAt: Date;
-        isCommented: boolean;
     }, ExtArgs["result"]["notification"]>;
     composites: {};
 };
@@ -948,7 +908,6 @@ export interface NotificationFieldRefs {
     readonly isSnoozed: Prisma.FieldRef<"Notification", 'Boolean'>;
     readonly snoozedAt: Prisma.FieldRef<"Notification", 'DateTime'>;
     readonly createdAt: Prisma.FieldRef<"Notification", 'DateTime'>;
-    readonly isCommented: Prisma.FieldRef<"Notification", 'Boolean'>;
 }
 export type NotificationFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.NotificationSelect<ExtArgs> | null;

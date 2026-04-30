@@ -1,6 +1,6 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as $Enums from "../enums";
-import type * as Prisma from "../internal/prismaNamespace";
+import type * as $Enums from "../enums.js";
+import type * as Prisma from "../internal/prismaNamespace.js";
 export type ChannelModel = runtime.Types.Result.DefaultSelection<Prisma.$ChannelPayload>;
 export type AggregateChannel = {
     _count: ChannelCountAggregateOutputType | null;

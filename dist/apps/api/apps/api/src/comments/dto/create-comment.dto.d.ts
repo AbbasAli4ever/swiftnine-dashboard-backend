@@ -1,9 +1,4 @@
-import { z } from 'zod';
-declare const CreateCommentDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    content: z.ZodString;
-    parentId: z.ZodOptional<z.ZodString>;
-    mentionedUserIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
-}, z.core.$strip>, false>;
+declare const CreateCommentDto_base: any;
 export declare class CreateCommentDto extends CreateCommentDto_base {
     content: string;
     parentId?: string;

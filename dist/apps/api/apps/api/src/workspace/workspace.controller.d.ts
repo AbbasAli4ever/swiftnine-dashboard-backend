@@ -12,7 +12,7 @@ import { MemberDetailResponseDto } from './dto/member-detail-response.dto';
 import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
-import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes } from '@app/common';
 import type { BatchInviteResult, BatchAddResult, InviteClaimResult, InviteNextStep, WorkspaceData } from './workspace.service';
 type AuthenticatedRequest = Request & {
     user: AuthUser;

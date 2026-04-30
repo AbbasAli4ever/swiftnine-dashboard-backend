@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocVersionType = exports.DocRole = exports.DocScope = exports.ChannelPrivacy = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
-    ADMIN: 'ADMIN',
     MEMBER: 'MEMBER'
 };
 exports.WorkspaceUse = {

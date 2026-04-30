@@ -1,7 +1,4 @@
-import { z } from 'zod';
-declare const ReorderTaskListsDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
-    listIds: z.ZodArray<z.ZodString>;
-}, z.core.$strip>, false>;
+declare const ReorderTaskListsDto_base: any;
 export declare class ReorderTaskListsDto extends ReorderTaskListsDto_base {
 }
 export {};

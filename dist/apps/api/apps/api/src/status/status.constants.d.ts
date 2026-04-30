@@ -1,3 +1,4 @@
+import type { Prisma } from '@app/database/generated/prisma/client';
 export declare const STATUS_NOT_FOUND = "Status not found";
 export declare const PROJECT_NOT_FOUND = "Project not found";
 export declare const OWNER_ONLY = "Only the workspace owner can perform this action";
@@ -8,19 +9,23 @@ export declare const DELETE_REPLACEMENT_REQUIRED = "A replacement status is requ
 export declare const INVALID_REPLACEMENT_STATUS = "Replacement status must belong to the same project and be active";
 export declare const INVALID_REORDER_PAYLOAD = "Reorder payload must include every active status exactly once";
 export declare const CLOSED_GROUP_REORDER_FORBIDDEN = "Closed group must contain exactly one protected closed status";
-export declare const STATUS_SELECT: {
-    id: true;
-    projectId: true;
-    name: true;
-    color: true;
-    group: true;
-    position: true;
-    isDefault: true;
-    isProtected: true;
-    isClosed: true;
-    createdAt: true;
-    updatedAt: true;
-};
+export declare const STATUS_SELECT: runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    projectId?: boolean;
+    name?: boolean;
+    color?: boolean;
+    position?: boolean;
+    group?: boolean;
+    isDefault?: boolean;
+    isProtected?: boolean;
+    isClosed?: boolean;
+    createdAt?: boolean;
+    updatedAt?: boolean;
+    deletedAt?: boolean;
+    project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>;
+    tasks?: boolean | Prisma.Status$tasksArgs<ExtArgs>;
+    _count?: boolean | Prisma.StatusCountOutputTypeDefaultArgs<ExtArgs>;
+}, ExtArgs["result"]["status"]>;
 export declare const DEFAULT_STATUS_TEMPLATE: readonly [{
     readonly name: "To Do";
     readonly color: "#94a3b8";

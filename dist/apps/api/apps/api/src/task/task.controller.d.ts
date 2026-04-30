@@ -5,7 +5,7 @@ import { AddAssigneesDto } from './dto/add-assignees.dto';
 import { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes, type PaginatedApiResponse } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes, type PaginatedApiResponse } from '@app/common';
 export declare class TaskController {
     private readonly taskService;
     constructor(taskService: TaskService);

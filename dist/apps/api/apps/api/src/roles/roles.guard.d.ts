@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from "../../../../libs/database/src";
+import { PrismaService } from '@app/database';
 export declare class RolesGuard implements CanActivate {
     private readonly reflector;
     private readonly prisma;

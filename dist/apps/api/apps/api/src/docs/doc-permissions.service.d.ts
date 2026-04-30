@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Doc, DocRole } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Doc, DocRole } from '@app/database/generated/prisma/client';
 export type DocAccessSubject = Pick<Doc, 'id' | 'scope' | 'workspaceId' | 'projectId' | 'ownerId'>;
 export declare class DocPermissionsService {
     private readonly prisma;

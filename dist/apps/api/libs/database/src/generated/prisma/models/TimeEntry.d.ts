@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace";
+import type * as Prisma from "../internal/prismaNamespace.js";
 export type TimeEntryModel = runtime.Types.Result.DefaultSelection<Prisma.$TimeEntryPayload>;
 export type AggregateTimeEntry = {
     _count: TimeEntryCountAggregateOutputType | null;

@@ -3,7 +3,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { ReorderTasksDto } from './dto/reorder-tasks.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes, type PaginatedApiResponse } from "../../../../libs/common/src";
+import { type ApiResponse as ApiRes, type PaginatedApiResponse } from '@app/common';
 export declare class TaskListTasksController {
     private readonly taskService;
     constructor(taskService: TaskService);

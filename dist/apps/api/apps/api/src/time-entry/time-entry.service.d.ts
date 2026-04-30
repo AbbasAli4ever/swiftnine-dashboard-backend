@@ -1,5 +1,5 @@
-import { PrismaService } from "../../../../libs/database/src";
-import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
+import { PrismaService } from '@app/database';
+import type { Prisma } from '@app/database/generated/prisma/client';
 import { TIME_ENTRY_SELECT } from './time-entry.constants';
 import type { ManualTimeEntryDto } from './dto/manual-time-entry.dto';
 import type { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
