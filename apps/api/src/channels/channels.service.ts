@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { CreateChannelDto } from './dto/create-channel.dto';
+import type { UpdateChannelDto } from './dto/update-channel.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { AddChannelMemberDto, BulkAddChannelMembersDto } from './dto/channel-member.dto';
 import type { Role } from '@app/database/generated/prisma/client';
@@ -8,6 +9,52 @@ import type { Role } from '@app/database/generated/prisma/client';
 @Injectable()
 export class ChannelsService {
   constructor(private readonly prisma: PrismaService, private readonly notifications: NotificationsService) {}
+
+  private channelInclude() {
+    return {
+      members: {
+        include: {
+          user: { select: { id: true, fullName: true, avatarUrl: true } },
+        },
+      },
+      project: true,
+    };
+  }
+
+  async listByWorkspace(workspaceId: string, userId: string) {
+    return this.prisma.channel.findMany({
+      where: {
+        workspaceId,
+        OR: [
+          { privacy: 'PUBLIC' },
+          { privacy: 'PRIVATE', members: { some: { userId } } },
+        ],
+      },
+      include: this.channelInclude(),
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async listByProject(workspaceId: string, projectId: string, userId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, workspaceId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!project) throw new NotFoundException('Project not found in workspace');
+
+    return this.prisma.channel.findMany({
+      where: {
+        workspaceId,
+        projectId,
+        OR: [
+          { privacy: 'PUBLIC' },
+          { privacy: 'PRIVATE', members: { some: { userId } } },
+        ],
+      },
+      include: this.channelInclude(),
+      orderBy: { createdAt: 'asc' },
+    });
+  }
 
   async create(workspaceId: string, userId: string, dto: CreateChannelDto) {
     // validate optional project belongs to workspace
@@ -48,8 +95,46 @@ export class ChannelsService {
 
       return tx.channel.findFirst({
         where: { id: channel.id },
-        include: { members: { include: { user: { select: { id: true, fullName: true, avatarUrl: true } } } }, project: true },
+        include: this.channelInclude(),
       });
+    });
+  }
+
+  async updateChannel(
+    workspaceId: string,
+    channelId: string,
+    callerUserId: string,
+    dto: UpdateChannelDto,
+  ) {
+    const channel = await this.prisma.channel.findFirst({
+      where: { id: channelId, workspaceId },
+      select: { id: true },
+    });
+    if (!channel) throw new NotFoundException('Channel not found in workspace');
+
+    const callerMembership = await this.prisma.channelMember.findFirst({
+      where: { channelId, userId: callerUserId },
+      select: { role: true },
+    });
+    if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
+      throw new ForbiddenException('Only channel admins can update the channel');
+    }
+
+    const updateData: { name?: string; description?: string | null; privacy?: 'PUBLIC' | 'PRIVATE' } = {};
+    if (dto.name !== undefined) updateData.name = dto.name.trim();
+    if (Object.prototype.hasOwnProperty.call(dto, 'description')) {
+      updateData.description = dto.description === null ? null : (dto.description ?? '').trim() || null;
+    }
+    if (dto.privacy !== undefined) updateData.privacy = dto.privacy;
+
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('At least one field must be provided');
+    }
+
+    return this.prisma.channel.update({
+      where: { id: channelId },
+      data: updateData,
+      include: this.channelInclude(),
     });
   }
 

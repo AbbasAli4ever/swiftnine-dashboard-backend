@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Req, UseGuards, Param } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Req, UseGuards, Param, Get, ForbiddenException, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags, ApiBody, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { ChannelsService } from './channels.service';
 import { AddChannelMemberDto, BulkAddChannelMembersDto } from './dto/channel-member.dto';
+import { UpdateChannelDto } from './dto/update-channel.dto';
+import { ChannelResponseDto } from './dto/channel-response.dto';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 
@@ -16,13 +18,73 @@ import type { WorkspaceRequest } from '../workspace/workspace.types';
 export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
+  private assertWorkspaceMatch(req: WorkspaceRequest, workspaceId: string) {
+    if (req.workspaceContext.workspaceId !== workspaceId) {
+      throw new ForbiddenException('Workspace mismatch');
+    }
+  }
+
+  @Get('workspaces/:workspaceId')
+  @ApiOperation({ summary: 'List channels in a workspace (privacy-aware)' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace UUID' })
+  @ApiResponse({ status: 200, description: 'Channels returned', type: [ChannelResponseDto] })
+  @ApiResponse({ status: 403, description: 'Not a member of the workspace' })
+  async listByWorkspace(
+    @Req() req: WorkspaceRequest,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<ApiRes<any>> {
+    this.assertWorkspaceMatch(req, workspaceId);
+    const channels = await this.channelsService.listByWorkspace(workspaceId, req.user.id);
+    return ok(channels);
+  }
+
+  @Get('workspaces/:workspaceId/projects/:projectId')
+  @ApiOperation({ summary: 'List channels in a project (privacy-aware)' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace UUID' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Channels returned', type: [ChannelResponseDto] })
+  @ApiResponse({ status: 403, description: 'Not a member of the workspace' })
+  @ApiResponse({ status: 404, description: 'Project not found in workspace' })
+  async listByProject(
+    @Req() req: WorkspaceRequest,
+    @Param('workspaceId') workspaceId: string,
+    @Param('projectId') projectId: string,
+  ): Promise<ApiRes<any>> {
+    this.assertWorkspaceMatch(req, workspaceId);
+    const channels = await this.channelsService.listByProject(workspaceId, projectId, req.user.id);
+    return ok(channels);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new channel in the workspace (optional project-scoped)' })
-  @ApiResponse({ status: 201, description: 'Channel created' })
+  @ApiResponse({ status: 201, description: 'Channel created', type: ChannelResponseDto })
   async create(@Req() req: WorkspaceRequest, @Body() dto: CreateChannelDto): Promise<ApiRes<any>> {
     const channel = await this.channelsService.create(req.workspaceContext.workspaceId, req.user.id, dto);
     return ok(channel, 'Channel created');
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a channel (admin/owner only)' })
+  @ApiParam({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
+  @ApiBody({ type: UpdateChannelDto })
+  @ApiResponse({ status: 200, description: 'Channel updated', type: ChannelResponseDto })
+  @ApiResponse({ status: 400, description: 'At least one field must be provided' })
+  @ApiResponse({ status: 403, description: 'Only channel admins can update the channel' })
+  @ApiResponse({ status: 404, description: 'Channel not found in workspace' })
+  async update(
+    @Req() req: WorkspaceRequest,
+    @Param('id') channelId: string,
+    @Body() dto: UpdateChannelDto,
+  ): Promise<ApiRes<any>> {
+    const channel = await this.channelsService.updateChannel(
+      req.workspaceContext.workspaceId,
+      channelId,
+      req.user.id,
+      dto,
+    );
+    return ok(channel, 'Channel updated');
   }
 
   @Post(':id/members')

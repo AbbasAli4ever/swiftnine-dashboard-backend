@@ -20,6 +20,49 @@ let ChannelsService = class ChannelsService {
         this.prisma = prisma;
         this.notifications = notifications;
     }
+    channelInclude() {
+        return {
+            members: {
+                include: {
+                    user: { select: { id: true, fullName: true, avatarUrl: true } },
+                },
+            },
+            project: true,
+        };
+    }
+    async listByWorkspace(workspaceId, userId) {
+        return this.prisma.channel.findMany({
+            where: {
+                workspaceId,
+                OR: [
+                    { privacy: 'PUBLIC' },
+                    { privacy: 'PRIVATE', members: { some: { userId } } },
+                ],
+            },
+            include: this.channelInclude(),
+            orderBy: { createdAt: 'asc' },
+        });
+    }
+    async listByProject(workspaceId, projectId, userId) {
+        const project = await this.prisma.project.findFirst({
+            where: { id: projectId, workspaceId, deletedAt: null },
+            select: { id: true },
+        });
+        if (!project)
+            throw new common_1.NotFoundException('Project not found in workspace');
+        return this.prisma.channel.findMany({
+            where: {
+                workspaceId,
+                projectId,
+                OR: [
+                    { privacy: 'PUBLIC' },
+                    { privacy: 'PRIVATE', members: { some: { userId } } },
+                ],
+            },
+            include: this.channelInclude(),
+            orderBy: { createdAt: 'asc' },
+        });
+    }
     async create(workspaceId, userId, dto) {
         if (dto.projectId) {
             const project = await this.prisma.project.findFirst({
@@ -53,8 +96,39 @@ let ChannelsService = class ChannelsService {
             });
             return tx.channel.findFirst({
                 where: { id: channel.id },
-                include: { members: { include: { user: { select: { id: true, fullName: true, avatarUrl: true } } } }, project: true },
+                include: this.channelInclude(),
             });
+        });
+    }
+    async updateChannel(workspaceId, channelId, callerUserId, dto) {
+        const channel = await this.prisma.channel.findFirst({
+            where: { id: channelId, workspaceId },
+            select: { id: true },
+        });
+        if (!channel)
+            throw new common_1.NotFoundException('Channel not found in workspace');
+        const callerMembership = await this.prisma.channelMember.findFirst({
+            where: { channelId, userId: callerUserId },
+            select: { role: true },
+        });
+        if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
+            throw new common_1.ForbiddenException('Only channel admins can update the channel');
+        }
+        const updateData = {};
+        if (dto.name !== undefined)
+            updateData.name = dto.name.trim();
+        if (Object.prototype.hasOwnProperty.call(dto, 'description')) {
+            updateData.description = dto.description === null ? null : (dto.description ?? '').trim() || null;
+        }
+        if (dto.privacy !== undefined)
+            updateData.privacy = dto.privacy;
+        if (Object.keys(updateData).length === 0) {
+            throw new common_1.BadRequestException('At least one field must be provided');
+        }
+        return this.prisma.channel.update({
+            where: { id: channelId },
+            data: updateData,
+            include: this.channelInclude(),
         });
     }
     mapRoleInput(input) {

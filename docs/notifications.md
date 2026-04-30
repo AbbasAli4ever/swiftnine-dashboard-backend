@@ -1,49 +1,48 @@
 # Notifications API
 
-Purpose: frontend integration reference for the notification subscription stream, SSE payloads, and notification state APIs.
+Purpose: frontend integration reference for the notification subscription stream (SSE), SSE payload shapes, and HTTP notification state/list APIs. This page documents every notification API implemented in the backend and provides example requests and responses.
 
-All endpoints below are protected by `JwtAuthGuard` and `WorkspaceGuard`.
+All endpoints below are guarded by `JwtAuthGuard` and `WorkspaceGuard`.
 
-Required headers:
-
-- `Authorization: Bearer <ACCESS_TOKEN>`
-- `x-workspace-id: <WORKSPACE_ID>`
-
-Note for browsers: native `EventSource` cannot send custom `Authorization` headers. Use cookie-based auth with `withCredentials`, a frontend proxy that injects the header, or `fetch()` with manual SSE parsing.
-
-## Notification subscription API
-
-Use this endpoint to subscribe the current user to live notification updates for a workspace member.
-
-### `GET /notifications/members/:memberId/stream`
-
-Opens a Server-Sent Events stream for one workspace member.
-
-Path params:
-
-- `memberId` (string, required): workspace member id. The backend also accepts the user's id and resolves it to the member in the current workspace.
-
-Headers:
+Required headers for HTTP requests:
 
 - `Authorization: Bearer <ACCESS_TOKEN>`
 - `x-workspace-id: <WORKSPACE_ID>`
 
-Authorization rules:
+Note for browsers: native `EventSource` cannot set custom `Authorization` headers. Use cookie-based auth with `withCredentials`, a frontend proxy that injects the header, or use `fetch()` and parse the SSE stream manually.
 
-- The authenticated user must be an active member of the workspace from `x-workspace-id`.
-- The `memberId` path param must resolve to a member in the same workspace from `x-workspace-id`.
-- The resolved member's `userId` must match the authenticated user.
-- Opening another user's notification stream returns `403 Forbidden`.
+SUMMARY
+- `GET /notifications/members/:memberId/stream` — open SSE stream for a workspace member
+- `PATCH /notifications/:id/clear` — set cleared/un-cleared
+- `PATCH /notifications/:id/snooze` — set snooze/un-snooze (optional expiry)
+- `PATCH /notifications/:id/read` — mark read/unread
+- `GET /notifications/cleared` — list cleared notifications
+- `GET /notifications/snoozed` — list currently snoozed notifications
 
-Return:
+---
 
-- HTTP response content type is `text/event-stream`.
-- The connection stays open and sends SSE frames.
-- The first event is always `notifications:init` with the existing unread, uncleared, unsnoozed notification list.
-- Later events are sent as notifications are created or updated.
-- Heartbeat comments are sent every 15 seconds as `:heartbeat`.
+## 1) SSE: Subscribe to live updates
 
-cURL example:
+GET /notifications/members/:memberId/stream
+
+Description
+- Opens a Server-Sent Events (SSE) stream for a workspace member so the client receives live `notification:created` and `notification:updated` events.
+
+Headers
+- `Authorization: Bearer <TOKEN>`
+- `x-workspace-id: <WORKSPACE_ID>`
+
+Path params
+- `memberId` (string): workspace member id OR user id (the server resolves both).
+
+Rules
+- Only the authenticated user may open their own member stream. Opening another user's stream returns `403`.
+
+Behavior
+- When the stream opens the server sends an initial `notifications:init` event (array of existing notifications) and keeps the connection open.
+- The server sends heartbeat comments (`:heartbeat`) every 15 seconds.
+
+Client cURL (keep-alive)
 
 ```bash
 curl -N \
@@ -52,21 +51,13 @@ curl -N \
   "https://api.example.com/notifications/members/<MEMBER_ID>/stream"
 ```
 
-## SSE events
+SSE events and payloads
 
-### `notifications:init`
+- `notifications:init` — initial payload (array)
+  - Sent using the full DB notification objects enriched with `taskId`/`taskName`/`commentName`.
+  - Includes DB fields such as `userId`, `readAt`, and `isCommented`.
 
-Sent immediately after the stream opens.
-
-Payload:
-
-- Array of full Prisma `Notification` records.
-- Ordered by `createdAt` descending.
-- Limited to 200 items.
-- Only includes existing DB notifications where `isRead=false`, `isCleared=false`, and `isSnoozed=false`.
-- Expired snoozes are unsnoozed before the list is loaded.
-
-Example:
+Example `notifications:init` payload (single item):
 
 ```json
 [
@@ -79,7 +70,11 @@ Example:
     "referenceType": "task",
     "referenceId": "task-42",
     "taskId": "task-42",
+    "taskName": "Build landing page",
+    "commentId": null,
+    "commentName": null,
     "actorId": "user-222",
+    "isCommented": false,
     "isRead": false,
     "readAt": null,
     "isCleared": false,
@@ -90,18 +85,12 @@ Example:
 ]
 ```
 
-### `notification:created`
+- `notification:created` — created event (single object)
+  - Sent when a new active notification is created for the connected member.
+  - Payload is produced by `toNotificationPayload()` and is a compact representation — it intentionally omits `userId` and low-level `readAt` DB fields.
+  - For comment notifications it includes `commentId`/`commentName` and reply metadata (`replyCommentId`/`repliedToCommentId`).
 
-Sent when the backend creates a new active notification for the connected member.
-
-Payload:
-
-- Single compact notification object.
-- Omits DB-only fields such as `userId` and `readAt`.
-- Not sent for notifications that are created already cleared or snoozed.
-- Also used when a snoozed notification expires and becomes active again.
-
-Example:
+Example `notification:created` payload:
 
 ```json
 {
@@ -112,7 +101,13 @@ Example:
   "referenceType": "comment",
   "referenceId": "comment-77",
   "taskId": "task-42",
+  "taskName": "Build landing page",
+  "commentId": "comment-77",
+  "commentName": "Looks good to me!",
+  "replyCommentId": "comment-77",
+  "repliedToCommentId": null,
   "actorId": "user-333",
+  "isCommented": true,
   "isRead": false,
   "isCleared": false,
   "isSnoozed": false,
@@ -121,18 +116,10 @@ Example:
 }
 ```
 
-### `notification:updated`
+- `notification:updated` — state change (single object)
+  - Sent when a notification's read/clear/snooze state changes. Payload is the same compact shape as `notification:created`.
 
-Sent after a notification's read, clear, or snooze state changes.
-
-Payload:
-
-- Single compact notification object.
-- Clients should update the matching notification by `id`.
-- If `isCleared=true` or `isSnoozed=true`, remove it from the active notification list.
-- If `isRead` changes, keep it in the active list and update its read styling.
-
-Example:
+Example `notification:updated` payload:
 
 ```json
 {
@@ -143,7 +130,13 @@ Example:
   "referenceType": "comment",
   "referenceId": "comment-77",
   "taskId": "task-42",
+  "taskName": "Build landing page",
+  "commentId": "comment-77",
+  "commentName": "Looks good to me!",
+  "replyCommentId": "comment-77",
+  "repliedToCommentId": null,
   "actorId": "user-333",
+  "isCommented": true,
   "isRead": true,
   "isCleared": false,
   "isSnoozed": false,
@@ -152,83 +145,69 @@ Example:
 }
 ```
 
-### Heartbeat comments
+Note: Clients should treat `notifications:init` as the canonical initial list and then apply `notification:created` and `notification:updated` events incrementally.
 
-Sent every 15 seconds to keep the connection alive.
+---
 
-Payload:
+## Field reference (common response fields)
 
-- SSE comment line: `:heartbeat`
-- No JSON data.
-- Clients should ignore these lines.
-
-## Notification object fields
-
-Full DB notification records can contain:
-
-- `id` (string): notification id.
-- `userId` (string): recipient user id. Present in `notifications:init` and list API responses.
-- `type` (string): notification type key, such as `task:assigned` or `comment:created`.
-- `title` (string): short UI title.
-- `message` (string | null): optional body text.
-- `referenceType` (string): related entity kind, for example `task` or `comment`.
-- `referenceId` (string): related entity id.
-- `taskId` (string | null): task id related to the notification. If `referenceType=task`, this matches `referenceId`; if `referenceType=comment`, the backend resolves it from the comment.
-- `actorId` (string | null): user id that triggered the notification.
-- `isRead` (boolean): read state.
-- `readAt` (string | null): ISO datetime when the notification was marked read.
-- `isCleared` (boolean): archived/cleared state.
-- `isSnoozed` (boolean): snooze state.
-- `snoozedAt` (string | null): ISO datetime when the snooze expires. `null` means no expiry when `isSnoozed=true`.
-- `createdAt` (string): ISO datetime when created.
-
-Compact SSE update payloads contain:
+HTTP list/state responses and `notifications:init` typically include:
 
 - `id`
+- `userId`
 - `type`
 - `title`
 - `message`
 - `referenceType`
 - `referenceId`
 - `taskId`
+- `taskName`
+- `commentId`
+- `commentName`
 - `actorId`
+- `isCommented`
 - `isRead`
+- `readAt`
 - `isCleared`
 - `isSnoozed`
 - `snoozedAt`
 - `createdAt`
 
-## State update APIs
+SSE `notification:created` and `notification:updated` payloads include the same core fields, but:
 
-Each update endpoint returns the updated notification object and emits `notification:updated` to the current member's connected stream.
+- they omit `userId` and `readAt`
+- they add `replyCommentId` and `repliedToCommentId` when the reference is a comment
 
-### `PATCH /notifications/:id/clear`
+## 2) HTTP State APIs (requests + responses)
 
-Clears or un-clears a notification.
+All state APIs return the updated notification object (enriched with `taskId`/`taskName`/`commentName` and `isCommented`) on success. Example responses below reflect the runtime shape returned by the API (these responses include `userId` and `readAt` when present).
 
-Path params:
+Common headers for these examples:
 
-- `id` (string, required): notification id.
+- `Authorization: Bearer <TOKEN>`
+- `x-workspace-id: <WORKSPACE_ID>`
 
-Body:
+### PATCH /notifications/:id/clear
 
-```json
-{
-  "isCleared": true
-}
+Description: mark a notification as cleared (archived) or un-cleared.
+
+Request (cURL):
+
+```bash
+curl -X PATCH "https://api.example.com/notifications/8b2c4f5e-aaa1-4cde-9a33-abcdef123456/clear" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "x-workspace-id: <WORKSPACE_ID>" \
+  -H "Content-Type: application/json" \
+  -d '{"isCleared": true}'
 ```
 
-Body fields:
+Body schema:
 
-- `isCleared` (boolean, required): `true` to clear, `false` to un-clear.
+```json
+{ "isCleared": true }
+```
 
-Behavior:
-
-- The notification must belong to the authenticated user.
-- `isCleared=true` resets other active states: `isSnoozed=false`, `snoozedAt=null`, `isRead=false`, `readAt=null`.
-- `isCleared=false` only un-clears the notification.
-
-Returns:
+Success response (200 OK):
 
 ```json
 {
@@ -240,7 +219,11 @@ Returns:
   "referenceType": "comment",
   "referenceId": "comment-77",
   "taskId": "task-42",
+  "taskName": "Build landing page",
+  "commentId": "comment-77",
+  "commentName": "Looks good to me!",
   "actorId": "user-333",
+  "isCommented": true,
   "isRead": false,
   "readAt": null,
   "isCleared": true,
@@ -250,39 +233,30 @@ Returns:
 }
 ```
 
-### `PATCH /notifications/:id/snooze`
+Notes
+- `isCleared=true` will also unset `isSnoozed` and `isRead` (and clear their timestamps).
 
-Snoozes or unsnoozes a notification.
+### PATCH /notifications/:id/snooze
 
-Path params:
+Description: snooze (temporarily hide) a notification, optionally until a specific datetime.
 
-- `id` (string, required): notification id.
+Request (cURL):
 
-Body:
-
-```json
-{
-  "isSnoozed": true,
-  "snoozeUntil": "2026-04-27T13:10:00.000Z"
-}
+```bash
+curl -X PATCH "https://api.example.com/notifications/8b2c4f5e-aaa1-4cde-9a33-abcdef123456/snooze" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "x-workspace-id: <WORKSPACE_ID>" \
+  -H "Content-Type: application/json" \
+  -d '{"isSnoozed": true, "snoozeUntil": "2026-04-27T13:10:00.000Z"}'
 ```
 
-Body fields:
+Body schema:
 
-- `isSnoozed` (boolean, required): `true` to snooze, `false` to unsnooze.
-- `snoozeUntil` (string, optional): future ISO datetime. Only allowed when `isSnoozed=true`.
+```json
+{ "isSnoozed": true, "snoozeUntil": "2026-04-27T13:10:00.000Z" }
+```
 
-Behavior:
-
-- The notification must belong to the authenticated user.
-- `isSnoozed=true` with `snoozeUntil` snoozes until that future datetime.
-- `isSnoozed=true` without `snoozeUntil` stays snoozed until manually unsnoozed.
-- `isSnoozed=false` unsnoozes immediately and sets `snoozedAt=null`.
-- `snoozeUntil` must be a valid future datetime.
-- `isSnoozed=true` resets other active states: `isCleared=false`, `isRead=false`, `readAt=null`.
-- Expired snoozes are processed by a one-minute watcher and before reading the stream/snoozed list.
-
-Returns:
+Success response (200 OK):
 
 ```json
 {
@@ -294,7 +268,11 @@ Returns:
   "referenceType": "comment",
   "referenceId": "comment-77",
   "taskId": "task-42",
+  "taskName": "Build landing page",
+  "commentId": "comment-77",
+  "commentName": "Looks good to me!",
   "actorId": "user-333",
+  "isCommented": true,
   "isRead": false,
   "readAt": null,
   "isCleared": false,
@@ -304,34 +282,31 @@ Returns:
 }
 ```
 
-### `PATCH /notifications/:id/read`
+Notes
+- `snoozeUntil` must be a valid ISO datetime in the future.
+- If `isSnoozed=false`, `snoozeUntil` MUST NOT be provided.
 
-Marks a notification read or unread.
+### PATCH /notifications/:id/read
 
-Path params:
+Description: mark a notification read or unread.
 
-- `id` (string, required): notification id.
+Request (cURL):
 
-Body:
-
-```json
-{
-  "isRead": true
-}
+```bash
+curl -X PATCH "https://api.example.com/notifications/8b2c4f5e-aaa1-4cde-9a33-abcdef123456/read" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "x-workspace-id: <WORKSPACE_ID>" \
+  -H "Content-Type: application/json" \
+  -d '{"isRead": true}'
 ```
 
-Body fields:
+Body schema:
 
-- `isRead` (boolean, required): `true` to mark read, `false` to mark unread.
+```json
+{ "isRead": true }
+```
 
-Behavior:
-
-- The notification must belong to the authenticated user.
-- `isRead=true` sets `readAt` to the current server time.
-- `isRead=false` sets `readAt=null`.
-- `isRead=true` resets other active states: `isCleared=false`, `isSnoozed=false`, `snoozedAt=null`.
-
-Returns:
+Success response (200 OK):
 
 ```json
 {
@@ -343,7 +318,11 @@ Returns:
   "referenceType": "comment",
   "referenceId": "comment-77",
   "taskId": "task-42",
+  "taskName": "Build landing page",
+  "commentId": "comment-77",
+  "commentName": "Looks good to me!",
   "actorId": "user-333",
+  "isCommented": true,
   "isRead": true,
   "readAt": "2026-04-27T12:15:00.000Z",
   "isCleared": false,
@@ -353,24 +332,26 @@ Returns:
 }
 ```
 
-## List APIs
+Notes
+- `isRead=true` sets `readAt` on the server; `isRead=false` clears it.
 
-### `GET /notifications/cleared`
+---
 
-Returns cleared notifications for the current user in the current workspace context.
+## 3) HTTP List APIs
 
-Body:
+### GET /notifications/cleared
 
-- None.
+Description: return cleared (archived) notifications for the current authenticated member in the workspace.
 
-Returns:
+Request (cURL):
 
-- Array of notification objects.
-- Ordered by `createdAt` descending.
-- Limited to 500 items.
-- Only includes notifications where `isCleared=true`.
+```bash
+curl "https://api.example.com/notifications/cleared" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "x-workspace-id: <WORKSPACE_ID>"
+```
 
-Example:
+Success response (200 OK):
 
 ```json
 [
@@ -383,7 +364,11 @@ Example:
     "referenceType": "comment",
     "referenceId": "comment-77",
     "taskId": "task-42",
+    "taskName": "Build landing page",
+    "commentId": "comment-77",
+    "commentName": "Looks good to me!",
     "actorId": "user-333",
+    "isCommented": true,
     "isRead": false,
     "readAt": null,
     "isCleared": true,
@@ -394,26 +379,19 @@ Example:
 ]
 ```
 
-### `GET /notifications/snoozed`
+### GET /notifications/snoozed
 
-Returns currently snoozed notifications for the current user in the current workspace context.
+Description: return currently snoozed notifications for the current authenticated member. Expired snoozes are unsnoozed before the query.
 
-Body:
+Request (cURL):
 
-- None.
+```bash
+curl "https://api.example.com/notifications/snoozed" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "x-workspace-id: <WORKSPACE_ID>"
+```
 
-Behavior:
-
-- Expired snoozes are automatically unsnoozed before results are returned.
-
-Returns:
-
-- Array of notification objects.
-- Ordered by `snoozedAt` ascending.
-- Limited to 500 items.
-- Only includes notifications where `isSnoozed=true`.
-
-Example:
+Success response (200 OK):
 
 ```json
 [
@@ -426,7 +404,11 @@ Example:
     "referenceType": "comment",
     "referenceId": "comment-77",
     "taskId": "task-42",
+    "taskName": "Build landing page",
+    "commentId": "comment-77",
+    "commentName": "Looks good to me!",
     "actorId": "user-333",
+    "isCommented": true,
     "isRead": false,
     "readAt": null,
     "isCleared": false,
@@ -437,122 +419,58 @@ Example:
 ]
 ```
 
+---
+
+## Error cases (quick reference)
+
+- `400 Bad Request` — invalid or missing boolean fields, invalid `snoozeUntil`, `snoozeUntil` in the past, or `snoozeUntil` provided while `isSnoozed=false`.
+- `401 Unauthorized` — missing or invalid JWT.
+- `403 Forbidden` — trying to open or modify another user's notifications or member stream.
+- `404 Not Found` — notification id or member not found.
+
+---
+
 ## Common notification type values
 
-These values are examples found in backend code. They are not enforced enums, so clients should treat `type` as an opaque key.
+These are examples — `type` is not a strict enum. Treat it as an opaque key in the client.
 
-- `task:assigned`: user was assigned to a task.
-- `task:updated`: assigned task was updated.
-- `comment:created`: new comment on a task assigned to the recipient.
-- `comment_added`: new comment notification for the task creator.
-- `mentioned`: user was mentioned in a comment.
-- `reaction:created`: new reaction on a comment or task.
-- `reaction:updated`: reaction was changed.
-- `reaction:deleted`: reaction was removed.
+- `task:assigned`
+- `task:updated`
+- `comment:created`
+- `comment_added`
+- `mentioned`
+- `reaction:created`
+- `reaction:updated`
+- `reaction:deleted`
 
-Use `taskId` to open the related task directly. Use `referenceType` and `referenceId` when you need the exact triggering entity, such as a comment.
+Use `taskId` to open the related task. Use `referenceType`/`referenceId` to reference the exact triggering entity.
 
-## Client examples
+---
 
-### Browser `EventSource` with cookie auth
+## Client examples (short)
 
-```js
-const memberId = '<WORKSPACE_MEMBER_ID_OR_USER_ID>';
-const es = new EventSource(`/notifications/members/${memberId}/stream`, {
-  withCredentials: true,
-});
-
-es.addEventListener('notifications:init', (event) => {
-  const notifications = JSON.parse(event.data);
-  handleInit(notifications);
-});
-
-es.addEventListener('notification:created', (event) => {
-  const notification = JSON.parse(event.data);
-  handleCreated(notification);
-});
-
-es.addEventListener('notification:updated', (event) => {
-  const notification = JSON.parse(event.data);
-  handleUpdated(notification);
-});
-
-es.addEventListener('error', (error) => {
-  console.error('Notification stream error', error);
-});
-```
-
-### Browser `fetch` with bearer token
+Browser EventSource (cookie auth):
 
 ```js
-async function connectNotificationStream(memberId, token, workspaceId) {
-  const res = await fetch(`/notifications/members/${memberId}/stream`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'x-workspace-id': workspaceId,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to open notification stream');
-  }
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-
-  function parseSseEvent(raw) {
-    if (!raw.trim() || raw.startsWith(':')) return null;
-
-    let event = 'message';
-    let data = '';
-
-    for (const line of raw.split(/\n/)) {
-      if (line.startsWith('event:')) event = line.slice(6).trim();
-      if (line.startsWith('data:')) data += line.slice(5);
-    }
-
-    if (!data) return null;
-    return { event, data: JSON.parse(data) };
-  }
-
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-
-    let index;
-    while ((index = buffer.indexOf('\n\n')) !== -1) {
-      const raw = buffer.slice(0, index);
-      buffer = buffer.slice(index + 2);
-
-      const event = parseSseEvent(raw);
-      if (!event) continue;
-
-      if (event.event === 'notifications:init') handleInit(event.data);
-      if (event.event === 'notification:created') handleCreated(event.data);
-      if (event.event === 'notification:updated') handleUpdated(event.data);
-    }
-  }
-}
+const es = new EventSource(`/notifications/members/${memberId}/stream`, { withCredentials: true });
+es.addEventListener('notifications:init', e => handleInit(JSON.parse(e.data)));
+es.addEventListener('notification:created', e => handleCreated(JSON.parse(e.data)));
+es.addEventListener('notification:updated', e => handleUpdated(JSON.parse(e.data)));
 ```
 
-## Error cases
+When using bearer tokens from the browser, use `fetch()` and parse SSE lines manually (see previous example in repo codebase for a robust parser).
 
-Common errors:
-
-- `400 Bad Request`: required boolean body field is missing or invalid, `snoozeUntil` is invalid, `snoozeUntil` is in the past, or `snoozeUntil` was sent while `isSnoozed=false`.
-- `401 Unauthorized`: missing or invalid JWT.
-- `403 Forbidden`: authenticated user tried to open or modify another user's notification.
-- `404 Not Found`: member or notification was not found.
+---
 
 ## Backend code pointers
 
 - SSE service: [apps/api/src/notifications/sse.service.ts](../apps/api/src/notifications/sse.service.ts)
-- Notifications controller: [apps/api/src/notifications/notifications.controller.ts](../apps/api/src/notifications/notifications.controller.ts)
-- Notifications service: [apps/api/src/notifications/notifications.service.ts](../apps/api/src/notifications/notifications.service.ts)
-- Notification response DTO: [apps/api/src/notifications/dto/notification-response.dto.ts](../apps/api/src/notifications/dto/notification-response.dto.ts)
-- Clear DTO: [apps/api/src/notifications/dto/patch-notification-clear.dto.ts](../apps/api/src/notifications/dto/patch-notification-clear.dto.ts)
-- Snooze DTO: [apps/api/src/notifications/dto/patch-notification-snooze.dto.ts](../apps/api/src/notifications/dto/patch-notification-snooze.dto.ts)
-- Read DTO: [apps/api/src/notifications/dto/patch-notification-read.dto.ts](../apps/api/src/notifications/dto/patch-notification-read.dto.ts)
+- Controller: [apps/api/src/notifications/notifications.controller.ts](../apps/api/src/notifications/notifications.controller.ts)
+- Service: [apps/api/src/notifications/notifications.service.ts](../apps/api/src/notifications/notifications.service.ts)
+- DTOs: [apps/api/src/notifications/dto](../apps/api/src/notifications/dto/)
+
+If you want, I can also:
+
+- add concrete curl examples with real sample IDs and tokens in a separate `examples/` folder,
+- or generate TypeScript client helper functions that wrap these endpoints.
+
