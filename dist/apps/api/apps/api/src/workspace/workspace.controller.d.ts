@@ -4,6 +4,8 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
+import { AddMemberDto } from './dto/add-member.dto';
+import { BatchAddMembersDto } from './dto/batch-add-members.dto';
 import { ClaimInviteDto } from './dto/claim-invite.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
 import { MemberDetailResponseDto } from './dto/member-detail-response.dto';
@@ -11,7 +13,7 @@ import type { WorkspaceRequest } from './workspace.types';
 import type { AuthUser } from '../auth/auth.service';
 import type { Request, Response } from 'express';
 import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
-import type { BatchInviteResult, InviteClaimResult, InviteNextStep, WorkspaceData } from './workspace.service';
+import type { BatchInviteResult, BatchAddResult, InviteClaimResult, InviteNextStep, WorkspaceData } from './workspace.service';
 type AuthenticatedRequest = Request & {
     user: AuthUser;
 };
@@ -29,6 +31,8 @@ export declare class WorkspaceController {
     remove(req: WorkspaceRequest): Promise<ApiRes<null>>;
     sendInvite(req: WorkspaceRequest, dto: InviteMemberDto): Promise<ApiRes<null>>;
     sendBatchInvites(req: WorkspaceRequest, dto: BatchInviteMembersDto): Promise<ApiRes<BatchInviteResult>>;
+    addMember(req: WorkspaceRequest, dto: AddMemberDto): Promise<ApiRes<null>>;
+    addMembersBatch(req: WorkspaceRequest, dto: BatchAddMembersDto): Promise<ApiRes<BatchAddResult>>;
     getInviteDetails(token: string): Promise<ApiRes<{
         workspaceId: string;
         workspaceName: string;

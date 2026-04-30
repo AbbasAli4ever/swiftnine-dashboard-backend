@@ -17,8 +17,8 @@ export declare class CommentsController {
     addReaction(req: WorkspaceRequest, commentId: string, dto: CreateReactionDto): Promise<ApiRes<{
         member: {
             id: string;
-            userId: string;
             role: import("@app/database/generated/prisma/enums").Role;
+            userId: string;
             user: {
                 id: string;
                 fullName: string;
@@ -35,12 +35,12 @@ export declare class CommentsController {
     updateReaction(req: WorkspaceRequest, reactionId: string, dto: CreateReactionDto): Promise<ApiRes<{
         member: {
             id: string;
+            role: import("@app/database/generated/prisma/enums").Role;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
             userId: string;
             workspaceId: string;
-            role: import("@app/database/generated/prisma/enums").Role;
+            deletedAt: Date | null;
         };
     } & {
         id: string;

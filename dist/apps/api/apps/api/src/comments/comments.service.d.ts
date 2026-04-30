@@ -10,24 +10,14 @@ export declare class CommentsService {
     private readonly logger;
     constructor(prisma: PrismaService, sse: SseService, activity: ActivityService, notifications: NotificationsService);
     getCommentsForTask(workspaceId: string, taskId: string): Promise<({
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                id: string;
-                fullName: string;
-                email: string;
-                avatarUrl: string | null;
-            };
-        }[];
         reactions: {
             id: string;
             createdAt: Date;
             reactFace: string;
             member: {
                 id: string;
-                userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
+                userId: string;
                 user: {
                     id: string;
                     fullName: string;
@@ -40,36 +30,36 @@ export declare class CommentsService {
             fullName: string;
             avatarUrl: string | null;
         };
+        mentions: {
+            id: string;
+            mentionedUserId: string;
+            mentionedUser: {
+                id: string;
+                fullName: string;
+                email: string;
+                avatarUrl: string | null;
+            };
+        }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        deletedAt: Date | null;
         userId: string;
+        deletedAt: Date | null;
         parentId: string | null;
         taskId: string;
         content: string;
         isEdited: boolean;
     })[]>;
     createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<{
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                id: string;
-                fullName: string;
-                email: string;
-                avatarUrl: string | null;
-            };
-        }[];
         reactions: {
             id: string;
             createdAt: Date;
             reactFace: string;
             member: {
                 id: string;
-                userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
+                userId: string;
                 user: {
                     id: string;
                     fullName: string;
@@ -82,36 +72,36 @@ export declare class CommentsService {
             fullName: string;
             avatarUrl: string | null;
         };
+        mentions: {
+            id: string;
+            mentionedUserId: string;
+            mentionedUser: {
+                id: string;
+                fullName: string;
+                email: string;
+                avatarUrl: string | null;
+            };
+        }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        deletedAt: Date | null;
         userId: string;
+        deletedAt: Date | null;
         parentId: string | null;
         taskId: string;
         content: string;
         isEdited: boolean;
     }>;
     updateComment(workspaceId: string, userId: string, commentId: string, content: string, mentionedUserIds?: string[]): Promise<{
-        mentions: {
-            id: string;
-            mentionedUserId: string;
-            mentionedUser: {
-                id: string;
-                fullName: string;
-                email: string;
-                avatarUrl: string | null;
-            };
-        }[];
         reactions: {
             id: string;
             createdAt: Date;
             reactFace: string;
             member: {
                 id: string;
-                userId: string;
                 role: import("@app/database/generated/prisma/enums").Role;
+                userId: string;
                 user: {
                     id: string;
                     fullName: string;
@@ -124,12 +114,22 @@ export declare class CommentsService {
             fullName: string;
             avatarUrl: string | null;
         };
+        mentions: {
+            id: string;
+            mentionedUserId: string;
+            mentionedUser: {
+                id: string;
+                fullName: string;
+                email: string;
+                avatarUrl: string | null;
+            };
+        }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        deletedAt: Date | null;
         userId: string;
+        deletedAt: Date | null;
         parentId: string | null;
         taskId: string;
         content: string;
@@ -139,8 +139,8 @@ export declare class CommentsService {
     addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<{
         member: {
             id: string;
-            userId: string;
             role: import("@app/database/generated/prisma/enums").Role;
+            userId: string;
             user: {
                 id: string;
                 fullName: string;
@@ -158,12 +158,12 @@ export declare class CommentsService {
     updateReaction(workspaceId: string, userId: string, reactionId: string, reactFace: string): Promise<{
         member: {
             id: string;
+            role: import("@app/database/generated/prisma/enums").Role;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
             userId: string;
             workspaceId: string;
-            role: import("@app/database/generated/prisma/enums").Role;
+            deletedAt: Date | null;
         };
     } & {
         id: string;
