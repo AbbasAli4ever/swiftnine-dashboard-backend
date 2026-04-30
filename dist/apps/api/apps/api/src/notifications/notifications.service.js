@@ -142,15 +142,18 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             taskName: enriched.taskName,
             commentId: enriched.commentId,
             commentName: enriched.commentName,
+            replyCommentId: enriched.referenceType === 'comment' ? (enriched.referenceId ?? null) : null,
+            repliedToCommentId: enriched.parentCommentId ?? null,
             actorId: enriched.actorId,
             isRead: enriched.isRead,
             isCleared: enriched.isCleared,
             isSnoozed: enriched.isSnoozed,
+            isCommented: enriched.isCommented,
             snoozedAt: enriched.snoozedAt,
             createdAt: enriched.createdAt,
         };
     }
-    async createNotification(workspaceId, targetMemberIdOrUserId, actorUserId, type, title, message, referenceType, referenceId) {
+    async createNotification(workspaceId, targetMemberIdOrUserId, actorUserId, type, title, message, referenceType, referenceId, isCommented, meta) {
         const member = await this.resolveWorkspaceMember(workspaceId, targetMemberIdOrUserId);
         if (!member) {
             this.logger.debug(`Notification: no member found for target ${targetMemberIdOrUserId} workspace=${workspaceId}`);
@@ -167,6 +170,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 referenceType: referenceType ?? '',
                 referenceId: referenceId ?? '',
                 actorId: actorUserId ?? undefined,
+                isCommented: isCommented ?? false,
                 isCleared: false,
                 isSnoozed: false,
                 snoozedAt: null,
@@ -174,7 +178,8 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         });
         try {
             if (!notif.isCleared && !notif.isSnoozed) {
-                this.sse.broadcastToMember(member.id, 'notification:created', await this.toNotificationPayload(notif));
+                const payloadSource = meta ? { ...notif, ...meta } : notif;
+                this.sse.broadcastToMember(member.id, 'notification:created', await this.toNotificationPayload(payloadSource));
             }
             else {
                 this.logger.debug('Notification created but not broadcast (cleared or snoozed)');

@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as Prisma from "../internal/prismaNamespace";
 export type TaskAssigneeModel = runtime.Types.Result.DefaultSelection<Prisma.$TaskAssigneePayload>;
 export type AggregateTaskAssignee = {
     _count: TaskAssigneeCountAggregateOutputType | null;

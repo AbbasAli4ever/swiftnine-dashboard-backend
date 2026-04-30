@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   Param,
   ParseUUIDPipe,
   UseGuards,
@@ -23,9 +24,11 @@ import {
   ApiTags,
   ApiParam,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthUser } from '../auth/auth.service';
+import { AuthService } from '../auth/auth.service';
+import { buildClearRefreshCookieOptions } from '../auth/auth.cookies';
 import { UserService, type UserProfile } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
@@ -54,7 +57,10 @@ type AuthenticatedRequest = Request & { user: AuthUser };
   }),
 )
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('profile')
   @HttpCode(HttpStatus.CREATED)
@@ -236,6 +242,23 @@ export class UserController {
       req.workspaceContext.role,
       id,
     );
+  }
+
+  @Post('logout-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout from all sessions',
+    description: 'Revokes every active refresh token for the current user. The current access token remains valid until it expires.',
+  })
+  @ApiResponse({ status: 200, description: 'All sessions logged out successfully' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async logoutAll(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    await this.authService.logoutAllSessions(req.user.id);
+    res.clearCookie('refresh_token', buildClearRefreshCookieOptions());
+    return { message: 'All sessions logged out successfully' };
   }
 
   @Patch('change-password')

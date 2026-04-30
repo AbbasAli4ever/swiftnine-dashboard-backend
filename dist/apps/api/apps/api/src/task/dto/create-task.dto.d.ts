@@ -2,6 +2,7 @@ import { z } from 'zod';
 declare const CreateTaskDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
+    descriptionJson: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
     statusId: z.ZodString;
     priority: z.ZodDefault<z.ZodEnum<{
         URGENT: "URGENT";

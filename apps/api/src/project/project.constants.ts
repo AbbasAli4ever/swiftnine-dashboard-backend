@@ -3,6 +3,8 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 export const PROJECT_NOT_FOUND = 'Project not found';
 export const PROJECT_PREFIX_TAKEN = 'A project with this task ID prefix already exists in this workspace';
 export const OWNER_ONLY = 'Only the workspace owner can perform this action';
+export const PROJECT_ALREADY_ARCHIVED = 'Project is already archived';
+export const PROJECT_NOT_ARCHIVED = 'Project is not archived';
 
 export const DEFAULT_STATUSES = [
   {

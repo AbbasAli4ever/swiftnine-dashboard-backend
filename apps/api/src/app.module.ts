@@ -20,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ChannelsModule } from './channels/channels.module';
 import { DocsModule } from './docs/docs.module';
+import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { DocsModule } from './docs/docs.module';
     NotificationsModule,
     DashboardModule,
     DocsModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

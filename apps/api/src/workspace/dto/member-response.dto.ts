@@ -10,8 +10,8 @@ export class MemberResponseDto {
   @ApiProperty({ example: 'shoaib@example.com' })
   email!: string;
 
-  @ApiProperty({ example: 'MEMBER', enum: ['OWNER', 'MEMBER'] })
-  role!: 'OWNER' | 'MEMBER';
+  @ApiProperty({ example: 'MEMBER', enum: ['OWNER', 'ADMIN', 'MEMBER'] })
+  role!: 'OWNER' | 'ADMIN' | 'MEMBER';
 
   @ApiProperty({ example: '2026-04-13T16:20:59.000Z', format: 'date-time', nullable: true })
   lastActive!: Date | null;

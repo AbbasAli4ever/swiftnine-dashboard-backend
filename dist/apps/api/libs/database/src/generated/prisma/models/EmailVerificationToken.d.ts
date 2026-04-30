@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as Prisma from "../internal/prismaNamespace";
 export type EmailVerificationTokenModel = runtime.Types.Result.DefaultSelection<Prisma.$EmailVerificationTokenPayload>;
 export type AggregateEmailVerificationToken = {
     _count: EmailVerificationTokenCountAggregateOutputType | null;

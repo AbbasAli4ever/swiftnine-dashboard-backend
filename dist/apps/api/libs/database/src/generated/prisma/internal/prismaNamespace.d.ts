@@ -1,7 +1,7 @@
 import * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../models.js";
-import { type PrismaClient } from "./class.js";
-export type * from '../models.js';
+import type * as Prisma from "../models";
+import { type PrismaClient } from "./class";
+export type * from '../models';
 export type DMMF = typeof runtime.DMMF;
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>;
 export declare const PrismaClientKnownRequestError: typeof runtime.PrismaClientKnownRequestError;
@@ -169,6 +169,8 @@ export declare const ModelName: {
     readonly Status: "Status";
     readonly Tag: "Tag";
     readonly Task: "Task";
+    readonly ProjectFavorite: "ProjectFavorite";
+    readonly TaskFavorite: "TaskFavorite";
     readonly TaskAssignee: "TaskAssignee";
     readonly TaskTag: "TaskTag";
     readonly Comment: "Comment";
@@ -198,7 +200,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -1087,6 +1089,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 count: {
                     args: Prisma.TaskCountArgs<ExtArgs>;
                     result: runtime.Types.Utils.Optional<Prisma.TaskCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ProjectFavorite: {
+            payload: Prisma.$ProjectFavoritePayload<ExtArgs>;
+            fields: Prisma.ProjectFavoriteFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ProjectFavoriteFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ProjectFavoriteFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                findFirst: {
+                    args: Prisma.ProjectFavoriteFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ProjectFavoriteFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                findMany: {
+                    args: Prisma.ProjectFavoriteFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                create: {
+                    args: Prisma.ProjectFavoriteCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                createMany: {
+                    args: Prisma.ProjectFavoriteCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ProjectFavoriteCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                delete: {
+                    args: Prisma.ProjectFavoriteDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                update: {
+                    args: Prisma.ProjectFavoriteUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ProjectFavoriteDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ProjectFavoriteUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ProjectFavoriteUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                upsert: {
+                    args: Prisma.ProjectFavoriteUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                aggregate: {
+                    args: Prisma.ProjectFavoriteAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateProjectFavorite>;
+                };
+                groupBy: {
+                    args: Prisma.ProjectFavoriteGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectFavoriteGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ProjectFavoriteCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectFavoriteCountAggregateOutputType> | number;
+                };
+            };
+        };
+        TaskFavorite: {
+            payload: Prisma.$TaskFavoritePayload<ExtArgs>;
+            fields: Prisma.TaskFavoriteFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.TaskFavoriteFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.TaskFavoriteFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                findFirst: {
+                    args: Prisma.TaskFavoriteFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.TaskFavoriteFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                findMany: {
+                    args: Prisma.TaskFavoriteFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                create: {
+                    args: Prisma.TaskFavoriteCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                createMany: {
+                    args: Prisma.TaskFavoriteCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.TaskFavoriteCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                delete: {
+                    args: Prisma.TaskFavoriteDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                update: {
+                    args: Prisma.TaskFavoriteUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.TaskFavoriteDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.TaskFavoriteUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.TaskFavoriteUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                upsert: {
+                    args: Prisma.TaskFavoriteUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                aggregate: {
+                    args: Prisma.TaskFavoriteAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateTaskFavorite>;
+                };
+                groupBy: {
+                    args: Prisma.TaskFavoriteGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.TaskFavoriteGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.TaskFavoriteCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.TaskFavoriteCountAggregateOutputType> | number;
                 };
             };
         };
@@ -2525,6 +2675,8 @@ export declare const TaskScalarFieldEnum: {
     readonly depth: "depth";
     readonly title: "title";
     readonly description: "description";
+    readonly descriptionJson: "descriptionJson";
+    readonly descriptionPlaintext: "descriptionPlaintext";
     readonly statusId: "statusId";
     readonly priority: "priority";
     readonly taskNumber: "taskNumber";
@@ -2540,6 +2692,22 @@ export declare const TaskScalarFieldEnum: {
     readonly deletedAt: "deletedAt";
 };
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum];
+export declare const ProjectFavoriteScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly workspaceId: "workspaceId";
+    readonly projectId: "projectId";
+    readonly createdAt: "createdAt";
+};
+export type ProjectFavoriteScalarFieldEnum = (typeof ProjectFavoriteScalarFieldEnum)[keyof typeof ProjectFavoriteScalarFieldEnum];
+export declare const TaskFavoriteScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly workspaceId: "workspaceId";
+    readonly taskId: "taskId";
+    readonly createdAt: "createdAt";
+};
+export type TaskFavoriteScalarFieldEnum = (typeof TaskFavoriteScalarFieldEnum)[keyof typeof TaskFavoriteScalarFieldEnum];
 export declare const TaskAssigneeScalarFieldEnum: {
     readonly id: "id";
     readonly taskId: "taskId";
@@ -2597,6 +2765,7 @@ export declare const NotificationScalarFieldEnum: {
     readonly isSnoozed: "isSnoozed";
     readonly snoozedAt: "snoozedAt";
     readonly createdAt: "createdAt";
+    readonly isCommented: "isCommented";
 };
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
 export declare const AttachmentScalarFieldEnum: {
@@ -2827,6 +2996,8 @@ export type GlobalOmitConfig = {
     status?: Prisma.StatusOmit;
     tag?: Prisma.TagOmit;
     task?: Prisma.TaskOmit;
+    projectFavorite?: Prisma.ProjectFavoriteOmit;
+    taskFavorite?: Prisma.TaskFavoriteOmit;
     taskAssignee?: Prisma.TaskAssigneeOmit;
     taskTag?: Prisma.TaskTagOmit;
     comment?: Prisma.CommentOmit;

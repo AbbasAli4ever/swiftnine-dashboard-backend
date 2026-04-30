@@ -34,6 +34,7 @@ export declare class AuthService {
     handleGoogleAuth(profile: GoogleAuthProfile): Promise<TokenPair>;
     refreshTokens(rawToken: string): Promise<TokenPair>;
     logout(rawToken: string): Promise<void>;
+    logoutAllSessions(userId: string): Promise<void>;
     forgotPassword(email: string): Promise<void>;
     resetPassword(token: string, newPassword: string): Promise<void>;
     issueTokens(user: AuthUser): Promise<TokenPair>;

@@ -47,7 +47,25 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({ summary: 'Create a task inside a list' }),
+    (0, swagger_1.ApiParam)({ name: 'projectId', description: 'Project UUID' }),
+    (0, swagger_1.ApiParam)({ name: 'listId', description: 'Task list UUID' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                title: 'Implement login page',
+                statusId: 'uuid-here',
+                priority: 'HIGH',
+                descriptionJson: {
+                    type: 'doc',
+                    content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich text description here.' }] }],
+                },
+                assigneeIds: [],
+                tagIds: [],
+            },
+        },
+    }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Task created with auto-incremented task ID (e.g. FH-101)' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Project, list, or status not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('projectId')),

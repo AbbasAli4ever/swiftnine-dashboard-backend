@@ -149,6 +149,7 @@ class TaskListItemResponseDto {
     boardPosition;
     depth;
     isCompleted;
+    isFavorite;
     completedAt;
     createdAt;
     updatedAt;
@@ -209,6 +210,10 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: false }),
     __metadata("design:type", Boolean)
 ], TaskListItemResponseDto.prototype, "isCompleted", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: true, description: 'Whether the current user has favorited/starred this task.' }),
+    __metadata("design:type", Boolean)
+], TaskListItemResponseDto.prototype, "isFavorite", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: null, nullable: true }),
     __metadata("design:type", Object)

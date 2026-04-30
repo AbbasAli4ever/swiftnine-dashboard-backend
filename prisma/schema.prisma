@@ -19,6 +19,7 @@ datasource db {
 
 enum Role {
   OWNER
+  ADMIN
   MEMBER
 }
 
@@ -97,6 +98,8 @@ model User {
   emailVerificationTokens    EmailVerificationToken[]
   workspacesCreated       Workspace[]          @relation("WorkspaceCreator")
   workspaceMembers        WorkspaceMember[]
+  projectFavorites        ProjectFavorite[]
+  taskFavorites           TaskFavorite[]
   channelMembers          ChannelMember[]
   workspaceInvitesSent    WorkspaceInvite[]    @relation("InviteSender")
   projectsCreated         Project[]            @relation("ProjectCreator")
@@ -192,6 +195,8 @@ model Workspace {
   tags         Tag[]
   activityLogs ActivityLog[]
   docs         Doc[]
+  projectFavorites ProjectFavorite[]
+  taskFavorites    TaskFavorite[]
 
   @@map("workspaces")
 }
@@ -260,6 +265,7 @@ model Project {
   taskLists TaskList[]
   statuses  Status[]
   docs      Doc[]
+  favorites ProjectFavorite[]
 
   @@unique([workspaceId, taskIdPrefix])
   @@index([workspaceId])
@@ -341,9 +347,11 @@ model Task {
   listId      String    @map("list_id")
   parentId    String?   @map("parent_id")
   depth       Int       @default(0)
-  title       String
-  description String?
-  statusId    String    @map("status_id")
+  title                String
+  description          String?
+  descriptionJson      Json?    @map("description_json")
+  descriptionPlaintext String?  @map("description_plaintext")
+  statusId             String   @map("status_id")
   priority    Priority  @default(NONE)
   taskNumber  Int       @map("task_number")
   startDate   DateTime? @map("start_date")
@@ -368,6 +376,7 @@ model Task {
   comments    Comment[]
   attachments Attachment[]
   timeEntries TimeEntry[]
+  favorites   TaskFavorite[]
 
   @@index([listId, position])
   @@index([listId, parentId, position])
@@ -375,6 +384,42 @@ model Task {
   @@index([statusId, boardPosition])
   @@index([dueDate])
   @@map("tasks")
+}
+
+/// User-specific favorite projects for quick access/starred views
+model ProjectFavorite {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  workspaceId String   @map("workspace_id")
+  projectId   String   @map("project_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([workspaceId, userId, createdAt])
+  @@index([projectId])
+  @@map("project_favorites")
+}
+
+/// User-specific favorite tasks for quick access/starred views
+model TaskFavorite {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  workspaceId String   @map("workspace_id")
+  taskId      String   @map("task_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@index([workspaceId, userId, createdAt])
+  @@index([taskId])
+  @@map("task_favorites")
 }
 
 /// Junction: Task <-> User for multi-assignee support
@@ -487,6 +532,7 @@ model Notification {
   // Relations
   recipient User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor     User? @relation("NotificationActor", fields: [actorId], references: [id])
+  isCommented  Boolean   @default(false) @map("is_commented")
 
   @@index([userId, isRead, isCleared, isSnoozed, createdAt])
   @@map("notifications")

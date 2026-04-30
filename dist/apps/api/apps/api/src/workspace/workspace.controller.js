@@ -25,6 +25,8 @@ const update_workspace_dto_1 = require("./dto/update-workspace.dto");
 const invite_member_dto_1 = require("./dto/invite-member.dto");
 const accept_invite_dto_1 = require("./dto/accept-invite.dto");
 const batch_invite_members_dto_1 = require("./dto/batch-invite-members.dto");
+const add_member_dto_1 = require("./dto/add-member.dto");
+const batch_add_members_dto_1 = require("./dto/batch-add-members.dto");
 const claim_invite_dto_1 = require("./dto/claim-invite.dto");
 const member_response_dto_1 = require("./dto/member-response.dto");
 const member_detail_response_dto_1 = require("./dto/member-detail-response.dto");
@@ -70,6 +72,14 @@ let WorkspaceController = class WorkspaceController {
     async sendBatchInvites(req, dto) {
         const result = await this.workspaceService.sendBatchInvites(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, dto);
         return (0, common_2.ok)(result, 'Batch invite processed');
+    }
+    async addMember(req, dto) {
+        await this.workspaceService.addMemberByUserId(req.workspaceContext.workspaceId, dto.userId, dto.role, req.user.id);
+        return (0, common_2.ok)(null, 'Member added successfully');
+    }
+    async addMembersBatch(req, dto) {
+        const result = await this.workspaceService.addMembersByUserIds(req.workspaceContext.workspaceId, dto.userIds, dto.role, req.user.id);
+        return (0, common_2.ok)(result, 'Batch members processed');
     }
     async getInviteDetails(token) {
         const details = await this.workspaceService.getInviteDetails(token);
@@ -229,6 +239,45 @@ __decorate([
     __metadata("design:paramtypes", [Object, batch_invite_members_dto_1.BatchInviteMembersDto]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "sendBatchInvites", null);
+__decorate([
+    (0, common_1.Post)(':workspaceId/members'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Add an existing user to a workspace (OWNER only)' }),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Member added' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member or not an owner' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Workspace or user not found' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, add_member_dto_1.AddMemberDto]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "addMember", null);
+__decorate([
+    (0, common_1.Post)(':workspaceId/members/batch'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Add multiple existing users to a workspace (OWNER only)' }),
+    (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        type: batch_add_members_dto_1.BatchAddResponseDto,
+        description: 'Batch add processed',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not a member or not an owner' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Workspace not found' }),
+    (0, swagger_1.ApiResponse)({ status: 422, description: 'Validation failed' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, batch_add_members_dto_1.BatchAddMembersDto]),
+    __metadata("design:returntype", Promise)
+], WorkspaceController.prototype, "addMembersBatch", null);
 __decorate([
     (0, common_1.Get)('invite/:token'),
     (0, swagger_1.ApiOperation)({ summary: 'Peek at invite details without consuming it (public)' }),

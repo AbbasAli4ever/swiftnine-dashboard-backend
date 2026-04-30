@@ -3,9 +3,10 @@ import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { RolesModule } from '../roles/roles.module';
+import { FavoritesModule } from '../favorites/favorites.module';
 
 @Module({
-  imports: [WorkspaceModule, RolesModule],
+  imports: [WorkspaceModule, RolesModule, FavoritesModule],
   controllers: [ProjectController],
   providers: [ProjectService],
 })

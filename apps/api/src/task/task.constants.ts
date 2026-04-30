@@ -86,6 +86,8 @@ export const TASK_DETAIL_SELECT = {
   depth: true,
   title: true,
   description: true,
+  descriptionJson: true,
+  descriptionPlaintext: true,
   priority: true,
   startDate: true,
   dueDate: true,

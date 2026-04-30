@@ -13,10 +13,13 @@ exports.ProjectService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const project_constants_1 = require("./project.constants");
+const favorites_service_1 = require("../favorites/favorites.service");
 let ProjectService = class ProjectService {
     prisma;
-    constructor(prisma) {
+    favorites;
+    constructor(prisma, favorites) {
         this.prisma = prisma;
+        this.favorites = favorites;
     }
     async create(workspaceId, userId, dto) {
         const prefixTaken = await this.prisma.project.findFirst({
@@ -51,27 +54,41 @@ let ProjectService = class ProjectService {
                     performedBy: userId,
                 },
             });
-            return tx.project.findFirstOrThrow({
+            const created = await tx.project.findFirstOrThrow({
                 where: { id: project.id },
                 select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
             });
+            return { ...created, isFavorite: false };
         });
     }
-    async findAll(workspaceId) {
-        return this.prisma.project.findMany({
-            where: { workspaceId, deletedAt: null, isArchived: false },
+    async findAll(workspaceId, userId, includeArchived = false) {
+        const projects = await this.prisma.project.findMany({
+            where: {
+                workspaceId,
+                deletedAt: null,
+                ...(includeArchived ? {} : { isArchived: false }),
+            },
             select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
             orderBy: { createdAt: 'asc' },
         });
+        return this.withFavoriteState(userId, projects);
     }
-    async findOne(workspaceId, projectId) {
+    async findArchived(workspaceId, userId) {
+        const projects = await this.prisma.project.findMany({
+            where: { workspaceId, deletedAt: null, isArchived: true },
+            select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+            orderBy: { updatedAt: 'desc' },
+        });
+        return this.withFavoriteState(userId, projects);
+    }
+    async findOne(workspaceId, userId, projectId) {
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
         });
         if (!project)
             throw new common_1.NotFoundException(project_constants_1.PROJECT_NOT_FOUND);
-        return project;
+        return this.withFavoriteState(userId, project);
     }
     async update(workspaceId, projectId, userId, dto) {
         const project = await this.prisma.project.findFirst({
@@ -99,7 +116,7 @@ let ProjectService = class ProjectService {
             logEntries.push({ fieldName: 'icon', oldValue: project.icon ?? null, newValue: dto.icon ?? null });
         }
         if (Object.keys(updateData).length === 0) {
-            return this.findOne(workspaceId, projectId);
+            return this.findOne(workspaceId, userId, projectId);
         }
         await this.prisma.project.update({
             where: { id: projectId },
@@ -120,7 +137,63 @@ let ProjectService = class ProjectService {
                 })),
             });
         }
-        return this.findOne(workspaceId, projectId);
+        return this.findOne(workspaceId, userId, projectId);
+    }
+    async archive(workspaceId, projectId, userId, role) {
+        this.assertCanArchive(role);
+        const project = await this.prisma.project.findFirst({
+            where: { id: projectId, workspaceId, deletedAt: null },
+            select: { id: true, name: true, isArchived: true },
+        });
+        if (!project)
+            throw new common_1.NotFoundException(project_constants_1.PROJECT_NOT_FOUND);
+        if (project.isArchived)
+            throw new common_1.BadRequestException(project_constants_1.PROJECT_ALREADY_ARCHIVED);
+        await this.prisma.$transaction(async (tx) => {
+            await tx.project.update({
+                where: { id: projectId },
+                data: { isArchived: true },
+            });
+            await tx.activityLog.create({
+                data: {
+                    workspaceId,
+                    entityType: 'project',
+                    entityId: projectId,
+                    action: 'archived',
+                    metadata: { projectName: project.name },
+                    performedBy: userId,
+                },
+            });
+        });
+        return this.findOne(workspaceId, userId, projectId);
+    }
+    async restore(workspaceId, projectId, userId, role) {
+        this.assertCanArchive(role);
+        const project = await this.prisma.project.findFirst({
+            where: { id: projectId, workspaceId, deletedAt: null },
+            select: { id: true, name: true, isArchived: true },
+        });
+        if (!project)
+            throw new common_1.NotFoundException(project_constants_1.PROJECT_NOT_FOUND);
+        if (!project.isArchived)
+            throw new common_1.BadRequestException(project_constants_1.PROJECT_NOT_ARCHIVED);
+        await this.prisma.$transaction(async (tx) => {
+            await tx.project.update({
+                where: { id: projectId },
+                data: { isArchived: false },
+            });
+            await tx.activityLog.create({
+                data: {
+                    workspaceId,
+                    entityType: 'project',
+                    entityId: projectId,
+                    action: 'restored',
+                    metadata: { projectName: project.name },
+                    performedBy: userId,
+                },
+            });
+        });
+        return this.findOne(workspaceId, userId, projectId);
     }
     async remove(workspaceId, projectId, userId, role) {
         if (role !== 'OWNER')
@@ -168,10 +241,27 @@ let ProjectService = class ProjectService {
             });
         });
     }
+    assertCanArchive(role) {
+        if (role !== 'OWNER' && role !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only workspace owners or admins can archive projects');
+        }
+    }
+    async withFavoriteState(userId, input) {
+        const projects = Array.isArray(input) ? input : [input];
+        const favoriteIds = this.favorites
+            ? await this.favorites.projectFavoriteIds(userId, projects.map((project) => project.id))
+            : new Set();
+        const enriched = projects.map((project) => ({
+            ...project,
+            isFavorite: favoriteIds.has(project.id),
+        }));
+        return Array.isArray(input) ? enriched : enriched[0];
+    }
 };
 exports.ProjectService = ProjectService;
 exports.ProjectService = ProjectService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        favorites_service_1.FavoritesService])
 ], ProjectService);
 //# sourceMappingURL=project.service.js.map

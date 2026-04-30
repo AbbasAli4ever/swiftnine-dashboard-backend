@@ -10,7 +10,7 @@ export const CreateDocSchema = z.object({
     .max(DOC_TITLE_MAX_LENGTH, `Title must be ${DOC_TITLE_MAX_LENGTH} characters or fewer`),
   scope: z.enum(['WORKSPACE', 'PROJECT', 'PERSONAL']),
   workspaceId: z.string().uuid('Invalid workspace ID'),
-  projectId: z.string().uuid('Invalid project ID').optional(),
+  projectId: z.string().uuid('Invalid project ID').nullish(),
   contentJson: z.record(z.string(), z.unknown()).optional(),
 });
 

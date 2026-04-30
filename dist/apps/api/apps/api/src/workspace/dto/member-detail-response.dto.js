@@ -49,7 +49,7 @@ __decorate([
     __metadata("design:type", String)
 ], MemberDetailResponseDto.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'MEMBER', enum: ['OWNER', 'MEMBER'] }),
+    (0, swagger_1.ApiProperty)({ example: 'MEMBER', enum: ['OWNER', 'ADMIN', 'MEMBER'] }),
     __metadata("design:type", String)
 ], MemberDetailResponseDto.prototype, "role", void 0);
 __decorate([

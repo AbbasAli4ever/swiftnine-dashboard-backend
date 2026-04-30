@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
-import type { Prisma, Role } from '@app/database/generated/prisma/client';
+import { Prisma, type Role } from '@app/database/generated/prisma/client';
 import {
   FORBIDDEN_DELETE,
   INVALID_REORDER_PAYLOAD,
@@ -34,14 +34,20 @@ import type { ListTasksQuery } from './dto/list-tasks-query.dto';
 import type { ReorderBoardTasksDto } from './dto/reorder-board-tasks.dto';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { FavoritesService } from '../favorites/favorites.service';
+import { assertContentSize, extractPlaintext } from '../docs/doc-content';
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
 type RawTaskDetail = Prisma.TaskGetPayload<{ select: typeof TASK_DETAIL_SELECT }>;
 type RawTaskListItem = Prisma.TaskGetPayload<{ select: typeof TASK_LIST_ITEM_SELECT }>;
 
-export type TaskDetailData = RawTaskDetail & { taskId: string; totalTimeLogged: number };
-export type TaskListItemData = RawTaskListItem & { taskId: string };
+export type TaskDetailData = RawTaskDetail & {
+  taskId: string;
+  totalTimeLogged: number;
+  isFavorite: boolean;
+};
+export type TaskListItemData = RawTaskListItem & { taskId: string; isFavorite: boolean };
 export type ProjectBoardColumnData = {
   status: {
     id: string;
@@ -84,6 +90,7 @@ export class TaskService {
     private readonly prisma: PrismaService,
     private readonly activity: ActivityService,
     private readonly notifications: NotificationsService,
+    private readonly favorites?: FavoritesService,
   ) {}
 
   async create(
@@ -105,6 +112,12 @@ export class TaskService {
     const position = await this.getNextPosition(listId);
     const boardPosition = await this.getNextBoardPosition(projectId, dto.statusId);
 
+    let descriptionPlaintext: string | null = null;
+    if (dto.descriptionJson) {
+      assertContentSize(dto.descriptionJson);
+      descriptionPlaintext = extractPlaintext(dto.descriptionJson);
+    }
+
     const raw = await this.prisma.$transaction(async (tx) => {
       const project = await tx.project.update({
         where: { id: projectId },
@@ -117,6 +130,9 @@ export class TaskService {
           listId,
           title: dto.title.trim(),
           description: dto.description?.trim() ?? null,
+          ...(dto.descriptionJson !== undefined
+            ? { descriptionJson: dto.descriptionJson as Prisma.InputJsonValue, descriptionPlaintext }
+            : {}),
           statusId: dto.statusId,
           priority: dto.priority ?? 'NONE',
           startDate: dto.startDate ?? null,
@@ -189,6 +205,7 @@ export class TaskService {
 
   async findAllByList(
     workspaceId: string,
+    userId: string,
     projectId: string,
     listId: string,
   ): Promise<TaskListItemData[]> {
@@ -200,7 +217,7 @@ export class TaskService {
       orderBy: { position: 'asc' },
     });
 
-    return tasks.map((t) => this.toListItem(t));
+    return this.toListItems(userId, tasks);
   }
 
   async findTasksByList(
@@ -266,9 +283,13 @@ export class TaskService {
       }),
     ]);
 
+    const favoriteIds = await this.taskFavoriteIds(
+      userId,
+      tasks.map((task) => task.id),
+    );
     const tasksByStatus = new Map<string, TaskListItemData[]>();
     for (const task of tasks) {
-      const mapped = this.toListItem(task);
+      const mapped = this.toListItem(task, favoriteIds.has(task.id));
       const columnTasks = tasksByStatus.get(mapped.status.id) ?? [];
       columnTasks.push(mapped);
       tasksByStatus.set(mapped.status.id, columnTasks);
@@ -291,17 +312,21 @@ export class TaskService {
     };
   }
 
-  async findOne(workspaceId: string, taskId: string): Promise<TaskDetailData> {
+  async findOne(workspaceId: string, userId: string, taskId: string): Promise<TaskDetailData> {
     const raw = await this.prisma.task.findFirst({
       where: {
         id: taskId,
         deletedAt: null,
-        list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
+        list: {
+          deletedAt: null,
+          isArchived: false,
+          project: { workspaceId, deletedAt: null, isArchived: false },
+        },
       },
       select: TASK_DETAIL_SELECT,
     });
     if (!raw) throw new NotFoundException(TASK_NOT_FOUND);
-    return this.toDetail(raw);
+    return this.toDetail(raw, await this.isTaskFavorite(userId, raw.id));
   }
 
   async update(
@@ -330,6 +355,21 @@ export class TaskService {
     if (dto.description !== undefined && dto.description !== task.description) {
       updateData.description = dto.description;
       logEntries.push({ fieldName: 'description', oldValue: task.description, newValue: dto.description });
+    }
+    if (dto.descriptionJson !== undefined) {
+      if (dto.descriptionJson === null) {
+        updateData.descriptionJson = Prisma.JsonNull;
+        updateData.descriptionPlaintext = null;
+      } else {
+        assertContentSize(dto.descriptionJson);
+        updateData.descriptionJson = dto.descriptionJson as Prisma.InputJsonValue;
+        updateData.descriptionPlaintext = extractPlaintext(dto.descriptionJson);
+      }
+      logEntries.push({
+        fieldName: 'descriptionJson',
+        oldValue: task.descriptionJson ? '[content]' : null,
+        newValue: dto.descriptionJson ? '[content]' : null,
+      });
     }
     if (dto.priority !== undefined && dto.priority !== task.priority) {
       updateData.priority = dto.priority;
@@ -381,7 +421,7 @@ export class TaskService {
       });
     }
 
-    if (Object.keys(updateData).length === 0) return this.findOne(workspaceId, taskId);
+    if (Object.keys(updateData).length === 0) return this.findOne(workspaceId, userId, taskId);
 
     await this.prisma.task.update({ where: { id: taskId }, data: updateData });
 
@@ -415,7 +455,7 @@ export class TaskService {
       });
     }
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   async remove(workspaceId: string, userId: string, taskId: string, role: Role): Promise<void> {
@@ -468,7 +508,7 @@ export class TaskService {
         performedBy: userId,
     });
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   async uncomplete(workspaceId: string, userId: string, taskId: string): Promise<TaskDetailData> {
@@ -491,7 +531,7 @@ export class TaskService {
         performedBy: userId,
     });
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   // ─── Subtasks ──────────────────────────────────────────────────────────────
@@ -562,7 +602,11 @@ export class TaskService {
     return this.toDetail(raw);
   }
 
-  async findSubtasks(workspaceId: string, parentTaskId: string): Promise<TaskListItemData[]> {
+  async findSubtasks(
+    workspaceId: string,
+    userId: string,
+    parentTaskId: string,
+  ): Promise<TaskListItemData[]> {
     await this.findTaskMinimalOrThrow(workspaceId, parentTaskId);
 
     const tasks = await this.prisma.task.findMany({
@@ -571,7 +615,7 @@ export class TaskService {
       orderBy: { position: 'asc' },
     });
 
-    return tasks.map((t) => this.toListItem(t));
+    return this.toListItems(userId, tasks);
   }
 
   // ─── Assignees ─────────────────────────────────────────────────────────────
@@ -624,7 +668,7 @@ export class TaskService {
       }
     }
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   async removeAssignee(
@@ -648,7 +692,7 @@ export class TaskService {
         performedBy: userId,
     });
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   // ─── Tags on task ──────────────────────────────────────────────────────────
@@ -688,7 +732,7 @@ export class TaskService {
         performedBy: userId,
     });
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   async removeTag(
@@ -721,7 +765,7 @@ export class TaskService {
         performedBy: userId,
     });
 
-    return this.findOne(workspaceId, taskId);
+    return this.findOne(workspaceId, userId, taskId);
   }
 
   // ─── Reorder ───────────────────────────────────────────────────────────────
@@ -776,7 +820,7 @@ export class TaskService {
       });
     }
 
-    return this.findAllByList(workspaceId, projectId, listId);
+    return this.findAllByList(workspaceId, userId, projectId, listId);
   }
 
   async reorderProjectBoard(
@@ -943,7 +987,7 @@ export class TaskService {
     ]);
 
     return {
-      items: tasks.map((task) => this.toListItem(task)),
+      items: await this.toListItems(scope.userId, tasks),
       total,
       page: query.page,
       limit: query.limit,
@@ -1207,7 +1251,7 @@ export class TaskService {
 
   private async findListOrThrow(workspaceId: string, projectId: string, listId: string) {
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
+      where: { id: projectId, workspaceId, deletedAt: null, isArchived: false },
       select: { id: true },
     });
     if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
@@ -1261,7 +1305,11 @@ export class TaskService {
       where: {
         id: taskId,
         deletedAt: null,
-        list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
+        list: {
+          deletedAt: null,
+          isArchived: false,
+          project: { workspaceId, deletedAt: null, isArchived: false },
+        },
       },
       select: {
         id: true,
@@ -1270,6 +1318,7 @@ export class TaskService {
         depth: true,
         title: true,
         description: true,
+        descriptionJson: true,
         statusId: true,
         priority: true,
         startDate: true,
@@ -1350,19 +1399,42 @@ export class TaskService {
     return (last?.position ?? 0) + 1000;
   }
 
-  private toDetail(raw: RawTaskDetail): TaskDetailData {
+  private toDetail(raw: RawTaskDetail, isFavorite = false): TaskDetailData {
     return {
       ...raw,
       taskId: `${raw.list.project.taskIdPrefix}-${raw.taskNumber}`,
       totalTimeLogged: raw.timeEntries.reduce((sum, e) => sum + (e.duration ?? 0), 0),
+      isFavorite,
     };
   }
 
-  private toListItem(raw: RawTaskListItem): TaskListItemData {
+  private toListItem(raw: RawTaskListItem, isFavorite = false): TaskListItemData {
     return {
       ...raw,
       taskId: `${raw.list.project.taskIdPrefix}-${raw.taskNumber}`,
+      isFavorite,
     };
+  }
+
+  private async toListItems(
+    userId: string,
+    rawTasks: RawTaskListItem[],
+  ): Promise<TaskListItemData[]> {
+    const favoriteIds = await this.taskFavoriteIds(
+      userId,
+      rawTasks.map((task) => task.id),
+    );
+    return rawTasks.map((task) => this.toListItem(task, favoriteIds.has(task.id)));
+  }
+
+  private async isTaskFavorite(userId: string, taskId: string): Promise<boolean> {
+    const ids = await this.taskFavoriteIds(userId, [taskId]);
+    return ids.has(taskId);
+  }
+
+  private async taskFavoriteIds(userId: string, taskIds: string[]): Promise<Set<string>> {
+    if (!this.favorites) return new Set();
+    return this.favorites.taskFavoriteIds(userId, taskIds);
   }
 
   private defaultBoardQuery(): ListTasksQuery {

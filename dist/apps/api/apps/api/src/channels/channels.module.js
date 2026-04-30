@@ -10,11 +10,13 @@ exports.ChannelsModule = void 0;
 const common_1 = require("@nestjs/common");
 const channels_controller_1 = require("./channels.controller");
 const channels_service_1 = require("./channels.service");
+const notifications_module_1 = require("../notifications/notifications.module");
 let ChannelsModule = class ChannelsModule {
 };
 exports.ChannelsModule = ChannelsModule;
 exports.ChannelsModule = ChannelsModule = __decorate([
     (0, common_1.Module)({
+        imports: [notifications_module_1.NotificationsModule],
         controllers: [channels_controller_1.ChannelsController],
         providers: [channels_service_1.ChannelsService],
         exports: [channels_service_1.ChannelsService],

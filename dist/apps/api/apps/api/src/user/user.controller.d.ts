@@ -1,5 +1,6 @@
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import type { AuthUser } from '../auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 import { UserService, type UserProfile } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
@@ -13,7 +14,8 @@ type AuthenticatedRequest = Request & {
 };
 export declare class UserController {
     private readonly userService;
-    constructor(userService: UserService);
+    private readonly authService;
+    constructor(userService: UserService, authService: AuthService);
     createProfile(req: AuthenticatedRequest, dto: CreateProfileDto): Promise<UserProfile>;
     getProfile(req: AuthenticatedRequest): Promise<UserProfile>;
     getById(id: string): Promise<UserProfile>;
@@ -21,6 +23,9 @@ export declare class UserController {
     updateStatus(req: AuthenticatedRequest, dto: SetStatusDto): Promise<UserProfile>;
     deleteProfile(req: AuthenticatedRequest): Promise<void>;
     deleteWorkspaceMemberUser(req: WorkspaceRequest, id: string): Promise<void>;
+    logoutAll(req: AuthenticatedRequest, res: Response): Promise<{
+        message: string;
+    }>;
     changePassword(req: AuthenticatedRequest, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;

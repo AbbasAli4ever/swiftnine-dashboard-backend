@@ -12,12 +12,13 @@ const project_controller_1 = require("./project.controller");
 const project_service_1 = require("./project.service");
 const workspace_module_1 = require("../workspace/workspace.module");
 const roles_module_1 = require("../roles/roles.module");
+const favorites_module_1 = require("../favorites/favorites.module");
 let ProjectModule = class ProjectModule {
 };
 exports.ProjectModule = ProjectModule;
 exports.ProjectModule = ProjectModule = __decorate([
     (0, common_1.Module)({
-        imports: [workspace_module_1.WorkspaceModule, roles_module_1.RolesModule],
+        imports: [workspace_module_1.WorkspaceModule, roles_module_1.RolesModule, favorites_module_1.FavoritesModule],
         controllers: [project_controller_1.ProjectController],
         providers: [project_service_1.ProjectService],
     })

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,8 @@ import {
   ApiBearerAuth,
   ApiHeader,
   ApiOperation,
+  ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -55,9 +58,29 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ summary: 'List all active (non-archived) projects in the workspace' })
+  @ApiQuery({ name: 'includeArchived', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'Projects returned' })
-  async findAll(@Req() req: WorkspaceRequest): Promise<ApiRes<ProjectWithDetails[]>> {
-    const projects = await this.projectService.findAll(req.workspaceContext.workspaceId);
+  async findAll(
+    @Req() req: WorkspaceRequest,
+    @Query('includeArchived') includeArchived?: string,
+  ): Promise<ApiRes<ProjectWithDetails[]>> {
+    const projects = await this.projectService.findAll(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      includeArchived === 'true',
+    );
+    return ok(projects);
+  }
+
+  @Get('archived')
+  @ApiOperation({ summary: 'List archived projects in the workspace' })
+  @ApiResponse({ status: 200, description: 'Archived projects returned' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async findArchived(@Req() req: WorkspaceRequest): Promise<ApiRes<ProjectWithDetails[]>> {
+    const projects = await this.projectService.findArchived(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+    );
     return ok(projects);
   }
 
@@ -71,9 +94,54 @@ export class ProjectController {
   ): Promise<ApiRes<ProjectWithDetails>> {
     const project = await this.projectService.findOne(
       req.workspaceContext.workspaceId,
+      req.user.id,
       projectId,
     );
     return ok(project);
+  }
+
+  @Patch(':projectId/archive')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER', 'ADMIN')
+  @ApiOperation({ summary: 'Archive a project without deleting its data' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Project archived' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'Only OWNER or ADMIN can archive projects' })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async archive(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+  ): Promise<ApiRes<ProjectWithDetails>> {
+    const project = await this.projectService.archive(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      req.workspaceContext.role,
+    );
+    return ok(project, 'Project archived successfully');
+  }
+
+  @Patch(':projectId/restore')
+  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+  @Roles('OWNER', 'ADMIN')
+  @ApiOperation({ summary: 'Restore an archived project' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Project restored' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'Only OWNER or ADMIN can restore projects' })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async restore(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+  ): Promise<ApiRes<ProjectWithDetails>> {
+    const project = await this.projectService.restore(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      req.workspaceContext.role,
+    );
+    return ok(project, 'Project restored successfully');
   }
 
   @Patch(':projectId')

@@ -1,5 +1,5 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../internal/prismaNamespace.js";
+import type * as Prisma from "../internal/prismaNamespace";
 export type ProjectModel = runtime.Types.Result.DefaultSelection<Prisma.$ProjectPayload>;
 export type AggregateProject = {
     _count: ProjectCountAggregateOutputType | null;
@@ -186,6 +186,7 @@ export type ProjectWhereInput = {
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
     docs?: Prisma.DocListRelationFilter;
+    favorites?: Prisma.ProjectFavoriteListRelationFilter;
 };
 export type ProjectOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -207,6 +208,7 @@ export type ProjectOrderByWithRelationInput = {
     taskLists?: Prisma.TaskListOrderByRelationAggregateInput;
     statuses?: Prisma.StatusOrderByRelationAggregateInput;
     docs?: Prisma.DocOrderByRelationAggregateInput;
+    favorites?: Prisma.ProjectFavoriteOrderByRelationAggregateInput;
 };
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -232,6 +234,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
     docs?: Prisma.DocListRelationFilter;
+    favorites?: Prisma.ProjectFavoriteListRelationFilter;
 }, "id" | "workspaceId_taskIdPrefix">;
 export type ProjectOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -289,6 +292,7 @@ export type ProjectCreateInput = {
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateInput = {
     id?: string;
@@ -308,6 +312,7 @@ export type ProjectUncheckedCreateInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -327,6 +332,7 @@ export type ProjectUpdateInput = {
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -346,6 +352,7 @@ export type ProjectUncheckedUpdateInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateManyInput = {
     id?: string;
@@ -568,6 +575,18 @@ export type ProjectUpdateOneRequiredWithoutStatusesNestedInput = {
     connect?: Prisma.ProjectWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutStatusesInput, Prisma.ProjectUpdateWithoutStatusesInput>, Prisma.ProjectUncheckedUpdateWithoutStatusesInput>;
 };
+export type ProjectCreateNestedOneWithoutFavoritesInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutFavoritesInput, Prisma.ProjectUncheckedCreateWithoutFavoritesInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFavoritesInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneRequiredWithoutFavoritesNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutFavoritesInput, Prisma.ProjectUncheckedCreateWithoutFavoritesInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFavoritesInput;
+    upsert?: Prisma.ProjectUpsertWithoutFavoritesInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutFavoritesInput, Prisma.ProjectUpdateWithoutFavoritesInput>, Prisma.ProjectUncheckedUpdateWithoutFavoritesInput>;
+};
 export type ProjectCreateNestedOneWithoutChannelsInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
     connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutChannelsInput;
@@ -613,6 +632,7 @@ export type ProjectCreateWithoutCreatorInput = {
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutCreatorInput = {
     id?: string;
@@ -631,6 +651,7 @@ export type ProjectUncheckedCreateWithoutCreatorInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutCreatorInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -688,6 +709,7 @@ export type ProjectCreateWithoutWorkspaceInput = {
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     id?: string;
@@ -706,6 +728,7 @@ export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutWorkspaceInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -745,6 +768,7 @@ export type ProjectCreateWithoutTaskListsInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutTaskListsInput = {
     id?: string;
@@ -763,6 +787,7 @@ export type ProjectUncheckedCreateWithoutTaskListsInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutTaskListsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -794,6 +819,7 @@ export type ProjectUpdateWithoutTaskListsInput = {
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -812,6 +838,7 @@ export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutStatusesInput = {
     id?: string;
@@ -830,6 +857,7 @@ export type ProjectCreateWithoutStatusesInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutStatusesInput = {
     id?: string;
@@ -848,6 +876,7 @@ export type ProjectUncheckedCreateWithoutStatusesInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutStatusesInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -879,6 +908,7 @@ export type ProjectUpdateWithoutStatusesInput = {
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutStatusesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -896,6 +926,96 @@ export type ProjectUncheckedUpdateWithoutStatusesInput = {
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectCreateWithoutFavoritesInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutFavoritesInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutFavoritesInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutFavoritesInput, Prisma.ProjectUncheckedCreateWithoutFavoritesInput>;
+};
+export type ProjectUpsertWithoutFavoritesInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutFavoritesInput, Prisma.ProjectUncheckedUpdateWithoutFavoritesInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutFavoritesInput, Prisma.ProjectUncheckedCreateWithoutFavoritesInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutFavoritesInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutFavoritesInput, Prisma.ProjectUncheckedUpdateWithoutFavoritesInput>;
+};
+export type ProjectUpdateWithoutFavoritesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutFavoritesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutChannelsInput = {
@@ -915,6 +1035,7 @@ export type ProjectCreateWithoutChannelsInput = {
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutChannelsInput = {
     id?: string;
@@ -933,6 +1054,7 @@ export type ProjectUncheckedCreateWithoutChannelsInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutChannelsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -964,6 +1086,7 @@ export type ProjectUpdateWithoutChannelsInput = {
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutChannelsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -982,6 +1105,7 @@ export type ProjectUncheckedUpdateWithoutChannelsInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutDocsInput = {
     id?: string;
@@ -1000,6 +1124,7 @@ export type ProjectCreateWithoutDocsInput = {
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutDocsInput = {
     id?: string;
@@ -1018,6 +1143,7 @@ export type ProjectUncheckedCreateWithoutDocsInput = {
     channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutDocsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -1049,6 +1175,7 @@ export type ProjectUpdateWithoutDocsInput = {
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutDocsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1067,6 +1194,7 @@ export type ProjectUncheckedUpdateWithoutDocsInput = {
     channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateManyCreatorInput = {
     id?: string;
@@ -1099,6 +1227,7 @@ export type ProjectUpdateWithoutCreatorInput = {
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1117,6 +1246,7 @@ export type ProjectUncheckedUpdateWithoutCreatorInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateManyWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1163,6 +1293,7 @@ export type ProjectUpdateWithoutWorkspaceInput = {
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1181,6 +1312,7 @@ export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateManyWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1201,12 +1333,14 @@ export type ProjectCountOutputType = {
     taskLists: number;
     statuses: number;
     docs: number;
+    favorites: number;
 };
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     channels?: boolean | ProjectCountOutputTypeCountChannelsArgs;
     taskLists?: boolean | ProjectCountOutputTypeCountTaskListsArgs;
     statuses?: boolean | ProjectCountOutputTypeCountStatusesArgs;
     docs?: boolean | ProjectCountOutputTypeCountDocsArgs;
+    favorites?: boolean | ProjectCountOutputTypeCountFavoritesArgs;
 };
 export type ProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectCountOutputTypeSelect<ExtArgs> | null;
@@ -1222,6 +1356,9 @@ export type ProjectCountOutputTypeCountStatusesArgs<ExtArgs extends runtime.Type
 };
 export type ProjectCountOutputTypeCountDocsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.DocWhereInput;
+};
+export type ProjectCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectFavoriteWhereInput;
 };
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -1243,6 +1380,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     docs?: boolean | Prisma.Project$docsArgs<ExtArgs>;
+    favorites?: boolean | Prisma.Project$favoritesArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["project"]>;
 export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1302,6 +1440,7 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     docs?: boolean | Prisma.Project$docsArgs<ExtArgs>;
+    favorites?: boolean | Prisma.Project$favoritesArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1321,6 +1460,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         taskLists: Prisma.$TaskListPayload<ExtArgs>[];
         statuses: Prisma.$StatusPayload<ExtArgs>[];
         docs: Prisma.$DocPayload<ExtArgs>[];
+        favorites: Prisma.$ProjectFavoritePayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1394,6 +1534,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
     taskLists<T extends Prisma.Project$taskListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$taskListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     statuses<T extends Prisma.Project$statusesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$statusesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StatusPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     docs<T extends Prisma.Project$docsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$docsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    favorites<T extends Prisma.Project$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -1556,6 +1697,17 @@ export type Project$docsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
     take?: number;
     skip?: number;
     distinct?: Prisma.DocScalarFieldEnum | Prisma.DocScalarFieldEnum[];
+};
+export type Project$favoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectFavoriteSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectFavoriteOmit<ExtArgs> | null;
+    include?: Prisma.ProjectFavoriteInclude<ExtArgs> | null;
+    where?: Prisma.ProjectFavoriteWhereInput;
+    orderBy?: Prisma.ProjectFavoriteOrderByWithRelationInput | Prisma.ProjectFavoriteOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectFavoriteWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectFavoriteScalarFieldEnum | Prisma.ProjectFavoriteScalarFieldEnum[];
 };
 export type ProjectDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectSelect<ExtArgs> | null;

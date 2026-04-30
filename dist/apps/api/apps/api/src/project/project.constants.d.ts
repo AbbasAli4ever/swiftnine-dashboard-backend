@@ -1,6 +1,8 @@
 export declare const PROJECT_NOT_FOUND = "Project not found";
 export declare const PROJECT_PREFIX_TAKEN = "A project with this task ID prefix already exists in this workspace";
 export declare const OWNER_ONLY = "Only the workspace owner can perform this action";
+export declare const PROJECT_ALREADY_ARCHIVED = "Project is already archived";
+export declare const PROJECT_NOT_ARCHIVED = "Project is not archived";
 export declare const DEFAULT_STATUSES: readonly [{
     readonly name: "To Do";
     readonly color: "#94a3b8";

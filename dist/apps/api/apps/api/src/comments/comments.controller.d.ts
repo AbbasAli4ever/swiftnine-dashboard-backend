@@ -16,14 +16,14 @@ export declare class CommentsController {
     remove(req: WorkspaceRequest, commentId: string): Promise<ApiRes<null>>;
     addReaction(req: WorkspaceRequest, commentId: string, dto: CreateReactionDto): Promise<ApiRes<{
         member: {
-            id: string;
-            role: import("@app/database/generated/prisma/enums").Role;
-            userId: string;
             user: {
                 id: string;
                 fullName: string;
                 avatarUrl: string | null;
             };
+            id: string;
+            userId: string;
+            role: import("@app/database/generated/prisma/enums").Role;
         };
     } & {
         id: string;
@@ -35,12 +35,12 @@ export declare class CommentsController {
     updateReaction(req: WorkspaceRequest, reactionId: string, dto: CreateReactionDto): Promise<ApiRes<{
         member: {
             id: string;
-            role: import("@app/database/generated/prisma/enums").Role;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            workspaceId: string;
             deletedAt: Date | null;
+            userId: string;
+            role: import("@app/database/generated/prisma/enums").Role;
+            workspaceId: string;
         };
     } & {
         id: string;

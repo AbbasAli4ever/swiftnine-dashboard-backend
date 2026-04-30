@@ -32,13 +32,25 @@ let ProjectController = class ProjectController {
         const project = await this.projectService.create(req.workspaceContext.workspaceId, req.user.id, dto);
         return (0, common_2.ok)(project, 'Project created successfully');
     }
-    async findAll(req) {
-        const projects = await this.projectService.findAll(req.workspaceContext.workspaceId);
+    async findAll(req, includeArchived) {
+        const projects = await this.projectService.findAll(req.workspaceContext.workspaceId, req.user.id, includeArchived === 'true');
+        return (0, common_2.ok)(projects);
+    }
+    async findArchived(req) {
+        const projects = await this.projectService.findArchived(req.workspaceContext.workspaceId, req.user.id);
         return (0, common_2.ok)(projects);
     }
     async findOne(req, projectId) {
-        const project = await this.projectService.findOne(req.workspaceContext.workspaceId, projectId);
+        const project = await this.projectService.findOne(req.workspaceContext.workspaceId, req.user.id, projectId);
         return (0, common_2.ok)(project);
+    }
+    async archive(req, projectId) {
+        const project = await this.projectService.archive(req.workspaceContext.workspaceId, projectId, req.user.id, req.workspaceContext.role);
+        return (0, common_2.ok)(project, 'Project archived successfully');
+    }
+    async restore(req, projectId) {
+        const project = await this.projectService.restore(req.workspaceContext.workspaceId, projectId, req.user.id, req.workspaceContext.role);
+        return (0, common_2.ok)(project, 'Project restored successfully');
     }
     async update(req, projectId, dto) {
         const project = await this.projectService.update(req.workspaceContext.workspaceId, projectId, req.user.id, dto);
@@ -65,12 +77,24 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'List all active (non-archived) projects in the workspace' }),
+    (0, swagger_1.ApiQuery)({ name: 'includeArchived', required: false, type: Boolean }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Projects returned' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('includeArchived')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ProjectController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('archived'),
+    (0, swagger_1.ApiOperation)({ summary: 'List archived projects in the workspace' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Archived projects returned' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ProjectController.prototype, "findAll", null);
+], ProjectController.prototype, "findArchived", null);
 __decorate([
     (0, common_1.Get)(':projectId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a single project with its statuses' }),
@@ -82,6 +106,38 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ProjectController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':projectId/archive'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER', 'ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Archive a project without deleting its data' }),
+    (0, swagger_1.ApiParam)({ name: 'projectId', description: 'Project UUID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Project archived' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only OWNER or ADMIN can archive projects' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Project not found' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('projectId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ProjectController.prototype, "archive", null);
+__decorate([
+    (0, common_1.Patch)(':projectId/restore'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER', 'ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Restore an archived project' }),
+    (0, swagger_1.ApiParam)({ name: 'projectId', description: 'Project UUID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Project restored' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only OWNER or ADMIN can restore projects' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Project not found' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('projectId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ProjectController.prototype, "restore", null);
 __decorate([
     (0, common_1.Patch)(':projectId'),
     (0, swagger_1.ApiOperation)({ summary: 'Update project name, description, color, or icon' }),

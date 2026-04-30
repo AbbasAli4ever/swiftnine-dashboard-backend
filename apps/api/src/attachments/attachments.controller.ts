@@ -31,6 +31,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'Create a presigned S3 upload URL' })
   @ApiBody({ type: PresignAttachmentDto })
   @ApiResponse({ status: 200, description: 'Presigned URL generated', type: PresignResponseDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   async presign(@Req() req: AuthenticatedRequest, @Body() dto: PresignAttachmentDto) {
     const result = await this.attachmentsService.presignUpload(req.user.id, dto);
     return ok(result, 'Presigned URL generated');
@@ -42,6 +43,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'Create attachment record after upload' })
   @ApiBody({ type: CreateAttachmentDto })
   @ApiResponse({ status: 200, description: 'Attachment recorded', type: AttachmentDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiNotFoundResponse({ description: 'Task or member not found' })
   @ApiForbiddenResponse({ description: 'Actor mismatch' })
   async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateAttachmentDto) {
@@ -63,6 +65,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'Create attachment record for a document after upload' })
   @ApiBody({ type: CreateDocAttachmentDto })
   @ApiResponse({ status: 200, description: 'Document attachment recorded', type: AttachmentDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiNotFoundResponse({ description: 'Document not found' })
   @ApiForbiddenResponse({ description: 'Document edit access required' })
   async createForDoc(@Req() req: AuthenticatedRequest, @Body() dto: CreateDocAttachmentDto) {
@@ -83,6 +86,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'List and get presigned view URLs for attachments on a task' })
   @ApiBody({ type: ViewAttachmentsDto })
   @ApiResponse({ status: 200, description: 'Attachment URLs returned', type: ViewAttachmentResponseDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   async view(@Req() req: AuthenticatedRequest, @Body() dto: ViewAttachmentsDto) {
     const result = await this.attachmentsService.listAttachmentsForTask(req.user.id, dto.taskId, dto.memberId);
     return ok(result, 'Attachments returned');
@@ -94,6 +98,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'List and get presigned view URLs for attachments on a document' })
   @ApiBody({ type: ViewDocAttachmentsDto })
   @ApiResponse({ status: 200, description: 'Document attachment URLs returned', type: ViewAttachmentResponseDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   async viewForDoc(@Req() req: AuthenticatedRequest, @Body() dto: ViewDocAttachmentsDto) {
     const result = await this.attachmentsService.listAttachmentsForDoc(req.user.id, dto.docId);
     return ok(result, 'Attachments returned');
@@ -105,6 +110,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'Delete an attachment for a task' })
   @ApiBody({ type: DeleteAttachmentDto })
   @ApiResponse({ status: 200, description: 'Attachment deleted', type: DeleteAttachmentResponseDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   async remove(@Req() req: AuthenticatedRequest, @Body() dto: DeleteAttachmentDto) {
     const result = await this.attachmentsService.deleteAttachment(req.user.id, dto.taskId, dto.memberId, dto.s3Key);
     return ok(result, 'Attachment deleted');
@@ -116,6 +122,7 @@ export class AttachmentsController {
   @ApiOperation({ summary: 'Delete an attachment for a document' })
   @ApiBody({ type: DeleteDocAttachmentDto })
   @ApiResponse({ status: 200, description: 'Document attachment deleted', type: DeleteAttachmentResponseDto })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   async removeForDoc(@Req() req: AuthenticatedRequest, @Body() dto: DeleteDocAttachmentDto) {
     const result = await this.attachmentsService.deleteAttachmentForDoc(req.user.id, dto.docId, dto.s3Key);
     return ok(result, 'Attachment deleted');

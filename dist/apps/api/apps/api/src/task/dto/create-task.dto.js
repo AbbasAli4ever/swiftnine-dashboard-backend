@@ -6,6 +6,7 @@ const zod_1 = require("zod");
 const CreateTaskSchema = zod_1.z.object({
     title: zod_1.z.string().min(1, 'Title is required').max(500),
     description: zod_1.z.string().max(10000).optional(),
+    descriptionJson: zod_1.z.record(zod_1.z.string(), zod_1.z.unknown()).optional(),
     statusId: zod_1.z.string().uuid('Invalid status ID'),
     priority: zod_1.z.enum(['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE']).default('NONE'),
     startDate: zod_1.z.string().datetime().nullable().optional(),

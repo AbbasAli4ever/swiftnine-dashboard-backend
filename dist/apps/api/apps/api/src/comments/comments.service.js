@@ -106,7 +106,7 @@ let CommentsService = CommentsService_1 = class CommentsService {
             });
         });
         this.sse.broadcast(taskId, 'comment:created', comment);
-        await this.notifyOnCommentCreated(workspaceId, userId, task, comment.id, normalizedContent, mentionedUsers);
+        await this.notifyOnCommentCreated(workspaceId, userId, task, comment.id, normalizedContent, mentionedUsers, comment.parentId);
         return comment;
     }
     async updateComment(workspaceId, userId, commentId, content, mentionedUserIds) {
@@ -430,7 +430,7 @@ let CommentsService = CommentsService_1 = class CommentsService {
         }))
             .filter((member) => member.userId !== actorId);
     }
-    async notifyOnCommentCreated(workspaceId, actorId, task, commentId, content, mentionedUsers) {
+    async notifyOnCommentCreated(workspaceId, actorId, task, commentId, content, mentionedUsers, parentId) {
         const mentionedUserIds = mentionedUsers.map((mentionedUser) => mentionedUser.userId);
         const excludedAssignees = Array.from(new Set([task.createdBy, ...mentionedUserIds]));
         await this.notifications.notifyTaskAssignees(workspaceId, task.id, actorId, {
@@ -440,13 +440,19 @@ let CommentsService = CommentsService_1 = class CommentsService {
             excludeUserIds: excludedAssignees,
         });
         if (task.createdBy !== actorId && !mentionedUserIds.includes(task.createdBy)) {
-            await this.notifications.createNotification(workspaceId, task.createdBy, actorId, 'comment_added', `New comment on ${task.title}`, content, 'comment', commentId);
+            await this.notifications.createNotification(workspaceId, task.createdBy, actorId, 'comment_added', `New comment on ${task.title}`, content, 'comment', commentId, false);
         }
         await this.notifyMentionedUsers(workspaceId, actorId, task, commentId, content, mentionedUsers);
+        if (parentId) {
+            const parent = await this.prisma.comment.findFirst({ where: { id: parentId, deletedAt: null }, select: { userId: true } });
+            if (parent && parent.userId !== actorId) {
+                await this.notifications.createNotification(workspaceId, parent.userId, actorId, 'comment:reply', `New reply to your comment on ${task.title}`, content, 'comment', commentId, false, { parentCommentId: parentId });
+            }
+        }
     }
     async notifyMentionedUsers(workspaceId, actorId, task, commentId, content, mentionedUsers) {
         for (const mentionedUser of mentionedUsers) {
-            await this.notifications.createNotification(workspaceId, mentionedUser.userId, actorId, 'mentioned', `You were mentioned in ${task.title}`, content, 'comment', commentId);
+            await this.notifications.createNotification(workspaceId, mentionedUser.userId, actorId, 'mentioned', `You were mentioned in ${task.title}`, content, 'comment', commentId, true);
         }
     }
     buildActivityMetadata(task, extra = {}) {

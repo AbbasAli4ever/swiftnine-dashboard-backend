@@ -4,6 +4,7 @@ import { z } from 'zod';
 const CreateTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(500),
   description: z.string().max(10000).optional(),
+  descriptionJson: z.record(z.string(), z.unknown()).optional(),
   statusId: z.string().uuid('Invalid status ID'),
   priority: z.enum(['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE']).default('NONE'),
   startDate: z.string().datetime().nullable().optional(),

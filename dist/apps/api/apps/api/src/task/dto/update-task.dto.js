@@ -6,6 +6,7 @@ const zod_1 = require("zod");
 const UpdateTaskSchema = zod_1.z.object({
     title: zod_1.z.string().min(1).max(500).optional(),
     description: zod_1.z.string().max(10000).nullable().optional(),
+    descriptionJson: zod_1.z.record(zod_1.z.string(), zod_1.z.unknown()).nullable().optional(),
     statusId: zod_1.z.string().uuid('Invalid status ID').optional(),
     priority: zod_1.z.enum(['URGENT', 'HIGH', 'NORMAL', 'LOW', 'NONE']).optional(),
     startDate: zod_1.z.string().datetime().nullable().optional(),

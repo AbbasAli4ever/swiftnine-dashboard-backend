@@ -128,6 +128,9 @@ export class TaskListItemResponseDto {
   @ApiProperty({ example: false })
   isCompleted!: boolean;
 
+  @ApiProperty({ example: true, description: 'Whether the current user has favorited/starred this task.' })
+  isFavorite!: boolean;
+
   @ApiPropertyOptional({ example: null, nullable: true })
   completedAt!: Date | null;
 

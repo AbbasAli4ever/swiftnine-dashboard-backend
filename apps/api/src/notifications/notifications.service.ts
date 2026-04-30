@@ -200,10 +200,14 @@ export class NotificationsService implements OnModuleDestroy {
       taskName: enriched.taskName,
       commentId: enriched.commentId,
       commentName: enriched.commentName,
+      // explicit reply/parent ids for comment replies (may be provided via meta)
+      replyCommentId: enriched.referenceType === 'comment' ? (enriched.referenceId ?? null) : null,
+      repliedToCommentId: (enriched as any).parentCommentId ?? null,
       actorId: enriched.actorId,
       isRead: enriched.isRead,
       isCleared: enriched.isCleared,
       isSnoozed: enriched.isSnoozed,
+      isCommented: enriched.isCommented,
       snoozedAt: enriched.snoozedAt,
       createdAt: enriched.createdAt,
     };
@@ -218,6 +222,8 @@ export class NotificationsService implements OnModuleDestroy {
     message?: string,
     referenceType?: string,
     referenceId?: string,
+    isCommented?: boolean,
+    meta?: Record<string, any>,
   ) {
     const member = await this.resolveWorkspaceMember(
       workspaceId,
@@ -241,6 +247,7 @@ export class NotificationsService implements OnModuleDestroy {
         referenceType: referenceType ?? '',
         referenceId: referenceId ?? '',
         actorId: actorUserId ?? undefined,
+        isCommented: isCommented ?? false,
         isCleared: false,
         isSnoozed: false,
         snoozedAt: null,
@@ -248,10 +255,11 @@ export class NotificationsService implements OnModuleDestroy {
     });
     try {
       if (!notif.isCleared && !notif.isSnoozed) {
+        const payloadSource = meta ? { ...notif, ...meta } : notif;
         this.sse.broadcastToMember(
           member.id,
           'notification:created',
-          await this.toNotificationPayload(notif),
+          await this.toNotificationPayload(payloadSource as NotificationLike),
         );
       } else {
         this.logger.debug(

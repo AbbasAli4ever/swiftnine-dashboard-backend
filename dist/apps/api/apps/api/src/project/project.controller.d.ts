@@ -7,8 +7,11 @@ export declare class ProjectController {
     private readonly projectService;
     constructor(projectService: ProjectService);
     create(req: WorkspaceRequest, dto: CreateProjectDto): Promise<ApiRes<ProjectWithDetails>>;
-    findAll(req: WorkspaceRequest): Promise<ApiRes<ProjectWithDetails[]>>;
+    findAll(req: WorkspaceRequest, includeArchived?: string): Promise<ApiRes<ProjectWithDetails[]>>;
+    findArchived(req: WorkspaceRequest): Promise<ApiRes<ProjectWithDetails[]>>;
     findOne(req: WorkspaceRequest, projectId: string): Promise<ApiRes<ProjectWithDetails>>;
+    archive(req: WorkspaceRequest, projectId: string): Promise<ApiRes<ProjectWithDetails>>;
+    restore(req: WorkspaceRequest, projectId: string): Promise<ApiRes<ProjectWithDetails>>;
     update(req: WorkspaceRequest, projectId: string, dto: UpdateProjectDto): Promise<ApiRes<ProjectWithDetails>>;
     remove(req: WorkspaceRequest, projectId: string): Promise<ApiRes<null>>;
 }

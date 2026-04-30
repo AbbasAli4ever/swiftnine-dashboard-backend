@@ -16,6 +16,8 @@ exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const auth_service_1 = require("../auth/auth.service");
+const auth_cookies_1 = require("../auth/auth.cookies");
 const user_service_1 = require("./user.service");
 const change_password_dto_1 = require("./dto/change-password.dto");
 const change_password_response_dto_1 = require("./dto/change-password-response.dto");
@@ -30,8 +32,10 @@ const roles_decorator_1 = require("../roles/roles.decorator");
 const roles_guard_1 = require("../roles/roles.guard");
 let UserController = class UserController {
     userService;
-    constructor(userService) {
+    authService;
+    constructor(userService, authService) {
         this.userService = userService;
+        this.authService = authService;
     }
     async createProfile(req, dto) {
         return this.userService.createProfile(req.user.id, dto);
@@ -53,6 +57,11 @@ let UserController = class UserController {
     }
     async deleteWorkspaceMemberUser(req, id) {
         await this.userService.deleteWorkspaceMemberUser(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id);
+    }
+    async logoutAll(req, res) {
+        await this.authService.logoutAllSessions(req.user.id);
+        res.clearCookie('refresh_token', (0, auth_cookies_1.buildClearRefreshCookieOptions)());
+        return { message: 'All sessions logged out successfully' };
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
@@ -244,6 +253,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteWorkspaceMemberUser", null);
 __decorate([
+    (0, common_1.Post)('logout-all'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Logout from all sessions',
+        description: 'Revokes every active refresh token for the current user. The current access token remains valid until it expires.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'All sessions logged out successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "logoutAll", null);
+__decorate([
     (0, common_1.Patch)('change-password'),
     (0, swagger_1.ApiOperation)({ summary: 'Change current user password' }),
     (0, swagger_1.ApiBody)({
@@ -313,6 +337,7 @@ exports.UserController = UserController = __decorate([
         forbidNonWhitelisted: true,
         transform: true,
     })),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        auth_service_1.AuthService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

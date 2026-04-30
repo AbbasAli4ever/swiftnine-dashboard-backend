@@ -36,7 +36,7 @@ let TaskController = class TaskController {
         return (0, common_2.paginated)(result.items, result.total, result.page, result.limit);
     }
     async findOne(req, taskId) {
-        const task = await this.taskService.findOne(req.workspaceContext.workspaceId, taskId);
+        const task = await this.taskService.findOne(req.workspaceContext.workspaceId, req.user.id, taskId);
         return (0, common_2.ok)(task);
     }
     async update(req, taskId, dto) {
@@ -60,7 +60,7 @@ let TaskController = class TaskController {
         return (0, common_2.ok)(subtask, 'Subtask created successfully');
     }
     async findSubtasks(req, taskId) {
-        const subtasks = await this.taskService.findSubtasks(req.workspaceContext.workspaceId, taskId);
+        const subtasks = await this.taskService.findSubtasks(req.workspaceContext.workspaceId, req.user.id, taskId);
         return (0, common_2.ok)(subtasks);
     }
     async addAssignees(req, taskId, dto) {
@@ -98,7 +98,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':taskId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get full task detail (assignees, tags, subtasks, time entries)' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task detail returned' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
@@ -108,8 +110,27 @@ __decorate([
 ], TaskController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':taskId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update task fields (title, status, priority, dates, or move to another list)' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Update task fields',
+        description: 'Patch any combination of title, description (plain or rich JSON), status, priority, dates, or list. Only provided fields are updated.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            example: {
+                title: 'Updated title',
+                descriptionJson: {
+                    type: 'doc',
+                    content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich text content.' }] }],
+                },
+                priority: 'HIGH',
+                statusId: 'uuid-here',
+                dueDate: '2026-05-15T00:00:00.000Z',
+            },
+        },
+    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task updated' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
@@ -122,7 +143,9 @@ __decorate([
     (0, common_1.Delete)(':taskId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Soft delete a task (task creator or workspace OWNER only)' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task deleted' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Only the task creator or workspace owner can delete' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
@@ -134,7 +157,10 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':taskId/complete'),
     (0, swagger_1.ApiOperation)({ summary: 'Mark task as completed' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task marked complete' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __metadata("design:type", Function),
@@ -144,7 +170,10 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':taskId/uncomplete'),
     (0, swagger_1.ApiOperation)({ summary: 'Mark task as incomplete' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Task marked incomplete' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __metadata("design:type", Function),
@@ -155,8 +184,11 @@ __decorate([
     (0, common_1.Post)(':taskId/subtasks'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({ summary: 'Create a subtask under a task (max depth 2)' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Parent task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Subtask created' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Subtask nesting limit reached' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Parent task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __param(2, (0, common_1.Body)()),
@@ -167,7 +199,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':taskId/subtasks'),
     (0, swagger_1.ApiOperation)({ summary: 'List all subtasks of a task' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Parent task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Subtasks returned' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __metadata("design:type", Function),
@@ -178,8 +213,11 @@ __decorate([
     (0, common_1.Post)(':taskId/assignees'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Add assignees to a task' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Assignees added (duplicates silently skipped)' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'One or more users are not workspace members' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __param(2, (0, common_1.Body)()),
@@ -191,7 +229,11 @@ __decorate([
     (0, common_1.Delete)(':taskId/assignees/:userId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Remove an assignee from a task' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
+    (0, swagger_1.ApiParam)({ name: 'userId', description: 'User UUID to remove' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Assignee removed' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task or assignee not found' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
     __param(2, (0, common_1.Param)('userId')),
@@ -203,7 +245,10 @@ __decorate([
     (0, common_1.Post)(':taskId/tags'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Add a tag to a task' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Tag added' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Task or tag not found' }),
     (0, swagger_1.ApiResponse)({ status: 409, description: 'Tag already on this task' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),
@@ -216,7 +261,10 @@ __decorate([
     (0, common_1.Delete)(':taskId/tags/:tagId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Remove a tag from a task' }),
+    (0, swagger_1.ApiParam)({ name: 'taskId', description: 'Task UUID' }),
+    (0, swagger_1.ApiParam)({ name: 'tagId', description: 'Tag UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Tag removed' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Tag not on this task' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('taskId')),

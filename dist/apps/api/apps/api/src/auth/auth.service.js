@@ -228,6 +228,9 @@ let AuthService = AuthService_1 = class AuthService {
             where: { tokenHash: this.hashToken(rawToken) },
         });
     }
+    async logoutAllSessions(userId) {
+        await this.prisma.refreshToken.deleteMany({ where: { userId } });
+    }
     async forgotPassword(email) {
         const normalizedEmail = this.normalizeEmail(email);
         const user = await this.prisma.user.findFirst({

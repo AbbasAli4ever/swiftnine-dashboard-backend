@@ -138,6 +138,7 @@ describe('CommentsService', () => {
       'Hello team',
       'comment',
       'comment-1',
+      false,
     );
     expect(notifications.createNotification).toHaveBeenNthCalledWith(
       2,
@@ -149,6 +150,7 @@ describe('CommentsService', () => {
       'Hello team',
       'comment',
       'comment-1',
+      true,
     );
     expect(activity.log).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -319,6 +321,7 @@ describe('CommentsService', () => {
       'New comment',
       'comment',
       'comment-1',
+      true,
     );
     expect(activity.log).toHaveBeenCalledWith(
       expect.objectContaining({
