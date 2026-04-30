@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AttachmentsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -73,10 +72,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Create a presigned S3 upload URL' }),
     (0, swagger_1.ApiBody)({ type: presign_attachment_dto_1.PresignAttachmentDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Presigned URL generated', type: presign_response_dto_1.PresignResponseDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object, presign_attachment_dto_1.PresignAttachmentDto]),
+    __metadata("design:paramtypes", [Object, presign_attachment_dto_1.PresignAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "presign", null);
 __decorate([
@@ -86,12 +86,13 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Create attachment record after upload' }),
     (0, swagger_1.ApiBody)({ type: create_attachment_dto_1.CreateAttachmentDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Attachment recorded', type: attachment_dto_1.AttachmentDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_2.ApiNotFoundResponse)({ description: 'Task or member not found' }),
     (0, swagger_2.ApiForbiddenResponse)({ description: 'Actor mismatch' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object, create_attachment_dto_1.CreateAttachmentDto]),
+    __metadata("design:paramtypes", [Object, create_attachment_dto_1.CreateAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "create", null);
 __decorate([
@@ -101,12 +102,13 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Create attachment record for a document after upload' }),
     (0, swagger_1.ApiBody)({ type: create_doc_attachment_dto_1.CreateDocAttachmentDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment recorded', type: attachment_dto_1.AttachmentDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     (0, swagger_2.ApiNotFoundResponse)({ description: 'Document not found' }),
     (0, swagger_2.ApiForbiddenResponse)({ description: 'Document edit access required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _c : Object, create_doc_attachment_dto_1.CreateDocAttachmentDto]),
+    __metadata("design:paramtypes", [Object, create_doc_attachment_dto_1.CreateDocAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "createForDoc", null);
 __decorate([
@@ -116,10 +118,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'List and get presigned view URLs for attachments on a task' }),
     (0, swagger_1.ApiBody)({ type: view_attachments_dto_1.ViewAttachmentsDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Attachment URLs returned', type: view_attachment_response_dto_1.ViewAttachmentResponseDto, isArray: true }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _d : Object, view_attachments_dto_1.ViewAttachmentsDto]),
+    __metadata("design:paramtypes", [Object, view_attachments_dto_1.ViewAttachmentsDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "view", null);
 __decorate([
@@ -129,10 +132,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'List and get presigned view URLs for attachments on a document' }),
     (0, swagger_1.ApiBody)({ type: view_doc_attachments_dto_1.ViewDocAttachmentsDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment URLs returned', type: view_attachment_response_dto_1.ViewAttachmentResponseDto, isArray: true }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _e : Object, view_doc_attachments_dto_1.ViewDocAttachmentsDto]),
+    __metadata("design:paramtypes", [Object, view_doc_attachments_dto_1.ViewDocAttachmentsDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "viewForDoc", null);
 __decorate([
@@ -142,10 +146,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete an attachment for a task' }),
     (0, swagger_1.ApiBody)({ type: delete_attachment_dto_1.DeleteAttachmentDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Attachment deleted', type: delete_attachment_response_dto_1.DeleteAttachmentResponseDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _f : Object, delete_attachment_dto_1.DeleteAttachmentDto]),
+    __metadata("design:paramtypes", [Object, delete_attachment_dto_1.DeleteAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "remove", null);
 __decorate([
@@ -155,10 +160,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete an attachment for a document' }),
     (0, swagger_1.ApiBody)({ type: delete_doc_attachment_dto_1.DeleteDocAttachmentDto }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Document attachment deleted', type: delete_attachment_response_dto_1.DeleteAttachmentResponseDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _g : Object, delete_doc_attachment_dto_1.DeleteDocAttachmentDto]),
+    __metadata("design:paramtypes", [Object, delete_doc_attachment_dto_1.DeleteDocAttachmentDto]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "removeForDoc", null);
 exports.AttachmentsController = AttachmentsController = __decorate([

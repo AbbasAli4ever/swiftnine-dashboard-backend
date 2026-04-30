@@ -1,5 +1,5 @@
-import { PrismaService } from '@app/database';
-import type { DocScope } from '@app/database/generated/prisma/client';
+import { PrismaService } from "../../../../libs/database/src";
+import type { DocScope } from "../../../../libs/database/src/generated/prisma/client";
 import { DocPermissionsService } from './doc-permissions.service';
 export interface DocSearchResult {
     id: string;

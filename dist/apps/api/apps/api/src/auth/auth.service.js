@@ -42,7 +42,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var AuthService_1;
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
@@ -229,6 +228,9 @@ let AuthService = AuthService_1 = class AuthService {
             where: { tokenHash: this.hashToken(rawToken) },
         });
     }
+    async logoutAllSessions(userId) {
+        await this.prisma.refreshToken.deleteMany({ where: { userId } });
+    }
     async forgotPassword(email) {
         const normalizedEmail = this.normalizeEmail(email);
         const user = await this.prisma.user.findFirst({
@@ -363,6 +365,8 @@ let AuthService = AuthService_1 = class AuthService {
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService, typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object, common_2.EmailService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        jwt_1.JwtService,
+        common_2.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

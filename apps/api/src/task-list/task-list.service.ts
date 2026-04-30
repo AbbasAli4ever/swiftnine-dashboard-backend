@@ -73,7 +73,7 @@ export class TaskListService {
     projectId: string,
     includeArchived: boolean,
   ): Promise<TaskListData[]> {
-    await this.findProjectOrThrow(workspaceId, projectId);
+    await this.findProjectOrThrow(workspaceId, projectId, includeArchived);
 
     const lists = await this.prisma.taskList.findMany({
       where: {
@@ -354,9 +354,15 @@ export class TaskListService {
   private async findProjectOrThrow(
     workspaceId: string,
     projectId: string,
+    includeArchived = false,
   ): Promise<{ id: string; name: string }> {
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
+      where: {
+        id: projectId,
+        workspaceId,
+        deletedAt: null,
+        ...(includeArchived ? {} : { isArchived: false }),
+      },
       select: { id: true, name: true },
     });
 

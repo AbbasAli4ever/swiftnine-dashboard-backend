@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PROJECT_WITH_STATUSES_SELECT = exports.PROJECT_SELECT = exports.DEFAULT_STATUSES = exports.OWNER_ONLY = exports.PROJECT_PREFIX_TAKEN = exports.PROJECT_NOT_FOUND = void 0;
+exports.PROJECT_WITH_STATUSES_SELECT = exports.PROJECT_SELECT = exports.DEFAULT_STATUSES = exports.PROJECT_NOT_ARCHIVED = exports.PROJECT_ALREADY_ARCHIVED = exports.OWNER_ONLY = exports.PROJECT_PREFIX_TAKEN = exports.PROJECT_NOT_FOUND = void 0;
 exports.PROJECT_NOT_FOUND = 'Project not found';
 exports.PROJECT_PREFIX_TAKEN = 'A project with this task ID prefix already exists in this workspace';
 exports.OWNER_ONLY = 'Only the workspace owner can perform this action';
+exports.PROJECT_ALREADY_ARCHIVED = 'Project is already archived';
+exports.PROJECT_NOT_ARCHIVED = 'Project is not archived';
 exports.DEFAULT_STATUSES = [
     {
         name: 'To Do',

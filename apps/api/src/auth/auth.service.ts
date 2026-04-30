@@ -280,6 +280,10 @@ export class AuthService {
     });
   }
 
+  async logoutAllSessions(userId: string): Promise<void> {
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+  }
+
   // ─── Forgot / reset password ─────────────────────────────────────────────────
 
   async forgotPassword(email: string): Promise<void> {

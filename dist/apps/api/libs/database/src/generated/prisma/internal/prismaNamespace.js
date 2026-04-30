@@ -33,8 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
-exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = void 0;
+exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskFavoriteScalarFieldEnum = exports.ProjectFavoriteScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -73,6 +73,8 @@ exports.ModelName = {
     Status: 'Status',
     Tag: 'Tag',
     Task: 'Task',
+    ProjectFavorite: 'ProjectFavorite',
+    TaskFavorite: 'TaskFavorite',
     TaskAssignee: 'TaskAssignee',
     TaskTag: 'TaskTag',
     Comment: 'Comment',
@@ -232,6 +234,8 @@ exports.TaskScalarFieldEnum = {
     depth: 'depth',
     title: 'title',
     description: 'description',
+    descriptionJson: 'descriptionJson',
+    descriptionPlaintext: 'descriptionPlaintext',
     statusId: 'statusId',
     priority: 'priority',
     taskNumber: 'taskNumber',
@@ -245,6 +249,20 @@ exports.TaskScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
+};
+exports.ProjectFavoriteScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    workspaceId: 'workspaceId',
+    projectId: 'projectId',
+    createdAt: 'createdAt'
+};
+exports.TaskFavoriteScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    workspaceId: 'workspaceId',
+    taskId: 'taskId',
+    createdAt: 'createdAt'
 };
 exports.TaskAssigneeScalarFieldEnum = {
     id: 'id',
@@ -297,7 +315,8 @@ exports.NotificationScalarFieldEnum = {
     isCleared: 'isCleared',
     isSnoozed: 'isSnoozed',
     snoozedAt: 'snoozedAt',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    isCommented: 'isCommented'
 };
 exports.AttachmentScalarFieldEnum = {
     id: 'id',

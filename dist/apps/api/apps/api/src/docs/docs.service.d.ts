@@ -1,6 +1,6 @@
 import { ConflictException } from '@nestjs/common';
-import { PrismaService } from '@app/database';
-import type { Prisma } from '@app/database/generated/prisma/client';
+import { PrismaService } from "../../../../libs/database/src";
+import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
 import { DOC_SELECT } from './doc-permissions.constants';
 import { DocPermissionsService } from './doc-permissions.service';
 import type { CreateDocInput } from './dto/create-doc.dto';

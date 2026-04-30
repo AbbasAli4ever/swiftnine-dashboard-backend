@@ -1,7 +1,7 @@
 import { TimeEntryService, type TimeEntryData, type StartTimerResult } from './time-entry.service';
 import { ManualTimeEntryDto } from './dto/manual-time-entry.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes } from '@app/common';
+import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
 export declare class TimeEntryController {
     private readonly timeEntryService;
     constructor(timeEntryService: TimeEntryService);

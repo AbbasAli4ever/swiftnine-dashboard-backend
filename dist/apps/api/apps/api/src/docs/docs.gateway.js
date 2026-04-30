@@ -12,7 +12,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var DocsGateway_1;
-var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocsGateway = void 0;
 const common_1 = require("@nestjs/common");
@@ -213,14 +212,14 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
 exports.DocsGateway = DocsGateway;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
-    __metadata("design:type", Object)
+    __metadata("design:type", Function)
 ], DocsGateway.prototype, "server", void 0);
 __decorate([
     (0, websockets_1.SubscribeMessage)('doc:join'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _c : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleJoin", null);
 __decorate([
@@ -228,7 +227,7 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _d : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleLeave", null);
 __decorate([
@@ -236,7 +235,7 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _e : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleLockBlock", null);
 __decorate([
@@ -244,7 +243,7 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _f : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleLockHeartbeat", null);
 __decorate([
@@ -252,7 +251,7 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _g : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleUnlockBlock", null);
 __decorate([
@@ -260,7 +259,7 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_h = typeof DocsSocket !== "undefined" && DocsSocket) === "function" ? _h : Object, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsGateway.prototype, "handleAutosave", null);
 exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
@@ -270,6 +269,9 @@ exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
     }),
     __metadata("design:paramtypes", [docs_service_1.DocsService,
         doc_presence_service_1.DocPresenceService,
-        doc_locks_service_1.DocLocksService, typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object, auth_service_1.AuthService, typeof (_b = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _b : Object])
+        doc_locks_service_1.DocLocksService,
+        jwt_1.JwtService,
+        auth_service_1.AuthService,
+        config_1.ConfigService])
 ], DocsGateway);
 //# sourceMappingURL=docs.gateway.js.map

@@ -78,7 +78,7 @@ describe('TaskService search and filter', () => {
     );
 
     expect(prisma.project.findFirst).toHaveBeenCalledWith({
-      where: { id: 'project-1', workspaceId: 'workspace-1', deletedAt: null },
+      where: { id: 'project-1', workspaceId: 'workspace-1', deletedAt: null, isArchived: false },
       select: { id: true },
     });
     expect(prisma.taskList.findFirst).toHaveBeenCalledWith({

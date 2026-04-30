@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { PrismaService } from '@app/database';
+import { PrismaService } from "../../../../libs/database/src";
 export declare class WorkspaceGuard implements CanActivate {
     private readonly prisma;
     constructor(prisma: PrismaService);

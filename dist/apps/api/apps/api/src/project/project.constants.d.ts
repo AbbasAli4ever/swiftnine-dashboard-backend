@@ -1,7 +1,8 @@
-import type { Prisma } from '@app/database/generated/prisma/client';
 export declare const PROJECT_NOT_FOUND = "Project not found";
 export declare const PROJECT_PREFIX_TAKEN = "A project with this task ID prefix already exists in this workspace";
 export declare const OWNER_ONLY = "Only the workspace owner can perform this action";
+export declare const PROJECT_ALREADY_ARCHIVED = "Project is already archived";
+export declare const PROJECT_NOT_ARCHIVED = "Project is not archived";
 export declare const DEFAULT_STATUSES: readonly [{
     readonly name: "To Do";
     readonly color: "#94a3b8";
@@ -40,25 +41,43 @@ export declare const PROJECT_SELECT: {
     readonly createdAt: true;
     readonly updatedAt: true;
 };
-export declare const PROJECT_WITH_STATUSES_SELECT: runtime.Types.Extensions.GetSelect<{
-    id?: boolean;
-    workspaceId?: boolean;
-    name?: boolean;
-    description?: boolean;
-    color?: boolean;
-    icon?: boolean;
-    taskIdPrefix?: boolean;
-    taskCounter?: boolean;
-    isArchived?: boolean;
-    createdBy?: boolean;
-    createdAt?: boolean;
-    updatedAt?: boolean;
-    deletedAt?: boolean;
-    workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
-    creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
-    channels?: boolean | Prisma.Project$channelsArgs<ExtArgs>;
-    taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
-    statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
-    docs?: boolean | Prisma.Project$docsArgs<ExtArgs>;
-    _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
-}, ExtArgs["result"]["project"]>;
+export declare const PROJECT_WITH_STATUSES_SELECT: {
+    statuses: {
+        where: {
+            deletedAt: null;
+        };
+        select: {
+            id: true;
+            name: true;
+            color: true;
+            group: true;
+            position: true;
+            isDefault: true;
+            isProtected: true;
+            isClosed: true;
+        };
+        orderBy: ({
+            group: "asc";
+            position?: undefined;
+        } | {
+            position: "asc";
+            group?: undefined;
+        })[];
+    };
+    _count: {
+        select: {
+            taskLists: true;
+        };
+    };
+    id: true;
+    workspaceId: true;
+    name: true;
+    description: true;
+    color: true;
+    icon: true;
+    taskIdPrefix: true;
+    isArchived: true;
+    createdBy: true;
+    createdAt: true;
+    updatedAt: true;
+};

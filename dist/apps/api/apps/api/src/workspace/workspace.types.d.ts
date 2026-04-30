@@ -1,4 +1,4 @@
-import type { Role } from '@app/database/generated/prisma/client';
+import type { Role } from "../../../../libs/database/src/generated/prisma/client";
 import type { AuthUser } from '../auth/auth.service';
 import type { Request } from 'express';
 export type WorkspaceContext = {

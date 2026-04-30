@@ -1,5 +1,5 @@
-import { PrismaService } from '@app/database';
-import type { Prisma } from '@app/database/generated/prisma/client';
+import { PrismaService } from "../../../../libs/database/src";
+import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
 import { type ActivityCategory } from './activity.constants';
 import type { ListActivityDto } from './dto/list-activity.dto';
 type ActivityLogClient = Pick<PrismaService, 'activityLog'> | Prisma.TransactionClient;
@@ -14,21 +14,28 @@ type ActivityLogInput = {
     newValue?: unknown;
     metadata?: Prisma.InputJsonValue;
 };
-declare const ACTIVITY_SELECT: runtime.Types.Extensions.GetSelect<{
-    id?: boolean;
-    workspaceId?: boolean;
-    entityType?: boolean;
-    entityId?: boolean;
-    action?: boolean;
-    fieldName?: boolean;
-    oldValue?: boolean;
-    newValue?: boolean;
-    metadata?: boolean;
-    performedBy?: boolean;
-    createdAt?: boolean;
-    workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
-    performer?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
-}, ExtArgs["result"]["activityLog"]>;
+declare const ACTIVITY_SELECT: {
+    id: true;
+    workspaceId: true;
+    entityType: true;
+    entityId: true;
+    action: true;
+    fieldName: true;
+    oldValue: true;
+    newValue: true;
+    metadata: true;
+    performedBy: true;
+    createdAt: true;
+    performer: {
+        select: {
+            id: true;
+            fullName: true;
+            email: true;
+            avatarUrl: true;
+            avatarColor: true;
+        };
+    };
+};
 type RawActivity = Prisma.ActivityLogGetPayload<{
     select: typeof ACTIVITY_SELECT;
 }>;

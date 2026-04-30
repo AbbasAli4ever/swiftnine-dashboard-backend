@@ -1,4 +1,4 @@
-import { type ApiResponse as ApiRes } from '@app/common';
+import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
 import type { AuthUser } from '../auth/auth.service';
 import { DocsService, type DocData } from './docs.service';
 import { DocSearchService, type DocSearchResult } from './doc-search.service';

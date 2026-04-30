@@ -51,6 +51,7 @@ export declare class TaskListItemResponseDto {
     boardPosition: number;
     depth: number;
     isCompleted: boolean;
+    isFavorite: boolean;
     completedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;

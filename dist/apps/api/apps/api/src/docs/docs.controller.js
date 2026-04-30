@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -174,7 +173,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object, create_doc_dto_1.CreateDocDto]),
+    __metadata("design:paramtypes", [Object, create_doc_dto_1.CreateDocDto]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "create", null);
 __decorate([
@@ -184,7 +183,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object, list_docs_query_dto_1.ListDocsQueryDto]),
+    __metadata("design:paramtypes", [Object, list_docs_query_dto_1.ListDocsQueryDto]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "findAll", null);
 __decorate([
@@ -194,7 +193,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _c : Object, search_docs_query_dto_1.SearchDocsQueryDto]),
+    __metadata("design:paramtypes", [Object, search_docs_query_dto_1.SearchDocsQueryDto]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "search", null);
 __decorate([
@@ -206,7 +205,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _d : Object, String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "findOne", null);
 __decorate([
@@ -217,7 +216,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _e : Object, String, update_doc_dto_1.UpdateDocDto]),
+    __metadata("design:paramtypes", [Object, String, update_doc_dto_1.UpdateDocDto]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "update", null);
 __decorate([
@@ -228,7 +227,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _f : Object, String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "remove", null);
 exports.DocsController = DocsController = __decorate([

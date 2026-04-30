@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -66,7 +65,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object, remove_member_dto_1.RemoveMemberDto]),
+    __metadata("design:paramtypes", [Object, remove_member_dto_1.RemoveMemberDto]),
     __metadata("design:returntype", Promise)
 ], OrganizationsController.prototype, "removeMember", null);
 __decorate([
@@ -104,7 +103,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object, String, change_member_role_dto_1.ChangeMemberRoleDto]),
+    __metadata("design:paramtypes", [Object, String, change_member_role_dto_1.ChangeMemberRoleDto]),
     __metadata("design:returntype", Promise)
 ], OrganizationsController.prototype, "changeMemberRole", null);
 exports.OrganizationsController = OrganizationsController = __decorate([

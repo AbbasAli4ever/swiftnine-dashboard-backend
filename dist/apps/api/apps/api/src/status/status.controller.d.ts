@@ -1,4 +1,4 @@
-import { type ApiResponse as ApiRes } from '@app/common';
+import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { StatusService, type GroupedStatuses, type StatusData } from './status.service';
 import { CreateStatusDto } from './dto/create-status.dto';

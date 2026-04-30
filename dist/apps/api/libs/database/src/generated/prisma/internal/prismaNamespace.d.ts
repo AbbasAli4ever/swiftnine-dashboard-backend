@@ -1,30 +1,30 @@
 import * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "../models.js";
-import { type PrismaClient } from "./class.js";
-export type * from '../models.js';
+import type * as Prisma from "../models";
+import { type PrismaClient } from "./class";
+export type * from '../models';
 export type DMMF = typeof runtime.DMMF;
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>;
-export declare const PrismaClientKnownRequestError: any;
+export declare const PrismaClientKnownRequestError: typeof runtime.PrismaClientKnownRequestError;
 export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
-export declare const PrismaClientUnknownRequestError: any;
+export declare const PrismaClientUnknownRequestError: typeof runtime.PrismaClientUnknownRequestError;
 export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
-export declare const PrismaClientRustPanicError: any;
+export declare const PrismaClientRustPanicError: typeof runtime.PrismaClientRustPanicError;
 export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError;
-export declare const PrismaClientInitializationError: any;
+export declare const PrismaClientInitializationError: typeof runtime.PrismaClientInitializationError;
 export type PrismaClientInitializationError = runtime.PrismaClientInitializationError;
-export declare const PrismaClientValidationError: any;
+export declare const PrismaClientValidationError: typeof runtime.PrismaClientValidationError;
 export type PrismaClientValidationError = runtime.PrismaClientValidationError;
-export declare const sql: any;
-export declare const empty: any;
-export declare const join: any;
-export declare const raw: any;
-export declare const Sql: any;
+export declare const sql: typeof runtime.sqltag;
+export declare const empty: runtime.Sql;
+export declare const join: typeof runtime.join;
+export declare const raw: typeof runtime.raw;
+export declare const Sql: typeof runtime.Sql;
 export type Sql = runtime.Sql;
-export declare const Decimal: any;
+export declare const Decimal: typeof runtime.Decimal;
 export type Decimal = runtime.Decimal;
 export type DecimalJsLike = runtime.DecimalJsLike;
 export type Extension = runtime.Types.Extensions.UserArgs;
-export declare const getExtensionContext: any;
+export declare const getExtensionContext: typeof runtime.Extensions.getExtensionContext;
 export type Args<T, F extends runtime.Operation> = runtime.Types.Public.Args<T, F>;
 export type Payload<T, F extends runtime.Operation = never> = runtime.Types.Public.Payload<T, F>;
 export type Result<T, A, F extends runtime.Operation> = runtime.Types.Public.Result<T, A, F>;
@@ -46,9 +46,9 @@ export declare const NullTypes: {
     JsonNull: (new (secret: never) => typeof runtime.JsonNull);
     AnyNull: (new (secret: never) => typeof runtime.AnyNull);
 };
-export declare const DbNull: any;
-export declare const JsonNull: any;
-export declare const AnyNull: any;
+export declare const DbNull: runtime.DbNullClass;
+export declare const JsonNull: runtime.JsonNullClass;
+export declare const AnyNull: runtime.AnyNullClass;
 type SelectAndInclude = {
     select: any;
     include: any;
@@ -169,6 +169,8 @@ export declare const ModelName: {
     readonly Status: "Status";
     readonly Tag: "Tag";
     readonly Task: "Task";
+    readonly ProjectFavorite: "ProjectFavorite";
+    readonly TaskFavorite: "TaskFavorite";
     readonly TaskAssignee: "TaskAssignee";
     readonly TaskTag: "TaskTag";
     readonly Comment: "Comment";
@@ -198,7 +200,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -1087,6 +1089,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 count: {
                     args: Prisma.TaskCountArgs<ExtArgs>;
                     result: runtime.Types.Utils.Optional<Prisma.TaskCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ProjectFavorite: {
+            payload: Prisma.$ProjectFavoritePayload<ExtArgs>;
+            fields: Prisma.ProjectFavoriteFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ProjectFavoriteFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ProjectFavoriteFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                findFirst: {
+                    args: Prisma.ProjectFavoriteFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ProjectFavoriteFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                findMany: {
+                    args: Prisma.ProjectFavoriteFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                create: {
+                    args: Prisma.ProjectFavoriteCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                createMany: {
+                    args: Prisma.ProjectFavoriteCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ProjectFavoriteCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                delete: {
+                    args: Prisma.ProjectFavoriteDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                update: {
+                    args: Prisma.ProjectFavoriteUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ProjectFavoriteDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ProjectFavoriteUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ProjectFavoriteUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>[];
+                };
+                upsert: {
+                    args: Prisma.ProjectFavoriteUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFavoritePayload>;
+                };
+                aggregate: {
+                    args: Prisma.ProjectFavoriteAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateProjectFavorite>;
+                };
+                groupBy: {
+                    args: Prisma.ProjectFavoriteGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectFavoriteGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ProjectFavoriteCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectFavoriteCountAggregateOutputType> | number;
+                };
+            };
+        };
+        TaskFavorite: {
+            payload: Prisma.$TaskFavoritePayload<ExtArgs>;
+            fields: Prisma.TaskFavoriteFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.TaskFavoriteFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.TaskFavoriteFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                findFirst: {
+                    args: Prisma.TaskFavoriteFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.TaskFavoriteFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                findMany: {
+                    args: Prisma.TaskFavoriteFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                create: {
+                    args: Prisma.TaskFavoriteCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                createMany: {
+                    args: Prisma.TaskFavoriteCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.TaskFavoriteCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                delete: {
+                    args: Prisma.TaskFavoriteDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                update: {
+                    args: Prisma.TaskFavoriteUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.TaskFavoriteDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.TaskFavoriteUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.TaskFavoriteUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>[];
+                };
+                upsert: {
+                    args: Prisma.TaskFavoriteUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskFavoritePayload>;
+                };
+                aggregate: {
+                    args: Prisma.TaskFavoriteAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateTaskFavorite>;
+                };
+                groupBy: {
+                    args: Prisma.TaskFavoriteGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.TaskFavoriteGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.TaskFavoriteCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.TaskFavoriteCountAggregateOutputType> | number;
                 };
             };
         };
@@ -2372,7 +2522,12 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         };
     };
 };
-export declare const TransactionIsolationLevel: any;
+export declare const TransactionIsolationLevel: {
+    readonly ReadUncommitted: "ReadUncommitted";
+    readonly ReadCommitted: "ReadCommitted";
+    readonly RepeatableRead: "RepeatableRead";
+    readonly Serializable: "Serializable";
+};
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
 export declare const UserScalarFieldEnum: {
     readonly id: "id";
@@ -2520,6 +2675,8 @@ export declare const TaskScalarFieldEnum: {
     readonly depth: "depth";
     readonly title: "title";
     readonly description: "description";
+    readonly descriptionJson: "descriptionJson";
+    readonly descriptionPlaintext: "descriptionPlaintext";
     readonly statusId: "statusId";
     readonly priority: "priority";
     readonly taskNumber: "taskNumber";
@@ -2535,6 +2692,22 @@ export declare const TaskScalarFieldEnum: {
     readonly deletedAt: "deletedAt";
 };
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum];
+export declare const ProjectFavoriteScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly workspaceId: "workspaceId";
+    readonly projectId: "projectId";
+    readonly createdAt: "createdAt";
+};
+export type ProjectFavoriteScalarFieldEnum = (typeof ProjectFavoriteScalarFieldEnum)[keyof typeof ProjectFavoriteScalarFieldEnum];
+export declare const TaskFavoriteScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly workspaceId: "workspaceId";
+    readonly taskId: "taskId";
+    readonly createdAt: "createdAt";
+};
+export type TaskFavoriteScalarFieldEnum = (typeof TaskFavoriteScalarFieldEnum)[keyof typeof TaskFavoriteScalarFieldEnum];
 export declare const TaskAssigneeScalarFieldEnum: {
     readonly id: "id";
     readonly taskId: "taskId";
@@ -2592,6 +2765,7 @@ export declare const NotificationScalarFieldEnum: {
     readonly isSnoozed: "isSnoozed";
     readonly snoozedAt: "snoozedAt";
     readonly createdAt: "createdAt";
+    readonly isCommented: "isCommented";
 };
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
 export declare const AttachmentScalarFieldEnum: {
@@ -2729,12 +2903,12 @@ export declare const SortOrder: {
 };
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
 export declare const JsonNullValueInput: {
-    readonly JsonNull: any;
+    readonly JsonNull: runtime.JsonNullClass;
 };
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
 export declare const NullableJsonNullValueInput: {
-    readonly DbNull: any;
-    readonly JsonNull: any;
+    readonly DbNull: runtime.DbNullClass;
+    readonly JsonNull: runtime.JsonNullClass;
 };
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput];
 export declare const QueryMode: {
@@ -2743,9 +2917,9 @@ export declare const QueryMode: {
 };
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode];
 export declare const JsonNullValueFilter: {
-    readonly DbNull: any;
-    readonly JsonNull: any;
-    readonly AnyNull: any;
+    readonly DbNull: runtime.DbNullClass;
+    readonly JsonNull: runtime.JsonNullClass;
+    readonly AnyNull: runtime.AnyNullClass;
 };
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter];
 export declare const NullsOrder: {
@@ -2822,6 +2996,8 @@ export type GlobalOmitConfig = {
     status?: Prisma.StatusOmit;
     tag?: Prisma.TagOmit;
     task?: Prisma.TaskOmit;
+    projectFavorite?: Prisma.ProjectFavoriteOmit;
+    taskFavorite?: Prisma.TaskFavoriteOmit;
     taskAssignee?: Prisma.TaskAssigneeOmit;
     taskTag?: Prisma.TaskTagOmit;
     comment?: Prisma.CommentOmit;

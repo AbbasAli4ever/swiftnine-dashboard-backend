@@ -1,32 +1,22 @@
-import { PrismaService } from '@app/database';
-import { EmailService } from '@app/common';
-import type { Prisma, Role, InviteStatus } from '@app/database/generated/prisma/client';
+import { PrismaService } from "../../../../libs/database/src";
+import { EmailService } from "../../../../libs/common/src";
+import type { Prisma, Role, InviteStatus } from "../../../../libs/database/src/generated/prisma/client";
 import { AuthService, type TokenPair } from '../auth/auth.service';
 import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
 import type { ClaimInviteDto } from './dto/claim-invite.dto';
 import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
-declare const WORKSPACE_SELECT: runtime.Types.Extensions.GetSelect<{
-    id?: boolean;
-    name?: boolean;
-    logoUrl?: boolean;
-    workspaceUse?: boolean;
-    managementType?: boolean;
-    createdBy?: boolean;
-    createdAt?: boolean;
-    updatedAt?: boolean;
-    deletedAt?: boolean;
-    creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
-    members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>;
-    invites?: boolean | Prisma.Workspace$invitesArgs<ExtArgs>;
-    projects?: boolean | Prisma.Workspace$projectsArgs<ExtArgs>;
-    channels?: boolean | Prisma.Workspace$channelsArgs<ExtArgs>;
-    tags?: boolean | Prisma.Workspace$tagsArgs<ExtArgs>;
-    activityLogs?: boolean | Prisma.Workspace$activityLogsArgs<ExtArgs>;
-    docs?: boolean | Prisma.Workspace$docsArgs<ExtArgs>;
-    _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>;
-}, ExtArgs["result"]["workspace"]>;
+declare const WORKSPACE_SELECT: {
+    id: true;
+    name: true;
+    logoUrl: true;
+    workspaceUse: true;
+    managementType: true;
+    createdBy: true;
+    createdAt: true;
+    updatedAt: true;
+};
 export type WorkspaceData = Prisma.WorkspaceGetPayload<{
     select: typeof WORKSPACE_SELECT;
 }>;

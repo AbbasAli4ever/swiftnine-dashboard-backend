@@ -2,7 +2,7 @@ import { TagService, type TagData } from './tag.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
-import { type ApiResponse as ApiRes } from '@app/common';
+import { type ApiResponse as ApiRes } from "../../../../libs/common/src";
 export declare class TagController {
     private readonly tagService;
     constructor(tagService: TagService);

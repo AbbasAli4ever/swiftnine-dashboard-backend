@@ -6,9 +6,10 @@ import { TaskProjectTasksController } from './task-project-tasks.controller';
 import { TaskBoardController } from './task-board.controller';
 import { ActivityModule } from '../activity/activity.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { FavoritesModule } from '../favorites/favorites.module';
 
 @Module({
-  imports: [ActivityModule, NotificationsModule],
+  imports: [ActivityModule, NotificationsModule, FavoritesModule],
   controllers: [
     TaskController,
     TaskListTasksController,

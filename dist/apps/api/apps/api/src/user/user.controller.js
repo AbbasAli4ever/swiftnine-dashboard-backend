@@ -11,12 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const auth_service_1 = require("../auth/auth.service");
+const auth_cookies_1 = require("../auth/auth.cookies");
 const user_service_1 = require("./user.service");
 const change_password_dto_1 = require("./dto/change-password.dto");
 const change_password_response_dto_1 = require("./dto/change-password-response.dto");
@@ -31,8 +32,10 @@ const roles_decorator_1 = require("../roles/roles.decorator");
 const roles_guard_1 = require("../roles/roles.guard");
 let UserController = class UserController {
     userService;
-    constructor(userService) {
+    authService;
+    constructor(userService, authService) {
         this.userService = userService;
+        this.authService = authService;
     }
     async createProfile(req, dto) {
         return this.userService.createProfile(req.user.id, dto);
@@ -54,6 +57,11 @@ let UserController = class UserController {
     }
     async deleteWorkspaceMemberUser(req, id) {
         await this.userService.deleteWorkspaceMemberUser(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id);
+    }
+    async logoutAll(req, res) {
+        await this.authService.logoutAllSessions(req.user.id);
+        res.clearCookie('refresh_token', (0, auth_cookies_1.buildClearRefreshCookieOptions)());
+        return { message: 'All sessions logged out successfully' };
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
@@ -93,7 +101,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object, create_profile_dto_1.CreateProfileDto]),
+    __metadata("design:paramtypes", [Object, create_profile_dto_1.CreateProfileDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createProfile", null);
 __decorate([
@@ -108,7 +116,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getProfile", null);
 __decorate([
@@ -162,7 +170,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _c : Object, update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateProfile", null);
 __decorate([
@@ -196,7 +204,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _d : Object, set_status_dto_1.SetStatusDto]),
+    __metadata("design:paramtypes", [Object, set_status_dto_1.SetStatusDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateStatus", null);
 __decorate([
@@ -211,7 +219,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteProfile", null);
 __decorate([
@@ -245,6 +253,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteWorkspaceMemberUser", null);
 __decorate([
+    (0, common_1.Post)('logout-all'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Logout from all sessions',
+        description: 'Revokes every active refresh token for the current user. The current access token remains valid until it expires.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'All sessions logged out successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "logoutAll", null);
+__decorate([
     (0, common_1.Patch)('change-password'),
     (0, swagger_1.ApiOperation)({ summary: 'Change current user password' }),
     (0, swagger_1.ApiBody)({
@@ -271,7 +294,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _f : Object, change_password_dto_1.ChangePasswordDto]),
+    __metadata("design:paramtypes", [Object, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "changePassword", null);
 __decorate([
@@ -301,7 +324,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _g : Object, update_notification_preferences_dto_1.UpdateNotificationPreferencesDto]),
+    __metadata("design:paramtypes", [Object, update_notification_preferences_dto_1.UpdateNotificationPreferencesDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateNotificationPreferences", null);
 exports.UserController = UserController = __decorate([
@@ -314,6 +337,7 @@ exports.UserController = UserController = __decorate([
         forbidNonWhitelisted: true,
         transform: true,
     })),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        auth_service_1.AuthService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

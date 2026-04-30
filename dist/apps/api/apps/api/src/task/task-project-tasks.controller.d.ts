@@ -1,4 +1,4 @@
-import { type PaginatedApiResponse } from '@app/common';
+import { type PaginatedApiResponse } from "../../../../libs/common/src";
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import { TaskService, type TaskListItemData } from './task.service';

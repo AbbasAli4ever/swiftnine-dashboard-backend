@@ -1,4 +1,4 @@
-import { PrismaService } from '@app/database';
+import { PrismaService } from "../../../libs/database/src";
 export declare class AppService {
     private readonly prisma;
     constructor(prisma: PrismaService);

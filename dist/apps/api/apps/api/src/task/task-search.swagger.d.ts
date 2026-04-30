@@ -1,1 +1,1 @@
-export declare const TaskSearchSwaggerQueries: () => any;
+export declare const TaskSearchSwaggerQueries: () => <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;

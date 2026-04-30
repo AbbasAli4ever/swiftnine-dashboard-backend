@@ -1,5 +1,5 @@
 import * as runtime from "@prisma/client/runtime/client";
-import type * as Prisma from "./prismaNamespace.js";
+import type * as Prisma from "./prismaNamespace";
 export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never;
 export interface PrismaClientConstructor {
     new <Options extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions, LogOpts extends LogOptions<Options> = LogOptions<Options>, OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends {
@@ -62,6 +62,12 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     get task(): Prisma.TaskDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get projectFavorite(): Prisma.ProjectFavoriteDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get taskFavorite(): Prisma.TaskFavoriteDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
     get taskAssignee(): Prisma.TaskAssigneeDelegate<ExtArgs, {

@@ -13,9 +13,11 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -46,7 +48,25 @@ export class TaskListTasksController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a task inside a list' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiParam({ name: 'listId', description: 'Task list UUID' })
+  @ApiBody({
+    schema: {
+      example: {
+        title: 'Implement login page',
+        statusId: 'uuid-here',
+        priority: 'HIGH',
+        descriptionJson: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich text description here.' }] }],
+        },
+        assigneeIds: [],
+        tagIds: [],
+      },
+    },
+  })
   @ApiResponse({ status: 201, description: 'Task created with auto-incremented task ID (e.g. FH-101)' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 404, description: 'Project, list, or status not found' })
   async create(
     @Req() req: WorkspaceRequest,

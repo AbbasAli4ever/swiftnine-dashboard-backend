@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkspaceController = void 0;
 const common_1 = require("@nestjs/common");
@@ -111,7 +110,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_workspace_dto_1.CreateWorkspaceDto, typeof (_a = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _a : Object]),
+    __metadata("design:paramtypes", [create_workspace_dto_1.CreateWorkspaceDto, Object]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "create", null);
 __decorate([
@@ -122,7 +121,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Workspaces returned' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "findAll", null);
 __decorate([
@@ -332,7 +331,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof AuthenticatedRequest !== "undefined" && AuthenticatedRequest) === "function" ? _c : Object, accept_invite_dto_1.AcceptInviteDto]),
+    __metadata("design:paramtypes", [Object, accept_invite_dto_1.AcceptInviteDto]),
     __metadata("design:returntype", Promise)
 ], WorkspaceController.prototype, "acceptInvite", null);
 exports.WorkspaceController = WorkspaceController = __decorate([
