@@ -87,8 +87,8 @@ export declare const TASK_DETAIL_SELECT: {
     depth: true;
     title: true;
     description: true;
-    descriptionJson: boolean;
-    descriptionPlaintext: boolean;
+    descriptionJson: true;
+    descriptionPlaintext: true;
     priority: true;
     startDate: true;
     dueDate: true;

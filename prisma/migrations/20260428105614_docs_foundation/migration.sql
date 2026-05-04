@@ -165,5 +165,5 @@ ALTER TABLE "doc_share_links" ADD CONSTRAINT "doc_share_links_doc_id_fkey" FOREI
 -- AddForeignKey
 ALTER TABLE "doc_share_links" ADD CONSTRAINT "doc_share_links_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- RenameIndex
-ALTER INDEX "notifications_user_id_is_read_is_cleared_is_snoozed_created_at_" RENAME TO "notifications_user_id_is_read_is_cleared_is_snoozed_created_idx";
+-- RenameIndex (IF EXISTS — already renamed by 20260427113644_notifications)
+ALTER INDEX IF EXISTS "notifications_user_id_is_read_is_cleared_is_snoozed_created_at_" RENAME TO "notifications_user_id_is_read_is_cleared_is_snoozed_created_idx";
