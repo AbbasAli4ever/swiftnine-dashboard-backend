@@ -1,14 +1,17 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
 
-type ClientEntry = { res: Response; heartbeat: NodeJS.Timeout };
+type ClientEntry = { res: Response; heartbeat: NodeJS.Timeout; expiryTimer?: NodeJS.Timeout };
+
+// Send token-expiring event this many ms before the access token actually expires.
+const TOKEN_EXPIRY_WARNING_MS = 30_000;
 
 @Injectable()
 export class NotificationsSseService implements OnModuleDestroy {
   private readonly logger = new Logger(NotificationsSseService.name);
   private readonly clients = new Map<string, Set<ClientEntry>>();
 
-  registerClient(memberId: string, res: Response) {
+  registerClient(memberId: string, res: Response, tokenExp?: number) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -19,13 +22,33 @@ export class NotificationsSseService implements OnModuleDestroy {
     const heartbeat = setInterval(() => {
       try {
         res.write(':heartbeat\n\n');
-      } catch (err) {
+      } catch {
         this.logger.debug('Error writing heartbeat, removing client');
         this.unregisterClient(memberId, res);
       }
     }, 15000);
 
-    const entry: ClientEntry = { res, heartbeat };
+    // Schedule a token-expiring event so the client can refresh and reconnect
+    // gracefully before the connection dies with a 401.
+    let expiryTimer: NodeJS.Timeout | undefined;
+    if (tokenExp) {
+      const delay = tokenExp * 1000 - Date.now() - TOKEN_EXPIRY_WARNING_MS;
+      const warn = () => {
+        try {
+          res.write('event: token-expiring\n');
+          res.write(`data: ${JSON.stringify({ expiresAt: tokenExp })}\n\n`);
+        } catch {
+          // client already disconnected
+        }
+      };
+      if (delay > 0) {
+        expiryTimer = setTimeout(warn, delay);
+      } else {
+        warn();
+      }
+    }
+
+    const entry: ClientEntry = { res, heartbeat, expiryTimer };
 
     const set = this.clients.get(memberId) ?? new Set<ClientEntry>();
     set.add(entry);
@@ -42,6 +65,7 @@ export class NotificationsSseService implements OnModuleDestroy {
     for (const e of Array.from(set)) {
       if (e.res === res) {
         clearInterval(e.heartbeat);
+        if (e.expiryTimer) clearTimeout(e.expiryTimer);
         try {
           e.res.end();
         } catch {}
@@ -59,7 +83,7 @@ export class NotificationsSseService implements OnModuleDestroy {
       try {
         entry.res.write(`event: ${event}\n`);
         entry.res.write(`data: ${data}\n\n`);
-      } catch (err) {
+      } catch {
         this.logger.debug('Error broadcasting to client, removing');
         this.unregisterClient(memberId, entry.res);
       }
@@ -70,7 +94,7 @@ export class NotificationsSseService implements OnModuleDestroy {
     try {
       res.write(`event: ${event}\n`);
       res.write(`data: ${JSON.stringify(payload)}\n\n`);
-    } catch (err) {
+    } catch {
       this.logger.debug('Error sending to single client');
     }
   }
@@ -79,6 +103,7 @@ export class NotificationsSseService implements OnModuleDestroy {
     for (const [memberId, set] of this.clients.entries()) {
       for (const e of set) {
         clearInterval(e.heartbeat);
+        if (e.expiryTimer) clearTimeout(e.expiryTimer);
         try {
           e.res.end();
         } catch {}

@@ -17,25 +17,25 @@ export declare class FavoritesService {
     listProjectFavorites(workspaceId: string, userId: string, includeArchived?: boolean): Promise<{
         isFavorite: boolean;
         favoritedAt: Date;
-        description: string | null;
         id: string;
+        name: string;
+        isArchived: boolean;
+        createdBy: string;
         createdAt: Date;
         updatedAt: Date;
         _count: {
             taskLists: number;
         };
-        name: string;
-        createdBy: string;
         workspaceId: string;
+        description: string | null;
         color: string;
         icon: string | null;
         taskIdPrefix: string;
-        isArchived: boolean;
         statuses: {
             id: string;
             name: string;
-            color: string;
             position: number;
+            color: string;
             group: import("@app/database/generated/prisma/enums").StatusGroup;
             isDefault: boolean;
             isProtected: boolean;
@@ -61,24 +61,17 @@ export declare class FavoritesService {
             id: string;
             name: string;
         };
-        title: string;
-        tags: {
-            tag: {
-                id: string;
-                name: string;
-                color: string;
-            };
-        }[];
         id: string;
+        position: number;
+        startDate: Date | null;
+        priority: import("@app/database/generated/prisma/enums").Priority;
         createdAt: Date;
         updatedAt: Date;
         _count: {
             children: number;
         };
-        position: number;
-        startDate: Date | null;
-        priority: import("@app/database/generated/prisma/enums").Priority;
         depth: number;
+        title: string;
         taskNumber: number;
         dueDate: Date | null;
         boardPosition: number;
@@ -86,12 +79,19 @@ export declare class FavoritesService {
         completedAt: Date | null;
         assignees: {
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
                 avatarColor: string;
             };
             assignedBy: string;
+        }[];
+        tags: {
+            tag: {
+                id: string;
+                name: string;
+                color: string;
+            };
         }[];
     }[]>;
     projectFavoriteIds(userId: string, projectIds: string[]): Promise<Set<string>>;

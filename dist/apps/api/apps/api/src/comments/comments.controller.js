@@ -16,6 +16,7 @@ exports.CommentsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const sse_jwt_guard_1 = require("../auth/guards/sse-jwt.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
 const comments_service_1 = require("./comments.service");
 const sse_service_1 = require("./sse.service");
@@ -31,8 +32,12 @@ let CommentsController = class CommentsController {
         this.sse = sse;
     }
     async stream(req, taskId, res) {
+        const token = req.headers.authorization?.split(' ')[1];
+        const tokenExp = token
+            ? JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).exp
+            : undefined;
         const comments = await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
-        this.sse.registerClient(taskId, res);
+        this.sse.registerClient(taskId, res, tokenExp);
         this.sse.sendToClient(res, 'comments:init', comments);
     }
     async create(req, taskId, dto) {
@@ -63,7 +68,7 @@ let CommentsController = class CommentsController {
 exports.CommentsController = CommentsController;
 __decorate([
     (0, common_1.Get)('tasks/:taskId/comments/stream'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(sse_jwt_guard_1.SseJwtGuard, workspace_guard_1.WorkspaceGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     (0, swagger_1.ApiOperation)({ summary: 'Open SSE stream for a task comments and reactions' }),

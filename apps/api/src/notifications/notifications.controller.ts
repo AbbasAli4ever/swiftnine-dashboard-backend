@@ -19,6 +19,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SseJwtGuard } from '../auth/guards/sse-jwt.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { NotificationsSseService } from './sse.service';
 import { PrismaService } from '@app/database';
@@ -84,7 +85,7 @@ export class NotificationsController {
   }
 
   @Get('members/:memberId/stream')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard)
+  @UseGuards(SseJwtGuard, WorkspaceGuard)
   @ApiBearerAuth()
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiOperation({
@@ -125,8 +126,13 @@ export class NotificationsController {
         'Cannot open notification stream for another member',
       );
 
+    const token = req.headers.authorization?.split(' ')[1];
+    const tokenExp = token
+      ? (JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()) as { exp?: number }).exp
+      : undefined;
+
     // register SSE client
-    this.sse.registerClient(member.id, res);
+    this.sse.registerClient(member.id, res, tokenExp);
 
     // unsnooze expired notifications for this user in this workspace context
     await this.prisma.notification.updateMany({

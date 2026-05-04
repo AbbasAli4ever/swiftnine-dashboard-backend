@@ -9,10 +9,11 @@ var NotificationsSseService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationsSseService = void 0;
 const common_1 = require("@nestjs/common");
+const TOKEN_EXPIRY_WARNING_MS = 30_000;
 let NotificationsSseService = NotificationsSseService_1 = class NotificationsSseService {
     logger = new common_1.Logger(NotificationsSseService_1.name);
     clients = new Map();
-    registerClient(memberId, res) {
+    registerClient(memberId, res, tokenExp) {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -22,12 +23,30 @@ let NotificationsSseService = NotificationsSseService_1 = class NotificationsSse
             try {
                 res.write(':heartbeat\n\n');
             }
-            catch (err) {
+            catch {
                 this.logger.debug('Error writing heartbeat, removing client');
                 this.unregisterClient(memberId, res);
             }
         }, 15000);
-        const entry = { res, heartbeat };
+        let expiryTimer;
+        if (tokenExp) {
+            const delay = tokenExp * 1000 - Date.now() - TOKEN_EXPIRY_WARNING_MS;
+            const warn = () => {
+                try {
+                    res.write('event: token-expiring\n');
+                    res.write(`data: ${JSON.stringify({ expiresAt: tokenExp })}\n\n`);
+                }
+                catch {
+                }
+            };
+            if (delay > 0) {
+                expiryTimer = setTimeout(warn, delay);
+            }
+            else {
+                warn();
+            }
+        }
+        const entry = { res, heartbeat, expiryTimer };
         const set = this.clients.get(memberId) ?? new Set();
         set.add(entry);
         this.clients.set(memberId, set);
@@ -42,6 +61,8 @@ let NotificationsSseService = NotificationsSseService_1 = class NotificationsSse
         for (const e of Array.from(set)) {
             if (e.res === res) {
                 clearInterval(e.heartbeat);
+                if (e.expiryTimer)
+                    clearTimeout(e.expiryTimer);
                 try {
                     e.res.end();
                 }
@@ -62,7 +83,7 @@ let NotificationsSseService = NotificationsSseService_1 = class NotificationsSse
                 entry.res.write(`event: ${event}\n`);
                 entry.res.write(`data: ${data}\n\n`);
             }
-            catch (err) {
+            catch {
                 this.logger.debug('Error broadcasting to client, removing');
                 this.unregisterClient(memberId, entry.res);
             }
@@ -73,7 +94,7 @@ let NotificationsSseService = NotificationsSseService_1 = class NotificationsSse
             res.write(`event: ${event}\n`);
             res.write(`data: ${JSON.stringify(payload)}\n\n`);
         }
-        catch (err) {
+        catch {
             this.logger.debug('Error sending to single client');
         }
     }
@@ -81,6 +102,8 @@ let NotificationsSseService = NotificationsSseService_1 = class NotificationsSse
         for (const [memberId, set] of this.clients.entries()) {
             for (const e of set) {
                 clearInterval(e.heartbeat);
+                if (e.expiryTimer)
+                    clearTimeout(e.expiryTimer);
                 try {
                     e.res.end();
                 }

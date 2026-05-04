@@ -209,7 +209,7 @@ export class TaskService {
     projectId: string,
     listId: string,
   ): Promise<TaskListItemData[]> {
-    await this.findListOrThrow(workspaceId, projectId, listId);
+    await this.findListOrThrow(workspaceId, projectId, listId, true);
 
     const tasks = await this.prisma.task.findMany({
       where: { listId, depth: 0, deletedAt: null },
@@ -227,7 +227,7 @@ export class TaskService {
     listId: string,
     query: ListTasksQuery,
   ): Promise<TaskSearchResult> {
-    await this.findListOrThrow(workspaceId, projectId, listId);
+    await this.findListOrThrow(workspaceId, projectId, listId, true);
     return this.searchTasks({ workspaceId, userId, projectId, listId }, query);
   }
 
@@ -1249,15 +1249,30 @@ export class TaskService {
     return Number.isNaN(parsed) ? null : parsed;
   }
 
-  private async findListOrThrow(workspaceId: string, projectId: string, listId: string) {
+  private async findListOrThrow(
+    workspaceId: string,
+    projectId: string,
+    listId: string,
+    allowArchived = false,
+  ) {
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null, isArchived: false },
+      where: {
+        id: projectId,
+        workspaceId,
+        deletedAt: null,
+        ...(allowArchived ? {} : { isArchived: false }),
+      },
       select: { id: true },
     });
     if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
 
     const list = await this.prisma.taskList.findFirst({
-      where: { id: listId, projectId, deletedAt: null, isArchived: false },
+      where: {
+        id: listId,
+        projectId,
+        deletedAt: null,
+        ...(allowArchived ? {} : { isArchived: false }),
+      },
       select: { id: true },
     });
     if (!list) throw new NotFoundException(TASK_LIST_NOT_FOUND);
