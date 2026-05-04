@@ -127,14 +127,14 @@ let TaskService = class TaskService {
         return this.searchTasks({ workspaceId, userId, projectId, listId }, query);
     }
     async findTasksByProject(workspaceId, userId, projectId, query) {
-        await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+        await this.findProjectOrThrow(workspaceId, projectId, true);
         return this.searchTasks({ workspaceId, userId, projectId }, query);
     }
     async findTasksByWorkspace(workspaceId, userId, query) {
         return this.searchTasks({ workspaceId, userId }, query);
     }
     async getProjectBoard(workspaceId, userId, projectId, query) {
-        await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+        await this.findProjectOrThrow(workspaceId, projectId, true);
         const [statuses, tasks] = await Promise.all([
             this.prisma.status.findMany({
                 where: { projectId, deletedAt: null },
