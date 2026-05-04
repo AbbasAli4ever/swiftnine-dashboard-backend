@@ -10,24 +10,24 @@ export declare class ChannelsService {
     private channelInclude;
     listByWorkspace(workspaceId: string, userId: string): Promise<({
         project: {
+            description: string | null;
             id: string;
-            name: string;
-            isArchived: boolean;
-            createdBy: string;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
+            name: string;
+            createdBy: string;
             workspaceId: string;
-            description: string | null;
             color: string;
             icon: string | null;
             taskIdPrefix: string;
             taskCounter: number;
+            isArchived: boolean;
         } | null;
         members: ({
             user: {
-                id: string;
                 fullName: string;
+                id: string;
                 avatarUrl: string | null;
             };
         } & {
@@ -38,36 +38,36 @@ export declare class ChannelsService {
             channelId: string;
         })[];
     } & {
+        description: string | null;
         id: string;
-        projectId: string | null;
-        name: string;
-        createdBy: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        createdBy: string;
         workspaceId: string;
-        description: string | null;
+        projectId: string | null;
         privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
     })[]>;
     listByProject(workspaceId: string, projectId: string, userId: string): Promise<({
         project: {
+            description: string | null;
             id: string;
-            name: string;
-            isArchived: boolean;
-            createdBy: string;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
+            name: string;
+            createdBy: string;
             workspaceId: string;
-            description: string | null;
             color: string;
             icon: string | null;
             taskIdPrefix: string;
             taskCounter: number;
+            isArchived: boolean;
         } | null;
         members: ({
             user: {
-                id: string;
                 fullName: string;
+                id: string;
                 avatarUrl: string | null;
             };
         } & {
@@ -78,36 +78,36 @@ export declare class ChannelsService {
             channelId: string;
         })[];
     } & {
+        description: string | null;
         id: string;
-        projectId: string | null;
-        name: string;
-        createdBy: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        createdBy: string;
         workspaceId: string;
-        description: string | null;
+        projectId: string | null;
         privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
     })[]>;
     create(workspaceId: string, userId: string, dto: CreateChannelDto): Promise<({
         project: {
+            description: string | null;
             id: string;
-            name: string;
-            isArchived: boolean;
-            createdBy: string;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
+            name: string;
+            createdBy: string;
             workspaceId: string;
-            description: string | null;
             color: string;
             icon: string | null;
             taskIdPrefix: string;
             taskCounter: number;
+            isArchived: boolean;
         } | null;
         members: ({
             user: {
-                id: string;
                 fullName: string;
+                id: string;
                 avatarUrl: string | null;
             };
         } & {
@@ -118,36 +118,36 @@ export declare class ChannelsService {
             channelId: string;
         })[];
     } & {
+        description: string | null;
         id: string;
-        projectId: string | null;
-        name: string;
-        createdBy: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        createdBy: string;
         workspaceId: string;
-        description: string | null;
+        projectId: string | null;
         privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
     }) | null>;
     updateChannel(workspaceId: string, channelId: string, callerUserId: string, dto: UpdateChannelDto): Promise<{
         project: {
+            description: string | null;
             id: string;
-            name: string;
-            isArchived: boolean;
-            createdBy: string;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
+            name: string;
+            createdBy: string;
             workspaceId: string;
-            description: string | null;
             color: string;
             icon: string | null;
             taskIdPrefix: string;
             taskCounter: number;
+            isArchived: boolean;
         } | null;
         members: ({
             user: {
-                id: string;
                 fullName: string;
+                id: string;
                 avatarUrl: string | null;
             };
         } & {
@@ -158,14 +158,14 @@ export declare class ChannelsService {
             channelId: string;
         })[];
     } & {
+        description: string | null;
         id: string;
-        projectId: string | null;
-        name: string;
-        createdBy: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        createdBy: string;
         workspaceId: string;
-        description: string | null;
+        projectId: string | null;
         privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
     }>;
     private mapRoleInput;

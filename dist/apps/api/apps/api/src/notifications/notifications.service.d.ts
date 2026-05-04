@@ -47,12 +47,12 @@ export declare class NotificationsService implements OnModuleDestroy {
         createdAt: any;
     }>;
     createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean, meta?: Record<string, any>): Promise<{
+        message: string | null;
+        type: string;
+        title: string;
         id: string;
         createdAt: Date;
-        type: string;
-        message: string | null;
         userId: string;
-        title: string;
         referenceType: string;
         referenceId: string;
         isRead: boolean;
