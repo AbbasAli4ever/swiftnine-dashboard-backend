@@ -74,15 +74,6 @@ export declare class FavoritesService {
                 taskIdPrefix: string;
             };
         };
-        assignees: {
-            assignedBy: string;
-            user: {
-                id: string;
-                fullName: string;
-                avatarUrl: string | null;
-                avatarColor: string;
-            };
-        }[];
         tags: {
             tag: {
                 id: string;
@@ -93,6 +84,15 @@ export declare class FavoritesService {
         _count: {
             children: number;
         };
+        assignees: {
+            assignedBy: string;
+            user: {
+                id: string;
+                fullName: string;
+                avatarUrl: string | null;
+                avatarColor: string;
+            };
+        }[];
     }[]>;
     projectFavoriteIds(userId: string, projectIds: string[]): Promise<Set<string>>;
     taskFavoriteIds(userId: string, taskIds: string[]): Promise<Set<string>>;

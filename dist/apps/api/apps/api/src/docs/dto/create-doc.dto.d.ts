@@ -2,9 +2,9 @@ import { z } from 'zod';
 export declare const CreateDocSchema: z.ZodObject<{
     title: z.ZodString;
     scope: z.ZodEnum<{
+        PERSONAL: "PERSONAL";
         WORKSPACE: "WORKSPACE";
         PROJECT: "PROJECT";
-        PERSONAL: "PERSONAL";
     }>;
     workspaceId: z.ZodString;
     projectId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -13,9 +13,9 @@ export declare const CreateDocSchema: z.ZodObject<{
 declare const CreateDocDto_base: import("nestjs-zod").ZodDto<z.ZodObject<{
     title: z.ZodString;
     scope: z.ZodEnum<{
+        PERSONAL: "PERSONAL";
         WORKSPACE: "WORKSPACE";
         PROJECT: "PROJECT";
-        PERSONAL: "PERSONAL";
     }>;
     workspaceId: z.ZodString;
     projectId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
