@@ -16,6 +16,7 @@ exports.NotificationsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const sse_jwt_guard_1 = require("../auth/guards/sse-jwt.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
 const sse_service_1 = require("./sse.service");
 const database_1 = require("../../../../libs/database/src");
@@ -92,7 +93,11 @@ let NotificationsController = class NotificationsController {
             throw new common_1.NotFoundException('Member not found');
         if (member.userId !== req.user.id)
             throw new common_1.ForbiddenException('Cannot open notification stream for another member');
-        this.sse.registerClient(member.id, res);
+        const token = req.headers.authorization?.split(' ')[1];
+        const tokenExp = token
+            ? JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).exp
+            : undefined;
+        this.sse.registerClient(member.id, res, tokenExp);
         await this.prisma.notification.updateMany({
             where: {
                 userId: member.userId,
@@ -218,7 +223,7 @@ let NotificationsController = class NotificationsController {
 exports.NotificationsController = NotificationsController;
 __decorate([
     (0, common_1.Get)('members/:memberId/stream'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(sse_jwt_guard_1.SseJwtGuard, workspace_guard_1.WorkspaceGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true }),
     (0, swagger_1.ApiOperation)({

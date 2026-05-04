@@ -3,7 +3,7 @@ import type { Response } from 'express';
 export declare class SseService implements OnModuleDestroy {
     private readonly logger;
     private readonly clients;
-    registerClient(taskId: string, res: Response): void;
+    registerClient(taskId: string, res: Response, tokenExp?: number): void;
     unregisterClient(taskId: string, res: Response): void;
     broadcast(taskId: string, event: string, payload: unknown): void;
     sendToClient(res: Response, event: string, payload: unknown): void;

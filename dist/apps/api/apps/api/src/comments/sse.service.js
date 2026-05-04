@@ -9,10 +9,11 @@ var SseService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SseService = void 0;
 const common_1 = require("@nestjs/common");
+const TOKEN_EXPIRY_WARNING_MS = 30_000;
 let SseService = SseService_1 = class SseService {
     logger = new common_1.Logger(SseService_1.name);
     clients = new Map();
-    registerClient(taskId, res) {
+    registerClient(taskId, res, tokenExp) {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -22,12 +23,30 @@ let SseService = SseService_1 = class SseService {
             try {
                 res.write(':heartbeat\n\n');
             }
-            catch (err) {
+            catch {
                 this.logger.debug('Error writing heartbeat, removing client');
                 this.unregisterClient(taskId, res);
             }
         }, 15000);
-        const entry = { res, heartbeat };
+        let expiryTimer;
+        if (tokenExp) {
+            const delay = tokenExp * 1000 - Date.now() - TOKEN_EXPIRY_WARNING_MS;
+            const warn = () => {
+                try {
+                    res.write('event: token-expiring\n');
+                    res.write(`data: ${JSON.stringify({ expiresAt: tokenExp })}\n\n`);
+                }
+                catch {
+                }
+            };
+            if (delay > 0) {
+                expiryTimer = setTimeout(warn, delay);
+            }
+            else {
+                warn();
+            }
+        }
+        const entry = { res, heartbeat, expiryTimer };
         const set = this.clients.get(taskId) ?? new Set();
         set.add(entry);
         this.clients.set(taskId, set);
@@ -42,6 +61,8 @@ let SseService = SseService_1 = class SseService {
         for (const e of Array.from(set)) {
             if (e.res === res) {
                 clearInterval(e.heartbeat);
+                if (e.expiryTimer)
+                    clearTimeout(e.expiryTimer);
                 try {
                     e.res.end();
                 }
@@ -62,7 +83,7 @@ let SseService = SseService_1 = class SseService {
                 entry.res.write(`event: ${event}\n`);
                 entry.res.write(`data: ${data}\n\n`);
             }
-            catch (err) {
+            catch {
                 this.logger.debug('Error broadcasting to client, removing');
                 this.unregisterClient(taskId, entry.res);
             }
@@ -73,7 +94,7 @@ let SseService = SseService_1 = class SseService {
             res.write(`event: ${event}\n`);
             res.write(`data: ${JSON.stringify(payload)}\n\n`);
         }
-        catch (err) {
+        catch {
             this.logger.debug('Error sending to single client');
         }
     }
@@ -81,6 +102,8 @@ let SseService = SseService_1 = class SseService {
         for (const [taskId, set] of this.clients.entries()) {
             for (const e of set) {
                 clearInterval(e.heartbeat);
+                if (e.expiryTimer)
+                    clearTimeout(e.expiryTimer);
                 try {
                     e.res.end();
                 }
