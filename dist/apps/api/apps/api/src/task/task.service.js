@@ -114,7 +114,7 @@ let TaskService = class TaskService {
         return this.toDetail(raw);
     }
     async findAllByList(workspaceId, userId, projectId, listId) {
-        await this.findListOrThrow(workspaceId, projectId, listId);
+        await this.findListOrThrow(workspaceId, projectId, listId, true);
         const tasks = await this.prisma.task.findMany({
             where: { listId, depth: 0, deletedAt: null },
             select: task_constants_1.TASK_LIST_ITEM_SELECT,
@@ -123,7 +123,7 @@ let TaskService = class TaskService {
         return this.toListItems(userId, tasks);
     }
     async findTasksByList(workspaceId, userId, projectId, listId, query) {
-        await this.findListOrThrow(workspaceId, projectId, listId);
+        await this.findListOrThrow(workspaceId, projectId, listId, true);
         return this.searchTasks({ workspaceId, userId, projectId, listId }, query);
     }
     async findTasksByProject(workspaceId, userId, projectId, query) {
@@ -904,15 +904,25 @@ let TaskService = class TaskService {
         const parsed = Number.parseInt(match[1], 10);
         return Number.isNaN(parsed) ? null : parsed;
     }
-    async findListOrThrow(workspaceId, projectId, listId) {
+    async findListOrThrow(workspaceId, projectId, listId, allowArchived = false) {
         const project = await this.prisma.project.findFirst({
-            where: { id: projectId, workspaceId, deletedAt: null, isArchived: false },
+            where: {
+                id: projectId,
+                workspaceId,
+                deletedAt: null,
+                ...(allowArchived ? {} : { isArchived: false }),
+            },
             select: { id: true },
         });
         if (!project)
             throw new common_1.NotFoundException(task_constants_1.PROJECT_NOT_FOUND);
         const list = await this.prisma.taskList.findFirst({
-            where: { id: listId, projectId, deletedAt: null, isArchived: false },
+            where: {
+                id: listId,
+                projectId,
+                deletedAt: null,
+                ...(allowArchived ? {} : { isArchived: false }),
+            },
             select: { id: true },
         });
         if (!list)
