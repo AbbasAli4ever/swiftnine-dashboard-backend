@@ -51,6 +51,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
 
+    // Response already flushed (e.g. SSE stream wrote an auth_error event and
+    // closed before the exception propagated). Nothing left to write.
+    if (res.headersSent) return;
+
     // 1. Zod validation errors from nestjs-zod pipe → 422
     if (exception instanceof ZodValidationException) {
       const zodError = exception.getZodError() as { issues: Array<{ path: (string | number)[]; message: string }> };

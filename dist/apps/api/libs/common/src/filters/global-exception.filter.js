@@ -39,6 +39,8 @@ let GlobalExceptionFilter = GlobalExceptionFilter_1 = class GlobalExceptionFilte
         const ctx = host.switchToHttp();
         const res = ctx.getResponse();
         const req = ctx.getRequest();
+        if (res.headersSent)
+            return;
         if (exception instanceof nestjs_zod_1.ZodValidationException) {
             const zodError = exception.getZodError();
             const errors = zodError.issues.map((e) => ({
