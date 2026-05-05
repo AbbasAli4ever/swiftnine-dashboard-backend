@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatChannelResponseDto = exports.ChatChannelMemberDto = exports.ChatMuteStateResponseDto = exports.ChatReadStateResponseDto = exports.ChatMessageListResponseDto = exports.ChatMessageResponseDto = exports.ChatChannelSummaryDto = exports.ChatReplyPreviewDto = exports.ChatReactionDto = exports.ChatUserSummaryDto = void 0;
+exports.ChatChannelResponseDto = exports.ChatChannelMemberDto = exports.ChatMuteStateResponseDto = exports.ChatReadStateResponseDto = exports.ChatMessageContextResponseDto = exports.ChatMessageListResponseDto = exports.ChatMessageResponseDto = exports.ChatChannelSummaryDto = exports.ChatReplyPreviewDto = exports.ChatReactionDto = exports.ChatUserSummaryDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const attachment_dto_1 = require("../../attachments/dto/attachment.dto");
 class ChatUserSummaryDto {
@@ -250,6 +250,29 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     __metadata("design:type", Object)
 ], ChatMessageListResponseDto.prototype, "nextCursor", void 0);
+class ChatMessageContextResponseDto {
+    items;
+    anchorMessageId;
+    hasBefore;
+    hasAfter;
+}
+exports.ChatMessageContextResponseDto = ChatMessageContextResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: ChatMessageResponseDto, isArray: true }),
+    __metadata("design:type", Array)
+], ChatMessageContextResponseDto.prototype, "items", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], ChatMessageContextResponseDto.prototype, "anchorMessageId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Boolean)
+], ChatMessageContextResponseDto.prototype, "hasBefore", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Boolean)
+], ChatMessageContextResponseDto.prototype, "hasAfter", void 0);
 class ChatReadStateResponseDto {
     channelId;
     userId;

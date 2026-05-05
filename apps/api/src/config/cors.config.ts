@@ -32,6 +32,7 @@ export function buildCorsOptions(
     parseListEnv(env['CORS_ALLOWED_HEADERS'], DEFAULT_CORS_ALLOWED_HEADERS),
     DEFAULT_CORS_ALLOWED_HEADERS,
   );
+  const allowedOrigins = parseListEnv(env['CORS_ALLOWED_ORIGINS']);
 
   return (req, callback) => {
     const requestedHeaders = parseHeaderList(
@@ -43,9 +44,44 @@ export function buildCorsOptions(
       methods: DEFAULT_CORS_METHODS,
       allowedHeaders:
         requestedHeaders.length > 0 ? requestedHeaders : allowedHeaders,
-      origin: true,
+      origin: resolveCorsOrigin(
+        getSingleHeader(req.headers.origin),
+        allowedOrigins,
+      ),
       optionsSuccessStatus: 204,
     });
+  };
+}
+
+export function buildWebsocketCorsOptions(env: NodeJS.ProcessEnv) {
+  const allowCredentials = parseBooleanEnv(
+    env['CORS_ALLOW_CREDENTIALS'],
+    true,
+    'CORS_ALLOW_CREDENTIALS',
+  );
+  const allowedHeaders = ensureRequiredHeaders(
+    parseListEnv(env['CORS_ALLOWED_HEADERS'], DEFAULT_CORS_ALLOWED_HEADERS),
+    DEFAULT_CORS_ALLOWED_HEADERS,
+  );
+  const allowedOrigins = parseListEnv(env['CORS_ALLOWED_ORIGINS']);
+
+  return {
+    credentials: allowCredentials,
+    methods: DEFAULT_CORS_METHODS,
+    allowedHeaders,
+    origin(
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) {
+      const resolved = resolveCorsOrigin(origin, allowedOrigins);
+
+      if (resolved === true || typeof resolved === 'string') {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'), false);
+    },
   };
 }
 
@@ -133,4 +169,19 @@ function parseBooleanEnv(
   throw new Error(
     `${key} must be a boolean-like value: true/false, 1/0, yes/no, on/off.`,
   );
+}
+
+function resolveCorsOrigin(
+  origin: string | undefined,
+  allowedOrigins: string[],
+): true | string | false {
+  if (allowedOrigins.length === 0) {
+    return true;
+  }
+
+  if (!origin) {
+    return false;
+  }
+
+  return allowedOrigins.includes(origin) ? origin : false;
 }

@@ -16,6 +16,8 @@ const doc_content_1 = require("../docs/doc-content");
 const chat_fanout_service_1 = require("./chat-fanout.service");
 const attachments_service_1 = require("../attachments/attachments.service");
 const chat_gateway_1 = require("./chat.gateway");
+const chat_rate_limit_service_1 = require("./chat-rate-limit.service");
+const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
 const MESSAGE_EDIT_WINDOW_MS = 5 * 60 * 1000;
 const CHAT_CURSOR_SEPARATOR = ':';
 let ChatService = class ChatService {
@@ -23,11 +25,15 @@ let ChatService = class ChatService {
     fanout;
     attachments;
     gateway;
-    constructor(prisma, fanout, attachments, gateway) {
+    rateLimits;
+    metrics;
+    constructor(prisma, fanout, attachments, gateway, rateLimits, metrics) {
         this.prisma = prisma;
         this.fanout = fanout;
         this.attachments = attachments;
         this.gateway = gateway;
+        this.rateLimits = rateLimits;
+        this.metrics = metrics;
     }
     async listMessages(workspaceId, userId, channelId, query) {
         await this.assertChannelMember(workspaceId, channelId, userId);
@@ -64,8 +70,65 @@ let ChatService = class ChatService {
         });
         return Promise.all(messages.map((message) => this.toMessageResponse(message)));
     }
+    async getMessageContext(workspaceId, userId, channelId, query) {
+        await this.assertChannelMember(workspaceId, channelId, userId);
+        const anchor = await this.prisma.channelMessage.findFirst({
+            where: {
+                id: query.messageId,
+                channelId,
+            },
+            include: this.messageInclude(),
+        });
+        if (!anchor) {
+            throw new common_1.NotFoundException('Message not found in this channel');
+        }
+        const [beforeMessages, afterMessages] = await Promise.all([
+            this.prisma.channelMessage.findMany({
+                where: {
+                    channelId,
+                    OR: [
+                        { createdAt: { lt: anchor.createdAt } },
+                        { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+                    ],
+                },
+                include: this.messageInclude(),
+                orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+                take: query.before + 1,
+            }),
+            this.prisma.channelMessage.findMany({
+                where: {
+                    channelId,
+                    OR: [
+                        { createdAt: { gt: anchor.createdAt } },
+                        { createdAt: anchor.createdAt, id: { gt: anchor.id } },
+                    ],
+                },
+                include: this.messageInclude(),
+                orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+                take: query.after + 1,
+            }),
+        ]);
+        const hasBefore = beforeMessages.length > query.before;
+        const hasAfter = afterMessages.length > query.after;
+        const sliceBefore = hasBefore
+            ? beforeMessages.slice(0, query.before)
+            : beforeMessages;
+        const sliceAfter = hasAfter ? afterMessages.slice(0, query.after) : afterMessages;
+        const items = await Promise.all([
+            ...sliceBefore.reverse().map((message) => this.toMessageResponse(message)),
+            this.toMessageResponse(anchor),
+            ...sliceAfter.map((message) => this.toMessageResponse(message)),
+        ]);
+        return {
+            items,
+            anchorMessageId: anchor.id,
+            hasBefore,
+            hasAfter,
+        };
+    }
     async sendMessage(workspaceId, userId, channelId, dto) {
         const membership = await this.assertChannelMember(workspaceId, channelId, userId);
+        this.rateLimits.assertMessageSend(userId, channelId);
         const normalized = this.normalizeContent(dto.contentJson);
         const mentionedUserIds = await this.validateMentionedUsers(channelId, dto.mentionedUserIds ?? []);
         const attachmentIds = await this.validateAttachmentIds(channelId, userId, dto.attachmentIds ?? []);
@@ -131,6 +194,7 @@ let ChatService = class ChatService {
             })),
         });
         const response = await this.toMessageResponse(fullMessage);
+        this.metrics.recordMessageSent(channelId, userId);
         this.gateway.emitMessageCreated(response);
         return response;
     }
@@ -201,6 +265,7 @@ let ChatService = class ChatService {
     }
     async toggleReaction(workspaceId, userId, messageId, emoji) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
+        this.rateLimits.assertReactionToggle(userId, message.channelId);
         if (message.deletedAt) {
             throw new common_1.BadRequestException('Cannot react to a deleted message');
         }
@@ -367,6 +432,19 @@ let ChatService = class ChatService {
                     { channelId: created.id, userId, role: 'MEMBER' },
                     { channelId: created.id, userId: dto.targetUserId, role: 'MEMBER' },
                 ],
+            });
+            await tx.channelMessage.create({
+                data: {
+                    channelId: created.id,
+                    senderId: null,
+                    kind: 'SYSTEM',
+                    contentJson: {
+                        event: 'dm_started',
+                        actorUserId: userId,
+                        targetUserId: dto.targetUserId,
+                    },
+                    plaintext: '',
+                },
             });
             return tx.channel.findUniqueOrThrow({
                 where: { id: created.id },
@@ -695,6 +773,8 @@ exports.ChatService = ChatService = __decorate([
     __metadata("design:paramtypes", [database_1.PrismaService,
         chat_fanout_service_1.ChatFanoutService,
         attachments_service_1.AttachmentsService,
-        chat_gateway_1.ChatGateway])
+        chat_gateway_1.ChatGateway,
+        chat_rate_limit_service_1.ChatRateLimitService,
+        realtime_metrics_service_1.RealtimeMetricsService])
 ], ChatService);
 //# sourceMappingURL=chat.service.js.map

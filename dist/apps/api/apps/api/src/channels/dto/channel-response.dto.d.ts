@@ -8,13 +8,17 @@ export declare class ChannelMemberResponseDto {
     channelId: string;
     userId: string;
     role: 'OWNER' | 'ADMIN' | 'MEMBER';
+    isMuted: boolean;
+    unreadCount: number;
+    lastReadMessageId?: string | null;
+    joinedAt: Date;
     createdAt: Date;
     user: ChannelUserSummaryDto;
 }
 export declare class ChannelProjectSummaryDto {
     id: string;
     workspaceId: string;
-    name: string;
+    name: string | null;
     description?: string | null;
     color: string;
     icon?: string | null;
@@ -37,5 +41,10 @@ export declare class ChannelResponseDto {
     createdAt: Date;
     updatedAt: Date;
     members: ChannelMemberResponseDto[];
+    isMember: boolean;
+    isMuted: boolean;
+    unreadCount: number;
+    lastReadMessageId?: string | null;
+    viewerMembership?: ChannelMemberResponseDto | null;
     project?: ChannelProjectSummaryDto | null;
 }

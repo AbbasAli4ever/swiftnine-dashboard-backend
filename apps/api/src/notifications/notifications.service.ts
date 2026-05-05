@@ -19,16 +19,19 @@ type EnrichedNotification<T extends NotificationLike> = T & {
 export class NotificationsService implements OnModuleDestroy {
   private readonly logger = new Logger(NotificationsService.name);
   private snoozeWatcher?: NodeJS.Timeout;
+  private retentionWatcher?: NodeJS.Timeout;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly sse: NotificationsSseService,
   ) {
     this.startSnoozeWatcher();
+    this.startRetentionWatcher();
   }
 
   onModuleDestroy() {
     if (this.snoozeWatcher) clearInterval(this.snoozeWatcher);
+    if (this.retentionWatcher) clearInterval(this.retentionWatcher);
   }
 
   private startSnoozeWatcher() {
@@ -38,6 +41,14 @@ export class NotificationsService implements OnModuleDestroy {
         this.logger.debug('Snooze watcher error', err as any),
       );
     }, 60_000);
+  }
+
+  private startRetentionWatcher() {
+    this.retentionWatcher = setInterval(() => {
+      this.deleteExpiredNotifications().catch((err) =>
+        this.logger.debug('Retention watcher error', err as any),
+      );
+    }, this.retentionCleanupIntervalMs());
   }
 
   private async processExpiredSnoozes() {
@@ -74,6 +85,23 @@ export class NotificationsService implements OnModuleDestroy {
     }
   }
 
+  async deleteExpiredNotifications(now = new Date()) {
+    const retentionDays = this.notificationRetentionDays();
+    const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
+
+    const result = await this.prisma.notification.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
+
+    if (result.count > 0) {
+      this.logger.log(
+        `Deleted ${result.count} notifications older than ${retentionDays} days`,
+      );
+    }
+
+    return result.count;
+  }
+
   private async resolveWorkspaceMember(
     workspaceId: string,
     memberIdOrUserId: string,
@@ -91,6 +119,23 @@ export class NotificationsService implements OnModuleDestroy {
     }
 
     return member;
+  }
+
+  private notificationRetentionDays() {
+    const raw = Number.parseInt(
+      process.env['NOTIFICATIONS_RETENTION_DAYS'] ?? '90',
+      10,
+    );
+    return Number.isNaN(raw) || raw < 1 ? 90 : raw;
+  }
+
+  private retentionCleanupIntervalMs() {
+    const raw = Number.parseInt(
+      process.env['NOTIFICATIONS_RETENTION_CLEANUP_INTERVAL_MS'] ??
+        `${24 * 60 * 60 * 1000}`,
+      10,
+    );
+    return Number.isNaN(raw) || raw < 60_000 ? 24 * 60 * 60 * 1000 : raw;
   }
 
   private getTaskId(

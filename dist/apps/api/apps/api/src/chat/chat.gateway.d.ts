@@ -6,6 +6,8 @@ import { AuthService } from '../auth/auth.service';
 import { PresenceService } from '../presence/presence.service';
 import { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import type { Socket } from 'socket.io';
+import { ChatRateLimitService } from './chat-rate-limit.service';
+import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
 type ChatSocketData = {
     user?: AuthUser;
 };
@@ -40,9 +42,11 @@ export declare class ChatGateway implements OnGatewayConnection, OnGatewayDiscon
     private readonly jwt;
     private readonly auth;
     private readonly presence;
+    private readonly rateLimits;
+    private readonly metrics;
     private server;
     private readonly logger;
-    constructor(prisma: PrismaService, jwt: JwtService, auth: AuthService, presence: PresenceService, config: ConfigService);
+    constructor(prisma: PrismaService, jwt: JwtService, auth: AuthService, presence: PresenceService, rateLimits: ChatRateLimitService, metrics: RealtimeMetricsService, config: ConfigService);
     handleConnection(client: ChatSocket): Promise<void>;
     handleDisconnect(client: ChatSocket): Promise<void>;
     handleJoin(client: ChatSocket, payload: ChannelIdPayload): Promise<void>;
@@ -63,5 +67,6 @@ export declare class ChatGateway implements OnGatewayConnection, OnGatewayDiscon
     private requireJoinedChannel;
     private assertChannelMember;
     private roomName;
+    private joinMemberChannelRooms;
 }
 export {};

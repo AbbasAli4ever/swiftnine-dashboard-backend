@@ -138,30 +138,36 @@ let WorkspaceService = class WorkspaceService {
         return { ...workspace, memberCount };
     }
     async listMembers(workspaceId) {
-        const members = await this.prisma.workspaceMember.findMany({
-            where: { workspaceId, deletedAt: null },
-            select: {
-                role: true,
-                createdAt: true,
-                user: { select: { id: true, fullName: true, email: true, lastSeenAt: true } },
-            },
-            orderBy: { createdAt: 'asc' },
-        });
-        const emails = [...new Set(members.map((m) => m.user.email.trim().toLowerCase()))];
-        const invites = emails.length > 0
-            ? await this.prisma.workspaceInvite.findMany({
-                where: { workspaceId, email: { in: emails } },
-                select: { email: true, createdAt: true, status: true, sender: { select: { fullName: true } } },
+        const [members, pendingInvites] = await Promise.all([
+            this.prisma.workspaceMember.findMany({
+                where: { workspaceId, deletedAt: null },
+                select: {
+                    role: true,
+                    createdAt: true,
+                    user: { select: { id: true, fullName: true, email: true, lastSeenAt: true } },
+                },
+                orderBy: { createdAt: 'asc' },
+            }),
+            this.prisma.workspaceInvite.findMany({
+                where: { workspaceId, status: 'PENDING' },
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    createdAt: true,
+                    status: true,
+                    sender: { select: { fullName: true } },
+                },
                 orderBy: { createdAt: 'desc' },
-            })
-            : [];
+            }),
+        ]);
         const inviteMap = new Map();
-        for (const inv of invites) {
+        for (const inv of pendingInvites) {
             const key = inv.email.trim().toLowerCase();
             if (!inviteMap.has(key))
                 inviteMap.set(key, inv);
         }
-        return members.map((m) => {
+        const memberRows = members.map((m) => {
             const u = m.user;
             const key = u.email.trim().toLowerCase();
             const inv = inviteMap.get(key);
@@ -176,6 +182,19 @@ let WorkspaceService = class WorkspaceService {
                 inviteStatus: inv?.status ?? null,
             };
         });
+        const pendingInviteRows = pendingInvites
+            .filter((invite) => !members.some((member) => member.user.email.trim().toLowerCase() === invite.email.trim().toLowerCase()))
+            .map((invite) => ({
+            id: invite.id,
+            fullName: invite.email,
+            email: invite.email,
+            role: invite.role,
+            lastActive: null,
+            invitedBy: invite.sender?.fullName ?? null,
+            invitedOn: invite.createdAt,
+            inviteStatus: invite.status,
+        }));
+        return [...memberRows, ...pendingInviteRows];
     }
     async getMember(workspaceId, memberId) {
         let member = await this.prisma.workspaceMember.findFirst({

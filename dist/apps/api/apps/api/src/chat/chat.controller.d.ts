@@ -4,6 +4,7 @@ import { AddReactionDto } from './dto/add-reaction.dto';
 import { CreateDmDto } from './dto/create-dm.dto';
 import { EditMessageDto } from './dto/edit-message.dto';
 import { ListMessagesDto } from './dto/list-messages.dto';
+import { MessageContextDto } from './dto/message-context.dto';
 import { MarkReadDto } from './dto/mark-read.dto';
 import { SearchMessagesDto } from './dto/search-messages.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -12,6 +13,7 @@ export declare class ChatController {
     private readonly chatService;
     constructor(chatService: ChatService);
     listMessages(req: WorkspaceRequest, channelId: string, query: ListMessagesDto): Promise<ApiRes<any>>;
+    getMessageContext(req: WorkspaceRequest, channelId: string, query: MessageContextDto): Promise<ApiRes<any>>;
     listPinnedMessages(req: WorkspaceRequest, channelId: string): Promise<ApiRes<any>>;
     sendMessage(req: WorkspaceRequest, channelId: string, dto: SendMessageDto): Promise<ApiRes<any>>;
     editMessage(req: WorkspaceRequest, messageId: string, dto: EditMessageDto): Promise<ApiRes<any>>;

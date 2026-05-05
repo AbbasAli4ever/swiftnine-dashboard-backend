@@ -14,6 +14,7 @@ const JOIN_REQUEST_STATUSES: ChannelJoinRequestStatus[] = [
   'APPROVED',
   'REJECTED',
 ];
+const JOIN_REQUEST_RETRY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class JoinRequestsService {
@@ -106,6 +107,25 @@ export class JoinRequestsService {
     if (existingPending) {
       throw new BadRequestException(
         'A join request is already pending for this channel',
+      );
+    }
+
+    const latestRejected = await this.prisma.channelJoinRequest.findFirst({
+      where: {
+        channelId,
+        userId: requesterUserId,
+        status: 'REJECTED',
+      },
+      select: { decidedAt: true },
+      orderBy: [{ decidedAt: 'desc' }, { requestedAt: 'desc' }, { id: 'desc' }],
+    });
+    if (
+      latestRejected?.decidedAt &&
+      Date.now() - latestRejected.decidedAt.getTime() <
+        JOIN_REQUEST_RETRY_COOLDOWN_MS
+    ) {
+      throw new BadRequestException(
+        'You can request to join this channel again 24 hours after the last rejection',
       );
     }
 

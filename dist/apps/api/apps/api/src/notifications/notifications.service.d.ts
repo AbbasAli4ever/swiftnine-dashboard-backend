@@ -17,11 +17,16 @@ export declare class NotificationsService implements OnModuleDestroy {
     private readonly sse;
     private readonly logger;
     private snoozeWatcher?;
+    private retentionWatcher?;
     constructor(prisma: PrismaService, sse: NotificationsSseService);
     onModuleDestroy(): void;
     private startSnoozeWatcher;
+    private startRetentionWatcher;
     private processExpiredSnoozes;
+    deleteExpiredNotifications(now?: Date): Promise<number>;
     private resolveWorkspaceMember;
+    private notificationRetentionDays;
+    private retentionCleanupIntervalMs;
     private getTaskId;
     addTaskIds<T extends NotificationLike>(notifications: T[]): Promise<Array<EnrichedNotification<T>>>;
     addTaskId<T extends NotificationLike>(notification: T): Promise<EnrichedNotification<T>>;

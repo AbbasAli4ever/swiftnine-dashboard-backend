@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@app/database';
 import type { AuthUser } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
+import { buildWebsocketCorsOptions } from '../config/cors.config';
 import { PresenceService } from '../presence/presence.service';
 import {
   ACCESS_TOKEN_PAYLOAD_SCHEMA,
@@ -23,6 +24,8 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
+import { ChatRateLimitService } from './chat-rate-limit.service';
+import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
 
 type ChatSocketData = {
   user?: AuthUser;
@@ -61,7 +64,7 @@ type ChatReadPayload = {
 
 @WebSocketGateway({
   namespace: '/chat',
-  cors: { origin: true, credentials: true },
+  cors: buildWebsocketCorsOptions(process.env),
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -74,6 +77,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly jwt: JwtService,
     private readonly auth: AuthService,
     private readonly presence: PresenceService,
+    private readonly rateLimits: ChatRateLimitService,
+    private readonly metrics: RealtimeMetricsService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
@@ -87,6 +92,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       client.data.user = await this.authenticate(client);
       await this.presence.connect(client.id, client.data.user);
+      await this.joinMemberChannelRooms(client, client.data.user.id);
+      this.metrics.trackSocketConnected('chat', client.id);
       this.logger.log(
         `Chat socket connected: ${client.id} user=${client.data.user.id}`,
       );
@@ -102,6 +109,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: ChatSocket): Promise<void> {
     await this.presence.disconnect(client.id);
+    this.metrics.trackSocketDisconnected('chat', client.id);
     this.logger.log(`Chat socket disconnected: ${client.id}`);
   }
 
@@ -134,6 +142,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     const user = this.requireUser(client);
     const channelId = this.requireJoinedChannel(client, payload);
+    this.rateLimits.assertTypingEvent(user.id, channelId);
 
     client.to(this.roomName(channelId)).emit('typing:user-started', {
       channelId,
@@ -148,6 +157,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     const user = this.requireUser(client);
     const channelId = this.requireJoinedChannel(client, payload);
+    this.rateLimits.assertTypingEvent(user.id, channelId);
 
     client.to(this.roomName(channelId)).emit('typing:user-stopped', {
       channelId,
@@ -279,5 +289,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private roomName(channelId: string): string {
     return `channel:${channelId}`;
+  }
+
+  private async joinMemberChannelRooms(
+    client: ChatSocket,
+    userId: string,
+  ): Promise<void> {
+    const memberships = await this.prisma.channelMember.findMany({
+      where: { userId },
+      select: { channelId: true },
+    });
+
+    await Promise.all(
+      memberships.map((membership) => client.join(this.roomName(membership.channelId))),
+    );
   }
 }

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildCorsOptions = buildCorsOptions;
+exports.buildWebsocketCorsOptions = buildWebsocketCorsOptions;
 const DEFAULT_CORS_METHODS = [
     'GET',
     'HEAD',
@@ -20,15 +21,34 @@ const FALSE_VALUES = new Set(['false', '0', 'no', 'off']);
 function buildCorsOptions(env) {
     const allowCredentials = parseBooleanEnv(env['CORS_ALLOW_CREDENTIALS'], true, 'CORS_ALLOW_CREDENTIALS');
     const allowedHeaders = ensureRequiredHeaders(parseListEnv(env['CORS_ALLOWED_HEADERS'], DEFAULT_CORS_ALLOWED_HEADERS), DEFAULT_CORS_ALLOWED_HEADERS);
+    const allowedOrigins = parseListEnv(env['CORS_ALLOWED_ORIGINS']);
     return (req, callback) => {
         const requestedHeaders = parseHeaderList(getSingleHeader(req.headers['access-control-request-headers']));
         callback(null, {
             credentials: allowCredentials,
             methods: DEFAULT_CORS_METHODS,
             allowedHeaders: requestedHeaders.length > 0 ? requestedHeaders : allowedHeaders,
-            origin: true,
+            origin: resolveCorsOrigin(getSingleHeader(req.headers.origin), allowedOrigins),
             optionsSuccessStatus: 204,
         });
+    };
+}
+function buildWebsocketCorsOptions(env) {
+    const allowCredentials = parseBooleanEnv(env['CORS_ALLOW_CREDENTIALS'], true, 'CORS_ALLOW_CREDENTIALS');
+    const allowedHeaders = ensureRequiredHeaders(parseListEnv(env['CORS_ALLOWED_HEADERS'], DEFAULT_CORS_ALLOWED_HEADERS), DEFAULT_CORS_ALLOWED_HEADERS);
+    const allowedOrigins = parseListEnv(env['CORS_ALLOWED_ORIGINS']);
+    return {
+        credentials: allowCredentials,
+        methods: DEFAULT_CORS_METHODS,
+        allowedHeaders,
+        origin(origin, callback) {
+            const resolved = resolveCorsOrigin(origin, allowedOrigins);
+            if (resolved === true || typeof resolved === 'string') {
+                callback(null, true);
+                return;
+            }
+            callback(new Error('Origin not allowed by CORS'), false);
+        },
     };
 }
 function parseListEnv(value, fallback = []) {
@@ -82,5 +102,14 @@ function parseBooleanEnv(value, fallback, key) {
         return false;
     }
     throw new Error(`${key} must be a boolean-like value: true/false, 1/0, yes/no, on/off.`);
+}
+function resolveCorsOrigin(origin, allowedOrigins) {
+    if (allowedOrigins.length === 0) {
+        return true;
+    }
+    if (!origin) {
+        return false;
+    }
+    return allowedOrigins.includes(origin) ? origin : false;
 }
 //# sourceMappingURL=cors.config.js.map

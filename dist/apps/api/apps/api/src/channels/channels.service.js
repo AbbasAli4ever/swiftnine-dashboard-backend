@@ -36,8 +36,20 @@ let ChannelsService = class ChannelsService {
             project: true,
         };
     }
+    mapChannel(channel, viewerUserId) {
+        const viewerMembership = channel.members.find((member) => member.userId === viewerUserId) ??
+            null;
+        return {
+            ...channel,
+            isMember: Boolean(viewerMembership),
+            isMuted: viewerMembership?.isMuted ?? false,
+            unreadCount: viewerMembership?.unreadCount ?? 0,
+            lastReadMessageId: viewerMembership?.lastReadMessageId ?? null,
+            viewerMembership,
+        };
+    }
     async listByWorkspace(workspaceId, userId) {
-        return this.prisma.channel.findMany({
+        const channels = await this.prisma.channel.findMany({
             where: {
                 workspaceId,
                 OR: [
@@ -48,6 +60,7 @@ let ChannelsService = class ChannelsService {
             include: this.channelInclude(),
             orderBy: { createdAt: 'asc' },
         });
+        return channels.map((channel) => this.mapChannel(channel, userId));
     }
     async listByProject(workspaceId, projectId, userId) {
         const project = await this.prisma.project.findFirst({
@@ -56,7 +69,7 @@ let ChannelsService = class ChannelsService {
         });
         if (!project)
             throw new common_1.NotFoundException('Project not found in workspace');
-        return this.prisma.channel.findMany({
+        const channels = await this.prisma.channel.findMany({
             where: {
                 workspaceId,
                 projectId,
@@ -68,6 +81,7 @@ let ChannelsService = class ChannelsService {
             include: this.channelInclude(),
             orderBy: { createdAt: 'asc' },
         });
+        return channels.map((channel) => this.mapChannel(channel, userId));
     }
     async create(workspaceId, userId, dto) {
         if (dto.projectId) {
@@ -109,10 +123,13 @@ let ChannelsService = class ChannelsService {
                     performedBy: userId,
                 },
             });
-            return tx.channel.findFirst({
+            const createdChannel = await tx.channel.findFirst({
                 where: { id: channel.id },
                 include: this.channelInclude(),
             });
+            return createdChannel
+                ? this.mapChannel(createdChannel, userId)
+                : createdChannel;
         });
     }
     async updateChannel(workspaceId, channelId, callerUserId, dto) {
@@ -165,7 +182,7 @@ let ChannelsService = class ChannelsService {
                     privacy: updateData.privacy,
                 }, tx);
             }
-            return updated;
+            return this.mapChannel(updated, callerUserId);
         });
     }
     mapRoleInput(input) {

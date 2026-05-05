@@ -19,6 +19,7 @@ const JOIN_REQUEST_STATUSES = [
     'APPROVED',
     'REJECTED',
 ];
+const JOIN_REQUEST_RETRY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 let JoinRequestsService = class JoinRequestsService {
     prisma;
     chatSystem;
@@ -93,6 +94,20 @@ let JoinRequestsService = class JoinRequestsService {
         });
         if (existingPending) {
             throw new common_1.BadRequestException('A join request is already pending for this channel');
+        }
+        const latestRejected = await this.prisma.channelJoinRequest.findFirst({
+            where: {
+                channelId,
+                userId: requesterUserId,
+                status: 'REJECTED',
+            },
+            select: { decidedAt: true },
+            orderBy: [{ decidedAt: 'desc' }, { requestedAt: 'desc' }, { id: 'desc' }],
+        });
+        if (latestRejected?.decidedAt &&
+            Date.now() - latestRejected.decidedAt.getTime() <
+                JOIN_REQUEST_RETRY_COOLDOWN_MS) {
+            throw new common_1.BadRequestException('You can request to join this channel again 24 hours after the last rejection');
         }
         return this.prisma.channelJoinRequest.create({
             data: {

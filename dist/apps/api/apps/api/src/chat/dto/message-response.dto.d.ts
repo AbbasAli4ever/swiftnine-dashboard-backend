@@ -55,6 +55,12 @@ export declare class ChatMessageListResponseDto {
     items: ChatMessageResponseDto[];
     nextCursor?: string | null;
 }
+export declare class ChatMessageContextResponseDto {
+    items: ChatMessageResponseDto[];
+    anchorMessageId: string;
+    hasBefore: boolean;
+    hasAfter: boolean;
+}
 export declare class ChatReadStateResponseDto {
     channelId: string;
     userId: string;

@@ -70,6 +70,8 @@ describe('JoinRequestsService', () => {
       privacy: 'PUBLIC',
     });
     prisma.channelMember.findFirst
+      .mockResolvedValueOnce(null);
+    prisma.channelJoinRequest.findFirst
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
     prisma.channelJoinRequest.create.mockResolvedValue({
@@ -108,6 +110,30 @@ describe('JoinRequestsService', () => {
       service.createRequest('workspace-1', 'channel-1', 'user-2'),
     ).rejects.toThrow(
       new ForbiddenException('Private channels are invite-only'),
+    );
+  });
+
+  it('enforces a 24 hour cooldown after a rejected join request', async () => {
+    prisma.channel.findFirst.mockResolvedValue({
+      id: 'channel-1',
+      workspaceId: 'workspace-1',
+      kind: 'CHANNEL',
+      name: 'Announcements',
+      privacy: 'PUBLIC',
+    });
+    prisma.channelMember.findFirst.mockResolvedValue(null);
+    prisma.channelJoinRequest.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        decidedAt: new Date(Date.now() - 60 * 60 * 1000),
+      });
+
+    await expect(
+      service.createRequest('workspace-1', 'channel-1', 'user-2'),
+    ).rejects.toThrow(
+      new BadRequestException(
+        'You can request to join this channel again 24 hours after the last rejection',
+      ),
     );
   });
 

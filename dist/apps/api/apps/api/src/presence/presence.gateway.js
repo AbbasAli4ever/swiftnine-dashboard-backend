@@ -19,18 +19,22 @@ const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const websockets_1 = require("@nestjs/websockets");
 const auth_constants_1 = require("../auth/auth.constants");
+const cors_config_1 = require("../config/cors.config");
 const auth_service_1 = require("../auth/auth.service");
+const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
 const presence_service_1 = require("./presence.service");
 let PresenceGateway = PresenceGateway_1 = class PresenceGateway {
     presence;
     jwt;
     auth;
+    metrics;
     server;
     logger = new common_1.Logger(PresenceGateway_1.name);
-    constructor(presence, jwt, auth, config) {
+    constructor(presence, jwt, auth, metrics, config) {
         this.presence = presence;
         this.jwt = jwt;
         this.auth = auth;
+        this.metrics = metrics;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Presence realtime uses an in-memory socket registry; configure Redis before scaling instances');
         }
@@ -41,6 +45,7 @@ let PresenceGateway = PresenceGateway_1 = class PresenceGateway {
     async handleConnection(client) {
         try {
             client.data.user = await this.authenticate(client);
+            this.metrics.trackSocketConnected('presence', client.id);
             this.logger.log(`Presence socket connected: ${client.id} user=${client.data.user.id}`);
         }
         catch (error) {
@@ -50,6 +55,10 @@ let PresenceGateway = PresenceGateway_1 = class PresenceGateway {
             client.emit('presence:error', { reason: message });
             client.disconnect(true);
         }
+    }
+    handleDisconnect(client) {
+        this.metrics.trackSocketDisconnected('presence', client.id);
+        this.logger.log(`Presence socket disconnected: ${client.id}`);
     }
     async handleSubscribe(client, _payload) {
         const user = this.requireUser(client);
@@ -99,11 +108,12 @@ __decorate([
 exports.PresenceGateway = PresenceGateway = PresenceGateway_1 = __decorate([
     (0, websockets_1.WebSocketGateway)({
         namespace: '/presence',
-        cors: { origin: true, credentials: true },
+        cors: (0, cors_config_1.buildWebsocketCorsOptions)(process.env),
     }),
     __metadata("design:paramtypes", [presence_service_1.PresenceService,
         jwt_1.JwtService,
         auth_service_1.AuthService,
+        realtime_metrics_service_1.RealtimeMetricsService,
         config_1.ConfigService])
 ], PresenceGateway);
 //# sourceMappingURL=presence.gateway.js.map

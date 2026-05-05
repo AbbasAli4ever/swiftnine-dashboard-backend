@@ -21,6 +21,7 @@ describe('DocsGateway', () => {
       { verifyAsync: jest.fn() } as never,
       { findActiveAuthUser: jest.fn() } as never,
       { connect: jest.fn(), disconnect: jest.fn() } as never,
+      { trackSocketConnected: jest.fn(), trackSocketDisconnected: jest.fn() } as never,
       { get: jest.fn(() => '1') } as never,
     );
     const client = {
@@ -43,6 +44,10 @@ describe('DocsGateway', () => {
     const presence = {
       connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
+    };
+    const metrics = {
+      trackSocketConnected: jest.fn(),
+      trackSocketDisconnected: jest.fn(),
     };
     const gateway = new DocsGateway(
       { findOne: jest.fn() } as never,
@@ -68,6 +73,7 @@ describe('DocsGateway', () => {
         }),
       } as never,
       presence as never,
+      metrics as never,
       { get: jest.fn(() => '1') } as never,
     );
     const client = {
@@ -86,5 +92,7 @@ describe('DocsGateway', () => {
       expect.objectContaining({ id: 'user-1' }),
     );
     expect(presence.disconnect).toHaveBeenCalledWith('socket-1');
+    expect(metrics.trackSocketConnected).toHaveBeenCalledWith('docs', 'socket-1');
+    expect(metrics.trackSocketDisconnected).toHaveBeenCalledWith('docs', 'socket-1');
   });
 });

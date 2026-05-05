@@ -19,21 +19,28 @@ const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const database_1 = require("../../../../libs/database/src");
 const auth_service_1 = require("../auth/auth.service");
+const cors_config_1 = require("../config/cors.config");
 const presence_service_1 = require("../presence/presence.service");
 const auth_constants_1 = require("../auth/auth.constants");
 const websockets_1 = require("@nestjs/websockets");
+const chat_rate_limit_service_1 = require("./chat-rate-limit.service");
+const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
 let ChatGateway = ChatGateway_1 = class ChatGateway {
     prisma;
     jwt;
     auth;
     presence;
+    rateLimits;
+    metrics;
     server;
     logger = new common_1.Logger(ChatGateway_1.name);
-    constructor(prisma, jwt, auth, presence, config) {
+    constructor(prisma, jwt, auth, presence, rateLimits, metrics, config) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.auth = auth;
         this.presence = presence;
+        this.rateLimits = rateLimits;
+        this.metrics = metrics;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Chat realtime uses in-memory room fanout; configure Redis before scaling instances');
         }
@@ -42,6 +49,8 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
         try {
             client.data.user = await this.authenticate(client);
             await this.presence.connect(client.id, client.data.user);
+            await this.joinMemberChannelRooms(client, client.data.user.id);
+            this.metrics.trackSocketConnected('chat', client.id);
             this.logger.log(`Chat socket connected: ${client.id} user=${client.data.user.id}`);
         }
         catch (error) {
@@ -54,6 +63,7 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     }
     async handleDisconnect(client) {
         await this.presence.disconnect(client.id);
+        this.metrics.trackSocketDisconnected('chat', client.id);
         this.logger.log(`Chat socket disconnected: ${client.id}`);
     }
     async handleJoin(client, payload) {
@@ -70,6 +80,7 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     async handleTypingStart(client, payload) {
         const user = this.requireUser(client);
         const channelId = this.requireJoinedChannel(client, payload);
+        this.rateLimits.assertTypingEvent(user.id, channelId);
         client.to(this.roomName(channelId)).emit('typing:user-started', {
             channelId,
             userId: user.id,
@@ -78,6 +89,7 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     async handleTypingStop(client, payload) {
         const user = this.requireUser(client);
         const channelId = this.requireJoinedChannel(client, payload);
+        this.rateLimits.assertTypingEvent(user.id, channelId);
         client.to(this.roomName(channelId)).emit('typing:user-stopped', {
             channelId,
             userId: user.id,
@@ -171,6 +183,13 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     roomName(channelId) {
         return `channel:${channelId}`;
     }
+    async joinMemberChannelRooms(client, userId) {
+        const memberships = await this.prisma.channelMember.findMany({
+            where: { userId },
+            select: { channelId: true },
+        });
+        await Promise.all(memberships.map((membership) => client.join(this.roomName(membership.channelId))));
+    }
 };
 exports.ChatGateway = ChatGateway;
 __decorate([
@@ -212,12 +231,14 @@ __decorate([
 exports.ChatGateway = ChatGateway = ChatGateway_1 = __decorate([
     (0, websockets_1.WebSocketGateway)({
         namespace: '/chat',
-        cors: { origin: true, credentials: true },
+        cors: (0, cors_config_1.buildWebsocketCorsOptions)(process.env),
     }),
     __metadata("design:paramtypes", [database_1.PrismaService,
         jwt_1.JwtService,
         auth_service_1.AuthService,
         presence_service_1.PresenceService,
+        chat_rate_limit_service_1.ChatRateLimitService,
+        realtime_metrics_service_1.RealtimeMetricsService,
         config_1.ConfigService])
 ], ChatGateway);
 //# sourceMappingURL=chat.gateway.js.map

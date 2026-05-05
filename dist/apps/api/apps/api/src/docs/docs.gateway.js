@@ -20,7 +20,9 @@ const jwt_1 = require("@nestjs/jwt");
 const websockets_1 = require("@nestjs/websockets");
 const auth_constants_1 = require("../auth/auth.constants");
 const auth_service_1 = require("../auth/auth.service");
+const cors_config_1 = require("../config/cors.config");
 const presence_service_1 = require("../presence/presence.service");
+const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
 const doc_locks_service_1 = require("./doc-locks.service");
 const doc_presence_service_1 = require("./doc-presence.service");
 const docs_service_1 = require("./docs.service");
@@ -31,15 +33,17 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     jwt;
     auth;
     presence;
+    metrics;
     server;
     logger = new common_1.Logger(DocsGateway_1.name);
-    constructor(docs, docPresence, locks, jwt, auth, presence, config) {
+    constructor(docs, docPresence, locks, jwt, auth, presence, metrics, config) {
         this.docs = docs;
         this.docPresence = docPresence;
         this.locks = locks;
         this.jwt = jwt;
         this.auth = auth;
         this.presence = presence;
+        this.metrics = metrics;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Docs realtime uses in-memory presence and locks; configure Redis before scaling instances');
         }
@@ -48,6 +52,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
         try {
             client.data.user = await this.authenticate(client);
             await this.presence.connect(client.id, client.data.user);
+            this.metrics.trackSocketConnected('docs', client.id);
             this.logger.log(`Docs socket connected: ${client.id} user=${client.data.user.id}`);
         }
         catch (error) {
@@ -58,6 +63,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     }
     async handleDisconnect(client) {
         await this.presence.disconnect(client.id);
+        this.metrics.trackSocketDisconnected('docs', client.id);
         this.logger.log(`Docs socket disconnected: ${client.id}`);
         this.leaveAllRooms(client);
     }
@@ -270,7 +276,7 @@ __decorate([
 exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
     (0, websockets_1.WebSocketGateway)({
         namespace: '/docs',
-        cors: { origin: true, credentials: true },
+        cors: (0, cors_config_1.buildWebsocketCorsOptions)(process.env),
     }),
     __metadata("design:paramtypes", [docs_service_1.DocsService,
         doc_presence_service_1.DocPresenceService,
@@ -278,6 +284,7 @@ exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
         jwt_1.JwtService,
         auth_service_1.AuthService,
         presence_service_1.PresenceService,
+        realtime_metrics_service_1.RealtimeMetricsService,
         config_1.ConfigService])
 ], DocsGateway);
 //# sourceMappingURL=docs.gateway.js.map

@@ -34,7 +34,12 @@ import {
   type ListMessagesQuery,
 } from './dto/list-messages.dto';
 import {
+  MessageContextDto,
+  type MessageContextQuery,
+} from './dto/message-context.dto';
+import {
   ChatChannelResponseDto,
+  ChatMessageContextResponseDto,
   ChatMessageListResponseDto,
   ChatMessageResponseDto,
   ChatMuteStateResponseDto,
@@ -74,6 +79,24 @@ export class ChatController {
       req.user.id,
       channelId,
       query as ListMessagesQuery,
+    );
+    return ok(result);
+  }
+
+  @Get('channels/:channelId/messages/context')
+  @ApiOperation({ summary: 'Load message context around a specific anchor message' })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChatMessageContextResponseDto })
+  async getMessageContext(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+    @Query() query: MessageContextDto,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.getMessageContext(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      query as MessageContextQuery,
     );
     return ok(result);
   }

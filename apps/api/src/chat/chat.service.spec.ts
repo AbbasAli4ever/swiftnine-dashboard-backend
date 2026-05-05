@@ -63,6 +63,13 @@ describe('ChatService', () => {
     emitMessageUnpinned: jest.Mock;
     emitMemberRead: jest.Mock;
   };
+  let rateLimits: {
+    assertMessageSend: jest.Mock;
+    assertReactionToggle: jest.Mock;
+  };
+  let metrics: {
+    recordMessageSent: jest.Mock;
+  };
 
   beforeEach(() => {
     prisma = {
@@ -130,12 +137,21 @@ describe('ChatService', () => {
       emitMessageUnpinned: jest.fn(),
       emitMemberRead: jest.fn(),
     };
+    rateLimits = {
+      assertMessageSend: jest.fn(),
+      assertReactionToggle: jest.fn(),
+    };
+    metrics = {
+      recordMessageSent: jest.fn(),
+    };
 
     service = new ChatService(
       prisma as never,
       fanout as never,
       attachments as never,
       gateway as never,
+      rateLimits as never,
+      metrics as never,
     );
   });
 
@@ -208,6 +224,14 @@ describe('ChatService', () => {
     );
     expect(result.id).toBe('message-1');
     expect(result.plaintext).toBe('Hello team');
+    expect(rateLimits.assertMessageSend).toHaveBeenCalledWith(
+      'user-1',
+      'channel-1',
+    );
+    expect(metrics.recordMessageSent).toHaveBeenCalledWith(
+      'channel-1',
+      'user-1',
+    );
     expect(gateway.emitMessageCreated).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'message-1', channelId: 'channel-1' }),
     );

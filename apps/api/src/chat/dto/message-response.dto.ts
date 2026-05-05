@@ -145,6 +145,20 @@ export class ChatMessageListResponseDto {
   nextCursor?: string | null;
 }
 
+export class ChatMessageContextResponseDto {
+  @ApiProperty({ type: ChatMessageResponseDto, isArray: true })
+  items!: ChatMessageResponseDto[];
+
+  @ApiProperty()
+  anchorMessageId!: string;
+
+  @ApiProperty()
+  hasBefore!: boolean;
+
+  @ApiProperty()
+  hasAfter!: boolean;
+}
+
 export class ChatReadStateResponseDto {
   @ApiProperty()
   channelId!: string;

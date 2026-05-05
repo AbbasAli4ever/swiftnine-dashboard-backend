@@ -34,8 +34,23 @@ export class ChannelsService {
     };
   }
 
+  private mapChannel(channel: any, viewerUserId: string) {
+    const viewerMembership =
+      channel.members.find((member: any) => member.userId === viewerUserId) ??
+      null;
+
+    return {
+      ...channel,
+      isMember: Boolean(viewerMembership),
+      isMuted: viewerMembership?.isMuted ?? false,
+      unreadCount: viewerMembership?.unreadCount ?? 0,
+      lastReadMessageId: viewerMembership?.lastReadMessageId ?? null,
+      viewerMembership,
+    };
+  }
+
   async listByWorkspace(workspaceId: string, userId: string) {
-    return this.prisma.channel.findMany({
+    const channels = await this.prisma.channel.findMany({
       where: {
         workspaceId,
         OR: [
@@ -46,6 +61,8 @@ export class ChannelsService {
       include: this.channelInclude(),
       orderBy: { createdAt: 'asc' },
     });
+
+    return channels.map((channel) => this.mapChannel(channel, userId));
   }
 
   async listByProject(workspaceId: string, projectId: string, userId: string) {
@@ -55,7 +72,7 @@ export class ChannelsService {
     });
     if (!project) throw new NotFoundException('Project not found in workspace');
 
-    return this.prisma.channel.findMany({
+    const channels = await this.prisma.channel.findMany({
       where: {
         workspaceId,
         projectId,
@@ -67,6 +84,8 @@ export class ChannelsService {
       include: this.channelInclude(),
       orderBy: { createdAt: 'asc' },
     });
+
+    return channels.map((channel) => this.mapChannel(channel, userId));
   }
 
   async create(workspaceId: string, userId: string, dto: CreateChannelDto) {
@@ -121,10 +140,13 @@ export class ChannelsService {
         },
       });
 
-      return tx.channel.findFirst({
+      const createdChannel = await tx.channel.findFirst({
         where: { id: channel.id },
         include: this.channelInclude(),
       });
+      return createdChannel
+        ? this.mapChannel(createdChannel, userId)
+        : createdChannel;
     });
   }
 
@@ -205,7 +227,7 @@ export class ChannelsService {
         );
       }
 
-      return updated;
+      return this.mapChannel(updated, callerUserId);
     });
   }
 

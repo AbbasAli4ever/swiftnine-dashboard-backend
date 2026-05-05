@@ -8,6 +8,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -19,7 +20,9 @@ import {
   ACCESS_TOKEN_PAYLOAD_SCHEMA,
   INVALID_ACCESS_TOKEN_MESSAGE,
 } from '../auth/auth.constants';
+import { buildWebsocketCorsOptions } from '../config/cors.config';
 import { AuthService, type AuthUser } from '../auth/auth.service';
+import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
 import { PresenceService } from './presence.service';
 
 type PresenceSocketData = {
@@ -32,9 +35,11 @@ type PresenceSocket = Socket & {
 
 @WebSocketGateway({
   namespace: '/presence',
-  cors: { origin: true, credentials: true },
+  cors: buildWebsocketCorsOptions(process.env),
 })
-export class PresenceGateway implements OnGatewayInit, OnGatewayConnection {
+export class PresenceGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   private server!: Server;
 
@@ -44,6 +49,7 @@ export class PresenceGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly presence: PresenceService,
     private readonly jwt: JwtService,
     private readonly auth: AuthService,
+    private readonly metrics: RealtimeMetricsService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
@@ -60,6 +66,7 @@ export class PresenceGateway implements OnGatewayInit, OnGatewayConnection {
   async handleConnection(client: PresenceSocket): Promise<void> {
     try {
       client.data.user = await this.authenticate(client);
+      this.metrics.trackSocketConnected('presence', client.id);
       this.logger.log(
         `Presence socket connected: ${client.id} user=${client.data.user.id}`,
       );
@@ -71,6 +78,11 @@ export class PresenceGateway implements OnGatewayInit, OnGatewayConnection {
       client.emit('presence:error', { reason: message });
       client.disconnect(true);
     }
+  }
+
+  handleDisconnect(client: PresenceSocket): void {
+    this.metrics.trackSocketDisconnected('presence', client.id);
+    this.logger.log(`Presence socket disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('presence:subscribe')

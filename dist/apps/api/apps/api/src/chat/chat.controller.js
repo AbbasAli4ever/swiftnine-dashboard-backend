@@ -22,6 +22,7 @@ const add_reaction_dto_1 = require("./dto/add-reaction.dto");
 const create_dm_dto_1 = require("./dto/create-dm.dto");
 const edit_message_dto_1 = require("./dto/edit-message.dto");
 const list_messages_dto_1 = require("./dto/list-messages.dto");
+const message_context_dto_1 = require("./dto/message-context.dto");
 const message_response_dto_1 = require("./dto/message-response.dto");
 const mark_read_dto_1 = require("./dto/mark-read.dto");
 const search_messages_dto_1 = require("./dto/search-messages.dto");
@@ -34,6 +35,10 @@ let ChatController = class ChatController {
     }
     async listMessages(req, channelId, query) {
         const result = await this.chatService.listMessages(req.workspaceContext.workspaceId, req.user.id, channelId, query);
+        return (0, common_2.ok)(result);
+    }
+    async getMessageContext(req, channelId, query) {
+        const result = await this.chatService.getMessageContext(req.workspaceContext.workspaceId, req.user.id, channelId, query);
         return (0, common_2.ok)(result);
     }
     async listPinnedMessages(req, channelId) {
@@ -102,6 +107,18 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, list_messages_dto_1.ListMessagesDto]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "listMessages", null);
+__decorate([
+    (0, common_1.Get)('channels/:channelId/messages/context'),
+    (0, swagger_1.ApiOperation)({ summary: 'Load message context around a specific anchor message' }),
+    (0, swagger_1.ApiParam)({ name: 'channelId', description: 'Channel id' }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: message_response_dto_1.ChatMessageContextResponseDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('channelId')),
+    __param(2, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, message_context_dto_1.MessageContextDto]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getMessageContext", null);
 __decorate([
     (0, common_1.Get)('channels/:channelId/messages/pinned'),
     (0, swagger_1.ApiOperation)({ summary: 'List pinned channel messages' }),

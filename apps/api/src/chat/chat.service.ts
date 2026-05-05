@@ -10,10 +10,13 @@ import { assertContentSize, extractPlaintext } from '../docs/doc-content';
 import { ChatFanoutService } from './chat-fanout.service';
 import { AttachmentsService } from '../attachments/attachments.service';
 import { ChatGateway } from './chat.gateway';
+import { ChatRateLimitService } from './chat-rate-limit.service';
+import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
 import type { CreateDmDto } from './dto/create-dm.dto';
 import type { EditMessageDto } from './dto/edit-message.dto';
 import type { ListMessagesQuery } from './dto/list-messages.dto';
 import type { MarkReadDto } from './dto/mark-read.dto';
+import type { MessageContextQuery } from './dto/message-context.dto';
 import type { SearchMessagesQuery } from './dto/search-messages.dto';
 import type { SendMessageDto } from './dto/send-message.dto';
 
@@ -32,6 +35,8 @@ export class ChatService {
     private readonly fanout: ChatFanoutService,
     private readonly attachments: AttachmentsService,
     private readonly gateway: ChatGateway,
+    private readonly rateLimits: ChatRateLimitService,
+    private readonly metrics: RealtimeMetricsService,
   ) {}
 
   async listMessages(
@@ -89,6 +94,74 @@ export class ChatService {
     );
   }
 
+  async getMessageContext(
+    workspaceId: string,
+    userId: string,
+    channelId: string,
+    query: MessageContextQuery,
+  ) {
+    await this.assertChannelMember(workspaceId, channelId, userId);
+
+    const anchor = await this.prisma.channelMessage.findFirst({
+      where: {
+        id: query.messageId,
+        channelId,
+      },
+      include: this.messageInclude(),
+    });
+
+    if (!anchor) {
+      throw new NotFoundException('Message not found in this channel');
+    }
+
+    const [beforeMessages, afterMessages] = await Promise.all([
+      this.prisma.channelMessage.findMany({
+        where: {
+          channelId,
+          OR: [
+            { createdAt: { lt: anchor.createdAt } },
+            { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+          ],
+        },
+        include: this.messageInclude(),
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: query.before + 1,
+      }),
+      this.prisma.channelMessage.findMany({
+        where: {
+          channelId,
+          OR: [
+            { createdAt: { gt: anchor.createdAt } },
+            { createdAt: anchor.createdAt, id: { gt: anchor.id } },
+          ],
+        },
+        include: this.messageInclude(),
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        take: query.after + 1,
+      }),
+    ]);
+
+    const hasBefore = beforeMessages.length > query.before;
+    const hasAfter = afterMessages.length > query.after;
+    const sliceBefore = hasBefore
+      ? beforeMessages.slice(0, query.before)
+      : beforeMessages;
+    const sliceAfter = hasAfter ? afterMessages.slice(0, query.after) : afterMessages;
+
+    const items = await Promise.all([
+      ...sliceBefore.reverse().map((message) => this.toMessageResponse(message)),
+      this.toMessageResponse(anchor),
+      ...sliceAfter.map((message) => this.toMessageResponse(message)),
+    ]);
+
+    return {
+      items,
+      anchorMessageId: anchor.id,
+      hasBefore,
+      hasAfter,
+    };
+  }
+
   async sendMessage(
     workspaceId: string,
     userId: string,
@@ -100,6 +173,7 @@ export class ChatService {
       channelId,
       userId,
     );
+    this.rateLimits.assertMessageSend(userId, channelId);
     const normalized = this.normalizeContent(dto.contentJson);
     const mentionedUserIds = await this.validateMentionedUsers(
       channelId,
@@ -188,6 +262,7 @@ export class ChatService {
     });
 
     const response = await this.toMessageResponse(fullMessage);
+    this.metrics.recordMessageSent(channelId, userId);
     this.gateway.emitMessageCreated(response);
     return response;
   }
@@ -312,6 +387,7 @@ export class ChatService {
       userId,
       messageId,
     );
+    this.rateLimits.assertReactionToggle(userId, message.channelId);
     if (message.deletedAt) {
       throw new BadRequestException('Cannot react to a deleted message');
     }
@@ -542,6 +618,20 @@ export class ChatService {
           { channelId: created.id, userId, role: 'MEMBER' },
           { channelId: created.id, userId: dto.targetUserId, role: 'MEMBER' },
         ],
+      });
+
+      await tx.channelMessage.create({
+        data: {
+          channelId: created.id,
+          senderId: null,
+          kind: 'SYSTEM',
+          contentJson: {
+            event: 'dm_started',
+            actorUserId: userId,
+            targetUserId: dto.targetUserId,
+          } as Prisma.InputJsonValue,
+          plaintext: '',
+        },
       });
 
       return tx.channel.findUniqueOrThrow({
