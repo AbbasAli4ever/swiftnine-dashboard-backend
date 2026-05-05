@@ -20,6 +20,7 @@ exports.AttachmentsModule = AttachmentsModule = __decorate([
         imports: [activity_module_1.ActivityModule, docs_module_1.DocsModule],
         controllers: [attachments_controller_1.AttachmentsController],
         providers: [attachments_service_1.AttachmentsService],
+        exports: [attachments_service_1.AttachmentsService],
     })
 ], AttachmentsModule);
 //# sourceMappingURL=attachments.module.js.map

@@ -12,6 +12,7 @@ export declare class AttachmentsService {
         uploadUrl: string;
         s3Key: string;
         expiresAt: Date;
+        attachmentId: string | null;
     }>;
     createAttachment(actorId: string, taskId: string, memberId: string, s3Key: string, fileName?: string, mimeType?: string, fileSize?: number): Promise<{
         fileSize: number;
@@ -57,7 +58,22 @@ export declare class AttachmentsService {
     }>;
     private resolveWorkspaceMember;
     private findDocOrThrow;
+    private findChannelMemberOrThrow;
     private resolveUploadedFileMetadata;
     private assertDocAttachmentKey;
-    private toViewAttachment;
+    toViewAttachment(att: {
+        id: string;
+        fileName: string;
+        mimeType: string;
+        s3Key: string;
+        fileSize: bigint;
+    }): Promise<{
+        fileSize: number;
+        url: string;
+        expiresAt: Date;
+        id: string;
+        fileName: string;
+        mimeType: string;
+        s3Key: string;
+    }>;
 }

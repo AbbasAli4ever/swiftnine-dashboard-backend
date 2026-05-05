@@ -28,6 +28,7 @@ const comments_module_1 = require("./comments/comments.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const channels_module_1 = require("./channels/channels.module");
+const chat_module_1 = require("./chat/chat.module");
 const docs_module_1 = require("./docs/docs.module");
 const favorites_module_1 = require("./favorites/favorites.module");
 let AppModule = class AppModule {
@@ -56,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
             activity_module_1.ActivityModule,
             comments_module_1.CommentsModule,
             channels_module_1.ChannelsModule,
+            chat_module_1.ChatModule,
             notifications_module_1.NotificationsModule,
             dashboard_module_1.DashboardModule,
             docs_module_1.DocsModule,

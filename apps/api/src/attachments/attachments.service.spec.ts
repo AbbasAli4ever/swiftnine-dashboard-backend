@@ -7,7 +7,9 @@ jest.mock('@app/database', () => ({
 }));
 
 jest.mock('@aws-sdk/s3-request-presigner', () => ({
-  getSignedUrl: jest.fn().mockResolvedValue('https://signed.example.com/object'),
+  getSignedUrl: jest
+    .fn()
+    .mockResolvedValue('https://signed.example.com/object'),
 }));
 
 describe('AttachmentsService doc attachments', () => {
@@ -22,6 +24,7 @@ describe('AttachmentsService doc attachments', () => {
     };
     task: { findFirst: jest.Mock };
     workspaceMember: { findFirst: jest.Mock };
+    channelMember: { findFirst: jest.Mock };
   };
   let activity: { log: jest.Mock };
   let docPermissions: {
@@ -41,6 +44,7 @@ describe('AttachmentsService doc attachments', () => {
       },
       task: { findFirst: jest.fn() },
       workspaceMember: { findFirst: jest.fn() },
+      channelMember: { findFirst: jest.fn() },
     };
     activity = { log: jest.fn().mockResolvedValue(undefined) };
     docPermissions = {
@@ -63,7 +67,10 @@ describe('AttachmentsService doc attachments', () => {
       mimeType: 'image/png',
     });
 
-    expect(docPermissions.assertCanEdit).toHaveBeenCalledWith('user-1', docFixture());
+    expect(docPermissions.assertCanEdit).toHaveBeenCalledWith(
+      'user-1',
+      docFixture(),
+    );
     expect(result.s3Key).toContain('attachments/doc-doc-1/');
     expect(result.s3Key).toContain('hello_world.png');
   });
@@ -142,10 +149,19 @@ describe('AttachmentsService doc attachments', () => {
 
     const result = await service.listAttachmentsForDoc('user-1', 'doc-1');
 
-    expect(docPermissions.assertCanView).toHaveBeenCalledWith('user-1', docFixture());
+    expect(docPermissions.assertCanView).toHaveBeenCalledWith(
+      'user-1',
+      docFixture(),
+    );
     expect(prisma.attachment.findMany).toHaveBeenCalledWith({
       where: { docId: 'doc-1', deletedAt: null },
-      select: { id: true, fileName: true, mimeType: true, s3Key: true, fileSize: true },
+      select: {
+        id: true,
+        fileName: true,
+        mimeType: true,
+        s3Key: true,
+        fileSize: true,
+      },
       orderBy: { createdAt: 'asc' },
     });
     expect(getSignedUrl).toHaveBeenCalled();
@@ -177,6 +193,35 @@ describe('AttachmentsService doc attachments', () => {
       where: { id: 'attachment-1' },
       data: { deletedAt: expect.any(Date) },
     });
+  });
+
+  it('creates a staged attachment row for channel-message presign requests', async () => {
+    prisma.channelMember.findFirst.mockResolvedValue({
+      id: 'channel-member-1',
+      channel: { id: 'channel-1', workspaceId: 'workspace-1' },
+    });
+    prisma.attachment.create.mockResolvedValue({ id: 'attachment-99' });
+
+    const result = await service.presignUpload('user-1', {
+      scope: 'channel-message',
+      channelId: 'channel-1',
+      fileName: 'board shot.png',
+      mimeType: 'image/png',
+      fileSize: 2048,
+    });
+
+    expect(prisma.attachment.create).toHaveBeenCalledWith({
+      data: {
+        channelMessageId: null,
+        uploadedBy: 'user-1',
+        fileName: 'board shot.png',
+        s3Key: expect.stringContaining('attachments/channel-channel-1/'),
+        mimeType: 'image/png',
+        fileSize: BigInt(2048),
+      },
+      select: { id: true },
+    });
+    expect(result.attachmentId).toBe('attachment-99');
   });
 });
 

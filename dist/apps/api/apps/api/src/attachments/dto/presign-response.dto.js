@@ -15,6 +15,7 @@ class PresignResponseDto {
     uploadUrl;
     s3Key;
     expiresAt;
+    attachmentId;
 }
 exports.PresignResponseDto = PresignResponseDto;
 __decorate([
@@ -29,4 +30,12 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: '2026-04-21T12:00:00.000Z', format: 'date-time' }),
     __metadata("design:type", Date)
 ], PresignResponseDto.prototype, "expiresAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
+        required: false,
+        nullable: true,
+    }),
+    __metadata("design:type", Object)
+], PresignResponseDto.prototype, "attachmentId", void 0);
 //# sourceMappingURL=presign-response.dto.js.map
