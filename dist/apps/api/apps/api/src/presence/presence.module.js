@@ -6,29 +6,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatModule = void 0;
+exports.PresenceModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
-const attachments_module_1 = require("../attachments/attachments.module");
 const auth_module_1 = require("../auth/auth.module");
-const notifications_module_1 = require("../notifications/notifications.module");
-const presence_module_1 = require("../presence/presence.module");
-const chat_controller_1 = require("./chat.controller");
-const chat_fanout_service_1 = require("./chat-fanout.service");
-const chat_gateway_1 = require("./chat.gateway");
-const chat_service_1 = require("./chat.service");
-const chat_system_service_1 = require("./chat-system.service");
-let ChatModule = class ChatModule {
+const presence_gateway_1 = require("./presence.gateway");
+const presence_service_1 = require("./presence.service");
+let PresenceModule = class PresenceModule {
 };
-exports.ChatModule = ChatModule;
-exports.ChatModule = ChatModule = __decorate([
+exports.PresenceModule = PresenceModule;
+exports.PresenceModule = PresenceModule = __decorate([
     (0, common_1.Module)({
         imports: [
             auth_module_1.AuthModule,
-            notifications_module_1.NotificationsModule,
-            attachments_module_1.AttachmentsModule,
-            presence_module_1.PresenceModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -37,9 +28,8 @@ exports.ChatModule = ChatModule = __decorate([
                 }),
             }),
         ],
-        controllers: [chat_controller_1.ChatController],
-        providers: [chat_gateway_1.ChatGateway, chat_system_service_1.ChatSystemService, chat_fanout_service_1.ChatFanoutService, chat_service_1.ChatService],
-        exports: [chat_system_service_1.ChatSystemService, chat_service_1.ChatService],
+        providers: [presence_service_1.PresenceService, presence_gateway_1.PresenceGateway],
+        exports: [presence_service_1.PresenceService],
     })
-], ChatModule);
-//# sourceMappingURL=chat.module.js.map
+], PresenceModule);
+//# sourceMappingURL=presence.module.js.map

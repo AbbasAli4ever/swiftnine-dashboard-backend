@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@app/database';
 import type { AuthUser } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
+import { PresenceService } from '../presence/presence.service';
 import {
   ACCESS_TOKEN_PAYLOAD_SCHEMA,
   INVALID_ACCESS_TOKEN_MESSAGE,
@@ -72,6 +73,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly auth: AuthService,
+    private readonly presence: PresenceService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
@@ -84,6 +86,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: ChatSocket): Promise<void> {
     try {
       client.data.user = await this.authenticate(client);
+      await this.presence.connect(client.id, client.data.user);
       this.logger.log(
         `Chat socket connected: ${client.id} user=${client.data.user.id}`,
       );
@@ -97,7 +100,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: ChatSocket): void {
+  async handleDisconnect(client: ChatSocket): Promise<void> {
+    await this.presence.disconnect(client.id);
     this.logger.log(`Chat socket disconnected: ${client.id}`);
   }
 

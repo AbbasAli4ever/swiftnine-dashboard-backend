@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
+import { PresenceModule } from '../presence/presence.module';
 import { DocsGateway } from './docs.gateway';
 import { DocsController } from './docs.controller';
 import { DocsService } from './docs.service';
@@ -14,6 +15,7 @@ import { DocRolesGuard } from './guards/doc-roles.guard';
 @Module({
   imports: [
     AuthModule,
+    PresenceModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

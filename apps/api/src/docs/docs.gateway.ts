@@ -20,6 +20,7 @@ import {
   INVALID_ACCESS_TOKEN_MESSAGE,
 } from '../auth/auth.constants';
 import { AuthService, type AuthUser } from '../auth/auth.service';
+import { PresenceService } from '../presence/presence.service';
 import { DocLocksService } from './doc-locks.service';
 import { DocPresenceService } from './doc-presence.service';
 import { DocSaveConflictException, DocsService } from './docs.service';
@@ -57,10 +58,11 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly docs: DocsService,
-    private readonly presence: DocPresenceService,
+    private readonly docPresence: DocPresenceService,
     private readonly locks: DocLocksService,
     private readonly jwt: JwtService,
     private readonly auth: AuthService,
+    private readonly presence: PresenceService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
@@ -71,6 +73,7 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: DocsSocket): Promise<void> {
     try {
       client.data.user = await this.authenticate(client);
+      await this.presence.connect(client.id, client.data.user);
       this.logger.log(`Docs socket connected: ${client.id} user=${client.data.user.id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : INVALID_ACCESS_TOKEN_MESSAGE;
@@ -79,7 +82,8 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: DocsSocket): void {
+  async handleDisconnect(client: DocsSocket): Promise<void> {
+    await this.presence.disconnect(client.id);
     this.logger.log(`Docs socket disconnected: ${client.id}`);
     this.leaveAllRooms(client);
   }
@@ -94,7 +98,7 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.docs.findOne(user.id, docId);
     await client.join(this.roomName(docId));
-    this.presence.join(docId, client.id, user);
+    this.docPresence.join(docId, client.id, user);
 
     client.emit('doc:presence-snapshot', { users: this.presenceSnapshot(docId) });
     client.emit('doc:lock-snapshot', { locks: this.locks.getSnapshot(docId) });
@@ -246,18 +250,18 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private leaveAllRooms(client: DocsSocket): void {
     const docIds = new Set([
-      ...this.presence.getJoinedDocIds(client.id),
+      ...this.docPresence.getJoinedDocIds(client.id),
       ...this.locks.releaseForSocket(client.id).map((lock) => lock.docId),
     ]);
 
     for (const docId of docIds) {
-      this.presence.leave(client.id, docId);
+      this.docPresence.leave(client.id, docId);
       this.emitRoomState(docId);
     }
   }
 
   private leaveRoom(client: DocsSocket, docId: string): void {
-    this.presence.leave(client.id, docId);
+    this.docPresence.leave(client.id, docId);
     this.locks.releaseForSocket(client.id, docId);
     this.emitRoomState(docId);
   }
@@ -282,7 +286,7 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       blockIds.push(lock.blockId);
       locksByUser.set(lock.userId, blockIds);
     }
-    return this.presence.snapshot(docId, locksByUser);
+    return this.docPresence.snapshot(docId, locksByUser);
   }
 
   private roomName(docId: string): string {

@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const auth_module_1 = require("../auth/auth.module");
+const presence_module_1 = require("../presence/presence.module");
 const docs_gateway_1 = require("./docs.gateway");
 const docs_controller_1 = require("./docs.controller");
 const docs_service_1 = require("./docs.service");
@@ -26,6 +27,7 @@ exports.DocsModule = DocsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             auth_module_1.AuthModule,
+            presence_module_1.PresenceModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],

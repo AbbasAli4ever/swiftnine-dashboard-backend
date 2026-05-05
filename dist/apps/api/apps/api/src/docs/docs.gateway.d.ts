@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import type { Socket } from 'socket.io';
 import { AuthService, type AuthUser } from '../auth/auth.service';
+import { PresenceService } from '../presence/presence.service';
 import { DocLocksService } from './doc-locks.service';
 import { DocPresenceService } from './doc-presence.service';
 import { DocsService } from './docs.service';
@@ -24,15 +25,16 @@ type AutosavePayload = DocIdPayload & {
 };
 export declare class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly docs;
-    private readonly presence;
+    private readonly docPresence;
     private readonly locks;
     private readonly jwt;
     private readonly auth;
+    private readonly presence;
     private server;
     private readonly logger;
-    constructor(docs: DocsService, presence: DocPresenceService, locks: DocLocksService, jwt: JwtService, auth: AuthService, config: ConfigService);
+    constructor(docs: DocsService, docPresence: DocPresenceService, locks: DocLocksService, jwt: JwtService, auth: AuthService, presence: PresenceService, config: ConfigService);
     handleConnection(client: DocsSocket): Promise<void>;
-    handleDisconnect(client: DocsSocket): void;
+    handleDisconnect(client: DocsSocket): Promise<void>;
     handleJoin(client: DocsSocket, payload: DocIdPayload): Promise<void>;
     handleLeave(client: DocsSocket, payload: DocIdPayload): Promise<void>;
     handleLockBlock(client: DocsSocket, payload: BlockPayload): Promise<void>;

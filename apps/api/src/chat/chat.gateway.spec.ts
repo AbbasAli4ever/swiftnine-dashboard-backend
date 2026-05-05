@@ -11,6 +11,7 @@ describe('ChatGateway', () => {
       { channelMember: { findFirst: jest.fn() } } as never,
       { verifyAsync: jest.fn() } as never,
       { findActiveAuthUser: jest.fn() } as never,
+      { connect: jest.fn(), disconnect: jest.fn() } as never,
       { get: jest.fn(() => '1') } as never,
     );
     const client = {
@@ -38,6 +39,7 @@ describe('ChatGateway', () => {
       } as never,
       {} as never,
       {} as never,
+      { connect: jest.fn(), disconnect: jest.fn() } as never,
       { get: jest.fn(() => '1') } as never,
     );
     const client = {
@@ -55,6 +57,7 @@ describe('ChatGateway', () => {
       { channelMember: { findFirst: jest.fn() } } as never,
       {} as never,
       {} as never,
+      { connect: jest.fn(), disconnect: jest.fn() } as never,
       { get: jest.fn(() => '1') } as never,
     );
     const client = {
@@ -73,6 +76,7 @@ describe('ChatGateway', () => {
       { channelMember: { findFirst: jest.fn() } } as never,
       {} as never,
       {} as never,
+      { connect: jest.fn(), disconnect: jest.fn() } as never,
       { get: jest.fn(() => '1') } as never,
     );
     const emit = jest.fn();
@@ -94,5 +98,47 @@ describe('ChatGateway', () => {
       channelId: 'channel-1',
       userId: 'user-1',
     });
+  });
+
+  it('connects and disconnects the global presence service', async () => {
+    const presence = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      disconnect: jest.fn().mockResolvedValue(undefined),
+    };
+    const gateway = new ChatGateway(
+      { channelMember: { findFirst: jest.fn() } } as never,
+      {
+        verifyAsync: jest.fn().mockResolvedValue({
+          sub: 'user-1',
+          email: 'user@example.com',
+        }),
+      } as never,
+      {
+        findActiveAuthUser: jest.fn().mockResolvedValue({
+          id: 'user-1',
+          email: 'user@example.com',
+          fullName: 'User One',
+          avatarUrl: null,
+        }),
+      } as never,
+      presence as never,
+      { get: jest.fn(() => '1') } as never,
+    );
+    const client = {
+      id: 'socket-1',
+      handshake: { auth: { token: 'token' } },
+      data: {},
+      emit: jest.fn(),
+      disconnect: jest.fn(),
+    };
+
+    await gateway.handleConnection(client as never);
+    await gateway.handleDisconnect(client as never);
+
+    expect(presence.connect).toHaveBeenCalledWith(
+      'socket-1',
+      expect.objectContaining({ id: 'user-1' }),
+    );
+    expect(presence.disconnect).toHaveBeenCalledWith('socket-1');
   });
 });

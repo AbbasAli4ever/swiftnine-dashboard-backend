@@ -4,6 +4,7 @@ import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 import { AttachmentsModule } from '../attachments/attachments.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PresenceModule } from '../presence/presence.module';
 import { ChatController } from './chat.controller';
 import { ChatFanoutService } from './chat-fanout.service';
 import { ChatGateway } from './chat.gateway';
@@ -15,6 +16,7 @@ import { ChatSystemService } from './chat-system.service';
     AuthModule,
     NotificationsModule,
     AttachmentsModule,
+    PresenceModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

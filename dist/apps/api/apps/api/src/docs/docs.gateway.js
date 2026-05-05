@@ -20,23 +20,26 @@ const jwt_1 = require("@nestjs/jwt");
 const websockets_1 = require("@nestjs/websockets");
 const auth_constants_1 = require("../auth/auth.constants");
 const auth_service_1 = require("../auth/auth.service");
+const presence_service_1 = require("../presence/presence.service");
 const doc_locks_service_1 = require("./doc-locks.service");
 const doc_presence_service_1 = require("./doc-presence.service");
 const docs_service_1 = require("./docs.service");
 let DocsGateway = DocsGateway_1 = class DocsGateway {
     docs;
-    presence;
+    docPresence;
     locks;
     jwt;
     auth;
+    presence;
     server;
     logger = new common_1.Logger(DocsGateway_1.name);
-    constructor(docs, presence, locks, jwt, auth, config) {
+    constructor(docs, docPresence, locks, jwt, auth, presence, config) {
         this.docs = docs;
-        this.presence = presence;
+        this.docPresence = docPresence;
         this.locks = locks;
         this.jwt = jwt;
         this.auth = auth;
+        this.presence = presence;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Docs realtime uses in-memory presence and locks; configure Redis before scaling instances');
         }
@@ -44,6 +47,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     async handleConnection(client) {
         try {
             client.data.user = await this.authenticate(client);
+            await this.presence.connect(client.id, client.data.user);
             this.logger.log(`Docs socket connected: ${client.id} user=${client.data.user.id}`);
         }
         catch (error) {
@@ -52,7 +56,8 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
             client.disconnect(true);
         }
     }
-    handleDisconnect(client) {
+    async handleDisconnect(client) {
+        await this.presence.disconnect(client.id);
         this.logger.log(`Docs socket disconnected: ${client.id}`);
         this.leaveAllRooms(client);
     }
@@ -61,7 +66,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
         const docId = this.requireString(payload.docId, 'docId');
         await this.docs.findOne(user.id, docId);
         await client.join(this.roomName(docId));
-        this.presence.join(docId, client.id, user);
+        this.docPresence.join(docId, client.id, user);
         client.emit('doc:presence-snapshot', { users: this.presenceSnapshot(docId) });
         client.emit('doc:lock-snapshot', { locks: this.locks.getSnapshot(docId) });
         client.to(this.roomName(docId)).emit('doc:presence-snapshot', {
@@ -172,16 +177,16 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     }
     leaveAllRooms(client) {
         const docIds = new Set([
-            ...this.presence.getJoinedDocIds(client.id),
+            ...this.docPresence.getJoinedDocIds(client.id),
             ...this.locks.releaseForSocket(client.id).map((lock) => lock.docId),
         ]);
         for (const docId of docIds) {
-            this.presence.leave(client.id, docId);
+            this.docPresence.leave(client.id, docId);
             this.emitRoomState(docId);
         }
     }
     leaveRoom(client, docId) {
-        this.presence.leave(client.id, docId);
+        this.docPresence.leave(client.id, docId);
         this.locks.releaseForSocket(client.id, docId);
         this.emitRoomState(docId);
     }
@@ -203,7 +208,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
             blockIds.push(lock.blockId);
             locksByUser.set(lock.userId, blockIds);
         }
-        return this.presence.snapshot(docId, locksByUser);
+        return this.docPresence.snapshot(docId, locksByUser);
     }
     roomName(docId) {
         return `doc:${docId}`;
@@ -272,6 +277,7 @@ exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
         doc_locks_service_1.DocLocksService,
         jwt_1.JwtService,
         auth_service_1.AuthService,
+        presence_service_1.PresenceService,
         config_1.ConfigService])
 ], DocsGateway);
 //# sourceMappingURL=docs.gateway.js.map

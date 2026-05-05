@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from "../../../../libs/database/src";
 import type { AuthUser } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
+import { PresenceService } from '../presence/presence.service';
 import { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import type { Socket } from 'socket.io';
 type ChatSocketData = {
@@ -38,11 +39,12 @@ export declare class ChatGateway implements OnGatewayConnection, OnGatewayDiscon
     private readonly prisma;
     private readonly jwt;
     private readonly auth;
+    private readonly presence;
     private server;
     private readonly logger;
-    constructor(prisma: PrismaService, jwt: JwtService, auth: AuthService, config: ConfigService);
+    constructor(prisma: PrismaService, jwt: JwtService, auth: AuthService, presence: PresenceService, config: ConfigService);
     handleConnection(client: ChatSocket): Promise<void>;
-    handleDisconnect(client: ChatSocket): void;
+    handleDisconnect(client: ChatSocket): Promise<void>;
     handleJoin(client: ChatSocket, payload: ChannelIdPayload): Promise<void>;
     handleLeave(client: ChatSocket, payload: ChannelIdPayload): Promise<void>;
     handleTypingStart(client: ChatSocket, payload: ChannelIdPayload): Promise<void>;

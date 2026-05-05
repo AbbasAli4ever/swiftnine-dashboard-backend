@@ -19,18 +19,21 @@ const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const database_1 = require("../../../../libs/database/src");
 const auth_service_1 = require("../auth/auth.service");
+const presence_service_1 = require("../presence/presence.service");
 const auth_constants_1 = require("../auth/auth.constants");
 const websockets_1 = require("@nestjs/websockets");
 let ChatGateway = ChatGateway_1 = class ChatGateway {
     prisma;
     jwt;
     auth;
+    presence;
     server;
     logger = new common_1.Logger(ChatGateway_1.name);
-    constructor(prisma, jwt, auth, config) {
+    constructor(prisma, jwt, auth, presence, config) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.auth = auth;
+        this.presence = presence;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Chat realtime uses in-memory room fanout; configure Redis before scaling instances');
         }
@@ -38,6 +41,7 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     async handleConnection(client) {
         try {
             client.data.user = await this.authenticate(client);
+            await this.presence.connect(client.id, client.data.user);
             this.logger.log(`Chat socket connected: ${client.id} user=${client.data.user.id}`);
         }
         catch (error) {
@@ -48,7 +52,8 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
             client.disconnect(true);
         }
     }
-    handleDisconnect(client) {
+    async handleDisconnect(client) {
+        await this.presence.disconnect(client.id);
         this.logger.log(`Chat socket disconnected: ${client.id}`);
     }
     async handleJoin(client, payload) {
@@ -212,6 +217,7 @@ exports.ChatGateway = ChatGateway = ChatGateway_1 = __decorate([
     __metadata("design:paramtypes", [database_1.PrismaService,
         jwt_1.JwtService,
         auth_service_1.AuthService,
+        presence_service_1.PresenceService,
         config_1.ConfigService])
 ], ChatGateway);
 //# sourceMappingURL=chat.gateway.js.map
