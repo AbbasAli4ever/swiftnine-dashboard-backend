@@ -9,6 +9,7 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 import { assertContentSize, extractPlaintext } from '../docs/doc-content';
 import { ChatFanoutService } from './chat-fanout.service';
 import { AttachmentsService } from '../attachments/attachments.service';
+import { ChatGateway } from './chat.gateway';
 import type { CreateDmDto } from './dto/create-dm.dto';
 import type { EditMessageDto } from './dto/edit-message.dto';
 import type { ListMessagesQuery } from './dto/list-messages.dto';
@@ -30,6 +31,7 @@ export class ChatService {
     private readonly prisma: PrismaService,
     private readonly fanout: ChatFanoutService,
     private readonly attachments: AttachmentsService,
+    private readonly gateway: ChatGateway,
   ) {}
 
   async listMessages(
@@ -185,7 +187,9 @@ export class ChatService {
       })),
     });
 
-    return this.toMessageResponse(fullMessage);
+    const response = await this.toMessageResponse(fullMessage);
+    this.gateway.emitMessageCreated(response);
+    return response;
   }
 
   async editMessage(
@@ -248,9 +252,11 @@ export class ChatService {
       }
     });
 
-    return this.toMessageResponse(
+    const response = await this.toMessageResponse(
       await this.findMessageOrThrow(workspaceId, userId, messageId),
     );
+    this.gateway.emitMessageEdited(response);
+    return response;
   }
 
   async deleteMessage(workspaceId: string, userId: string, messageId: string) {
@@ -284,9 +290,15 @@ export class ChatService {
       },
     });
 
-    return this.toMessageResponse(
+    const response = await this.toMessageResponse(
       await this.findMessageOrThrow(workspaceId, userId, messageId),
     );
+    this.gateway.emitMessageDeleted(
+      response.channelId,
+      response.id,
+      response.deletedAt,
+    );
+    return response;
   }
 
   async toggleReaction(
@@ -313,24 +325,28 @@ export class ChatService {
       await this.prisma.channelMessageReaction.delete({
         where: { id: existing.id },
       });
-      return {
+      const response = {
         action: 'removed',
         messageId,
         userId,
         emoji,
-      };
+      } as const;
+      this.gateway.emitReaction(message.channelId, response);
+      return response;
     }
 
     await this.prisma.channelMessageReaction.create({
       data: { messageId, userId, emoji },
     });
 
-    return {
+    const response = {
       action: 'added',
       messageId,
       userId,
       emoji,
-    };
+    } as const;
+    this.gateway.emitReaction(message.channelId, response);
+    return response;
   }
 
   async pinMessage(workspaceId: string, userId: string, messageId: string) {
@@ -357,9 +373,11 @@ export class ChatService {
       },
     });
 
-    return this.toMessageResponse(
+    const response = await this.toMessageResponse(
       await this.findMessageOrThrow(workspaceId, userId, messageId),
     );
+    this.gateway.emitMessagePinned(response);
+    return response;
   }
 
   async unpinMessage(workspaceId: string, userId: string, messageId: string) {
@@ -386,9 +404,11 @@ export class ChatService {
       },
     });
 
-    return this.toMessageResponse(
+    const response = await this.toMessageResponse(
       await this.findMessageOrThrow(workspaceId, userId, messageId),
     );
+    this.gateway.emitMessageUnpinned(response.channelId, response.id);
+    return response;
   }
 
   async markRead(
@@ -432,13 +452,15 @@ export class ChatService {
       },
     });
 
-    return {
+    const response = {
       channelId,
       userId,
       lastReadMessageId: anchor.id,
       unreadCount,
       readAt,
     };
+    this.gateway.emitMemberRead(response);
+    return response;
   }
 
   async setMute(
@@ -588,6 +610,19 @@ export class ChatService {
       ),
       nextCursor: hasMore ? this.encodeCursor(slice[slice.length - 1]) : null,
     };
+  }
+
+  async getMessageForRealtime(messageId: string) {
+    const message = await this.prisma.channelMessage.findFirst({
+      where: { id: messageId },
+      include: this.messageInclude(),
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    return this.toMessageResponse(message);
   }
 
   private normalizeContent(contentJson: Record<string, unknown>) {

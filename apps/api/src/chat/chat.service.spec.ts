@@ -11,6 +11,7 @@ describe('ChatService', () => {
     channelMember: {
       findFirst: jest.Mock;
       findMany: jest.Mock;
+      update: jest.Mock;
     };
     attachment: {
       findMany: jest.Mock;
@@ -53,12 +54,22 @@ describe('ChatService', () => {
   let attachments: {
     toViewAttachment: jest.Mock;
   };
+  let gateway: {
+    emitMessageCreated: jest.Mock;
+    emitMessageEdited: jest.Mock;
+    emitMessageDeleted: jest.Mock;
+    emitReaction: jest.Mock;
+    emitMessagePinned: jest.Mock;
+    emitMessageUnpinned: jest.Mock;
+    emitMemberRead: jest.Mock;
+  };
 
   beforeEach(() => {
     prisma = {
       channelMember: {
         findFirst: jest.fn(),
         findMany: jest.fn(),
+        update: jest.fn(),
       },
       attachment: {
         findMany: jest.fn(),
@@ -110,11 +121,21 @@ describe('ChatService', () => {
         expiresAt: new Date('2026-05-05T00:00:00.000Z'),
       })),
     };
+    gateway = {
+      emitMessageCreated: jest.fn(),
+      emitMessageEdited: jest.fn(),
+      emitMessageDeleted: jest.fn(),
+      emitReaction: jest.fn(),
+      emitMessagePinned: jest.fn(),
+      emitMessageUnpinned: jest.fn(),
+      emitMemberRead: jest.fn(),
+    };
 
     service = new ChatService(
       prisma as never,
       fanout as never,
       attachments as never,
+      gateway as never,
     );
   });
 
@@ -187,6 +208,9 @@ describe('ChatService', () => {
     );
     expect(result.id).toBe('message-1');
     expect(result.plaintext).toBe('Hello team');
+    expect(gateway.emitMessageCreated).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'message-1', channelId: 'channel-1' }),
+    );
   });
 
   it('rejects edits outside the five-minute window', async () => {
@@ -246,6 +270,11 @@ describe('ChatService', () => {
     });
     expect(result.contentJson).toEqual({ deleted: true });
     expect(result.plaintext).toBe('');
+    expect(gateway.emitMessageDeleted).toHaveBeenCalledWith(
+      'channel-1',
+      'message-1',
+      expect.any(Date),
+    );
   });
 
   it('deduplicates DM creation when a channel already exists', async () => {
@@ -261,6 +290,46 @@ describe('ChatService', () => {
     expect(prisma.channel.create).not.toHaveBeenCalled();
     expect(result.id).toBe('dm-1');
     expect(result.kind).toBe('DM');
+  });
+
+  it('broadcasts read pointers after mark-read succeeds', async () => {
+    prisma.channelMember.findFirst.mockResolvedValue({
+      id: 'membership-1',
+      role: 'MEMBER',
+      isMuted: false,
+      unreadCount: 4,
+      lastReadMessageId: null,
+      channel: {
+        id: 'channel-1',
+        workspaceId: 'workspace-1',
+        kind: 'CHANNEL',
+        name: 'General',
+        privacy: 'PUBLIC',
+        members: [{ userId: 'user-1', isMuted: false }],
+      },
+    });
+    prisma.channelMessage.findFirst.mockResolvedValue({
+      id: 'message-9',
+      createdAt: new Date('2026-05-05T00:00:00.000Z'),
+    });
+    prisma.channelMessage.count.mockResolvedValue(2);
+
+    const result = await service.markRead(
+      'workspace-1',
+      'user-1',
+      'channel-1',
+      { lastReadMessageId: 'message-9' } as never,
+    );
+
+    expect(gateway.emitMemberRead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channelId: 'channel-1',
+        userId: 'user-1',
+        lastReadMessageId: 'message-9',
+        unreadCount: 2,
+      }),
+    );
+    expect(result.unreadCount).toBe(2);
   });
 });
 

@@ -1,6 +1,7 @@
 import { PrismaService } from "../../../../libs/database/src";
 import { ChatFanoutService } from './chat-fanout.service';
 import { AttachmentsService } from '../attachments/attachments.service';
+import { ChatGateway } from './chat.gateway';
 import type { CreateDmDto } from './dto/create-dm.dto';
 import type { EditMessageDto } from './dto/edit-message.dto';
 import type { ListMessagesQuery } from './dto/list-messages.dto';
@@ -11,7 +12,8 @@ export declare class ChatService {
     private readonly prisma;
     private readonly fanout;
     private readonly attachments;
-    constructor(prisma: PrismaService, fanout: ChatFanoutService, attachments: AttachmentsService);
+    private readonly gateway;
+    constructor(prisma: PrismaService, fanout: ChatFanoutService, attachments: AttachmentsService, gateway: ChatGateway);
     listMessages(workspaceId: string, userId: string, channelId: string, query: ListMessagesQuery): Promise<{
         items: {
             id: string;
@@ -376,10 +378,15 @@ export declare class ChatService {
         };
     }>;
     toggleReaction(workspaceId: string, userId: string, messageId: string, emoji: string): Promise<{
-        action: string;
-        messageId: string;
-        userId: string;
-        emoji: string;
+        readonly action: "removed";
+        readonly messageId: string;
+        readonly userId: string;
+        readonly emoji: string;
+    } | {
+        readonly action: "added";
+        readonly messageId: string;
+        readonly userId: string;
+        readonly emoji: string;
     }>;
     pinMessage(workspaceId: string, userId: string, messageId: string): Promise<{
         id: string;
@@ -669,6 +676,78 @@ export declare class ChatService {
             };
         }[];
         nextCursor: string | null;
+    }>;
+    getMessageForRealtime(messageId: string): Promise<{
+        id: string;
+        channelId: string;
+        senderId: string | null;
+        kind: import("@app/database/generated/prisma/enums").ChannelMessageKind;
+        contentJson: Record<string, unknown>;
+        plaintext: string;
+        replyToMessageId: string | null;
+        isEdited: boolean;
+        editedAt: Date | null;
+        isPinned: boolean;
+        pinnedAt: Date | null;
+        pinnedById: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        sender: {
+            id: string;
+            fullName: string;
+            avatarUrl: string | null;
+        } | null;
+        pinnedBy: {
+            id: string;
+            fullName: string;
+            avatarUrl: string | null;
+        } | null;
+        mentions: {
+            id: string;
+            fullName: string;
+            avatarUrl: string | null;
+        }[];
+        reactions: {
+            id: string;
+            messageId: string;
+            userId: string;
+            emoji: string;
+            createdAt: Date;
+            user: {
+                id: string;
+                fullName: string;
+                avatarUrl: string | null;
+            };
+        }[];
+        attachments: {
+            fileSize: number;
+            url: string;
+            expiresAt: Date;
+            id: string;
+            fileName: string;
+            mimeType: string;
+            s3Key: string;
+        }[];
+        replyTo: {
+            id: string;
+            senderId: string | null;
+            kind: import("@app/database/generated/prisma/enums").ChannelMessageKind;
+            plaintext: string;
+            deletedAt: Date | null;
+            sender: {
+                id: string;
+                fullName: string;
+                avatarUrl: string | null;
+            } | null;
+        } | null;
+        channel: {
+            id: string;
+            name: string | null;
+            workspaceId: string;
+            kind: import("@app/database/generated/prisma/enums").ChannelKind;
+            privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
+        };
     }>;
     private normalizeContent;
     private assertReplyTarget;

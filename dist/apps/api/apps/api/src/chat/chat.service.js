@@ -15,16 +15,19 @@ const database_1 = require("../../../../libs/database/src");
 const doc_content_1 = require("../docs/doc-content");
 const chat_fanout_service_1 = require("./chat-fanout.service");
 const attachments_service_1 = require("../attachments/attachments.service");
+const chat_gateway_1 = require("./chat.gateway");
 const MESSAGE_EDIT_WINDOW_MS = 5 * 60 * 1000;
 const CHAT_CURSOR_SEPARATOR = ':';
 let ChatService = class ChatService {
     prisma;
     fanout;
     attachments;
-    constructor(prisma, fanout, attachments) {
+    gateway;
+    constructor(prisma, fanout, attachments, gateway) {
         this.prisma = prisma;
         this.fanout = fanout;
         this.attachments = attachments;
+        this.gateway = gateway;
     }
     async listMessages(workspaceId, userId, channelId, query) {
         await this.assertChannelMember(workspaceId, channelId, userId);
@@ -127,7 +130,9 @@ let ChatService = class ChatService {
                 isMuted: member.isMuted,
             })),
         });
-        return this.toMessageResponse(fullMessage);
+        const response = await this.toMessageResponse(fullMessage);
+        this.gateway.emitMessageCreated(response);
+        return response;
     }
     async editMessage(workspaceId, userId, messageId, dto) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
@@ -168,7 +173,9 @@ let ChatService = class ChatService {
                 });
             }
         });
-        return this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        const response = await this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        this.gateway.emitMessageEdited(response);
+        return response;
     }
     async deleteMessage(workspaceId, userId, messageId) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
@@ -188,7 +195,9 @@ let ChatService = class ChatService {
                 plaintext: '',
             },
         });
-        return this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        const response = await this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        this.gateway.emitMessageDeleted(response.channelId, response.id, response.deletedAt);
+        return response;
     }
     async toggleReaction(workspaceId, userId, messageId, emoji) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
@@ -203,22 +212,26 @@ let ChatService = class ChatService {
             await this.prisma.channelMessageReaction.delete({
                 where: { id: existing.id },
             });
-            return {
+            const response = {
                 action: 'removed',
                 messageId,
                 userId,
                 emoji,
             };
+            this.gateway.emitReaction(message.channelId, response);
+            return response;
         }
         await this.prisma.channelMessageReaction.create({
             data: { messageId, userId, emoji },
         });
-        return {
+        const response = {
             action: 'added',
             messageId,
             userId,
             emoji,
         };
+        this.gateway.emitReaction(message.channelId, response);
+        return response;
     }
     async pinMessage(workspaceId, userId, messageId) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
@@ -234,7 +247,9 @@ let ChatService = class ChatService {
                 pinnedById: userId,
             },
         });
-        return this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        const response = await this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        this.gateway.emitMessagePinned(response);
+        return response;
     }
     async unpinMessage(workspaceId, userId, messageId) {
         const message = await this.findMessageOrThrow(workspaceId, userId, messageId);
@@ -250,7 +265,9 @@ let ChatService = class ChatService {
                 pinnedById: null,
             },
         });
-        return this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        const response = await this.toMessageResponse(await this.findMessageOrThrow(workspaceId, userId, messageId));
+        this.gateway.emitMessageUnpinned(response.channelId, response.id);
+        return response;
     }
     async markRead(workspaceId, userId, channelId, dto) {
         const membership = await this.assertChannelMember(workspaceId, channelId, userId);
@@ -279,13 +296,15 @@ let ChatService = class ChatService {
                 unreadCount,
             },
         });
-        return {
+        const response = {
             channelId,
             userId,
             lastReadMessageId: anchor.id,
             unreadCount,
             readAt,
         };
+        this.gateway.emitMemberRead(response);
+        return response;
     }
     async setMute(workspaceId, userId, channelId, isMuted) {
         const membership = await this.assertChannelMember(workspaceId, channelId, userId);
@@ -401,6 +420,16 @@ let ChatService = class ChatService {
             items: await Promise.all(slice.map((message) => this.toMessageResponse(message))),
             nextCursor: hasMore ? this.encodeCursor(slice[slice.length - 1]) : null,
         };
+    }
+    async getMessageForRealtime(messageId) {
+        const message = await this.prisma.channelMessage.findFirst({
+            where: { id: messageId },
+            include: this.messageInclude(),
+        });
+        if (!message) {
+            throw new common_1.NotFoundException('Message not found');
+        }
+        return this.toMessageResponse(message);
     }
     normalizeContent(contentJson) {
         (0, doc_content_1.assertContentSize)(contentJson);
@@ -665,6 +694,7 @@ exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
         chat_fanout_service_1.ChatFanoutService,
-        attachments_service_1.AttachmentsService])
+        attachments_service_1.AttachmentsService,
+        chat_gateway_1.ChatGateway])
 ], ChatService);
 //# sourceMappingURL=chat.service.js.map
