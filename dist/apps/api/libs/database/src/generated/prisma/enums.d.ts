@@ -54,6 +54,22 @@ export declare const ChannelPrivacy: {
     readonly PRIVATE: "PRIVATE";
 };
 export type ChannelPrivacy = (typeof ChannelPrivacy)[keyof typeof ChannelPrivacy];
+export declare const ChannelKind: {
+    readonly CHANNEL: "CHANNEL";
+    readonly DM: "DM";
+};
+export type ChannelKind = (typeof ChannelKind)[keyof typeof ChannelKind];
+export declare const ChannelMessageKind: {
+    readonly USER: "USER";
+    readonly SYSTEM: "SYSTEM";
+};
+export type ChannelMessageKind = (typeof ChannelMessageKind)[keyof typeof ChannelMessageKind];
+export declare const ChannelJoinRequestStatus: {
+    readonly PENDING: "PENDING";
+    readonly APPROVED: "APPROVED";
+    readonly REJECTED: "REJECTED";
+};
+export type ChannelJoinRequestStatus = (typeof ChannelJoinRequestStatus)[keyof typeof ChannelJoinRequestStatus];
 export declare const DocScope: {
     readonly WORKSPACE: "WORKSPACE";
     readonly PROJECT: "PROJECT";

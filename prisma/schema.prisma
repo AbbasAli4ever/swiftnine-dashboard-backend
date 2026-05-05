@@ -74,54 +74,60 @@ enum StatusGroup {
 
 /// Core user account — profile, auth, online status
 model User {
-  id                      String   @id @default(uuid())
-  fullName                String   @map("full_name")
-  email                   String   @unique
-  passwordHash            String?  @map("password_hash")
-  googleId                String?  @unique @map("google_id")
-  avatarUrl               String?  @map("avatar_url")
-  avatarColor             String   @default("#6366f1") @map("avatar_color")
+  id                      String    @id @default(uuid())
+  fullName                String    @map("full_name")
+  email                   String    @unique
+  passwordHash            String?   @map("password_hash")
+  googleId                String?   @unique @map("google_id")
+  avatarUrl               String?   @map("avatar_url")
+  avatarColor             String    @default("#6366f1") @map("avatar_color")
   designation             String?
   bio                     String?
-  isOnline                Boolean  @default(false) @map("is_online")
+  isOnline                Boolean   @default(false) @map("is_online")
   lastSeenAt              DateTime? @map("last_seen_at")
   timezone                String?
-  notificationPreferences Json     @default("{}") @map("notification_preferences")
-  isEmailVerified         Boolean  @default(false) @map("is_email_verified")
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
+  notificationPreferences Json      @default("{}") @map("notification_preferences")
+  isEmailVerified         Boolean   @default(false) @map("is_email_verified")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
   deletedAt               DateTime? @map("deleted_at")
 
   // Relations
   refreshTokens              RefreshToken[]
   passwordResetTokens        PasswordResetToken[]
   emailVerificationTokens    EmailVerificationToken[]
-  workspacesCreated       Workspace[]          @relation("WorkspaceCreator")
-  workspaceMembers        WorkspaceMember[]
-  projectFavorites        ProjectFavorite[]
-  taskFavorites           TaskFavorite[]
-  channelMembers          ChannelMember[]
-  workspaceInvitesSent    WorkspaceInvite[]    @relation("InviteSender")
-  projectsCreated         Project[]            @relation("ProjectCreator")
-  taskListsCreated        TaskList[]           @relation("TaskListCreator")
-  taskListsOwned          TaskList[]           @relation("TaskListOwner")
-  tasksCreated            Task[]               @relation("TaskCreator")
-  taskAssignments         TaskAssignee[]       @relation("AssignedUser")
-  taskAssignmentsMade     TaskAssignee[]       @relation("AssignedByUser")
-  comments                Comment[]
-  mentions                Mention[]
-  notificationsReceived   Notification[]       @relation("NotificationRecipient")
-  notificationsTriggered  Notification[]       @relation("NotificationActor")
-  attachmentsUploaded     Attachment[]
-  timeEntries             TimeEntry[]
-  activityLogs            ActivityLog[]
-  docsOwned               Doc[]                @relation("DocOwner")
-  docVersionsCreated      DocVersion[]         @relation("DocVersionCreator")
-  docPermissionsGranted   DocPermission[]      @relation("DocPermissionGranter")
-  docPermissionsReceived  DocPermission[]      @relation("DocPermissionGrantee")
-  docThreadsCreated       DocCommentThread[]   @relation("DocThreadCreator")
-  docCommentsAuthored     DocComment[]         @relation("DocCommentAuthor")
-  docShareLinksCreated    DocShareLink[]       @relation("DocShareLinkCreator")
+  workspacesCreated          Workspace[]              @relation("WorkspaceCreator")
+  workspaceMembers           WorkspaceMember[]
+  projectFavorites           ProjectFavorite[]
+  taskFavorites              TaskFavorite[]
+  channelMembers             ChannelMember[]
+  channelMessagesSent        ChannelMessage[]         @relation("ChannelMessageSender")
+  channelMessagesPinned      ChannelMessage[]         @relation("ChannelMessagePinner")
+  channelMessageMentions     ChannelMessageMention[]
+  channelMessageReactions    ChannelMessageReaction[]
+  channelJoinRequestsMade    ChannelJoinRequest[]     @relation("JoinRequester")
+  channelJoinRequestsDecided ChannelJoinRequest[]     @relation("JoinRequestDecider")
+  workspaceInvitesSent       WorkspaceInvite[]        @relation("InviteSender")
+  projectsCreated            Project[]                @relation("ProjectCreator")
+  taskListsCreated           TaskList[]               @relation("TaskListCreator")
+  taskListsOwned             TaskList[]               @relation("TaskListOwner")
+  tasksCreated               Task[]                   @relation("TaskCreator")
+  taskAssignments            TaskAssignee[]           @relation("AssignedUser")
+  taskAssignmentsMade        TaskAssignee[]           @relation("AssignedByUser")
+  comments                   Comment[]
+  mentions                   Mention[]
+  notificationsReceived      Notification[]           @relation("NotificationRecipient")
+  notificationsTriggered     Notification[]           @relation("NotificationActor")
+  attachmentsUploaded        Attachment[]
+  timeEntries                TimeEntry[]
+  activityLogs               ActivityLog[]
+  docsOwned                  Doc[]                    @relation("DocOwner")
+  docVersionsCreated         DocVersion[]             @relation("DocVersionCreator")
+  docPermissionsGranted      DocPermission[]          @relation("DocPermissionGranter")
+  docPermissionsReceived     DocPermission[]          @relation("DocPermissionGrantee")
+  docThreadsCreated          DocCommentThread[]       @relation("DocThreadCreator")
+  docCommentsAuthored        DocComment[]             @relation("DocCommentAuthor")
+  docShareLinksCreated       DocShareLink[]           @relation("DocShareLinkCreator")
 
   @@map("users")
 }
@@ -146,11 +152,11 @@ model RefreshToken {
 
 /// Short-lived token for password reset via email link — one active token per user
 model PasswordResetToken {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  tokenHash   String   @unique @map("token_hash")
-  expiresAt   DateTime @map("expires_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -184,17 +190,17 @@ model Workspace {
   createdBy      String                  @map("created_by")
   createdAt      DateTime                @default(now()) @map("created_at")
   updatedAt      DateTime                @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  deletedAt      DateTime?               @map("deleted_at")
 
   // Relations
-  creator      User              @relation("WorkspaceCreator", fields: [createdBy], references: [id])
-  members      WorkspaceMember[]
-  invites      WorkspaceInvite[]
-  projects     Project[]
-  channels     Channel[]
-  tags         Tag[]
-  activityLogs ActivityLog[]
-  docs         Doc[]
+  creator          User              @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+  members          WorkspaceMember[]
+  invites          WorkspaceInvite[]
+  projects         Project[]
+  channels         Channel[]
+  tags             Tag[]
+  activityLogs     ActivityLog[]
+  docs             Doc[]
   projectFavorites ProjectFavorite[]
   taskFavorites    TaskFavorite[]
 
@@ -203,17 +209,17 @@ model Workspace {
 
 /// Junction: User <-> Workspace with role assignment
 model WorkspaceMember {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
-  userId      String   @map("user_id")
-  role        Role     @default(MEMBER)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  userId      String    @map("user_id")
+  role        Role      @default(MEMBER)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   // Relations
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   reactions Reaction[]
 
   @@unique([workspaceId, userId])
@@ -244,24 +250,24 @@ model WorkspaceInvite {
 
 /// Projects (Spaces) — lives inside a workspace, has own statuses and task counter
 model Project {
-  id           String   @id @default(uuid())
-  workspaceId  String   @map("workspace_id")
+  id           String    @id @default(uuid())
+  workspaceId  String    @map("workspace_id")
   name         String
   description  String?
-  color        String   @default("#6366f1")
+  color        String    @default("#6366f1")
   icon         String?
-  taskIdPrefix String   @map("task_id_prefix")
-  taskCounter  Int      @default(0) @map("task_counter")
-  isArchived   Boolean  @default(false) @map("is_archived")
-  createdBy    String   @map("created_by")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  taskIdPrefix String    @map("task_id_prefix")
+  taskCounter  Int       @default(0) @map("task_counter")
+  isArchived   Boolean   @default(false) @map("is_archived")
+  createdBy    String    @map("created_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
   // Relations
-  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creator   User       @relation("ProjectCreator", fields: [createdBy], references: [id])
-  channels   Channel[]
+  workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator   User              @relation("ProjectCreator", fields: [createdBy], references: [id])
+  channels  Channel[]
   taskLists TaskList[]
   statuses  Status[]
   docs      Doc[]
@@ -278,8 +284,8 @@ model TaskList {
   projectId   String    @map("project_id")
   name        String
   position    Int       @default(1000)
-  startDate   DateTime? @db.Date @map("start_date")
-  endDate     DateTime? @db.Date @map("end_date")
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
   ownerUserId String?   @map("owner_user_id")
   priority    Priority?
   isArchived  Boolean   @default(false) @map("is_archived")
@@ -325,12 +331,12 @@ model Status {
 
 /// Workspace-scoped tags applied to tasks
 model Tag {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
   name        String
-  color       String   @default("#6366f1")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  color       String    @default("#6366f1")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   // Relations
@@ -343,27 +349,27 @@ model Tag {
 
 /// Core task entity — self-referencing for subtasks (max depth 2)
 model Task {
-  id          String    @id @default(uuid())
-  listId      String    @map("list_id")
-  parentId    String?   @map("parent_id")
-  depth       Int       @default(0)
+  id                   String    @id @default(uuid())
+  listId               String    @map("list_id")
+  parentId             String?   @map("parent_id")
+  depth                Int       @default(0)
   title                String
   description          String?
-  descriptionJson      Json?    @map("description_json")
-  descriptionPlaintext String?  @map("description_plaintext")
-  statusId             String   @map("status_id")
-  priority    Priority  @default(NONE)
-  taskNumber  Int       @map("task_number")
-  startDate   DateTime? @map("start_date")
-  dueDate     DateTime? @map("due_date")
-  position    Int       @default(1000)
-  boardPosition Int     @default(1000) @map("board_position")
-  isCompleted Boolean   @default(false) @map("is_completed")
-  completedAt DateTime? @map("completed_at")
-  createdBy   String    @map("created_by")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
+  descriptionJson      Json?     @map("description_json")
+  descriptionPlaintext String?   @map("description_plaintext")
+  statusId             String    @map("status_id")
+  priority             Priority  @default(NONE)
+  taskNumber           Int       @map("task_number")
+  startDate            DateTime? @map("start_date")
+  dueDate              DateTime? @map("due_date")
+  position             Int       @default(1000)
+  boardPosition        Int       @default(1000) @map("board_position")
+  isCompleted          Boolean   @default(false) @map("is_completed")
+  completedAt          DateTime? @map("completed_at")
+  createdBy            String    @map("created_by")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
 
   // Relations
   list        TaskList       @relation(fields: [listId], references: [id], onDelete: Cascade)
@@ -457,22 +463,22 @@ model TaskTag {
 
 /// Task comments with threading — parent deletion cascades to replies
 model Comment {
-  id        String   @id @default(uuid())
-  taskId    String   @map("task_id")
-  userId    String   @map("user_id")
-  parentId  String?  @map("parent_id")
+  id        String    @id @default(uuid())
+  taskId    String    @map("task_id")
+  userId    String    @map("user_id")
+  parentId  String?   @map("parent_id")
   content   String
-  isEdited  Boolean  @default(false) @map("is_edited")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  isEdited  Boolean   @default(false) @map("is_edited")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   // Relations
-  task     Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author   User      @relation(fields: [userId], references: [id])
-  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies  Comment[] @relation("CommentReplies")
-  mentions Mention[]
+  task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [userId], references: [id])
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
+  mentions  Mention[]
   reactions Reaction[]
 
   @@index([taskId, createdAt])
@@ -481,19 +487,19 @@ model Comment {
 
 /// Reactions on comments (one reaction belongs to one comment)
 model Reaction {
-  id         String   @id @default(uuid())
-  commentId  String   @map("comment_id")
-  memberId   String   @map("member_id")
-  reactFace  String   @default("") @map("react_face")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  commentId String   @map("comment_id")
+  memberId  String   @map("member_id")
+  reactFace String   @default("") @map("react_face")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  comment    Comment        @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  member     WorkspaceMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  comment Comment         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  member  WorkspaceMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
+  @@unique([commentId, memberId, reactFace])
   @@index([commentId])
   @@index([memberId])
-  @@unique([commentId, memberId, reactFace])
   @@map("reactions")
 }
 
@@ -530,9 +536,9 @@ model Notification {
   createdAt     DateTime  @default(now()) @map("created_at")
 
   // Relations
-  recipient User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  actor     User? @relation("NotificationActor", fields: [actorId], references: [id])
-  isCommented  Boolean   @default(false) @map("is_commented")
+  recipient   User    @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor       User?   @relation("NotificationActor", fields: [actorId], references: [id])
+  isCommented Boolean @default(false) @map("is_commented")
 
   @@index([userId, isRead, isCleared, isSnoozed, createdAt])
   @@map("notifications")
@@ -540,24 +546,27 @@ model Notification {
 
 /// File attachments on tasks or docs — stored in AWS S3
 model Attachment {
-  id         String   @id @default(uuid())
-  taskId     String?  @map("task_id")
-  docId      String?  @map("doc_id")
-  uploadedBy String   @map("uploaded_by")
-  fileName   String   @map("file_name")
-  s3Key      String   @unique @map("s3_key")
-  mimeType   String   @map("mime_type")
-  fileSize   BigInt   @map("file_size")
-  createdAt  DateTime @default(now()) @map("created_at")
-  deletedAt  DateTime? @map("deleted_at")
+  id               String    @id @default(uuid())
+  taskId           String?   @map("task_id")
+  docId            String?   @map("doc_id")
+  channelMessageId String?   @map("channel_message_id")
+  uploadedBy       String    @map("uploaded_by")
+  fileName         String    @map("file_name")
+  s3Key            String    @unique @map("s3_key")
+  mimeType         String    @map("mime_type")
+  fileSize         BigInt    @map("file_size")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  deletedAt        DateTime? @map("deleted_at")
 
   // Relations
-  task     Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  doc      Doc?  @relation(fields: [docId], references: [id], onDelete: Cascade)
-  uploader User @relation(fields: [uploadedBy], references: [id])
+  task           Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  doc            Doc?            @relation(fields: [docId], references: [id], onDelete: Cascade)
+  channelMessage ChannelMessage? @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
+  uploader       User            @relation(fields: [uploadedBy], references: [id])
 
   @@index([taskId])
   @@index([docId])
+  @@index([channelMessageId])
   @@map("attachments")
 }
 
@@ -613,32 +622,56 @@ enum ChannelPrivacy {
   PRIVATE
 }
 
-model Channel {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
-  projectId   String?  @map("project_id")
-  name        String
-  description String?
-  privacy     ChannelPrivacy @default(PUBLIC)
-  createdBy   String   @map("created_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+enum ChannelKind {
+  CHANNEL
+  DM
+}
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  project   Project?  @relation(fields: [projectId], references: [id])
-  members   ChannelMember[]
+enum ChannelMessageKind {
+  USER
+  SYSTEM
+}
+
+enum ChannelJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Channel {
+  id          String         @id @default(uuid())
+  workspaceId String         @map("workspace_id")
+  projectId   String?        @map("project_id")
+  name        String?
+  description String?
+  kind        ChannelKind    @default(CHANNEL)
+  privacy     ChannelPrivacy @default(PUBLIC)
+  createdBy   String         @map("created_by")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id])
+  project      Project?             @relation(fields: [projectId], references: [id])
+  members      ChannelMember[]
+  messages     ChannelMessage[]
+  joinRequests ChannelJoinRequest[]
 
   @@index([workspaceId])
+  @@index([workspaceId, kind])
   @@index([projectId])
   @@map("channels")
 }
 
 model ChannelMember {
-  id        String   @id @default(uuid())
-  channelId String   @map("channel_id")
-  userId    String   @map("user_id")
-  role      Role     @default(MEMBER)
-  createdAt DateTime @default(now()) @map("created_at")
+  id                String   @id @default(uuid())
+  channelId         String   @map("channel_id")
+  userId            String   @map("user_id")
+  role              Role     @default(MEMBER)
+  isMuted           Boolean  @default(false) @map("is_muted")
+  lastReadMessageId String?  @map("last_read_message_id")
+  unreadCount       Int      @default(0) @map("unread_count")
+  joinedAt          DateTime @default(now()) @map("joined_at")
+  createdAt         DateTime @default(now()) @map("created_at")
 
   // Relations
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
@@ -646,7 +679,87 @@ model ChannelMember {
 
   @@unique([channelId, userId])
   @@index([userId])
+  @@index([userId, channelId])
   @@map("channel_members")
+}
+
+model ChannelMessage {
+  id               String             @id @default(uuid())
+  channelId        String             @map("channel_id")
+  senderId         String?            @map("sender_id")
+  kind             ChannelMessageKind @default(USER)
+  contentJson      Json               @map("content_json")
+  plaintext        String             @default("")
+  replyToMessageId String?            @map("reply_to_message_id")
+  isEdited         Boolean            @default(false) @map("is_edited")
+  editedAt         DateTime?          @map("edited_at")
+  isPinned         Boolean            @default(false) @map("is_pinned")
+  pinnedAt         DateTime?          @map("pinned_at")
+  pinnedById       String?            @map("pinned_by_id")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  deletedAt        DateTime?          @map("deleted_at")
+
+  channel     Channel                  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  sender      User?                    @relation("ChannelMessageSender", fields: [senderId], references: [id])
+  pinnedBy    User?                    @relation("ChannelMessagePinner", fields: [pinnedById], references: [id])
+  replyTo     ChannelMessage?          @relation("ChannelMessageReply", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies     ChannelMessage[]         @relation("ChannelMessageReply")
+  mentions    ChannelMessageMention[]
+  reactions   ChannelMessageReaction[]
+  attachments Attachment[]
+
+  @@index([channelId, createdAt(sort: Desc), id])
+  @@index([channelId, isPinned, createdAt])
+  @@index([senderId])
+  @@map("channel_messages")
+}
+
+model ChannelMessageMention {
+  id              String   @id @default(uuid())
+  messageId       String   @map("message_id")
+  mentionedUserId String   @map("mentioned_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  message       ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mentionedUser User           @relation(fields: [mentionedUserId], references: [id])
+
+  @@unique([messageId, mentionedUserId])
+  @@index([mentionedUserId])
+  @@map("channel_message_mentions")
+}
+
+model ChannelMessageReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id])
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@map("channel_message_reactions")
+}
+
+model ChannelJoinRequest {
+  id          String                   @id @default(uuid())
+  channelId   String                   @map("channel_id")
+  userId      String                   @map("user_id")
+  status      ChannelJoinRequestStatus @default(PENDING)
+  requestedAt DateTime                 @default(now()) @map("requested_at")
+  decidedById String?                  @map("decided_by_id")
+  decidedAt   DateTime?                @map("decided_at")
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User    @relation("JoinRequester", fields: [userId], references: [id])
+  decidedBy User?   @relation("JoinRequestDecider", fields: [decidedById], references: [id])
+
+  @@unique([channelId, userId, status])
+  @@index([channelId, status])
+  @@map("channel_join_requests")
 }
 
 // ============================================================
@@ -785,7 +898,7 @@ model DocShareLink {
   id          String    @id @default(uuid())
   docId       String    @map("doc_id")
   token       String    @unique
-  role        DocRole   // VIEWER or COMMENTER only
+  role        DocRole // VIEWER or COMMENTER only
   expiresAt   DateTime? @map("expires_at")
   createdById String    @map("created_by_id")
   revokedAt   DateTime? @map("revoked_at")

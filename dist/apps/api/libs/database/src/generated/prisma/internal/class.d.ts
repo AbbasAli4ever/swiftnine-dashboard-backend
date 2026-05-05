@@ -103,6 +103,18 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get channelMember(): Prisma.ChannelMemberDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get channelMessage(): Prisma.ChannelMessageDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get channelMessageMention(): Prisma.ChannelMessageMentionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get channelMessageReaction(): Prisma.ChannelMessageReactionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get channelJoinRequest(): Prisma.ChannelJoinRequestDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get doc(): Prisma.DocDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

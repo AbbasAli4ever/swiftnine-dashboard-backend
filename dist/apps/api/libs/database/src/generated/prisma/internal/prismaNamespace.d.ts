@@ -182,6 +182,10 @@ export declare const ModelName: {
     readonly ActivityLog: "ActivityLog";
     readonly Channel: "Channel";
     readonly ChannelMember: "ChannelMember";
+    readonly ChannelMessage: "ChannelMessage";
+    readonly ChannelMessageMention: "ChannelMessageMention";
+    readonly ChannelMessageReaction: "ChannelMessageReaction";
+    readonly ChannelJoinRequest: "ChannelJoinRequest";
     readonly Doc: "Doc";
     readonly DocVersion: "DocVersion";
     readonly DocPermission: "DocPermission";
@@ -200,7 +204,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "channelMessage" | "channelMessageMention" | "channelMessageReaction" | "channelJoinRequest" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -2054,6 +2058,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 };
             };
         };
+        ChannelMessage: {
+            payload: Prisma.$ChannelMessagePayload<ExtArgs>;
+            fields: Prisma.ChannelMessageFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ChannelMessageFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ChannelMessageFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                findFirst: {
+                    args: Prisma.ChannelMessageFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ChannelMessageFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                findMany: {
+                    args: Prisma.ChannelMessageFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>[];
+                };
+                create: {
+                    args: Prisma.ChannelMessageCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                createMany: {
+                    args: Prisma.ChannelMessageCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ChannelMessageCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>[];
+                };
+                delete: {
+                    args: Prisma.ChannelMessageDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                update: {
+                    args: Prisma.ChannelMessageUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ChannelMessageDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ChannelMessageUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ChannelMessageUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>[];
+                };
+                upsert: {
+                    args: Prisma.ChannelMessageUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessagePayload>;
+                };
+                aggregate: {
+                    args: Prisma.ChannelMessageAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateChannelMessage>;
+                };
+                groupBy: {
+                    args: Prisma.ChannelMessageGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ChannelMessageCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ChannelMessageMention: {
+            payload: Prisma.$ChannelMessageMentionPayload<ExtArgs>;
+            fields: Prisma.ChannelMessageMentionFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ChannelMessageMentionFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ChannelMessageMentionFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ChannelMessageMentionFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ChannelMessageMentionFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                findMany: {
+                    args: Prisma.ChannelMessageMentionFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>[];
+                };
+                create: {
+                    args: Prisma.ChannelMessageMentionCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                createMany: {
+                    args: Prisma.ChannelMessageMentionCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ChannelMessageMentionCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>[];
+                };
+                delete: {
+                    args: Prisma.ChannelMessageMentionDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                update: {
+                    args: Prisma.ChannelMessageMentionUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ChannelMessageMentionDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ChannelMessageMentionUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ChannelMessageMentionUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ChannelMessageMentionUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageMentionPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ChannelMessageMentionAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateChannelMessageMention>;
+                };
+                groupBy: {
+                    args: Prisma.ChannelMessageMentionGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageMentionGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ChannelMessageMentionCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageMentionCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ChannelMessageReaction: {
+            payload: Prisma.$ChannelMessageReactionPayload<ExtArgs>;
+            fields: Prisma.ChannelMessageReactionFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ChannelMessageReactionFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ChannelMessageReactionFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ChannelMessageReactionFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ChannelMessageReactionFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                findMany: {
+                    args: Prisma.ChannelMessageReactionFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>[];
+                };
+                create: {
+                    args: Prisma.ChannelMessageReactionCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                createMany: {
+                    args: Prisma.ChannelMessageReactionCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ChannelMessageReactionCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>[];
+                };
+                delete: {
+                    args: Prisma.ChannelMessageReactionDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                update: {
+                    args: Prisma.ChannelMessageReactionUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ChannelMessageReactionDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ChannelMessageReactionUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ChannelMessageReactionUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ChannelMessageReactionUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelMessageReactionPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ChannelMessageReactionAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateChannelMessageReaction>;
+                };
+                groupBy: {
+                    args: Prisma.ChannelMessageReactionGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageReactionGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ChannelMessageReactionCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelMessageReactionCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ChannelJoinRequest: {
+            payload: Prisma.$ChannelJoinRequestPayload<ExtArgs>;
+            fields: Prisma.ChannelJoinRequestFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ChannelJoinRequestFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ChannelJoinRequestFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ChannelJoinRequestFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ChannelJoinRequestFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                findMany: {
+                    args: Prisma.ChannelJoinRequestFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>[];
+                };
+                create: {
+                    args: Prisma.ChannelJoinRequestCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                createMany: {
+                    args: Prisma.ChannelJoinRequestCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ChannelJoinRequestCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>[];
+                };
+                delete: {
+                    args: Prisma.ChannelJoinRequestDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                update: {
+                    args: Prisma.ChannelJoinRequestUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ChannelJoinRequestDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ChannelJoinRequestUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ChannelJoinRequestUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ChannelJoinRequestUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ChannelJoinRequestPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ChannelJoinRequestAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateChannelJoinRequest>;
+                };
+                groupBy: {
+                    args: Prisma.ChannelJoinRequestGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelJoinRequestGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ChannelJoinRequestCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ChannelJoinRequestCountAggregateOutputType> | number;
+                };
+            };
+        };
         Doc: {
             payload: Prisma.$DocPayload<ExtArgs>;
             fields: Prisma.DocFieldRefs;
@@ -2772,6 +3072,7 @@ export declare const AttachmentScalarFieldEnum: {
     readonly id: "id";
     readonly taskId: "taskId";
     readonly docId: "docId";
+    readonly channelMessageId: "channelMessageId";
     readonly uploadedBy: "uploadedBy";
     readonly fileName: "fileName";
     readonly s3Key: "s3Key";
@@ -2815,6 +3116,7 @@ export declare const ChannelScalarFieldEnum: {
     readonly projectId: "projectId";
     readonly name: "name";
     readonly description: "description";
+    readonly kind: "kind";
     readonly privacy: "privacy";
     readonly createdBy: "createdBy";
     readonly createdAt: "createdAt";
@@ -2826,9 +3128,56 @@ export declare const ChannelMemberScalarFieldEnum: {
     readonly channelId: "channelId";
     readonly userId: "userId";
     readonly role: "role";
+    readonly isMuted: "isMuted";
+    readonly lastReadMessageId: "lastReadMessageId";
+    readonly unreadCount: "unreadCount";
+    readonly joinedAt: "joinedAt";
     readonly createdAt: "createdAt";
 };
 export type ChannelMemberScalarFieldEnum = (typeof ChannelMemberScalarFieldEnum)[keyof typeof ChannelMemberScalarFieldEnum];
+export declare const ChannelMessageScalarFieldEnum: {
+    readonly id: "id";
+    readonly channelId: "channelId";
+    readonly senderId: "senderId";
+    readonly kind: "kind";
+    readonly contentJson: "contentJson";
+    readonly plaintext: "plaintext";
+    readonly replyToMessageId: "replyToMessageId";
+    readonly isEdited: "isEdited";
+    readonly editedAt: "editedAt";
+    readonly isPinned: "isPinned";
+    readonly pinnedAt: "pinnedAt";
+    readonly pinnedById: "pinnedById";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly deletedAt: "deletedAt";
+};
+export type ChannelMessageScalarFieldEnum = (typeof ChannelMessageScalarFieldEnum)[keyof typeof ChannelMessageScalarFieldEnum];
+export declare const ChannelMessageMentionScalarFieldEnum: {
+    readonly id: "id";
+    readonly messageId: "messageId";
+    readonly mentionedUserId: "mentionedUserId";
+    readonly createdAt: "createdAt";
+};
+export type ChannelMessageMentionScalarFieldEnum = (typeof ChannelMessageMentionScalarFieldEnum)[keyof typeof ChannelMessageMentionScalarFieldEnum];
+export declare const ChannelMessageReactionScalarFieldEnum: {
+    readonly id: "id";
+    readonly messageId: "messageId";
+    readonly userId: "userId";
+    readonly emoji: "emoji";
+    readonly createdAt: "createdAt";
+};
+export type ChannelMessageReactionScalarFieldEnum = (typeof ChannelMessageReactionScalarFieldEnum)[keyof typeof ChannelMessageReactionScalarFieldEnum];
+export declare const ChannelJoinRequestScalarFieldEnum: {
+    readonly id: "id";
+    readonly channelId: "channelId";
+    readonly userId: "userId";
+    readonly status: "status";
+    readonly requestedAt: "requestedAt";
+    readonly decidedById: "decidedById";
+    readonly decidedAt: "decidedAt";
+};
+export type ChannelJoinRequestScalarFieldEnum = (typeof ChannelJoinRequestScalarFieldEnum)[keyof typeof ChannelJoinRequestScalarFieldEnum];
 export declare const DocScalarFieldEnum: {
     readonly id: "id";
     readonly workspaceId: "workspaceId";
@@ -2950,8 +3299,14 @@ export type EnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 export type ListEnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup[]'>;
 export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>;
 export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>;
+export type EnumChannelKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelKind'>;
+export type ListEnumChannelKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelKind[]'>;
 export type EnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy'>;
 export type ListEnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy[]'>;
+export type EnumChannelMessageKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelMessageKind'>;
+export type ListEnumChannelMessageKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelMessageKind[]'>;
+export type EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelJoinRequestStatus'>;
+export type ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelJoinRequestStatus[]'>;
 export type EnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope'>;
 export type ListEnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope[]'>;
 export type EnumDocVersionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocVersionType'>;
@@ -3009,6 +3364,10 @@ export type GlobalOmitConfig = {
     activityLog?: Prisma.ActivityLogOmit;
     channel?: Prisma.ChannelOmit;
     channelMember?: Prisma.ChannelMemberOmit;
+    channelMessage?: Prisma.ChannelMessageOmit;
+    channelMessageMention?: Prisma.ChannelMessageMentionOmit;
+    channelMessageReaction?: Prisma.ChannelMessageReactionOmit;
+    channelJoinRequest?: Prisma.ChannelJoinRequestOmit;
     doc?: Prisma.DocOmit;
     docVersion?: Prisma.DocVersionOmit;
     docPermission?: Prisma.DocPermissionOmit;

@@ -13,12 +13,18 @@ exports.ChannelsService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const notifications_service_1 = require("../notifications/notifications.service");
+const chat_system_service_1 = require("../chat/chat-system.service");
 let ChannelsService = class ChannelsService {
     prisma;
     notifications;
-    constructor(prisma, notifications) {
+    chatSystem;
+    constructor(prisma, notifications, chatSystem) {
         this.prisma = prisma;
         this.notifications = notifications;
+        this.chatSystem = chatSystem;
+    }
+    channelLabel(name) {
+        return name?.trim() || 'this channel';
     }
     channelInclude() {
         return {
@@ -83,7 +89,16 @@ let ChannelsService = class ChannelsService {
                     createdBy: userId,
                 },
             });
-            await tx.channelMember.create({ data: { channelId: channel.id, userId, role: 'OWNER' } });
+            await tx.channelMember.create({
+                data: { channelId: channel.id, userId, role: 'OWNER' },
+            });
+            await this.chatSystem.emit(channel.id, {
+                event: 'channel_created',
+                actorUserId: userId,
+                channelName: channel.name,
+                privacy: channel.privacy,
+                projectId: channel.projectId,
+            }, tx);
             await tx.activityLog.create({
                 data: {
                     workspaceId,
@@ -103,7 +118,7 @@ let ChannelsService = class ChannelsService {
     async updateChannel(workspaceId, channelId, callerUserId, dto) {
         const channel = await this.prisma.channel.findFirst({
             where: { id: channelId, workspaceId },
-            select: { id: true },
+            select: { id: true, name: true, privacy: true },
         });
         if (!channel)
             throw new common_1.NotFoundException('Channel not found in workspace');
@@ -111,24 +126,46 @@ let ChannelsService = class ChannelsService {
             where: { channelId, userId: callerUserId },
             select: { role: true },
         });
-        if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
+        if (!callerMembership ||
+            (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
             throw new common_1.ForbiddenException('Only channel admins can update the channel');
         }
         const updateData = {};
         if (dto.name !== undefined)
             updateData.name = dto.name.trim();
         if (Object.prototype.hasOwnProperty.call(dto, 'description')) {
-            updateData.description = dto.description === null ? null : (dto.description ?? '').trim() || null;
+            updateData.description =
+                dto.description === null
+                    ? null
+                    : (dto.description ?? '').trim() || null;
         }
         if (dto.privacy !== undefined)
             updateData.privacy = dto.privacy;
         if (Object.keys(updateData).length === 0) {
             throw new common_1.BadRequestException('At least one field must be provided');
         }
-        return this.prisma.channel.update({
-            where: { id: channelId },
-            data: updateData,
-            include: this.channelInclude(),
+        return this.prisma.$transaction(async (tx) => {
+            const updated = await tx.channel.update({
+                where: { id: channelId },
+                data: updateData,
+                include: this.channelInclude(),
+            });
+            if (updateData.name !== undefined && updateData.name !== channel.name) {
+                await this.chatSystem.emit(channelId, {
+                    event: 'channel_renamed',
+                    actorUserId: callerUserId,
+                    name: updateData.name,
+                }, tx);
+            }
+            if (updateData.privacy !== undefined &&
+                updateData.privacy !== channel.privacy) {
+                await this.chatSystem.emit(channelId, {
+                    event: 'channel_privacy_changed',
+                    actorUserId: callerUserId,
+                    privacy: updateData.privacy,
+                }, tx);
+            }
+            return updated;
         });
     }
     mapRoleInput(input) {
@@ -139,30 +176,48 @@ let ChannelsService = class ChannelsService {
     }
     async addChannelMember(workspaceId, channelId, callerUserId, userId, roleInput) {
         const role = this.mapRoleInput(roleInput);
-        const channel = await this.prisma.channel.findFirst({ where: { id: channelId, workspaceId } });
+        const channel = await this.prisma.channel.findFirst({
+            where: { id: channelId, workspaceId },
+        });
         if (!channel)
             throw new common_1.NotFoundException('Channel not found in workspace');
-        const callerMembership = await this.prisma.channelMember.findFirst({ where: { channelId, userId: callerUserId } });
-        if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
+        const callerMembership = await this.prisma.channelMember.findFirst({
+            where: { channelId, userId: callerUserId },
+        });
+        if (!callerMembership ||
+            (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
             throw new common_1.ForbiddenException('Only channel admins can add members');
         }
-        const workspaceMember = await this.prisma.workspaceMember.findFirst({ where: { workspaceId, userId } });
+        const workspaceMember = await this.prisma.workspaceMember.findFirst({
+            where: { workspaceId, userId },
+        });
         if (!workspaceMember) {
             throw new common_1.NotFoundException('User is not a member of this workspace');
         }
-        return this.prisma.$transaction(async (tx) => {
-            const existing = await tx.channelMember.findFirst({ where: { channelId, userId } });
+        return this.prisma
+            .$transaction(async (tx) => {
+            const existing = await tx.channelMember.findFirst({
+                where: { channelId, userId },
+            });
             let result;
+            let systemEvent = null;
             if (existing) {
                 if (existing.role === role) {
                     result = existing;
                 }
                 else {
-                    result = await tx.channelMember.update({ where: { id: existing.id }, data: { role } });
+                    result = await tx.channelMember.update({
+                        where: { id: existing.id },
+                        data: { role },
+                    });
+                    systemEvent = 'member_role_changed';
                 }
             }
             else {
-                result = await tx.channelMember.create({ data: { channelId, userId, role } });
+                result = await tx.channelMember.create({
+                    data: { channelId, userId, role },
+                });
+                systemEvent = 'member_joined';
             }
             await tx.activityLog.create({
                 data: {
@@ -174,13 +229,26 @@ let ChannelsService = class ChannelsService {
                     performedBy: callerUserId,
                 },
             });
+            if (systemEvent) {
+                await this.chatSystem.emit(channelId, {
+                    event: systemEvent,
+                    userId,
+                    role,
+                    actorUserId: callerUserId,
+                }, tx);
+            }
             return result;
-        }).then(async (created) => {
-            const actor = await this.prisma.user.findUnique({ where: { id: callerUserId }, select: { fullName: true } });
+        })
+            .then(async (created) => {
+            const actor = await this.prisma.user.findUnique({
+                where: { id: callerUserId },
+                select: { fullName: true },
+            });
             const _role = role;
             const roleLabel = _role === 'OWNER' ? 'owner' : _role === 'ADMIN' ? 'admin' : 'member';
-            const title = `Added to channel ${channel.name}`;
-            const message = `${actor?.fullName ?? 'A member'} added you to ${channel.name} as ${roleLabel}`;
+            const channelName = this.channelLabel(channel.name);
+            const title = `Added to channel ${channelName}`;
+            const message = `${actor?.fullName ?? 'A member'} added you to ${channelName} as ${roleLabel}`;
             try {
                 await this.notifications.createNotification(workspaceId, userId, callerUserId, 'channel:member_added', title, message, 'channel', channelId, false);
             }
@@ -192,15 +260,23 @@ let ChannelsService = class ChannelsService {
     async addChannelMembersBulk(workspaceId, channelId, callerUserId, members) {
         if (!Array.isArray(members) || members.length === 0)
             throw new common_1.BadRequestException('members must be a non-empty array');
-        const channel = await this.prisma.channel.findFirst({ where: { id: channelId, workspaceId } });
+        const channel = await this.prisma.channel.findFirst({
+            where: { id: channelId, workspaceId },
+        });
         if (!channel)
             throw new common_1.NotFoundException('Channel not found in workspace');
-        const callerMembership = await this.prisma.channelMember.findFirst({ where: { channelId, userId: callerUserId } });
-        if (!callerMembership || (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
+        const callerMembership = await this.prisma.channelMember.findFirst({
+            where: { channelId, userId: callerUserId },
+        });
+        if (!callerMembership ||
+            (callerMembership.role !== 'OWNER' && callerMembership.role !== 'ADMIN')) {
             throw new common_1.ForbiddenException('Only channel admins can add members');
         }
         const userIds = Array.from(new Set(members.map((m) => m.userId)));
-        const workspaceMembers = await this.prisma.workspaceMember.findMany({ where: { workspaceId, userId: { in: userIds } }, select: { userId: true } });
+        const workspaceMembers = await this.prisma.workspaceMember.findMany({
+            where: { workspaceId, userId: { in: userIds } },
+            select: { userId: true },
+        });
         const existingUserIds = new Set(workspaceMembers.map((w) => w.userId));
         const missing = userIds.filter((id) => !existingUserIds.has(id));
         if (missing.length > 0) {
@@ -211,19 +287,38 @@ let ChannelsService = class ChannelsService {
         await this.prisma.$transaction(async (tx) => {
             for (const m of members) {
                 const role = this.mapRoleInput(m.role);
-                const existing = await tx.channelMember.findFirst({ where: { channelId, userId: m.userId } });
+                const existing = await tx.channelMember.findFirst({
+                    where: { channelId, userId: m.userId },
+                });
                 let res;
                 if (existing) {
                     if (existing.role === role) {
                         res = existing;
                     }
                     else {
-                        res = await tx.channelMember.update({ where: { id: existing.id }, data: { role } });
+                        res = await tx.channelMember.update({
+                            where: { id: existing.id },
+                            data: { role },
+                        });
+                        await this.chatSystem.emit(channelId, {
+                            event: 'member_role_changed',
+                            userId: m.userId,
+                            role,
+                            actorUserId: callerUserId,
+                        }, tx);
                     }
                 }
                 else {
-                    res = await tx.channelMember.create({ data: { channelId, userId: m.userId, role } });
+                    res = await tx.channelMember.create({
+                        data: { channelId, userId: m.userId, role },
+                    });
                     toNotify.push({ userId: m.userId, role });
+                    await this.chatSystem.emit(channelId, {
+                        event: 'member_joined',
+                        userId: m.userId,
+                        role,
+                        actorUserId: callerUserId,
+                    }, tx);
                 }
                 await tx.activityLog.create({
                     data: {
@@ -238,12 +333,16 @@ let ChannelsService = class ChannelsService {
                 results.push(res);
             }
         });
-        const actor = await this.prisma.user.findUnique({ where: { id: callerUserId }, select: { fullName: true } });
-        const title = `Added to channel ${channel.name}`;
+        const actor = await this.prisma.user.findUnique({
+            where: { id: callerUserId },
+            select: { fullName: true },
+        });
+        const channelName = this.channelLabel(channel.name);
+        const title = `Added to channel ${channelName}`;
         for (const n of toNotify) {
             const _nRole = n.role;
             const roleLabel = _nRole === 'OWNER' ? 'owner' : _nRole === 'ADMIN' ? 'admin' : 'member';
-            const message = `${actor?.fullName ?? 'A member'} added you to ${channel.name} as ${roleLabel}`;
+            const message = `${actor?.fullName ?? 'A member'} added you to ${channelName} as ${roleLabel}`;
             try {
                 await this.notifications.createNotification(workspaceId, n.userId, callerUserId, 'channel:member_added', title, message, 'channel', channelId, false);
             }
@@ -257,10 +356,14 @@ let ChannelsService = class ChannelsService {
             where: { id: channelMemberId },
             include: { channel: true },
         });
-        if (!cm || cm.channel.id !== channelId || cm.channel.workspaceId !== workspaceId) {
+        if (!cm ||
+            cm.channel.id !== channelId ||
+            cm.channel.workspaceId !== workspaceId) {
             throw new common_1.NotFoundException('Channel member not found in workspace');
         }
-        const caller = await this.prisma.channelMember.findFirst({ where: { channelId, userId: callerUserId } });
+        const caller = await this.prisma.channelMember.findFirst({
+            where: { channelId, userId: callerUserId },
+        });
         if (!caller || (caller.role !== 'OWNER' && caller.role !== 'ADMIN')) {
             throw new common_1.ForbiddenException('Only channel admins can remove members');
         }
@@ -273,8 +376,14 @@ let ChannelsService = class ChannelsService {
         if (cm.role === 'ADMIN' && caller.role !== 'OWNER') {
             throw new common_1.ForbiddenException('Only channel owner can remove an admin');
         }
-        const deleted = await this.prisma.$transaction(async (tx) => {
+        await this.prisma.$transaction(async (tx) => {
             await tx.channelMember.delete({ where: { id: channelMemberId } });
+            await this.chatSystem.emit(channelId, {
+                event: 'member_removed',
+                userId: cm.userId,
+                role: cm.role,
+                actorUserId: callerUserId,
+            }, tx);
             await tx.activityLog.create({
                 data: {
                     workspaceId,
@@ -287,11 +396,19 @@ let ChannelsService = class ChannelsService {
             });
         });
         try {
-            const actor = await this.prisma.user.findUnique({ where: { id: callerUserId }, select: { fullName: true } });
+            const actor = await this.prisma.user.findUnique({
+                where: { id: callerUserId },
+                select: { fullName: true },
+            });
             const _cmRole = cm.role;
-            const roleLabel = _cmRole === 'OWNER' ? 'owner' : _cmRole === 'ADMIN' ? 'admin' : 'member';
-            const title = `Removed from channel ${cm.channel.name}`;
-            const message = `${actor?.fullName ?? 'A member'} removed you from ${cm.channel.name} (was ${roleLabel})`;
+            const roleLabel = _cmRole === 'OWNER'
+                ? 'owner'
+                : _cmRole === 'ADMIN'
+                    ? 'admin'
+                    : 'member';
+            const channelName = this.channelLabel(cm.channel.name);
+            const title = `Removed from channel ${channelName}`;
+            const message = `${actor?.fullName ?? 'A member'} removed you from ${channelName} (was ${roleLabel})`;
             await this.notifications.createNotification(workspaceId, cm.userId, callerUserId, 'channel:member_removed', title, message, 'channel', channelId, false);
         }
         catch (err) {
@@ -302,6 +419,8 @@ let ChannelsService = class ChannelsService {
 exports.ChannelsService = ChannelsService;
 exports.ChannelsService = ChannelsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService, notifications_service_1.NotificationsService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        notifications_service_1.NotificationsService,
+        chat_system_service_1.ChatSystemService])
 ], ChannelsService);
 //# sourceMappingURL=channels.service.js.map

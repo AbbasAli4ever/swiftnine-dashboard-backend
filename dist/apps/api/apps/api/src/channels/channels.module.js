@@ -11,14 +11,17 @@ const common_1 = require("@nestjs/common");
 const channels_controller_1 = require("./channels.controller");
 const channels_service_1 = require("./channels.service");
 const notifications_module_1 = require("../notifications/notifications.module");
+const chat_module_1 = require("../chat/chat.module");
+const join_requests_controller_1 = require("./join-requests/join-requests.controller");
+const join_requests_service_1 = require("./join-requests/join-requests.service");
 let ChannelsModule = class ChannelsModule {
 };
 exports.ChannelsModule = ChannelsModule;
 exports.ChannelsModule = ChannelsModule = __decorate([
     (0, common_1.Module)({
-        imports: [notifications_module_1.NotificationsModule],
-        controllers: [channels_controller_1.ChannelsController],
-        providers: [channels_service_1.ChannelsService],
+        imports: [notifications_module_1.NotificationsModule, chat_module_1.ChatModule],
+        controllers: [channels_controller_1.ChannelsController, join_requests_controller_1.JoinRequestsController],
+        providers: [channels_service_1.ChannelsService, join_requests_service_1.JoinRequestsService],
         exports: [channels_service_1.ChannelsService],
     })
 ], ChannelsModule);

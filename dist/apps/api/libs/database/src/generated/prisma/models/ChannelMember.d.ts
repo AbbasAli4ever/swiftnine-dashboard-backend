@@ -4,14 +4,26 @@ import type * as Prisma from "../internal/prismaNamespace";
 export type ChannelMemberModel = runtime.Types.Result.DefaultSelection<Prisma.$ChannelMemberPayload>;
 export type AggregateChannelMember = {
     _count: ChannelMemberCountAggregateOutputType | null;
+    _avg: ChannelMemberAvgAggregateOutputType | null;
+    _sum: ChannelMemberSumAggregateOutputType | null;
     _min: ChannelMemberMinAggregateOutputType | null;
     _max: ChannelMemberMaxAggregateOutputType | null;
+};
+export type ChannelMemberAvgAggregateOutputType = {
+    unreadCount: number | null;
+};
+export type ChannelMemberSumAggregateOutputType = {
+    unreadCount: number | null;
 };
 export type ChannelMemberMinAggregateOutputType = {
     id: string | null;
     channelId: string | null;
     userId: string | null;
     role: $Enums.Role | null;
+    isMuted: boolean | null;
+    lastReadMessageId: string | null;
+    unreadCount: number | null;
+    joinedAt: Date | null;
     createdAt: Date | null;
 };
 export type ChannelMemberMaxAggregateOutputType = {
@@ -19,6 +31,10 @@ export type ChannelMemberMaxAggregateOutputType = {
     channelId: string | null;
     userId: string | null;
     role: $Enums.Role | null;
+    isMuted: boolean | null;
+    lastReadMessageId: string | null;
+    unreadCount: number | null;
+    joinedAt: Date | null;
     createdAt: Date | null;
 };
 export type ChannelMemberCountAggregateOutputType = {
@@ -26,14 +42,28 @@ export type ChannelMemberCountAggregateOutputType = {
     channelId: number;
     userId: number;
     role: number;
+    isMuted: number;
+    lastReadMessageId: number;
+    unreadCount: number;
+    joinedAt: number;
     createdAt: number;
     _all: number;
+};
+export type ChannelMemberAvgAggregateInputType = {
+    unreadCount?: true;
+};
+export type ChannelMemberSumAggregateInputType = {
+    unreadCount?: true;
 };
 export type ChannelMemberMinAggregateInputType = {
     id?: true;
     channelId?: true;
     userId?: true;
     role?: true;
+    isMuted?: true;
+    lastReadMessageId?: true;
+    unreadCount?: true;
+    joinedAt?: true;
     createdAt?: true;
 };
 export type ChannelMemberMaxAggregateInputType = {
@@ -41,6 +71,10 @@ export type ChannelMemberMaxAggregateInputType = {
     channelId?: true;
     userId?: true;
     role?: true;
+    isMuted?: true;
+    lastReadMessageId?: true;
+    unreadCount?: true;
+    joinedAt?: true;
     createdAt?: true;
 };
 export type ChannelMemberCountAggregateInputType = {
@@ -48,6 +82,10 @@ export type ChannelMemberCountAggregateInputType = {
     channelId?: true;
     userId?: true;
     role?: true;
+    isMuted?: true;
+    lastReadMessageId?: true;
+    unreadCount?: true;
+    joinedAt?: true;
     createdAt?: true;
     _all?: true;
 };
@@ -58,6 +96,8 @@ export type ChannelMemberAggregateArgs<ExtArgs extends runtime.Types.Extensions.
     take?: number;
     skip?: number;
     _count?: true | ChannelMemberCountAggregateInputType;
+    _avg?: ChannelMemberAvgAggregateInputType;
+    _sum?: ChannelMemberSumAggregateInputType;
     _min?: ChannelMemberMinAggregateInputType;
     _max?: ChannelMemberMaxAggregateInputType;
 };
@@ -72,6 +112,8 @@ export type ChannelMemberGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
     take?: number;
     skip?: number;
     _count?: ChannelMemberCountAggregateInputType | true;
+    _avg?: ChannelMemberAvgAggregateInputType;
+    _sum?: ChannelMemberSumAggregateInputType;
     _min?: ChannelMemberMinAggregateInputType;
     _max?: ChannelMemberMaxAggregateInputType;
 };
@@ -80,8 +122,14 @@ export type ChannelMemberGroupByOutputType = {
     channelId: string;
     userId: string;
     role: $Enums.Role;
+    isMuted: boolean;
+    lastReadMessageId: string | null;
+    unreadCount: number;
+    joinedAt: Date;
     createdAt: Date;
     _count: ChannelMemberCountAggregateOutputType | null;
+    _avg: ChannelMemberAvgAggregateOutputType | null;
+    _sum: ChannelMemberSumAggregateOutputType | null;
     _min: ChannelMemberMinAggregateOutputType | null;
     _max: ChannelMemberMaxAggregateOutputType | null;
 };
@@ -96,6 +144,10 @@ export type ChannelMemberWhereInput = {
     channelId?: Prisma.StringFilter<"ChannelMember"> | string;
     userId?: Prisma.StringFilter<"ChannelMember"> | string;
     role?: Prisma.EnumRoleFilter<"ChannelMember"> | $Enums.Role;
+    isMuted?: Prisma.BoolFilter<"ChannelMember"> | boolean;
+    lastReadMessageId?: Prisma.StringNullableFilter<"ChannelMember"> | string | null;
+    unreadCount?: Prisma.IntFilter<"ChannelMember"> | number;
+    joinedAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
     createdAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
     channel?: Prisma.XOR<Prisma.ChannelScalarRelationFilter, Prisma.ChannelWhereInput>;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -105,6 +157,10 @@ export type ChannelMemberOrderByWithRelationInput = {
     channelId?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     role?: Prisma.SortOrder;
+    isMuted?: Prisma.SortOrder;
+    lastReadMessageId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    unreadCount?: Prisma.SortOrder;
+    joinedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     channel?: Prisma.ChannelOrderByWithRelationInput;
     user?: Prisma.UserOrderByWithRelationInput;
@@ -118,6 +174,10 @@ export type ChannelMemberWhereUniqueInput = Prisma.AtLeast<{
     channelId?: Prisma.StringFilter<"ChannelMember"> | string;
     userId?: Prisma.StringFilter<"ChannelMember"> | string;
     role?: Prisma.EnumRoleFilter<"ChannelMember"> | $Enums.Role;
+    isMuted?: Prisma.BoolFilter<"ChannelMember"> | boolean;
+    lastReadMessageId?: Prisma.StringNullableFilter<"ChannelMember"> | string | null;
+    unreadCount?: Prisma.IntFilter<"ChannelMember"> | number;
+    joinedAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
     createdAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
     channel?: Prisma.XOR<Prisma.ChannelScalarRelationFilter, Prisma.ChannelWhereInput>;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -127,10 +187,16 @@ export type ChannelMemberOrderByWithAggregationInput = {
     channelId?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     role?: Prisma.SortOrder;
+    isMuted?: Prisma.SortOrder;
+    lastReadMessageId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    unreadCount?: Prisma.SortOrder;
+    joinedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     _count?: Prisma.ChannelMemberCountOrderByAggregateInput;
+    _avg?: Prisma.ChannelMemberAvgOrderByAggregateInput;
     _max?: Prisma.ChannelMemberMaxOrderByAggregateInput;
     _min?: Prisma.ChannelMemberMinOrderByAggregateInput;
+    _sum?: Prisma.ChannelMemberSumOrderByAggregateInput;
 };
 export type ChannelMemberScalarWhereWithAggregatesInput = {
     AND?: Prisma.ChannelMemberScalarWhereWithAggregatesInput | Prisma.ChannelMemberScalarWhereWithAggregatesInput[];
@@ -140,11 +206,19 @@ export type ChannelMemberScalarWhereWithAggregatesInput = {
     channelId?: Prisma.StringWithAggregatesFilter<"ChannelMember"> | string;
     userId?: Prisma.StringWithAggregatesFilter<"ChannelMember"> | string;
     role?: Prisma.EnumRoleWithAggregatesFilter<"ChannelMember"> | $Enums.Role;
+    isMuted?: Prisma.BoolWithAggregatesFilter<"ChannelMember"> | boolean;
+    lastReadMessageId?: Prisma.StringNullableWithAggregatesFilter<"ChannelMember"> | string | null;
+    unreadCount?: Prisma.IntWithAggregatesFilter<"ChannelMember"> | number;
+    joinedAt?: Prisma.DateTimeWithAggregatesFilter<"ChannelMember"> | Date | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"ChannelMember"> | Date | string;
 };
 export type ChannelMemberCreateInput = {
     id?: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
     channel: Prisma.ChannelCreateNestedOneWithoutMembersInput;
     user: Prisma.UserCreateNestedOneWithoutChannelMembersInput;
@@ -154,11 +228,19 @@ export type ChannelMemberUncheckedCreateInput = {
     channelId: string;
     userId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     channel?: Prisma.ChannelUpdateOneRequiredWithoutMembersNestedInput;
     user?: Prisma.UserUpdateOneRequiredWithoutChannelMembersNestedInput;
@@ -168,6 +250,10 @@ export type ChannelMemberUncheckedUpdateInput = {
     channelId?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberCreateManyInput = {
@@ -175,11 +261,19 @@ export type ChannelMemberCreateManyInput = {
     channelId: string;
     userId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberUncheckedUpdateManyInput = {
@@ -187,6 +281,10 @@ export type ChannelMemberUncheckedUpdateManyInput = {
     channelId?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberListRelationFilter = {
@@ -206,13 +304,24 @@ export type ChannelMemberCountOrderByAggregateInput = {
     channelId?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     role?: Prisma.SortOrder;
+    isMuted?: Prisma.SortOrder;
+    lastReadMessageId?: Prisma.SortOrder;
+    unreadCount?: Prisma.SortOrder;
+    joinedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+};
+export type ChannelMemberAvgOrderByAggregateInput = {
+    unreadCount?: Prisma.SortOrder;
 };
 export type ChannelMemberMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     channelId?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     role?: Prisma.SortOrder;
+    isMuted?: Prisma.SortOrder;
+    lastReadMessageId?: Prisma.SortOrder;
+    unreadCount?: Prisma.SortOrder;
+    joinedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
 };
 export type ChannelMemberMinOrderByAggregateInput = {
@@ -220,7 +329,14 @@ export type ChannelMemberMinOrderByAggregateInput = {
     channelId?: Prisma.SortOrder;
     userId?: Prisma.SortOrder;
     role?: Prisma.SortOrder;
+    isMuted?: Prisma.SortOrder;
+    lastReadMessageId?: Prisma.SortOrder;
+    unreadCount?: Prisma.SortOrder;
+    joinedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+};
+export type ChannelMemberSumOrderByAggregateInput = {
+    unreadCount?: Prisma.SortOrder;
 };
 export type ChannelMemberCreateNestedManyWithoutUserInput = {
     create?: Prisma.XOR<Prisma.ChannelMemberCreateWithoutUserInput, Prisma.ChannelMemberUncheckedCreateWithoutUserInput> | Prisma.ChannelMemberCreateWithoutUserInput[] | Prisma.ChannelMemberUncheckedCreateWithoutUserInput[];
@@ -301,6 +417,10 @@ export type ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput = {
 export type ChannelMemberCreateWithoutUserInput = {
     id?: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
     channel: Prisma.ChannelCreateNestedOneWithoutMembersInput;
 };
@@ -308,6 +428,10 @@ export type ChannelMemberUncheckedCreateWithoutUserInput = {
     id?: string;
     channelId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberCreateOrConnectWithoutUserInput = {
@@ -339,11 +463,19 @@ export type ChannelMemberScalarWhereInput = {
     channelId?: Prisma.StringFilter<"ChannelMember"> | string;
     userId?: Prisma.StringFilter<"ChannelMember"> | string;
     role?: Prisma.EnumRoleFilter<"ChannelMember"> | $Enums.Role;
+    isMuted?: Prisma.BoolFilter<"ChannelMember"> | boolean;
+    lastReadMessageId?: Prisma.StringNullableFilter<"ChannelMember"> | string | null;
+    unreadCount?: Prisma.IntFilter<"ChannelMember"> | number;
+    joinedAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
     createdAt?: Prisma.DateTimeFilter<"ChannelMember"> | Date | string;
 };
 export type ChannelMemberCreateWithoutChannelInput = {
     id?: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
     user: Prisma.UserCreateNestedOneWithoutChannelMembersInput;
 };
@@ -351,6 +483,10 @@ export type ChannelMemberUncheckedCreateWithoutChannelInput = {
     id?: string;
     userId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberCreateOrConnectWithoutChannelInput = {
@@ -378,11 +514,19 @@ export type ChannelMemberCreateManyUserInput = {
     id?: string;
     channelId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberUpdateWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     channel?: Prisma.ChannelUpdateOneRequiredWithoutMembersNestedInput;
 };
@@ -390,23 +534,39 @@ export type ChannelMemberUncheckedUpdateWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     channelId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberUncheckedUpdateManyWithoutUserInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     channelId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberCreateManyChannelInput = {
     id?: string;
     userId: string;
     role?: $Enums.Role;
+    isMuted?: boolean;
+    lastReadMessageId?: string | null;
+    unreadCount?: number;
+    joinedAt?: Date | string;
     createdAt?: Date | string;
 };
 export type ChannelMemberUpdateWithoutChannelInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     user?: Prisma.UserUpdateOneRequiredWithoutChannelMembersNestedInput;
 };
@@ -414,12 +574,20 @@ export type ChannelMemberUncheckedUpdateWithoutChannelInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberUncheckedUpdateManyWithoutChannelInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role;
+    isMuted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastReadMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    unreadCount?: Prisma.IntFieldUpdateOperationsInput | number;
+    joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ChannelMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -427,6 +595,10 @@ export type ChannelMemberSelect<ExtArgs extends runtime.Types.Extensions.Interna
     channelId?: boolean;
     userId?: boolean;
     role?: boolean;
+    isMuted?: boolean;
+    lastReadMessageId?: boolean;
+    unreadCount?: boolean;
+    joinedAt?: boolean;
     createdAt?: boolean;
     channel?: boolean | Prisma.ChannelDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -436,6 +608,10 @@ export type ChannelMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types
     channelId?: boolean;
     userId?: boolean;
     role?: boolean;
+    isMuted?: boolean;
+    lastReadMessageId?: boolean;
+    unreadCount?: boolean;
+    joinedAt?: boolean;
     createdAt?: boolean;
     channel?: boolean | Prisma.ChannelDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -445,6 +621,10 @@ export type ChannelMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
     channelId?: boolean;
     userId?: boolean;
     role?: boolean;
+    isMuted?: boolean;
+    lastReadMessageId?: boolean;
+    unreadCount?: boolean;
+    joinedAt?: boolean;
     createdAt?: boolean;
     channel?: boolean | Prisma.ChannelDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -454,9 +634,13 @@ export type ChannelMemberSelectScalar = {
     channelId?: boolean;
     userId?: boolean;
     role?: boolean;
+    isMuted?: boolean;
+    lastReadMessageId?: boolean;
+    unreadCount?: boolean;
+    joinedAt?: boolean;
     createdAt?: boolean;
 };
-export type ChannelMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "channelId" | "userId" | "role" | "createdAt", ExtArgs["result"]["channelMember"]>;
+export type ChannelMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "channelId" | "userId" | "role" | "isMuted" | "lastReadMessageId" | "unreadCount" | "joinedAt" | "createdAt", ExtArgs["result"]["channelMember"]>;
 export type ChannelMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     channel?: boolean | Prisma.ChannelDefaultArgs<ExtArgs>;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -480,6 +664,10 @@ export type $ChannelMemberPayload<ExtArgs extends runtime.Types.Extensions.Inter
         channelId: string;
         userId: string;
         role: $Enums.Role;
+        isMuted: boolean;
+        lastReadMessageId: string | null;
+        unreadCount: number;
+        joinedAt: Date;
         createdAt: Date;
     }, ExtArgs["result"]["channelMember"]>;
     composites: {};
@@ -544,6 +732,10 @@ export interface ChannelMemberFieldRefs {
     readonly channelId: Prisma.FieldRef<"ChannelMember", 'String'>;
     readonly userId: Prisma.FieldRef<"ChannelMember", 'String'>;
     readonly role: Prisma.FieldRef<"ChannelMember", 'Role'>;
+    readonly isMuted: Prisma.FieldRef<"ChannelMember", 'Boolean'>;
+    readonly lastReadMessageId: Prisma.FieldRef<"ChannelMember", 'String'>;
+    readonly unreadCount: Prisma.FieldRef<"ChannelMember", 'Int'>;
+    readonly joinedAt: Prisma.FieldRef<"ChannelMember", 'DateTime'>;
     readonly createdAt: Prisma.FieldRef<"ChannelMember", 'DateTime'>;
 }
 export type ChannelMemberFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
