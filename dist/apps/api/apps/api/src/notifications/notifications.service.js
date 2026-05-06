@@ -19,19 +19,28 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
     sse;
     logger = new common_1.Logger(NotificationsService_1.name);
     snoozeWatcher;
+    retentionWatcher;
     constructor(prisma, sse) {
         this.prisma = prisma;
         this.sse = sse;
         this.startSnoozeWatcher();
+        this.startRetentionWatcher();
     }
     onModuleDestroy() {
         if (this.snoozeWatcher)
             clearInterval(this.snoozeWatcher);
+        if (this.retentionWatcher)
+            clearInterval(this.retentionWatcher);
     }
     startSnoozeWatcher() {
         this.snoozeWatcher = setInterval(() => {
             this.processExpiredSnoozes().catch((err) => this.logger.debug('Snooze watcher error', err));
         }, 60_000);
+    }
+    startRetentionWatcher() {
+        this.retentionWatcher = setInterval(() => {
+            this.deleteExpiredNotifications().catch((err) => this.logger.debug('Retention watcher error', err));
+        }, this.retentionCleanupIntervalMs());
     }
     async processExpiredSnoozes() {
         const now = new Date();
@@ -60,6 +69,17 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             }
         }
     }
+    async deleteExpiredNotifications(now = new Date()) {
+        const retentionDays = this.notificationRetentionDays();
+        const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
+        const result = await this.prisma.notification.deleteMany({
+            where: { createdAt: { lt: cutoff } },
+        });
+        if (result.count > 0) {
+            this.logger.log(`Deleted ${result.count} notifications older than ${retentionDays} days`);
+        }
+        return result.count;
+    }
     async resolveWorkspaceMember(workspaceId, memberIdOrUserId) {
         let member = await this.prisma.workspaceMember.findFirst({
             where: { id: memberIdOrUserId, workspaceId, deletedAt: null },
@@ -72,6 +92,15 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             });
         }
         return member;
+    }
+    notificationRetentionDays() {
+        const raw = Number.parseInt(process.env['NOTIFICATIONS_RETENTION_DAYS'] ?? '90', 10);
+        return Number.isNaN(raw) || raw < 1 ? 90 : raw;
+    }
+    retentionCleanupIntervalMs() {
+        const raw = Number.parseInt(process.env['NOTIFICATIONS_RETENTION_CLEANUP_INTERVAL_MS'] ??
+            `${24 * 60 * 60 * 1000}`, 10);
+        return Number.isNaN(raw) || raw < 60_000 ? 24 * 60 * 60 * 1000 : raw;
     }
     getTaskId(notification, commentTaskIds) {
         if (notification.referenceType === 'task')

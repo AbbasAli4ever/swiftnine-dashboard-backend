@@ -8,5 +8,6 @@ import { DocsModule } from '../docs/docs.module';
   imports: [ActivityModule, DocsModule],
   controllers: [AttachmentsController],
   providers: [AttachmentsService],
+  exports: [AttachmentsService],
 })
 export class AttachmentsModule {}

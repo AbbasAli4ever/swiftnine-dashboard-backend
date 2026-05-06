@@ -19,8 +19,10 @@ import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ChannelsModule } from './channels/channels.module';
+import { ChatModule } from './chat/chat.module';
 import { DocsModule } from './docs/docs.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { FavoritesModule } from './favorites/favorites.module';
     ActivityModule,
     CommentsModule,
     ChannelsModule,
+    ChatModule,
+    PresenceModule,
     NotificationsModule,
     DashboardModule,
     DocsModule,

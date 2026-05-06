@@ -16,6 +16,7 @@ describe('WorkspaceService', () => {
     workspaceInvite: {
       create: jest.Mock;
       findFirst: jest.Mock;
+      findMany: jest.Mock;
       update: jest.Mock;
       updateMany: jest.Mock;
     };
@@ -54,6 +55,7 @@ describe('WorkspaceService', () => {
       workspaceInvite: {
         create: jest.fn(),
         findFirst: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
         update: jest.fn().mockResolvedValue(undefined),
         updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
@@ -172,6 +174,56 @@ describe('WorkspaceService', () => {
       createdAt: new Date('2026-04-16T09:00:00.000Z'),
       updatedAt: new Date('2026-04-16T09:00:00.000Z'),
     });
+  });
+
+  it('lists pending invite-only users alongside current members', async () => {
+    prisma.workspaceMember.findMany = jest.fn().mockResolvedValue([
+      {
+        role: 'OWNER',
+        createdAt: new Date('2026-04-16T09:00:00.000Z'),
+        user: {
+          id: 'user-1',
+          fullName: 'Jane Owner',
+          email: 'owner@example.com',
+          lastSeenAt: new Date('2026-04-16T10:00:00.000Z'),
+        },
+      },
+    ]);
+    prisma.workspaceInvite.findMany = jest.fn().mockResolvedValue([
+      {
+        id: 'invite-1',
+        email: 'pending@example.com',
+        role: 'MEMBER',
+        createdAt: new Date('2026-04-16T11:00:00.000Z'),
+        status: 'PENDING',
+        sender: { fullName: 'Jane Owner' },
+      },
+    ]);
+
+    const result = await service.listMembers('workspace-1');
+
+    expect(result).toEqual([
+      {
+        id: 'user-1',
+        fullName: 'Jane Owner',
+        email: 'owner@example.com',
+        role: 'OWNER',
+        lastActive: new Date('2026-04-16T10:00:00.000Z'),
+        invitedBy: null,
+        invitedOn: null,
+        inviteStatus: null,
+      },
+      {
+        id: 'invite-1',
+        fullName: 'pending@example.com',
+        email: 'pending@example.com',
+        role: 'MEMBER',
+        lastActive: null,
+        invitedBy: 'Jane Owner',
+        invitedOn: new Date('2026-04-16T11:00:00.000Z'),
+        inviteStatus: 'PENDING',
+      },
+    ]);
   });
 
   it('updates workspace metadata fields when provided', async () => {

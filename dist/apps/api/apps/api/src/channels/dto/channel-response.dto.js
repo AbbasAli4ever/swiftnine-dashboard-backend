@@ -34,6 +34,10 @@ class ChannelMemberResponseDto {
     channelId;
     userId;
     role;
+    isMuted;
+    unreadCount;
+    lastReadMessageId;
+    joinedAt;
     createdAt;
     user;
 }
@@ -54,6 +58,22 @@ __decorate([
     (0, swagger_1.ApiProperty)({ enum: ['OWNER', 'ADMIN', 'MEMBER'] }),
     __metadata("design:type", String)
 ], ChannelMemberResponseDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Boolean }),
+    __metadata("design:type", Boolean)
+], ChannelMemberResponseDto.prototype, "isMuted", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Number }),
+    __metadata("design:type", Number)
+], ChannelMemberResponseDto.prototype, "unreadCount", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: String, required: false, nullable: true }),
+    __metadata("design:type", Object)
+], ChannelMemberResponseDto.prototype, "lastReadMessageId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: String, format: 'date-time' }),
+    __metadata("design:type", Date)
+], ChannelMemberResponseDto.prototype, "joinedAt", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: String, format: 'date-time' }),
     __metadata("design:type", Date)
@@ -87,8 +107,8 @@ __decorate([
     __metadata("design:type", String)
 ], ChannelProjectSummaryDto.prototype, "workspaceId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: String }),
-    __metadata("design:type", String)
+    (0, swagger_1.ApiProperty)({ type: String, required: false, nullable: true }),
+    __metadata("design:type", Object)
 ], ChannelProjectSummaryDto.prototype, "name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: String, required: false, nullable: true }),
@@ -141,6 +161,11 @@ class ChannelResponseDto {
     createdAt;
     updatedAt;
     members;
+    isMember;
+    isMuted;
+    unreadCount;
+    lastReadMessageId;
+    viewerMembership;
     project;
 }
 exports.ChannelResponseDto = ChannelResponseDto;
@@ -184,6 +209,26 @@ __decorate([
     (0, swagger_1.ApiProperty)({ type: ChannelMemberResponseDto, isArray: true }),
     __metadata("design:type", Array)
 ], ChannelResponseDto.prototype, "members", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Boolean }),
+    __metadata("design:type", Boolean)
+], ChannelResponseDto.prototype, "isMember", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Boolean }),
+    __metadata("design:type", Boolean)
+], ChannelResponseDto.prototype, "isMuted", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: Number }),
+    __metadata("design:type", Number)
+], ChannelResponseDto.prototype, "unreadCount", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: String, required: false, nullable: true }),
+    __metadata("design:type", Object)
+], ChannelResponseDto.prototype, "lastReadMessageId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: ChannelMemberResponseDto, required: false, nullable: true }),
+    __metadata("design:type", Object)
+], ChannelResponseDto.prototype, "viewerMembership", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: ChannelProjectSummaryDto, required: false, nullable: true }),
     __metadata("design:type", Object)

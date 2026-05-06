@@ -13,13 +13,22 @@ exports.PresignAttachmentDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class PresignAttachmentDto {
+    scope;
     fileName;
     mimeType;
     taskId;
     docId;
     workspaceId;
+    channelId;
+    fileSize;
 }
 exports.PresignAttachmentDto = PresignAttachmentDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'channel-message', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['channel-message']),
+    __metadata("design:type", String)
+], PresignAttachmentDto.prototype, "scope", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'screenshot.png', required: false }),
     (0, class_validator_1.IsOptional)(),
@@ -32,21 +41,45 @@ __decorate([
     __metadata("design:type", String)
 ], PresignAttachmentDto.prototype, "mimeType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], PresignAttachmentDto.prototype, "taskId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], PresignAttachmentDto.prototype, "docId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], PresignAttachmentDto.prototype, "workspaceId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+        required: false,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], PresignAttachmentDto.prototype, "channelId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 245000, required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], PresignAttachmentDto.prototype, "fileSize", void 0);
 //# sourceMappingURL=presign-attachment.dto.js.map

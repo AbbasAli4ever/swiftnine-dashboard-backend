@@ -378,11 +378,26 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
     _min?: Prisma.NestedIntNullableFilter<$PrismaModel>;
     _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
 };
+export type EnumChannelKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelKind | Prisma.EnumChannelKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelKindFilter<$PrismaModel> | $Enums.ChannelKind;
+};
 export type EnumChannelPrivacyFilter<$PrismaModel = never> = {
     equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
     in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
     notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+};
+export type EnumChannelKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelKind | Prisma.EnumChannelKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelKindWithAggregatesFilter<$PrismaModel> | $Enums.ChannelKind;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelKindFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelKindFilter<$PrismaModel>;
 };
 export type EnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
@@ -392,6 +407,36 @@ export type EnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> = {
     _count?: Prisma.NestedIntFilter<$PrismaModel>;
     _min?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
+};
+export type EnumChannelMessageKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelMessageKind | Prisma.EnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel> | $Enums.ChannelMessageKind;
+};
+export type EnumChannelMessageKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelMessageKind | Prisma.EnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelMessageKindWithAggregatesFilter<$PrismaModel> | $Enums.ChannelMessageKind;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel>;
+};
+export type EnumChannelJoinRequestStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelJoinRequestStatus | Prisma.EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel> | $Enums.ChannelJoinRequestStatus;
+};
+export type EnumChannelJoinRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelJoinRequestStatus | Prisma.EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelJoinRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ChannelJoinRequestStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel>;
 };
 export type EnumDocScopeFilter<$PrismaModel = never> = {
     equals?: $Enums.DocScope | Prisma.EnumDocScopeFieldRefInput<$PrismaModel>;
@@ -787,11 +832,26 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
     gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null;
 };
+export type NestedEnumChannelKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelKind | Prisma.EnumChannelKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelKindFilter<$PrismaModel> | $Enums.ChannelKind;
+};
 export type NestedEnumChannelPrivacyFilter<$PrismaModel = never> = {
     equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
     in?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
     notIn?: $Enums.ChannelPrivacy[] | Prisma.ListEnumChannelPrivacyFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel> | $Enums.ChannelPrivacy;
+};
+export type NestedEnumChannelKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelKind | Prisma.EnumChannelKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelKind[] | Prisma.ListEnumChannelKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelKindWithAggregatesFilter<$PrismaModel> | $Enums.ChannelKind;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelKindFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelKindFilter<$PrismaModel>;
 };
 export type NestedEnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ChannelPrivacy | Prisma.EnumChannelPrivacyFieldRefInput<$PrismaModel>;
@@ -801,6 +861,36 @@ export type NestedEnumChannelPrivacyWithAggregatesFilter<$PrismaModel = never> =
     _count?: Prisma.NestedIntFilter<$PrismaModel>;
     _min?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumChannelPrivacyFilter<$PrismaModel>;
+};
+export type NestedEnumChannelMessageKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelMessageKind | Prisma.EnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel> | $Enums.ChannelMessageKind;
+};
+export type NestedEnumChannelMessageKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelMessageKind | Prisma.EnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelMessageKind[] | Prisma.ListEnumChannelMessageKindFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelMessageKindWithAggregatesFilter<$PrismaModel> | $Enums.ChannelMessageKind;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelMessageKindFilter<$PrismaModel>;
+};
+export type NestedEnumChannelJoinRequestStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelJoinRequestStatus | Prisma.EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel> | $Enums.ChannelJoinRequestStatus;
+};
+export type NestedEnumChannelJoinRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChannelJoinRequestStatus | Prisma.EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.ChannelJoinRequestStatus[] | Prisma.ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumChannelJoinRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ChannelJoinRequestStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumChannelJoinRequestStatusFilter<$PrismaModel>;
 };
 export type NestedEnumDocScopeFilter<$PrismaModel = never> = {
     equals?: $Enums.DocScope | Prisma.EnumDocScopeFieldRefInput<$PrismaModel>;

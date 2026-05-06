@@ -13,6 +13,7 @@ export type ChannelMinAggregateOutputType = {
     projectId: string | null;
     name: string | null;
     description: string | null;
+    kind: $Enums.ChannelKind | null;
     privacy: $Enums.ChannelPrivacy | null;
     createdBy: string | null;
     createdAt: Date | null;
@@ -24,6 +25,7 @@ export type ChannelMaxAggregateOutputType = {
     projectId: string | null;
     name: string | null;
     description: string | null;
+    kind: $Enums.ChannelKind | null;
     privacy: $Enums.ChannelPrivacy | null;
     createdBy: string | null;
     createdAt: Date | null;
@@ -35,6 +37,7 @@ export type ChannelCountAggregateOutputType = {
     projectId: number;
     name: number;
     description: number;
+    kind: number;
     privacy: number;
     createdBy: number;
     createdAt: number;
@@ -47,6 +50,7 @@ export type ChannelMinAggregateInputType = {
     projectId?: true;
     name?: true;
     description?: true;
+    kind?: true;
     privacy?: true;
     createdBy?: true;
     createdAt?: true;
@@ -58,6 +62,7 @@ export type ChannelMaxAggregateInputType = {
     projectId?: true;
     name?: true;
     description?: true;
+    kind?: true;
     privacy?: true;
     createdBy?: true;
     createdAt?: true;
@@ -69,6 +74,7 @@ export type ChannelCountAggregateInputType = {
     projectId?: true;
     name?: true;
     description?: true;
+    kind?: true;
     privacy?: true;
     createdBy?: true;
     createdAt?: true;
@@ -103,8 +109,9 @@ export type ChannelGroupByOutputType = {
     id: string;
     workspaceId: string;
     projectId: string | null;
-    name: string;
+    name: string | null;
     description: string | null;
+    kind: $Enums.ChannelKind;
     privacy: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt: Date;
@@ -123,8 +130,9 @@ export type ChannelWhereInput = {
     id?: Prisma.StringFilter<"Channel"> | string;
     workspaceId?: Prisma.StringFilter<"Channel"> | string;
     projectId?: Prisma.StringNullableFilter<"Channel"> | string | null;
-    name?: Prisma.StringFilter<"Channel"> | string;
+    name?: Prisma.StringNullableFilter<"Channel"> | string | null;
     description?: Prisma.StringNullableFilter<"Channel"> | string | null;
+    kind?: Prisma.EnumChannelKindFilter<"Channel"> | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFilter<"Channel"> | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFilter<"Channel"> | string;
     createdAt?: Prisma.DateTimeFilter<"Channel"> | Date | string;
@@ -132,13 +140,16 @@ export type ChannelWhereInput = {
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null;
     members?: Prisma.ChannelMemberListRelationFilter;
+    messages?: Prisma.ChannelMessageListRelationFilter;
+    joinRequests?: Prisma.ChannelJoinRequestListRelationFilter;
 };
 export type ChannelOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
     workspaceId?: Prisma.SortOrder;
     projectId?: Prisma.SortOrderInput | Prisma.SortOrder;
-    name?: Prisma.SortOrder;
+    name?: Prisma.SortOrderInput | Prisma.SortOrder;
     description?: Prisma.SortOrderInput | Prisma.SortOrder;
+    kind?: Prisma.SortOrder;
     privacy?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -146,6 +157,8 @@ export type ChannelOrderByWithRelationInput = {
     workspace?: Prisma.WorkspaceOrderByWithRelationInput;
     project?: Prisma.ProjectOrderByWithRelationInput;
     members?: Prisma.ChannelMemberOrderByRelationAggregateInput;
+    messages?: Prisma.ChannelMessageOrderByRelationAggregateInput;
+    joinRequests?: Prisma.ChannelJoinRequestOrderByRelationAggregateInput;
 };
 export type ChannelWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -154,8 +167,9 @@ export type ChannelWhereUniqueInput = Prisma.AtLeast<{
     NOT?: Prisma.ChannelWhereInput | Prisma.ChannelWhereInput[];
     workspaceId?: Prisma.StringFilter<"Channel"> | string;
     projectId?: Prisma.StringNullableFilter<"Channel"> | string | null;
-    name?: Prisma.StringFilter<"Channel"> | string;
+    name?: Prisma.StringNullableFilter<"Channel"> | string | null;
     description?: Prisma.StringNullableFilter<"Channel"> | string | null;
+    kind?: Prisma.EnumChannelKindFilter<"Channel"> | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFilter<"Channel"> | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFilter<"Channel"> | string;
     createdAt?: Prisma.DateTimeFilter<"Channel"> | Date | string;
@@ -163,13 +177,16 @@ export type ChannelWhereUniqueInput = Prisma.AtLeast<{
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null;
     members?: Prisma.ChannelMemberListRelationFilter;
+    messages?: Prisma.ChannelMessageListRelationFilter;
+    joinRequests?: Prisma.ChannelJoinRequestListRelationFilter;
 }, "id">;
 export type ChannelOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
     workspaceId?: Prisma.SortOrder;
     projectId?: Prisma.SortOrderInput | Prisma.SortOrder;
-    name?: Prisma.SortOrder;
+    name?: Prisma.SortOrderInput | Prisma.SortOrder;
     description?: Prisma.SortOrderInput | Prisma.SortOrder;
+    kind?: Prisma.SortOrder;
     privacy?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -185,8 +202,9 @@ export type ChannelScalarWhereWithAggregatesInput = {
     id?: Prisma.StringWithAggregatesFilter<"Channel"> | string;
     workspaceId?: Prisma.StringWithAggregatesFilter<"Channel"> | string;
     projectId?: Prisma.StringNullableWithAggregatesFilter<"Channel"> | string | null;
-    name?: Prisma.StringWithAggregatesFilter<"Channel"> | string;
+    name?: Prisma.StringNullableWithAggregatesFilter<"Channel"> | string | null;
     description?: Prisma.StringNullableWithAggregatesFilter<"Channel"> | string | null;
+    kind?: Prisma.EnumChannelKindWithAggregatesFilter<"Channel"> | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyWithAggregatesFilter<"Channel"> | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringWithAggregatesFilter<"Channel"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Channel"> | Date | string;
@@ -194,8 +212,9 @@ export type ChannelScalarWhereWithAggregatesInput = {
 };
 export type ChannelCreateInput = {
     id?: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
@@ -203,23 +222,29 @@ export type ChannelCreateInput = {
     workspace: Prisma.WorkspaceCreateNestedOneWithoutChannelsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutChannelsInput;
     members?: Prisma.ChannelMemberCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestCreateNestedManyWithoutChannelInput;
 };
 export type ChannelUncheckedCreateInput = {
     id?: string;
     workspaceId: string;
     projectId?: string | null;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     members?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutChannelInput;
 };
 export type ChannelUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -227,25 +252,31 @@ export type ChannelUpdateInput = {
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutChannelsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutChannelsNestedInput;
     members?: Prisma.ChannelMemberUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     members?: Prisma.ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUncheckedUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelCreateManyInput = {
     id?: string;
     workspaceId: string;
     projectId?: string | null;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
@@ -253,8 +284,9 @@ export type ChannelCreateManyInput = {
 };
 export type ChannelUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -264,8 +296,9 @@ export type ChannelUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -285,6 +318,7 @@ export type ChannelCountOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     description?: Prisma.SortOrder;
+    kind?: Prisma.SortOrder;
     privacy?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -296,6 +330,7 @@ export type ChannelMaxOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     description?: Prisma.SortOrder;
+    kind?: Prisma.SortOrder;
     privacy?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -307,6 +342,7 @@ export type ChannelMinOrderByAggregateInput = {
     projectId?: Prisma.SortOrder;
     name?: Prisma.SortOrder;
     description?: Prisma.SortOrder;
+    kind?: Prisma.SortOrder;
     privacy?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
@@ -392,6 +428,9 @@ export type ChannelUncheckedUpdateManyWithoutProjectNestedInput = {
     updateMany?: Prisma.ChannelUpdateManyWithWhereWithoutProjectInput | Prisma.ChannelUpdateManyWithWhereWithoutProjectInput[];
     deleteMany?: Prisma.ChannelScalarWhereInput | Prisma.ChannelScalarWhereInput[];
 };
+export type EnumChannelKindFieldUpdateOperationsInput = {
+    set?: $Enums.ChannelKind;
+};
 export type EnumChannelPrivacyFieldUpdateOperationsInput = {
     set?: $Enums.ChannelPrivacy;
 };
@@ -407,27 +446,57 @@ export type ChannelUpdateOneRequiredWithoutMembersNestedInput = {
     connect?: Prisma.ChannelWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ChannelUpdateToOneWithWhereWithoutMembersInput, Prisma.ChannelUpdateWithoutMembersInput>, Prisma.ChannelUncheckedUpdateWithoutMembersInput>;
 };
+export type ChannelCreateNestedOneWithoutMessagesInput = {
+    create?: Prisma.XOR<Prisma.ChannelCreateWithoutMessagesInput, Prisma.ChannelUncheckedCreateWithoutMessagesInput>;
+    connectOrCreate?: Prisma.ChannelCreateOrConnectWithoutMessagesInput;
+    connect?: Prisma.ChannelWhereUniqueInput;
+};
+export type ChannelUpdateOneRequiredWithoutMessagesNestedInput = {
+    create?: Prisma.XOR<Prisma.ChannelCreateWithoutMessagesInput, Prisma.ChannelUncheckedCreateWithoutMessagesInput>;
+    connectOrCreate?: Prisma.ChannelCreateOrConnectWithoutMessagesInput;
+    upsert?: Prisma.ChannelUpsertWithoutMessagesInput;
+    connect?: Prisma.ChannelWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ChannelUpdateToOneWithWhereWithoutMessagesInput, Prisma.ChannelUpdateWithoutMessagesInput>, Prisma.ChannelUncheckedUpdateWithoutMessagesInput>;
+};
+export type ChannelCreateNestedOneWithoutJoinRequestsInput = {
+    create?: Prisma.XOR<Prisma.ChannelCreateWithoutJoinRequestsInput, Prisma.ChannelUncheckedCreateWithoutJoinRequestsInput>;
+    connectOrCreate?: Prisma.ChannelCreateOrConnectWithoutJoinRequestsInput;
+    connect?: Prisma.ChannelWhereUniqueInput;
+};
+export type ChannelUpdateOneRequiredWithoutJoinRequestsNestedInput = {
+    create?: Prisma.XOR<Prisma.ChannelCreateWithoutJoinRequestsInput, Prisma.ChannelUncheckedCreateWithoutJoinRequestsInput>;
+    connectOrCreate?: Prisma.ChannelCreateOrConnectWithoutJoinRequestsInput;
+    upsert?: Prisma.ChannelUpsertWithoutJoinRequestsInput;
+    connect?: Prisma.ChannelWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ChannelUpdateToOneWithWhereWithoutJoinRequestsInput, Prisma.ChannelUpdateWithoutJoinRequestsInput>, Prisma.ChannelUncheckedUpdateWithoutJoinRequestsInput>;
+};
 export type ChannelCreateWithoutWorkspaceInput = {
     id?: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     project?: Prisma.ProjectCreateNestedOneWithoutChannelsInput;
     members?: Prisma.ChannelMemberCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestCreateNestedManyWithoutChannelInput;
 };
 export type ChannelUncheckedCreateWithoutWorkspaceInput = {
     id?: string;
     projectId?: string | null;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     members?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutChannelInput;
 };
 export type ChannelCreateOrConnectWithoutWorkspaceInput = {
     where: Prisma.ChannelWhereUniqueInput;
@@ -457,8 +526,9 @@ export type ChannelScalarWhereInput = {
     id?: Prisma.StringFilter<"Channel"> | string;
     workspaceId?: Prisma.StringFilter<"Channel"> | string;
     projectId?: Prisma.StringNullableFilter<"Channel"> | string | null;
-    name?: Prisma.StringFilter<"Channel"> | string;
+    name?: Prisma.StringNullableFilter<"Channel"> | string | null;
     description?: Prisma.StringNullableFilter<"Channel"> | string | null;
+    kind?: Prisma.EnumChannelKindFilter<"Channel"> | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFilter<"Channel"> | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFilter<"Channel"> | string;
     createdAt?: Prisma.DateTimeFilter<"Channel"> | Date | string;
@@ -466,25 +536,31 @@ export type ChannelScalarWhereInput = {
 };
 export type ChannelCreateWithoutProjectInput = {
     id?: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutChannelsInput;
     members?: Prisma.ChannelMemberCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestCreateNestedManyWithoutChannelInput;
 };
 export type ChannelUncheckedCreateWithoutProjectInput = {
     id?: string;
     workspaceId: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     members?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutChannelInput;
 };
 export type ChannelCreateOrConnectWithoutProjectInput = {
     where: Prisma.ChannelWhereUniqueInput;
@@ -509,25 +585,31 @@ export type ChannelUpdateManyWithWhereWithoutProjectInput = {
 };
 export type ChannelCreateWithoutMembersInput = {
     id?: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutChannelsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutChannelsInput;
+    messages?: Prisma.ChannelMessageCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestCreateNestedManyWithoutChannelInput;
 };
 export type ChannelUncheckedCreateWithoutMembersInput = {
     id?: string;
     workspaceId: string;
     projectId?: string | null;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    messages?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutChannelInput;
 };
 export type ChannelCreateOrConnectWithoutMembersInput = {
     where: Prisma.ChannelWhereUniqueInput;
@@ -544,31 +626,176 @@ export type ChannelUpdateToOneWithWhereWithoutMembersInput = {
 };
 export type ChannelUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutChannelsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutChannelsNestedInput;
+    messages?: Prisma.ChannelMessageUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    messages?: Prisma.ChannelMessageUncheckedUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutChannelNestedInput;
+};
+export type ChannelCreateWithoutMessagesInput = {
+    id?: string;
+    name?: string | null;
+    description?: string | null;
+    kind?: $Enums.ChannelKind;
+    privacy?: $Enums.ChannelPrivacy;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutChannelsInput;
+    project?: Prisma.ProjectCreateNestedOneWithoutChannelsInput;
+    members?: Prisma.ChannelMemberCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestCreateNestedManyWithoutChannelInput;
+};
+export type ChannelUncheckedCreateWithoutMessagesInput = {
+    id?: string;
+    workspaceId: string;
+    projectId?: string | null;
+    name?: string | null;
+    description?: string | null;
+    kind?: $Enums.ChannelKind;
+    privacy?: $Enums.ChannelPrivacy;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    members?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutChannelInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutChannelInput;
+};
+export type ChannelCreateOrConnectWithoutMessagesInput = {
+    where: Prisma.ChannelWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ChannelCreateWithoutMessagesInput, Prisma.ChannelUncheckedCreateWithoutMessagesInput>;
+};
+export type ChannelUpsertWithoutMessagesInput = {
+    update: Prisma.XOR<Prisma.ChannelUpdateWithoutMessagesInput, Prisma.ChannelUncheckedUpdateWithoutMessagesInput>;
+    create: Prisma.XOR<Prisma.ChannelCreateWithoutMessagesInput, Prisma.ChannelUncheckedCreateWithoutMessagesInput>;
+    where?: Prisma.ChannelWhereInput;
+};
+export type ChannelUpdateToOneWithWhereWithoutMessagesInput = {
+    where?: Prisma.ChannelWhereInput;
+    data: Prisma.XOR<Prisma.ChannelUpdateWithoutMessagesInput, Prisma.ChannelUncheckedUpdateWithoutMessagesInput>;
+};
+export type ChannelUpdateWithoutMessagesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
+    privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutChannelsNestedInput;
+    project?: Prisma.ProjectUpdateOneWithoutChannelsNestedInput;
+    members?: Prisma.ChannelMemberUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUpdateManyWithoutChannelNestedInput;
+};
+export type ChannelUncheckedUpdateWithoutMessagesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
+    privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    members?: Prisma.ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutChannelNestedInput;
+};
+export type ChannelCreateWithoutJoinRequestsInput = {
+    id?: string;
+    name?: string | null;
+    description?: string | null;
+    kind?: $Enums.ChannelKind;
+    privacy?: $Enums.ChannelPrivacy;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutChannelsInput;
+    project?: Prisma.ProjectCreateNestedOneWithoutChannelsInput;
+    members?: Prisma.ChannelMemberCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageCreateNestedManyWithoutChannelInput;
+};
+export type ChannelUncheckedCreateWithoutJoinRequestsInput = {
+    id?: string;
+    workspaceId: string;
+    projectId?: string | null;
+    name?: string | null;
+    description?: string | null;
+    kind?: $Enums.ChannelKind;
+    privacy?: $Enums.ChannelPrivacy;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    members?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutChannelInput;
+    messages?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutChannelInput;
+};
+export type ChannelCreateOrConnectWithoutJoinRequestsInput = {
+    where: Prisma.ChannelWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ChannelCreateWithoutJoinRequestsInput, Prisma.ChannelUncheckedCreateWithoutJoinRequestsInput>;
+};
+export type ChannelUpsertWithoutJoinRequestsInput = {
+    update: Prisma.XOR<Prisma.ChannelUpdateWithoutJoinRequestsInput, Prisma.ChannelUncheckedUpdateWithoutJoinRequestsInput>;
+    create: Prisma.XOR<Prisma.ChannelCreateWithoutJoinRequestsInput, Prisma.ChannelUncheckedCreateWithoutJoinRequestsInput>;
+    where?: Prisma.ChannelWhereInput;
+};
+export type ChannelUpdateToOneWithWhereWithoutJoinRequestsInput = {
+    where?: Prisma.ChannelWhereInput;
+    data: Prisma.XOR<Prisma.ChannelUpdateWithoutJoinRequestsInput, Prisma.ChannelUncheckedUpdateWithoutJoinRequestsInput>;
+};
+export type ChannelUpdateWithoutJoinRequestsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
+    privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutChannelsNestedInput;
+    project?: Prisma.ProjectUpdateOneWithoutChannelsNestedInput;
+    members?: Prisma.ChannelMemberUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUpdateManyWithoutChannelNestedInput;
+};
+export type ChannelUncheckedUpdateWithoutJoinRequestsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
+    privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    members?: Prisma.ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUncheckedUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelCreateManyWorkspaceInput = {
     id?: string;
     projectId?: string | null;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
@@ -576,31 +803,38 @@ export type ChannelCreateManyWorkspaceInput = {
 };
 export type ChannelUpdateWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     project?: Prisma.ProjectUpdateOneWithoutChannelsNestedInput;
     members?: Prisma.ChannelMemberUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     members?: Prisma.ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUncheckedUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateManyWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -609,8 +843,9 @@ export type ChannelUncheckedUpdateManyWithoutWorkspaceInput = {
 export type ChannelCreateManyProjectInput = {
     id?: string;
     workspaceId: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
+    kind?: $Enums.ChannelKind;
     privacy?: $Enums.ChannelPrivacy;
     createdBy: string;
     createdAt?: Date | string;
@@ -618,31 +853,38 @@ export type ChannelCreateManyProjectInput = {
 };
 export type ChannelUpdateWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutChannelsNestedInput;
     members?: Prisma.ChannelMemberUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     members?: Prisma.ChannelMemberUncheckedUpdateManyWithoutChannelNestedInput;
+    messages?: Prisma.ChannelMessageUncheckedUpdateManyWithoutChannelNestedInput;
+    joinRequests?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutChannelNestedInput;
 };
 export type ChannelUncheckedUpdateManyWithoutProjectInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
-    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    kind?: Prisma.EnumChannelKindFieldUpdateOperationsInput | $Enums.ChannelKind;
     privacy?: Prisma.EnumChannelPrivacyFieldUpdateOperationsInput | $Enums.ChannelPrivacy;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -650,9 +892,13 @@ export type ChannelUncheckedUpdateManyWithoutProjectInput = {
 };
 export type ChannelCountOutputType = {
     members: number;
+    messages: number;
+    joinRequests: number;
 };
 export type ChannelCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     members?: boolean | ChannelCountOutputTypeCountMembersArgs;
+    messages?: boolean | ChannelCountOutputTypeCountMessagesArgs;
+    joinRequests?: boolean | ChannelCountOutputTypeCountJoinRequestsArgs;
 };
 export type ChannelCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ChannelCountOutputTypeSelect<ExtArgs> | null;
@@ -660,12 +906,19 @@ export type ChannelCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
 export type ChannelCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ChannelMemberWhereInput;
 };
+export type ChannelCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ChannelMessageWhereInput;
+};
+export type ChannelCountOutputTypeCountJoinRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ChannelJoinRequestWhereInput;
+};
 export type ChannelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     workspaceId?: boolean;
     projectId?: boolean;
     name?: boolean;
     description?: boolean;
+    kind?: boolean;
     privacy?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -673,6 +926,8 @@ export type ChannelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     project?: boolean | Prisma.Channel$projectArgs<ExtArgs>;
     members?: boolean | Prisma.Channel$membersArgs<ExtArgs>;
+    messages?: boolean | Prisma.Channel$messagesArgs<ExtArgs>;
+    joinRequests?: boolean | Prisma.Channel$joinRequestsArgs<ExtArgs>;
     _count?: boolean | Prisma.ChannelCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["channel"]>;
 export type ChannelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -681,6 +936,7 @@ export type ChannelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
     projectId?: boolean;
     name?: boolean;
     description?: boolean;
+    kind?: boolean;
     privacy?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -694,6 +950,7 @@ export type ChannelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
     projectId?: boolean;
     name?: boolean;
     description?: boolean;
+    kind?: boolean;
     privacy?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
@@ -707,16 +964,19 @@ export type ChannelSelectScalar = {
     projectId?: boolean;
     name?: boolean;
     description?: boolean;
+    kind?: boolean;
     privacy?: boolean;
     createdBy?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
 };
-export type ChannelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "projectId" | "name" | "description" | "privacy" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["channel"]>;
+export type ChannelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "projectId" | "name" | "description" | "kind" | "privacy" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["channel"]>;
 export type ChannelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     project?: boolean | Prisma.Channel$projectArgs<ExtArgs>;
     members?: boolean | Prisma.Channel$membersArgs<ExtArgs>;
+    messages?: boolean | Prisma.Channel$messagesArgs<ExtArgs>;
+    joinRequests?: boolean | Prisma.Channel$joinRequestsArgs<ExtArgs>;
     _count?: boolean | Prisma.ChannelCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type ChannelIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -733,13 +993,16 @@ export type $ChannelPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         workspace: Prisma.$WorkspacePayload<ExtArgs>;
         project: Prisma.$ProjectPayload<ExtArgs> | null;
         members: Prisma.$ChannelMemberPayload<ExtArgs>[];
+        messages: Prisma.$ChannelMessagePayload<ExtArgs>[];
+        joinRequests: Prisma.$ChannelJoinRequestPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
         workspaceId: string;
         projectId: string | null;
-        name: string;
+        name: string | null;
         description: string | null;
+        kind: $Enums.ChannelKind;
         privacy: $Enums.ChannelPrivacy;
         createdBy: string;
         createdAt: Date;
@@ -799,6 +1062,8 @@ export interface Prisma__ChannelClient<T, Null = never, ExtArgs extends runtime.
     workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     project<T extends Prisma.Channel$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Channel$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     members<T extends Prisma.Channel$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Channel$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    messages<T extends Prisma.Channel$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Channel$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    joinRequests<T extends Prisma.Channel$joinRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Channel$joinRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelJoinRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -809,6 +1074,7 @@ export interface ChannelFieldRefs {
     readonly projectId: Prisma.FieldRef<"Channel", 'String'>;
     readonly name: Prisma.FieldRef<"Channel", 'String'>;
     readonly description: Prisma.FieldRef<"Channel", 'String'>;
+    readonly kind: Prisma.FieldRef<"Channel", 'ChannelKind'>;
     readonly privacy: Prisma.FieldRef<"Channel", 'ChannelPrivacy'>;
     readonly createdBy: Prisma.FieldRef<"Channel", 'String'>;
     readonly createdAt: Prisma.FieldRef<"Channel", 'DateTime'>;
@@ -930,6 +1196,28 @@ export type Channel$membersArgs<ExtArgs extends runtime.Types.Extensions.Interna
     take?: number;
     skip?: number;
     distinct?: Prisma.ChannelMemberScalarFieldEnum | Prisma.ChannelMemberScalarFieldEnum[];
+};
+export type Channel$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ChannelMessageSelect<ExtArgs> | null;
+    omit?: Prisma.ChannelMessageOmit<ExtArgs> | null;
+    include?: Prisma.ChannelMessageInclude<ExtArgs> | null;
+    where?: Prisma.ChannelMessageWhereInput;
+    orderBy?: Prisma.ChannelMessageOrderByWithRelationInput | Prisma.ChannelMessageOrderByWithRelationInput[];
+    cursor?: Prisma.ChannelMessageWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ChannelMessageScalarFieldEnum | Prisma.ChannelMessageScalarFieldEnum[];
+};
+export type Channel$joinRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ChannelJoinRequestSelect<ExtArgs> | null;
+    omit?: Prisma.ChannelJoinRequestOmit<ExtArgs> | null;
+    include?: Prisma.ChannelJoinRequestInclude<ExtArgs> | null;
+    where?: Prisma.ChannelJoinRequestWhereInput;
+    orderBy?: Prisma.ChannelJoinRequestOrderByWithRelationInput | Prisma.ChannelJoinRequestOrderByWithRelationInput[];
+    cursor?: Prisma.ChannelJoinRequestWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ChannelJoinRequestScalarFieldEnum | Prisma.ChannelJoinRequestScalarFieldEnum[];
 };
 export type ChannelDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ChannelSelect<ExtArgs> | null;

@@ -40,37 +40,68 @@ let AttachmentsService = class AttachmentsService {
         const bucket = process.env.AWS_S3_BUCKET;
         if (!bucket)
             throw new common_1.InternalServerErrorException('S3 bucket is not configured');
+        if (dto.scope && dto.scope !== 'channel-message') {
+            throw new common_1.BadRequestException('Unsupported attachment scope');
+        }
+        if (dto.scope === 'channel-message' && !dto.channelId) {
+            throw new common_1.BadRequestException('channelId is required for channel-message uploads');
+        }
         const id = (0, node_crypto_1.randomUUID)();
         const ext = dto.fileName?.split('.').pop() ?? dto.mimeType.split('/').pop() ?? 'bin';
         const sanitizedFileName = (dto.fileName ?? `${id}.${ext}`).replace(/\s+/g, '_');
         const filename = `${id}-${sanitizedFileName}`;
         const rawBasePrefix = process.env.AWS_S3_PREFIX ?? 'swiftnine/docs/app';
         const basePrefix = rawBasePrefix.replace(/^\/+|\/+$/g, '');
-        if ([dto.taskId, dto.docId, dto.workspaceId].filter(Boolean).length > 1) {
+        if ([dto.taskId, dto.docId, dto.workspaceId, dto.channelId].filter(Boolean)
+            .length > 1) {
             throw new common_1.BadRequestException('Only one upload scope can be provided');
         }
         if (dto.docId) {
             const doc = await this.findDocOrThrow(dto.docId);
             await this.docPermissions.assertCanEdit(userId, doc);
         }
+        if (dto.channelId) {
+            await this.findChannelMemberOrThrow(dto.channelId, userId);
+        }
         const rawScopePrefix = dto.taskId
             ? `attachments/task-${dto.taskId}`
             : dto.docId
                 ? `attachments/doc-${dto.docId}`
-                : dto.workspaceId
-                    ? `attachments/workspace-${dto.workspaceId}`
-                    : `attachments/user-${userId}`;
+                : dto.channelId
+                    ? `attachments/channel-${dto.channelId}`
+                    : dto.workspaceId
+                        ? `attachments/workspace-${dto.workspaceId}`
+                        : `attachments/user-${userId}`;
         const scopePrefix = rawScopePrefix.replace(/^\/+|\/+$/g, '');
         const s3Key = `${basePrefix}/${scopePrefix}/${filename}`;
         const cmd = new client_s3_1.PutObjectCommand({ Bucket: bucket, Key: s3Key });
         const expiresIn = 60 * 15;
         const uploadUrl = await (0, s3_request_presigner_1.getSignedUrl)(this.s3, cmd, { expiresIn });
         const expiresAt = new Date(Date.now() + expiresIn * 1000);
-        return { uploadUrl, s3Key, expiresAt };
+        let attachmentId = null;
+        if (dto.channelId) {
+            const attachment = await this.prisma.attachment.create({
+                data: {
+                    channelMessageId: null,
+                    uploadedBy: userId,
+                    fileName: dto.fileName ?? sanitizedFileName,
+                    s3Key,
+                    mimeType: dto.mimeType,
+                    fileSize: BigInt(dto.fileSize ?? 0),
+                },
+                select: { id: true },
+            });
+            attachmentId = attachment.id;
+        }
+        return { uploadUrl, s3Key, expiresAt, attachmentId };
     }
     async createAttachment(actorId, taskId, memberId, s3Key, fileName, mimeType, fileSize) {
         const task = await this.prisma.task.findFirst({
-            where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
+            where: {
+                id: taskId,
+                deletedAt: null,
+                list: { deletedAt: null, project: { workspace: { deletedAt: null } } },
+            },
             select: {
                 id: true,
                 title: true,
@@ -103,7 +134,14 @@ let AttachmentsService = class AttachmentsService {
                 mimeType: metadata.mimeType,
                 fileSize: metadata.fileSize,
             },
-            select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
+            select: {
+                id: true,
+                s3Key: true,
+                fileName: true,
+                mimeType: true,
+                fileSize: true,
+                createdAt: true,
+            },
         });
         await this.activity.log({
             workspaceId,
@@ -143,7 +181,14 @@ let AttachmentsService = class AttachmentsService {
                 mimeType: metadata.mimeType,
                 fileSize: metadata.fileSize,
             },
-            select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true, createdAt: true },
+            select: {
+                id: true,
+                s3Key: true,
+                fileName: true,
+                mimeType: true,
+                fileSize: true,
+                createdAt: true,
+            },
         });
         await this.activity.log({
             workspaceId: doc.workspaceId,
@@ -166,7 +211,11 @@ let AttachmentsService = class AttachmentsService {
     }
     async listAttachmentsForTask(actorId, taskId, memberId) {
         const task = await this.prisma.task.findFirst({
-            where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
+            where: {
+                id: taskId,
+                deletedAt: null,
+                list: { deletedAt: null, project: { workspace: { deletedAt: null } } },
+            },
             select: {
                 id: true,
                 title: true,
@@ -188,11 +237,20 @@ let AttachmentsService = class AttachmentsService {
             throw new common_1.NotFoundException('Member not found in workspace');
         const attachments = await this.prisma.attachment.findMany({
             where: { taskId, deletedAt: null },
-            select: { id: true, fileName: true, mimeType: true, s3Key: true, fileSize: true },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                s3Key: true,
+                fileSize: true,
+            },
             orderBy: { createdAt: 'asc' },
         });
         const results = await Promise.all(attachments.map(async (att) => {
-            const cmd = new client_s3_1.GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: att.s3Key });
+            const cmd = new client_s3_1.GetObjectCommand({
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: att.s3Key,
+            });
             const url = await (0, s3_request_presigner_1.getSignedUrl)(this.s3, cmd, { expiresIn: 60 * 15 });
             return {
                 ...att,
@@ -208,14 +266,24 @@ let AttachmentsService = class AttachmentsService {
         await this.docPermissions.assertCanView(actorId, doc);
         const attachments = await this.prisma.attachment.findMany({
             where: { docId, deletedAt: null },
-            select: { id: true, fileName: true, mimeType: true, s3Key: true, fileSize: true },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                s3Key: true,
+                fileSize: true,
+            },
             orderBy: { createdAt: 'asc' },
         });
         return Promise.all(attachments.map((att) => this.toViewAttachment(att)));
     }
     async deleteAttachment(actorId, taskId, memberId, s3Key) {
         const task = await this.prisma.task.findFirst({
-            where: { id: taskId, deletedAt: null, list: { deletedAt: null, project: { workspace: { deletedAt: null } } } },
+            where: {
+                id: taskId,
+                deletedAt: null,
+                list: { deletedAt: null, project: { workspace: { deletedAt: null } } },
+            },
             select: {
                 id: true,
                 title: true,
@@ -240,11 +308,20 @@ let AttachmentsService = class AttachmentsService {
         }
         const attachment = await this.prisma.attachment.findFirst({
             where: { taskId, s3Key, deletedAt: null },
-            select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true },
+            select: {
+                id: true,
+                s3Key: true,
+                fileName: true,
+                mimeType: true,
+                fileSize: true,
+            },
         });
         if (!attachment)
             throw new common_1.NotFoundException('Attachment not found');
-        await this.prisma.attachment.update({ where: { id: attachment.id }, data: { deletedAt: new Date() } });
+        await this.prisma.attachment.update({
+            where: { id: attachment.id },
+            data: { deletedAt: new Date() },
+        });
         await this.activity.log({
             workspaceId,
             entityType: 'attachment',
@@ -272,7 +349,13 @@ let AttachmentsService = class AttachmentsService {
         this.assertDocAttachmentKey(docId, s3Key);
         const attachment = await this.prisma.attachment.findFirst({
             where: { docId, s3Key, deletedAt: null },
-            select: { id: true, s3Key: true, fileName: true, mimeType: true, fileSize: true },
+            select: {
+                id: true,
+                s3Key: true,
+                fileName: true,
+                mimeType: true,
+                fileSize: true,
+            },
         });
         if (!attachment)
             throw new common_1.NotFoundException('Attachment not found');
@@ -325,6 +408,19 @@ let AttachmentsService = class AttachmentsService {
             throw new common_1.NotFoundException('Document not found');
         return doc;
     }
+    async findChannelMemberOrThrow(channelId, userId) {
+        const membership = await this.prisma.channelMember.findFirst({
+            where: { channelId, userId },
+            select: {
+                id: true,
+                channel: { select: { id: true, workspaceId: true } },
+            },
+        });
+        if (!membership) {
+            throw new common_1.ForbiddenException('Channel membership required');
+        }
+        return membership;
+    }
     async resolveUploadedFileMetadata(s3Key, fileName, mimeType, fileSize) {
         const bucket = process.env.AWS_S3_BUCKET;
         if (!bucket)
@@ -343,8 +439,12 @@ let AttachmentsService = class AttachmentsService {
                 }
                 resolvedFileSize = BigInt(head.ContentLength);
                 resolvedMimeType = head.ContentType ?? resolvedMimeType;
-                if (!fileName && head.Metadata && Object.keys(head.Metadata).length > 0) {
-                    const possibleName = head.Metadata['filename'] || head.Metadata['file-name'] || head.Metadata['originalname'];
+                if (!fileName &&
+                    head.Metadata &&
+                    Object.keys(head.Metadata).length > 0) {
+                    const possibleName = head.Metadata['filename'] ||
+                        head.Metadata['file-name'] ||
+                        head.Metadata['originalname'];
                     if (possibleName)
                         resolvedFileName = possibleName;
                 }
@@ -368,7 +468,10 @@ let AttachmentsService = class AttachmentsService {
         }
     }
     async toViewAttachment(att) {
-        const cmd = new client_s3_1.GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: att.s3Key });
+        const cmd = new client_s3_1.GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: att.s3Key,
+        });
         const url = await (0, s3_request_presigner_1.getSignedUrl)(this.s3, cmd, { expiresIn: 60 * 15 });
         return {
             ...att,

@@ -18,6 +18,7 @@ export declare class AttachmentsController {
         uploadUrl: string;
         s3Key: string;
         expiresAt: Date;
+        attachmentId: string | null;
     }>>;
     create(req: AuthenticatedRequest, dto: CreateAttachmentDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;

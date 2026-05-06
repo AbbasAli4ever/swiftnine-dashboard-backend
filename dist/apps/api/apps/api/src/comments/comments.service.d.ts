@@ -48,8 +48,8 @@ export declare class CommentsService {
         deletedAt: Date | null;
         userId: string;
         taskId: string;
-        parentId: string | null;
         isEdited: boolean;
+        parentId: string | null;
     })[]>;
     createComment(workspaceId: string, userId: string, taskId: string, content: string, parentId?: string, mentionedUserIds?: string[]): Promise<{
         mentions: {
@@ -90,8 +90,8 @@ export declare class CommentsService {
         deletedAt: Date | null;
         userId: string;
         taskId: string;
-        parentId: string | null;
         isEdited: boolean;
+        parentId: string | null;
     }>;
     updateComment(workspaceId: string, userId: string, commentId: string, content: string, mentionedUserIds?: string[]): Promise<{
         mentions: {
@@ -132,8 +132,8 @@ export declare class CommentsService {
         deletedAt: Date | null;
         userId: string;
         taskId: string;
-        parentId: string | null;
         isEdited: boolean;
+        parentId: string | null;
     }>;
     deleteComment(workspaceId: string, userId: string, commentId: string, requesterRole?: string): Promise<void>;
     addReaction(workspaceId: string, userId: string, commentId: string, reactFace: string): Promise<{

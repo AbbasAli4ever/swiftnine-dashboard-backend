@@ -1,8 +1,8 @@
 import type { Request } from 'express';
-import { buildCorsOptions } from './cors.config';
+import { buildCorsOptions, buildWebsocketCorsOptions } from './cors.config';
 
 describe('buildCorsOptions', () => {
-  it('builds a credentialed CORS config that allows any origin and method', () => {
+  it('builds a credentialed CORS config that allows any origin and method by default', () => {
     const options = buildCorsOptions({
       CORS_ALLOW_CREDENTIALS: 'true',
       CORS_METHODS: 'GET,POST',
@@ -30,7 +30,7 @@ describe('buildCorsOptions', () => {
     );
   });
 
-  it('allows requests from any origin', () => {
+  it('allows requests from any origin when no allowlist is configured', () => {
     const options = buildCorsOptions({
       CORS_ALLOW_CREDENTIALS: 'true',
     });
@@ -105,5 +105,61 @@ describe('buildCorsOptions', () => {
         origin: true,
       }),
     );
+  });
+
+  it('restricts HTTP origins when an allowlist is configured', () => {
+    const options = buildCorsOptions({
+      CORS_ALLOWED_ORIGINS: 'https://app.example.com,https://admin.example.com',
+    });
+
+    const allowedCallback = jest.fn();
+    options(
+      {
+        method: 'GET',
+        url: '/health',
+        headers: { origin: 'https://app.example.com' },
+      } as Request,
+      allowedCallback,
+    );
+
+    expect(allowedCallback).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({
+        origin: 'https://app.example.com',
+      }),
+    );
+
+    const deniedCallback = jest.fn();
+    options(
+      {
+        method: 'GET',
+        url: '/health',
+        headers: { origin: 'https://evil.example.com' },
+      } as Request,
+      deniedCallback,
+    );
+
+    expect(deniedCallback).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({
+        origin: false,
+      }),
+    );
+  });
+});
+
+describe('buildWebsocketCorsOptions', () => {
+  it('allows listed origins and rejects others', () => {
+    const cors = buildWebsocketCorsOptions({
+      CORS_ALLOWED_ORIGINS: 'https://app.example.com',
+    });
+
+    const allowed = jest.fn();
+    cors.origin('https://app.example.com', allowed);
+    expect(allowed).toHaveBeenCalledWith(null, true);
+
+    const denied = jest.fn();
+    cors.origin('https://evil.example.com', denied);
+    expect(denied).toHaveBeenCalledWith(expect.any(Error), false);
   });
 });

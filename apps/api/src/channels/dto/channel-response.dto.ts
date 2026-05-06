@@ -24,6 +24,18 @@ export class ChannelMemberResponseDto {
   @ApiProperty({ enum: ['OWNER', 'ADMIN', 'MEMBER'] })
   role!: 'OWNER' | 'ADMIN' | 'MEMBER';
 
+  @ApiProperty({ type: Boolean })
+  isMuted!: boolean;
+
+  @ApiProperty({ type: Number })
+  unreadCount!: number;
+
+  @ApiProperty({ type: String, required: false, nullable: true })
+  lastReadMessageId?: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  joinedAt!: Date;
+
   @ApiProperty({ type: String, format: 'date-time' })
   createdAt!: Date;
 
@@ -38,8 +50,8 @@ export class ChannelProjectSummaryDto {
   @ApiProperty({ type: String })
   workspaceId!: string;
 
-  @ApiProperty({ type: String })
-  name!: string;
+  @ApiProperty({ type: String, required: false, nullable: true })
+  name!: string | null;
 
   @ApiProperty({ type: String, required: false, nullable: true })
   description?: string | null;
@@ -102,6 +114,21 @@ export class ChannelResponseDto {
 
   @ApiProperty({ type: ChannelMemberResponseDto, isArray: true })
   members!: ChannelMemberResponseDto[];
+
+  @ApiProperty({ type: Boolean })
+  isMember!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  isMuted!: boolean;
+
+  @ApiProperty({ type: Number })
+  unreadCount!: number;
+
+  @ApiProperty({ type: String, required: false, nullable: true })
+  lastReadMessageId?: string | null;
+
+  @ApiProperty({ type: ChannelMemberResponseDto, required: false, nullable: true })
+  viewerMembership?: ChannelMemberResponseDto | null;
 
   @ApiProperty({ type: ChannelProjectSummaryDto, required: false, nullable: true })
   project?: ChannelProjectSummaryDto | null;
