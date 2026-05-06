@@ -337,7 +337,6 @@ export class DashboardService {
         id: projectId,
         workspaceId,
         deletedAt: null,
-        isArchived: false,
       },
       select: {
         id: true,

@@ -237,7 +237,7 @@ export class TaskService {
     projectId: string,
     query: ListTasksQuery,
   ): Promise<TaskSearchResult> {
-    await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+    await this.findProjectOrThrow(workspaceId, projectId, true);
     return this.searchTasks({ workspaceId, userId, projectId }, query);
   }
 
@@ -255,7 +255,7 @@ export class TaskService {
     projectId: string,
     query: ListTasksQuery,
   ): Promise<ProjectBoardData> {
-    await this.findProjectOrThrow(workspaceId, projectId, query.includeArchived);
+    await this.findProjectOrThrow(workspaceId, projectId, true);
 
     const [statuses, tasks] = await Promise.all([
       this.prisma.status.findMany({

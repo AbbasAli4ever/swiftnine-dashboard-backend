@@ -2329,13 +2329,53 @@ x-workspace-id: <workspaceId>
 }
 ```
 
-**Notes**
-- `q` and `search` are aliases
-- `assignee_ids` supports special value `unassigned`
-- `include_subtasks` defaults to `false`
-- `include_closed` defaults to `true`
-- `include_archived` defaults to `false`
-- `me=true` filters to tasks assigned to the current user
+**Query param reference**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` / `search` | string | — | Full-text search across title and description. Both are aliases |
+| `page` | number | `1` | Page number |
+| `limit` | number | `20` | Page size |
+| `sort_by` | string | `created_at` | `due_date`, `priority`, `created_at`, `updated_at`, `title` |
+| `sort_order` | string | `desc` | `asc` or `desc` |
+| `me` | boolean | `false` | **My Tasks mode** — filters to tasks assigned to the current user. Use this for any "My Tasks" view instead of passing your own userId |
+| `status_ids` | CSV UUIDs | — | Filter by specific status IDs |
+| `status_groups` | CSV | — | `NOT_STARTED`, `ACTIVE`, `DONE`, `CLOSED` |
+| `priority` | CSV | — | `URGENT`, `HIGH`, `NORMAL`, `LOW`, `NONE` |
+| `assignee_ids` | CSV UUIDs | — | Filter by assignee user IDs. Special value: `unassigned` returns tasks with no assignees |
+| `assignee_match` | string | `any` | `any` = has at least one. `all` = has all of the given assignees |
+| `tag_ids` | CSV UUIDs | — | Filter by tag IDs |
+| `tag_match` | string | `any` | `any` or `all` |
+| `due_date` | string | — | `today_or_earlier`, `this_week`, `overdue`, `none` |
+| `include_subtasks` | boolean | `false` | Include subtasks (depth > 0) in results |
+| `include_closed` | boolean | `true` | Include tasks in `CLOSED` status group |
+| `include_archived` | boolean | `false` | Include tasks from archived lists/projects |
+
+**`me=true` — My Tasks**
+
+`me=true` injects the current authenticated user's ID into the assignee filter server-side. You don't need to know the user's UUID — the backend resolves it from the JWT.
+
+```
+GET /api/v1/tasks?me=true
+```
+
+Common combinations:
+
+```
+# My overdue tasks
+GET /api/v1/tasks?me=true&due_date=overdue
+
+# My active tasks sorted by due date (default "My Tasks" view)
+GET /api/v1/tasks?me=true&status_groups=ACTIVE,NOT_STARTED&sort_by=due_date&sort_order=asc
+
+# My high priority tasks
+GET /api/v1/tasks?me=true&priority=HIGH,URGENT
+
+# My tasks in a specific project
+GET /api/v1/tasks?me=true&project_id=<uuid>
+```
+
+> `me=true` and `assignee_ids` can be combined — they are merged. `me=true&assignee_ids=<otherId>` returns tasks assigned to you **or** the other user.
 
 ---
 
