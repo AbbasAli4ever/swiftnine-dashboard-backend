@@ -13,82 +13,82 @@ export declare class JoinRequestsService {
     private assertChannelAdmin;
     createRequest(workspaceId: string, channelId: string, requesterUserId: string): Promise<{
         user: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
         decidedBy: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         } | null;
     } & {
+        status: ChannelJoinRequestStatus;
         id: string;
         userId: string;
-        status: ChannelJoinRequestStatus;
         channelId: string;
         requestedAt: Date;
-        decidedById: string | null;
         decidedAt: Date | null;
+        decidedById: string | null;
     }>;
     listRequests(workspaceId: string, channelId: string, callerUserId: string, status?: string): Promise<({
         user: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
         decidedBy: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         } | null;
     } & {
+        status: ChannelJoinRequestStatus;
         id: string;
         userId: string;
-        status: ChannelJoinRequestStatus;
         channelId: string;
         requestedAt: Date;
-        decidedById: string | null;
         decidedAt: Date | null;
+        decidedById: string | null;
     })[]>;
     getMyRequestStatus(workspaceId: string, channelId: string, userId: string): Promise<({
         user: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
         decidedBy: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         } | null;
     } & {
+        status: ChannelJoinRequestStatus;
         id: string;
         userId: string;
-        status: ChannelJoinRequestStatus;
         channelId: string;
         requestedAt: Date;
-        decidedById: string | null;
         decidedAt: Date | null;
+        decidedById: string | null;
     }) | null>;
     decideRequest(workspaceId: string, channelId: string, requestId: string, callerUserId: string, decision: 'approve' | 'reject'): Promise<{
         user: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         };
         decidedBy: {
-            id: string;
             fullName: string;
+            id: string;
             avatarUrl: string | null;
         } | null;
     } & {
+        status: ChannelJoinRequestStatus;
         id: string;
         userId: string;
-        status: ChannelJoinRequestStatus;
         channelId: string;
         requestedAt: Date;
-        decidedById: string | null;
         decidedAt: Date | null;
+        decidedById: string | null;
     }>;
 }

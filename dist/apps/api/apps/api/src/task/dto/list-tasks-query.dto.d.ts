@@ -10,9 +10,9 @@ export declare const ListTasksQuerySchema: z.ZodPipe<z.ZodObject<{
     limit: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>, z.ZodTransform<number, string | number | undefined>>;
     sort_by: z.ZodOptional<z.ZodEnum<{
         status: "status";
+        title: "title";
         position: "position";
         priority: "priority";
-        title: "title";
         created_at: "created_at";
         updated_at: "updated_at";
         due_date: "due_date";
@@ -23,7 +23,7 @@ export declare const ListTasksQuerySchema: z.ZodPipe<z.ZodObject<{
     }>>;
     status: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>;
     status_ids: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>;
-    status_groups: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined, string[] | undefined>>;
+    status_groups: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined, string[] | undefined>>;
     priority: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined, string[] | undefined>>;
     priorities: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined, string[] | undefined>>;
     due_date_from: z.ZodOptional<z.ZodString>;
@@ -67,10 +67,10 @@ export declare const ListTasksQuerySchema: z.ZodPipe<z.ZodObject<{
     q: string | undefined;
     page: number;
     limit: number;
-    sortBy: "status" | "position" | "priority" | "title" | "created_at" | "updated_at" | "due_date" | undefined;
+    sortBy: "status" | "title" | "position" | "priority" | "created_at" | "updated_at" | "due_date" | undefined;
     sortOrder: "asc" | "desc";
     statusIds: string[] | undefined;
-    statusGroups: ("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined;
+    statusGroups: ("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined;
     priorities: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     dueDateFrom: string | undefined;
     dueDateTo: string | undefined;
@@ -99,7 +99,7 @@ export declare const ListTasksQuerySchema: z.ZodPipe<z.ZodObject<{
     sort_order: "asc" | "desc";
     status: string[] | undefined;
     status_ids: string[] | undefined;
-    status_groups: ("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined;
+    status_groups: ("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined;
     priority: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     priorities: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     assignee: string[] | undefined;
@@ -118,7 +118,7 @@ export declare const ListTasksQuerySchema: z.ZodPipe<z.ZodObject<{
     completed: boolean | undefined;
     q?: string | undefined;
     search?: string | undefined;
-    sort_by?: "status" | "position" | "priority" | "title" | "created_at" | "updated_at" | "due_date" | undefined;
+    sort_by?: "status" | "title" | "position" | "priority" | "created_at" | "updated_at" | "due_date" | undefined;
     due_date_from?: string | undefined;
     due_date_to?: string | undefined;
     due_date?: "overdue" | "today" | "today_or_earlier" | "tomorrow" | "this_week" | "next_week" | "no_due_date" | undefined;
@@ -136,9 +136,9 @@ declare const ListTasksQueryDto_base: import("nestjs-zod").ZodDto<z.ZodPipe<z.Zo
     limit: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>, z.ZodTransform<number, string | number | undefined>>;
     sort_by: z.ZodOptional<z.ZodEnum<{
         status: "status";
+        title: "title";
         position: "position";
         priority: "priority";
-        title: "title";
         created_at: "created_at";
         updated_at: "updated_at";
         due_date: "due_date";
@@ -149,7 +149,7 @@ declare const ListTasksQueryDto_base: import("nestjs-zod").ZodDto<z.ZodPipe<z.Zo
     }>>;
     status: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>;
     status_ids: z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>;
-    status_groups: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined, string[] | undefined>>;
+    status_groups: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined, string[] | undefined>>;
     priority: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined, string[] | undefined>>;
     priorities: z.ZodPipe<z.ZodPipe<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>, z.ZodTransform<string[] | undefined, string | string[] | undefined>>, z.ZodTransform<("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined, string[] | undefined>>;
     due_date_from: z.ZodOptional<z.ZodString>;
@@ -193,10 +193,10 @@ declare const ListTasksQueryDto_base: import("nestjs-zod").ZodDto<z.ZodPipe<z.Zo
     q: string | undefined;
     page: number;
     limit: number;
-    sortBy: "status" | "position" | "priority" | "title" | "created_at" | "updated_at" | "due_date" | undefined;
+    sortBy: "status" | "title" | "position" | "priority" | "created_at" | "updated_at" | "due_date" | undefined;
     sortOrder: "asc" | "desc";
     statusIds: string[] | undefined;
-    statusGroups: ("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined;
+    statusGroups: ("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined;
     priorities: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     dueDateFrom: string | undefined;
     dueDateTo: string | undefined;
@@ -225,7 +225,7 @@ declare const ListTasksQueryDto_base: import("nestjs-zod").ZodDto<z.ZodPipe<z.Zo
     sort_order: "asc" | "desc";
     status: string[] | undefined;
     status_ids: string[] | undefined;
-    status_groups: ("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED")[] | undefined;
+    status_groups: ("NOT_STARTED" | "ACTIVE" | "CLOSED" | "DONE")[] | undefined;
     priority: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     priorities: ("URGENT" | "HIGH" | "NORMAL" | "LOW" | "NONE")[] | undefined;
     assignee: string[] | undefined;
@@ -244,7 +244,7 @@ declare const ListTasksQueryDto_base: import("nestjs-zod").ZodDto<z.ZodPipe<z.Zo
     completed: boolean | undefined;
     q?: string | undefined;
     search?: string | undefined;
-    sort_by?: "status" | "position" | "priority" | "title" | "created_at" | "updated_at" | "due_date" | undefined;
+    sort_by?: "status" | "title" | "position" | "priority" | "created_at" | "updated_at" | "due_date" | undefined;
     due_date_from?: string | undefined;
     due_date_to?: string | undefined;
     due_date?: "overdue" | "today" | "today_or_earlier" | "tomorrow" | "this_week" | "next_week" | "no_due_date" | undefined;

@@ -203,6 +203,7 @@ model Workspace {
   docs             Doc[]
   projectFavorites ProjectFavorite[]
   taskFavorites    TaskFavorite[]
+  notifications    Notification[]
 
   @@map("workspaces")
 }
@@ -522,6 +523,7 @@ model Mention {
 model Notification {
   id            String    @id @default(uuid())
   userId        String    @map("user_id")
+  workspaceId   String    @map("workspace_id")
   type          String
   title         String
   message       String?
@@ -536,11 +538,13 @@ model Notification {
   createdAt     DateTime  @default(now()) @map("created_at")
 
   // Relations
-  recipient   User    @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  actor       User?   @relation("NotificationActor", fields: [actorId], references: [id])
-  isCommented Boolean @default(false) @map("is_commented")
+  recipient   User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor       User?     @relation("NotificationActor", fields: [actorId], references: [id])
+  isCommented Boolean   @default(false) @map("is_commented")
 
   @@index([userId, isRead, isCleared, isSnoozed, createdAt])
+  @@index([workspaceId, userId])
   @@map("notifications")
 }
 

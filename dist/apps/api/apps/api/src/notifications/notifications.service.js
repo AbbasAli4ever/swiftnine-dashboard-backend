@@ -165,6 +165,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             type: enriched.type,
             title: enriched.title,
             message: enriched.message,
+            workspaceId: enriched.workspaceId,
             referenceType: enriched.referenceType,
             referenceId: enriched.referenceId,
             taskId: enriched.taskId,
@@ -193,6 +194,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         const notif = await this.prisma.notification.create({
             data: {
                 userId: member.userId,
+                workspaceId,
                 type,
                 title,
                 message: message ?? undefined,
