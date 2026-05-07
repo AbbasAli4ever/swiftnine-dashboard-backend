@@ -134,10 +134,13 @@ export class NotificationsController {
     // register SSE client
     this.sse.registerClient(member.id, res, tokenExp);
 
+    const workspaceId = req.workspaceContext.workspaceId;
+
     // unsnooze expired notifications for this user in this workspace context
     await this.prisma.notification.updateMany({
       where: {
         userId: member.userId,
+        workspaceId,
         isSnoozed: true,
         snoozedAt: { lte: new Date() },
       },
@@ -148,6 +151,7 @@ export class NotificationsController {
     const notifs = await this.prisma.notification.findMany({
       where: {
         userId: member.userId,
+        workspaceId,
         isSnoozed: false,
       },
       orderBy: { createdAt: 'desc' },
@@ -297,7 +301,11 @@ export class NotificationsController {
     const member = await this.getCurrentWorkspaceMember(req);
 
     const notifs = await this.prisma.notification.findMany({
-      where: { userId: member.userId, isCleared: true },
+      where: {
+        userId: member.userId,
+        workspaceId: req.workspaceContext.workspaceId,
+        isCleared: true,
+      },
       orderBy: { createdAt: 'desc' },
       take: 500,
     });
@@ -316,9 +324,12 @@ export class NotificationsController {
   ): Promise<NotificationResponseDto[]> {
     const member = await this.getCurrentWorkspaceMember(req);
 
+    const workspaceId = req.workspaceContext.workspaceId;
+
     await this.prisma.notification.updateMany({
       where: {
         userId: member.userId,
+        workspaceId,
         isSnoozed: true,
         snoozedAt: { lte: new Date() },
       },
@@ -326,7 +337,7 @@ export class NotificationsController {
     });
 
     const notifs = await this.prisma.notification.findMany({
-      where: { userId: member.userId, isSnoozed: true },
+      where: { userId: member.userId, workspaceId, isSnoozed: true },
       orderBy: { snoozedAt: 'asc' },
       take: 500,
     });

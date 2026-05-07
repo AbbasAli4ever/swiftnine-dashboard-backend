@@ -239,6 +239,7 @@ export class NotificationsService implements OnModuleDestroy {
       type: enriched.type,
       title: enriched.title,
       message: enriched.message,
+      workspaceId: enriched.workspaceId,
       referenceType: enriched.referenceType,
       referenceId: enriched.referenceId,
       taskId: enriched.taskId,
@@ -286,6 +287,7 @@ export class NotificationsService implements OnModuleDestroy {
     const notif = await this.prisma.notification.create({
       data: {
         userId: member.userId,
+        workspaceId,
         type,
         title,
         message: message ?? undefined,

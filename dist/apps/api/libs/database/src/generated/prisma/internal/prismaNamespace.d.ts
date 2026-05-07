@@ -3053,6 +3053,7 @@ export type MentionScalarFieldEnum = (typeof MentionScalarFieldEnum)[keyof typeo
 export declare const NotificationScalarFieldEnum: {
     readonly id: "id";
     readonly userId: "userId";
+    readonly workspaceId: "workspaceId";
     readonly type: "type";
     readonly title: "title";
     readonly message: "message";

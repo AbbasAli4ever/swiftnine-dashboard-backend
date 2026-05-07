@@ -35,6 +35,7 @@ export declare class NotificationsService implements OnModuleDestroy {
         type: any;
         title: any;
         message: any;
+        workspaceId: any;
         referenceType: string | null | undefined;
         referenceId: string | null | undefined;
         taskId: string | null;
@@ -58,6 +59,7 @@ export declare class NotificationsService implements OnModuleDestroy {
         id: string;
         createdAt: Date;
         userId: string;
+        workspaceId: string;
         referenceType: string;
         referenceId: string;
         isRead: boolean;

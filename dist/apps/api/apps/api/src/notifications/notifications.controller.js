@@ -98,9 +98,11 @@ let NotificationsController = class NotificationsController {
             ? JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).exp
             : undefined;
         this.sse.registerClient(member.id, res, tokenExp);
+        const workspaceId = req.workspaceContext.workspaceId;
         await this.prisma.notification.updateMany({
             where: {
                 userId: member.userId,
+                workspaceId,
                 isSnoozed: true,
                 snoozedAt: { lte: new Date() },
             },
@@ -109,6 +111,7 @@ let NotificationsController = class NotificationsController {
         const notifs = await this.prisma.notification.findMany({
             where: {
                 userId: member.userId,
+                workspaceId,
                 isSnoozed: false,
             },
             orderBy: { createdAt: 'desc' },
@@ -196,7 +199,11 @@ let NotificationsController = class NotificationsController {
     async getCleared(req) {
         const member = await this.getCurrentWorkspaceMember(req);
         const notifs = await this.prisma.notification.findMany({
-            where: { userId: member.userId, isCleared: true },
+            where: {
+                userId: member.userId,
+                workspaceId: req.workspaceContext.workspaceId,
+                isCleared: true,
+            },
             orderBy: { createdAt: 'desc' },
             take: 500,
         });
@@ -204,16 +211,18 @@ let NotificationsController = class NotificationsController {
     }
     async getSnoozed(req) {
         const member = await this.getCurrentWorkspaceMember(req);
+        const workspaceId = req.workspaceContext.workspaceId;
         await this.prisma.notification.updateMany({
             where: {
                 userId: member.userId,
+                workspaceId,
                 isSnoozed: true,
                 snoozedAt: { lte: new Date() },
             },
             data: { isSnoozed: false, snoozedAt: null },
         });
         const notifs = await this.prisma.notification.findMany({
-            where: { userId: member.userId, isSnoozed: true },
+            where: { userId: member.userId, workspaceId, isSnoozed: true },
             orderBy: { snoozedAt: 'asc' },
             take: 500,
         });

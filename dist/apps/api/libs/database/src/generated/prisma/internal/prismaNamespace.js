@@ -308,6 +308,7 @@ exports.MentionScalarFieldEnum = {
 exports.NotificationScalarFieldEnum = {
     id: 'id',
     userId: 'userId',
+    workspaceId: 'workspaceId',
     type: 'type',
     title: 'title',
     message: 'message',
