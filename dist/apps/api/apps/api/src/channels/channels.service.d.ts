@@ -24,11 +24,11 @@ export declare class ChannelsService {
         createdAt: Date;
         userId: string;
         role: Role;
+        channelId: string;
         isMuted: boolean;
         lastReadMessageId: string | null;
         unreadCount: number;
         joinedAt: Date;
-        channelId: string;
     }>;
     addChannelMembersBulk(workspaceId: string, channelId: string, callerUserId: string, members: Array<{
         userId: string;

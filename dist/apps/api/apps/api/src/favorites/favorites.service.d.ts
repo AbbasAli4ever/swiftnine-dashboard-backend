@@ -26,16 +26,13 @@ export declare class FavoritesService {
         locked: boolean;
         isFavorite: boolean;
         favoritedAt: Date;
-        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        _count: {
-            taskLists: number;
-        };
         name: string;
         createdBy: string;
         workspaceId: string;
+        description: string | null;
         color: string;
         icon: string | null;
         taskIdPrefix: string;
@@ -59,22 +56,34 @@ export declare class FavoritesService {
         isFavorite: boolean;
         favoritedAt: Date;
         taskId: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         status: {
             id: string;
             name: string;
             color: string;
             group: import("@app/database/generated/prisma/enums").StatusGroup;
         };
+        position: number;
+        startDate: Date | null;
+        priority: import("@app/database/generated/prisma/enums").Priority;
+        depth: number;
+        title: string;
+        taskNumber: number;
+        dueDate: Date | null;
+        boardPosition: number;
+        isCompleted: boolean;
+        completedAt: Date | null;
         list: {
+            id: string;
+            name: string;
             project: {
                 id: string;
                 name: string;
                 taskIdPrefix: string;
             };
-            id: string;
-            name: string;
         };
-        title: string;
         tags: {
             tag: {
                 id: string;
@@ -82,29 +91,17 @@ export declare class FavoritesService {
                 color: string;
             };
         }[];
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         _count: {
             children: number;
         };
-        position: number;
-        startDate: Date | null;
-        priority: import("@app/database/generated/prisma/enums").Priority;
-        depth: number;
-        taskNumber: number;
-        dueDate: Date | null;
-        boardPosition: number;
-        isCompleted: boolean;
-        completedAt: Date | null;
         assignees: {
+            assignedBy: string;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
                 avatarColor: string;
             };
-            assignedBy: string;
         }[];
     }[]>;
     projectFavoriteIds(userId: string, projectIds: string[]): Promise<Set<string>>;

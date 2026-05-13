@@ -39,18 +39,18 @@ export declare class ChatService {
             updatedAt: Date;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             pinnedBy: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             mentions: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             }[];
             reactions: {
@@ -60,8 +60,8 @@ export declare class ChatService {
                 emoji: string;
                 createdAt: Date;
                 user: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 };
             }[];
@@ -81,8 +81,8 @@ export declare class ChatService {
                 plaintext: string;
                 deletedAt: Date | null;
                 sender: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 } | null;
             } | null;
@@ -114,18 +114,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -135,8 +135,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -156,8 +156,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -188,18 +188,18 @@ export declare class ChatService {
             updatedAt: Date;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             pinnedBy: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             mentions: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             }[];
             reactions: {
@@ -209,8 +209,8 @@ export declare class ChatService {
                 emoji: string;
                 createdAt: Date;
                 user: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 };
             }[];
@@ -230,8 +230,8 @@ export declare class ChatService {
                 plaintext: string;
                 deletedAt: Date | null;
                 sender: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 } | null;
             } | null;
@@ -265,18 +265,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -286,8 +286,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -307,8 +307,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -338,18 +338,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -359,8 +359,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -380,8 +380,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -411,18 +411,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -432,8 +432,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -453,8 +453,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -495,18 +495,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -516,8 +516,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -537,8 +537,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -568,18 +568,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -589,8 +589,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -610,8 +610,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;
@@ -659,8 +659,8 @@ export declare class ChatService {
             lastReadMessageId: string | null;
             joinedAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -688,8 +688,8 @@ export declare class ChatService {
             lastReadMessageId: string | null;
             joinedAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -712,18 +712,18 @@ export declare class ChatService {
             updatedAt: Date;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             pinnedBy: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
             mentions: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             }[];
             reactions: {
@@ -733,8 +733,8 @@ export declare class ChatService {
                 emoji: string;
                 createdAt: Date;
                 user: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 };
             }[];
@@ -754,8 +754,8 @@ export declare class ChatService {
                 plaintext: string;
                 deletedAt: Date | null;
                 sender: {
-                    fullName: string;
                     id: string;
+                    fullName: string;
                     avatarUrl: string | null;
                 } | null;
             } | null;
@@ -787,18 +787,18 @@ export declare class ChatService {
         updatedAt: Date;
         deletedAt: Date | null;
         sender: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         pinnedBy: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         } | null;
         mentions: {
-            fullName: string;
             id: string;
+            fullName: string;
             avatarUrl: string | null;
         }[];
         reactions: {
@@ -808,8 +808,8 @@ export declare class ChatService {
             emoji: string;
             createdAt: Date;
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
         }[];
@@ -829,8 +829,8 @@ export declare class ChatService {
             plaintext: string;
             deletedAt: Date | null;
             sender: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             } | null;
         } | null;

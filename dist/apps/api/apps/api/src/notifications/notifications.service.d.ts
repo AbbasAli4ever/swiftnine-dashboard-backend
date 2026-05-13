@@ -60,22 +60,22 @@ export declare class NotificationsService implements OnModuleDestroy {
         createdAt: any;
     }>;
     createNotification(workspaceId: string, targetMemberIdOrUserId: string, actorUserId: string | null, type: string, title: string, message?: string, referenceType?: string, referenceId?: string, isCommented?: boolean, meta?: Record<string, any>): Promise<{
-        message: string | null;
-        type: string;
-        title: string;
         id: string;
         createdAt: Date;
         userId: string;
         workspaceId: string;
+        title: string;
+        type: string;
+        message: string | null;
         referenceType: string;
         referenceId: string;
+        actorId: string | null;
         isRead: boolean;
         readAt: Date | null;
         isCleared: boolean;
         isSnoozed: boolean;
         snoozedAt: Date | null;
         isCommented: boolean;
-        actorId: string | null;
     } | null>;
     notifyTaskAssignees(workspaceId: string, taskId: string, actorUserId: string, opts?: {
         type?: string;
