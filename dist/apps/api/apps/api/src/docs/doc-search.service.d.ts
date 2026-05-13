@@ -1,6 +1,7 @@
 import { PrismaService } from "../../../../libs/database/src";
 import type { DocScope } from "../../../../libs/database/src/generated/prisma/client";
 import { DocPermissionsService } from './doc-permissions.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export interface DocSearchResult {
     id: string;
     title: string;
@@ -14,7 +15,8 @@ export interface DocSearchResult {
 export declare class DocSearchService {
     private readonly prisma;
     private readonly permissions;
-    constructor(prisma: PrismaService, permissions: DocPermissionsService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, permissions: DocPermissionsService, projectSecurity: ProjectSecurityService);
     search(params: {
         query: string;
         workspaceId: string;

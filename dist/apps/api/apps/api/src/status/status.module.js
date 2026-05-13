@@ -12,12 +12,13 @@ const status_controller_1 = require("./status.controller");
 const status_service_1 = require("./status.service");
 const workspace_module_1 = require("../workspace/workspace.module");
 const roles_module_1 = require("../roles/roles.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 let StatusModule = class StatusModule {
 };
 exports.StatusModule = StatusModule;
 exports.StatusModule = StatusModule = __decorate([
     (0, common_1.Module)({
-        imports: [workspace_module_1.WorkspaceModule, roles_module_1.RolesModule],
+        imports: [workspace_module_1.WorkspaceModule, roles_module_1.RolesModule, project_security_module_1.ProjectSecurityModule],
         controllers: [status_controller_1.StatusController],
         providers: [status_service_1.StatusService],
     })

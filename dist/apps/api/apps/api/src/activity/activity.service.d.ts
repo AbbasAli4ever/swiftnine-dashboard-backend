@@ -2,6 +2,7 @@ import { PrismaService } from "../../../../libs/database/src";
 import type { Prisma } from "../../../../libs/database/src/generated/prisma/client";
 import { type ActivityCategory } from './activity.constants';
 import type { ListActivityDto } from './dto/list-activity.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 type ActivityLogClient = Pick<PrismaService, 'activityLog'> | Prisma.TransactionClient;
 type ActivityLogInput = {
     workspaceId: string;
@@ -60,7 +61,8 @@ export type ActivityFeedResult = {
 };
 export declare class ActivityService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, projectSecurity: ProjectSecurityService);
     log(input: ActivityLogInput, client?: ActivityLogClient): Promise<void>;
     logMany(inputs: ActivityLogInput[], client?: ActivityLogClient): Promise<void>;
     listWorkspaceActivity(workspaceId: string, actorId: string, dto: ListActivityDto): Promise<ActivityFeedResult>;
@@ -74,6 +76,7 @@ export declare class ActivityService {
     private getListScopeConditions;
     private getTaskRelatedActivityIds;
     private getProjectStatusIds;
+    private buildLockedProjectExclusion;
     private toFeedResult;
     private toFeedItem;
     private formatDisplayText;

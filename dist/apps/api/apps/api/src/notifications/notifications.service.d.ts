@@ -1,5 +1,6 @@
 import { OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from "../../../../libs/database/src";
+import { ProjectSecurityService } from '../project-security/project-security.service';
 import { NotificationsSseService } from './sse.service';
 type NotificationLike = {
     referenceType?: string | null;
@@ -14,11 +15,12 @@ type EnrichedNotification<T extends NotificationLike> = T & {
 };
 export declare class NotificationsService implements OnModuleDestroy {
     private readonly prisma;
+    private readonly projectSecurity;
     private readonly sse;
     private readonly logger;
     private snoozeWatcher?;
     private retentionWatcher?;
-    constructor(prisma: PrismaService, sse: NotificationsSseService);
+    constructor(prisma: PrismaService, projectSecurity: ProjectSecurityService, sse: NotificationsSseService);
     onModuleDestroy(): void;
     private startSnoozeWatcher;
     private startRetentionWatcher;
@@ -28,6 +30,11 @@ export declare class NotificationsService implements OnModuleDestroy {
     private notificationRetentionDays;
     private retentionCleanupIntervalMs;
     private getTaskId;
+    private notificationReferenceKey;
+    private resolveNotificationProjectIds;
+    private isProjectBoundReference;
+    filterVisibleNotificationsForUser<T extends NotificationLike>(userId: string, notifications: T[]): Promise<T[]>;
+    isNotificationVisibleToUser(userId: string, notification: NotificationLike): Promise<boolean>;
     addTaskIds<T extends NotificationLike>(notifications: T[]): Promise<Array<EnrichedNotification<T>>>;
     addTaskId<T extends NotificationLike>(notification: T): Promise<EnrichedNotification<T>>;
     toNotificationPayload(notification: NotificationLike): Promise<{

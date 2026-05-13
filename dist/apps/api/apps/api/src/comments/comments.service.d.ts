@@ -2,14 +2,16 @@ import { PrismaService } from "../../../../libs/database/src";
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SseService } from './sse.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export declare class CommentsService {
     private readonly prisma;
     private readonly sse;
     private readonly activity;
     private readonly notifications;
+    private readonly projectSecurity;
     private readonly logger;
-    constructor(prisma: PrismaService, sse: SseService, activity: ActivityService, notifications: NotificationsService);
-    getCommentsForTask(workspaceId: string, taskId: string): Promise<({
+    constructor(prisma: PrismaService, sse: SseService, activity: ActivityService, notifications: NotificationsService, projectSecurity: ProjectSecurityService);
+    getCommentsForTask(workspaceId: string, userId: string, taskId: string): Promise<({
         mentions: {
             id: string;
             mentionedUserId: string;

@@ -70,6 +70,7 @@ export class StatusController {
     const statuses = await this.statusService.findAll(
       req.workspaceContext.workspaceId,
       dto.projectId,
+      req.user.id,
     );
     return ok(statuses);
   }

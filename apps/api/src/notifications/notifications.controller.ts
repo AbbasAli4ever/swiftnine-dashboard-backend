@@ -75,6 +75,15 @@ export class NotificationsController {
     });
     if (!member) return;
 
+    if (
+      !(await this.notifications.isNotificationVisibleToUser(
+        req.user.id,
+        notification,
+      ))
+    ) {
+      return;
+    }
+
     try {
       this.sse.broadcastToMember(
         member.id,
@@ -157,10 +166,15 @@ export class NotificationsController {
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
+    const visibleNotifs =
+      await this.notifications.filterVisibleNotificationsForUser(
+        member.userId,
+        notifs,
+      );
     this.sse.sendToClient(
       res,
       'notifications:init',
-      await this.notifications.addTaskIds(notifs),
+      await this.notifications.addTaskIds(visibleNotifs),
     );
 
     // intentionally do not return to keep connection open
@@ -309,7 +323,12 @@ export class NotificationsController {
       orderBy: { createdAt: 'desc' },
       take: 500,
     });
-    return (await this.notifications.addTaskIds(notifs)) as any;
+    const visibleNotifs =
+      await this.notifications.filterVisibleNotificationsForUser(
+        member.userId,
+        notifs,
+      );
+    return (await this.notifications.addTaskIds(visibleNotifs)) as any;
   }
 
   @Get('snoozed')
@@ -341,6 +360,11 @@ export class NotificationsController {
       orderBy: { snoozedAt: 'asc' },
       take: 500,
     });
-    return (await this.notifications.addTaskIds(notifs)) as any;
+    const visibleNotifs =
+      await this.notifications.filterVisibleNotificationsForUser(
+        member.userId,
+        notifs,
+      );
+    return (await this.notifications.addTaskIds(visibleNotifs)) as any;
   }
 }

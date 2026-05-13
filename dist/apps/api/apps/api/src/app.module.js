@@ -32,6 +32,7 @@ const chat_module_1 = require("./chat/chat.module");
 const docs_module_1 = require("./docs/docs.module");
 const favorites_module_1 = require("./favorites/favorites.module");
 const presence_module_1 = require("./presence/presence.module");
+const project_security_module_1 = require("./project-security/project-security.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -49,6 +50,7 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             workspace_module_1.WorkspaceModule,
             attachments_module_1.AttachmentsModule,
+            project_security_module_1.ProjectSecurityModule,
             project_module_1.ProjectModule,
             status_module_1.StatusModule,
             task_list_module_1.TaskListModule,

@@ -10,6 +10,7 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SseService } from './sse.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 const COMMENT_INCLUDE = {
   author: { select: { id: true, fullName: true, avatarUrl: true } },
@@ -71,10 +72,12 @@ export class CommentsService {
     private readonly sse: SseService,
     private readonly activity: ActivityService,
     private readonly notifications: NotificationsService,
+    private readonly projectSecurity: ProjectSecurityService,
   ) {}
 
-  async getCommentsForTask(workspaceId: string, taskId: string) {
-    await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+  async getCommentsForTask(workspaceId: string, userId: string, taskId: string) {
+    const task = await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+    await this.projectSecurity.assertUnlocked(workspaceId, task.list.project.id, userId);
 
     return this.prisma.comment.findMany({
       where: { taskId, deletedAt: null },
@@ -92,6 +95,7 @@ export class CommentsService {
     mentionedUserIds?: string[],
   ) {
     const task = await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+    await this.projectSecurity.assertUnlocked(workspaceId, task.list.project.id, userId);
 
     if (parentId) {
       const parent = await this.prisma.comment.findFirst({
@@ -194,6 +198,11 @@ export class CommentsService {
       },
     });
     if (!comment) throw new NotFoundException('Comment not found');
+    await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      comment.task.list.project.id,
+      userId,
+    );
 
     if (comment.userId !== userId) {
       throw new ForbiddenException('Only the author can edit the comment');
@@ -289,8 +298,20 @@ export class CommentsService {
         deletedAt: null,
         task: { deletedAt: null, list: { deletedAt: null, project: { workspaceId, deletedAt: null } } },
       },
+      include: {
+        task: {
+          select: {
+            list: { select: { project: { select: { id: true } } } },
+          },
+        },
+      },
     });
     if (!comment) throw new NotFoundException('Comment not found');
+    await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      comment.task.list.project.id,
+      userId,
+    );
 
     const isOwner = requesterRole === 'OWNER';
     if (comment.userId !== userId && !isOwner) {
@@ -356,8 +377,21 @@ export class CommentsService {
         deletedAt: null,
         task: { deletedAt: null, list: { deletedAt: null, project: { workspaceId, deletedAt: null } } },
       },
+      include: {
+        task: {
+          select: {
+            id: true,
+            list: { select: { project: { select: { id: true } } } },
+          },
+        },
+      },
     });
     if (!comment) throw new NotFoundException('Comment not found');
+    await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      comment.task.list.project.id,
+      userId,
+    );
 
     const member = await this.prisma.workspaceMember.findFirst({
       where: { workspaceId, userId, deletedAt: null },
@@ -425,10 +459,25 @@ export class CommentsService {
       },
       include: {
         member: { select: { id: true, userId: true } },
-        comment: { select: { id: true, taskId: true } },
+        comment: {
+          select: {
+            id: true,
+            taskId: true,
+            task: {
+              select: {
+                list: { select: { project: { select: { id: true } } } },
+              },
+            },
+          },
+        },
       },
     });
     if (!reaction) throw new NotFoundException('Reaction not found');
+    await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      reaction.comment.task.list.project.id,
+      userId,
+    );
 
     if (reaction.member.userId !== userId) {
       throw new ForbiddenException('Only the reaction owner can delete it');
@@ -445,9 +494,28 @@ export class CommentsService {
   async updateReaction(workspaceId: string, userId: string, reactionId: string, reactFace: string) {
     const reaction = await this.prisma.reaction.findFirst({
       where: { id: reactionId },
-      include: { member: true, comment: true },
+      include: {
+        member: true,
+        comment: {
+          include: {
+            task: {
+              select: {
+                list: { select: { project: { select: { id: true, workspaceId: true } } } },
+              },
+            },
+          },
+        },
+      },
     });
     if (!reaction) throw new NotFoundException('Reaction not found');
+    if (reaction.comment.task.list.project.workspaceId !== workspaceId) {
+      throw new NotFoundException('Reaction not found');
+    }
+    await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      reaction.comment.task.list.project.id,
+      userId,
+    );
 
     const member = await this.prisma.workspaceMember.findFirst({ where: { id: reaction.memberId, deletedAt: null } });
     if (!member) throw new NotFoundException('Member for reaction not found');

@@ -25,16 +25,16 @@ export declare class AttachmentsController {
         id: string;
         createdAt: Date;
         fileName: string;
-        s3Key: string;
-        mimeType: string;
+        s3Key: string | null;
+        mimeType: string | null;
     }>>;
     createForDoc(req: AuthenticatedRequest, dto: CreateDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;
         id: string;
         createdAt: Date;
         fileName: string;
-        s3Key: string;
-        mimeType: string;
+        s3Key: string | null;
+        mimeType: string | null;
     }>>;
     view(req: AuthenticatedRequest, dto: ViewAttachmentsDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;
@@ -51,8 +51,8 @@ export declare class AttachmentsController {
         expiresAt: Date;
         id: string;
         fileName: string;
-        mimeType: string;
         s3Key: string;
+        mimeType: string;
     }[]>>;
     remove(req: AuthenticatedRequest, dto: DeleteAttachmentDto): Promise<import("@app/common").ApiResponse<{
         id: string;

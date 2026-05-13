@@ -16,6 +16,7 @@ const database_1 = require("../../../../libs/database/src");
 const activity_service_1 = require("../activity/activity.service");
 const notifications_service_1 = require("../notifications/notifications.service");
 const sse_service_1 = require("./sse.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 const COMMENT_INCLUDE = {
     author: { select: { id: true, fullName: true, avatarUrl: true } },
     reactions: {
@@ -48,15 +49,18 @@ let CommentsService = CommentsService_1 = class CommentsService {
     sse;
     activity;
     notifications;
+    projectSecurity;
     logger = new common_1.Logger(CommentsService_1.name);
-    constructor(prisma, sse, activity, notifications) {
+    constructor(prisma, sse, activity, notifications, projectSecurity) {
         this.prisma = prisma;
         this.sse = sse;
         this.activity = activity;
         this.notifications = notifications;
+        this.projectSecurity = projectSecurity;
     }
-    async getCommentsForTask(workspaceId, taskId) {
-        await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+    async getCommentsForTask(workspaceId, userId, taskId) {
+        const task = await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+        await this.projectSecurity.assertUnlocked(workspaceId, task.list.project.id, userId);
         return this.prisma.comment.findMany({
             where: { taskId, deletedAt: null },
             orderBy: { createdAt: 'asc' },
@@ -65,6 +69,7 @@ let CommentsService = CommentsService_1 = class CommentsService {
     }
     async createComment(workspaceId, userId, taskId, content, parentId, mentionedUserIds) {
         const task = await this.findTaskInWorkspaceOrThrow(workspaceId, taskId);
+        await this.projectSecurity.assertUnlocked(workspaceId, task.list.project.id, userId);
         if (parentId) {
             const parent = await this.prisma.comment.findFirst({
                 where: { id: parentId, taskId, deletedAt: null },
@@ -142,6 +147,7 @@ let CommentsService = CommentsService_1 = class CommentsService {
         });
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
+        await this.projectSecurity.assertUnlocked(workspaceId, comment.task.list.project.id, userId);
         if (comment.userId !== userId) {
             throw new common_1.ForbiddenException('Only the author can edit the comment');
         }
@@ -215,9 +221,17 @@ let CommentsService = CommentsService_1 = class CommentsService {
                 deletedAt: null,
                 task: { deletedAt: null, list: { deletedAt: null, project: { workspaceId, deletedAt: null } } },
             },
+            include: {
+                task: {
+                    select: {
+                        list: { select: { project: { select: { id: true } } } },
+                    },
+                },
+            },
         });
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
+        await this.projectSecurity.assertUnlocked(workspaceId, comment.task.list.project.id, userId);
         const isOwner = requesterRole === 'OWNER';
         if (comment.userId !== userId && !isOwner) {
             throw new common_1.ForbiddenException('Not allowed to delete this comment');
@@ -270,9 +284,18 @@ let CommentsService = CommentsService_1 = class CommentsService {
                 deletedAt: null,
                 task: { deletedAt: null, list: { deletedAt: null, project: { workspaceId, deletedAt: null } } },
             },
+            include: {
+                task: {
+                    select: {
+                        id: true,
+                        list: { select: { project: { select: { id: true } } } },
+                    },
+                },
+            },
         });
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
+        await this.projectSecurity.assertUnlocked(workspaceId, comment.task.list.project.id, userId);
         const member = await this.prisma.workspaceMember.findFirst({
             where: { workspaceId, userId, deletedAt: null },
             select: { id: true },
@@ -336,11 +359,22 @@ let CommentsService = CommentsService_1 = class CommentsService {
             },
             include: {
                 member: { select: { id: true, userId: true } },
-                comment: { select: { id: true, taskId: true } },
+                comment: {
+                    select: {
+                        id: true,
+                        taskId: true,
+                        task: {
+                            select: {
+                                list: { select: { project: { select: { id: true } } } },
+                            },
+                        },
+                    },
+                },
             },
         });
         if (!reaction)
             throw new common_1.NotFoundException('Reaction not found');
+        await this.projectSecurity.assertUnlocked(workspaceId, reaction.comment.task.list.project.id, userId);
         if (reaction.member.userId !== userId) {
             throw new common_1.ForbiddenException('Only the reaction owner can delete it');
         }
@@ -353,10 +387,25 @@ let CommentsService = CommentsService_1 = class CommentsService {
     async updateReaction(workspaceId, userId, reactionId, reactFace) {
         const reaction = await this.prisma.reaction.findFirst({
             where: { id: reactionId },
-            include: { member: true, comment: true },
+            include: {
+                member: true,
+                comment: {
+                    include: {
+                        task: {
+                            select: {
+                                list: { select: { project: { select: { id: true, workspaceId: true } } } },
+                            },
+                        },
+                    },
+                },
+            },
         });
         if (!reaction)
             throw new common_1.NotFoundException('Reaction not found');
+        if (reaction.comment.task.list.project.workspaceId !== workspaceId) {
+            throw new common_1.NotFoundException('Reaction not found');
+        }
+        await this.projectSecurity.assertUnlocked(workspaceId, reaction.comment.task.list.project.id, userId);
         const member = await this.prisma.workspaceMember.findFirst({ where: { id: reaction.memberId, deletedAt: null } });
         if (!member)
             throw new common_1.NotFoundException('Member for reaction not found');
@@ -474,6 +523,7 @@ exports.CommentsService = CommentsService = CommentsService_1 = __decorate([
     __metadata("design:paramtypes", [database_1.PrismaService,
         sse_service_1.SseService,
         activity_service_1.ActivityService,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        project_security_service_1.ProjectSecurityService])
 ], CommentsService);
 //# sourceMappingURL=comments.service.js.map

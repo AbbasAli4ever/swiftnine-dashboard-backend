@@ -42,8 +42,8 @@ type TaskStatsRecord = {
 type AttachmentRecord = {
   id: string;
   fileName: string;
-  mimeType: string;
-  fileSize: bigint;
+  mimeType: string | null;
+  fileSize: bigint | null;
   createdAt: Date;
   uploader: {
     id: string;
@@ -309,7 +309,7 @@ export class DashboardService {
     attachments: AttachmentRecord[],
     taskIdPrefix: string,
   ): ProjectDashboardData['attachments'] {
-    return attachments.flatMap((attachment) => attachment.task ? [{
+    return attachments.flatMap((attachment) => attachment.task && attachment.mimeType && attachment.fileSize !== null ? [{
       id: attachment.id,
       taskId: attachment.task.id,
       taskKey: `${taskIdPrefix}-${attachment.task.taskNumber}`,

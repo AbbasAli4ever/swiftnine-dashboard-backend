@@ -4,11 +4,13 @@ import type { UpdateChannelDto } from './dto/update-channel.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { Role } from "../../../../libs/database/src/generated/prisma/client";
 import { ChatSystemService } from '../chat/chat-system.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export declare class ChannelsService {
     private readonly prisma;
     private readonly notifications;
     private readonly chatSystem;
-    constructor(prisma: PrismaService, notifications: NotificationsService, chatSystem: ChatSystemService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, notifications: NotificationsService, chatSystem: ChatSystemService, projectSecurity: ProjectSecurityService);
     private channelLabel;
     private channelInclude;
     private mapChannel;

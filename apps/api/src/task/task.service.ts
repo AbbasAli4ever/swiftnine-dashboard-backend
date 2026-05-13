@@ -36,6 +36,7 @@ import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { FavoritesService } from '../favorites/favorites.service';
 import { assertContentSize, extractPlaintext } from '../docs/doc-content';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ export class TaskService {
     private readonly prisma: PrismaService,
     private readonly activity: ActivityService,
     private readonly notifications: NotificationsService,
+    private readonly projectSecurity: ProjectSecurityService,
     private readonly favorites?: FavoritesService,
   ) {}
 
@@ -100,6 +102,7 @@ export class TaskService {
     listId: string,
     dto: CreateTaskDto,
   ): Promise<TaskDetailData> {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
     await this.findListOrThrow(workspaceId, projectId, listId);
     await this.findStatusOrThrow(projectId, dto.statusId);
     if (dto.assigneeIds?.length) {
@@ -246,7 +249,7 @@ export class TaskService {
     userId: string,
     query: ListTasksQuery,
   ): Promise<TaskSearchResult> {
-    return this.searchTasks({ workspaceId, userId }, query);
+    return this.searchTasks({ workspaceId, userId }, query, true);
   }
 
   async getProjectBoard(
@@ -313,6 +316,8 @@ export class TaskService {
   }
 
   async findOne(workspaceId: string, userId: string, taskId: string): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
+
     const raw = await this.prisma.task.findFirst({
       where: {
         id: taskId,
@@ -335,6 +340,7 @@ export class TaskService {
     taskId: string,
     dto: UpdateTaskDto,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
     const updateData: Prisma.TaskUpdateInput = {};
     const logEntries: Array<{
@@ -459,6 +465,7 @@ export class TaskService {
   }
 
   async remove(workspaceId: string, userId: string, taskId: string, role: Role): Promise<void> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
 
     if (task.createdBy !== userId && role !== 'OWNER') {
@@ -489,6 +496,7 @@ export class TaskService {
   }
 
   async complete(workspaceId: string, userId: string, taskId: string): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
 
     await this.prisma.task.update({
@@ -512,6 +520,7 @@ export class TaskService {
   }
 
   async uncomplete(workspaceId: string, userId: string, taskId: string): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
 
     await this.prisma.task.update({
@@ -542,6 +551,7 @@ export class TaskService {
     parentTaskId: string,
     dto: CreateSubtaskDto,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, parentTaskId);
     const parent = await this.findTaskMinimalOrThrow(workspaceId, parentTaskId);
 
     if (parent.depth >= 2) throw new BadRequestException(SUBTASK_DEPTH_LIMIT);
@@ -607,6 +617,7 @@ export class TaskService {
     userId: string,
     parentTaskId: string,
   ): Promise<TaskListItemData[]> {
+    await this.assertTaskUnlocked(workspaceId, userId, parentTaskId);
     await this.findTaskMinimalOrThrow(workspaceId, parentTaskId);
 
     const tasks = await this.prisma.task.findMany({
@@ -626,6 +637,7 @@ export class TaskService {
     taskId: string,
     dto: AddAssigneesDto,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
     await this.assertUsersAreMembers(workspaceId, dto.userIds);
 
@@ -677,6 +689,7 @@ export class TaskService {
     taskId: string,
     targetUserId: string,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
 
     await this.prisma.taskAssignee.deleteMany({
@@ -703,6 +716,7 @@ export class TaskService {
     taskId: string,
     dto: AddTagToTaskDto,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
     await this.assertTagsInWorkspace(workspaceId, [dto.tagId]);
     const tag = await this.prisma.tag.findFirst({
@@ -741,6 +755,7 @@ export class TaskService {
     taskId: string,
     tagId: string,
   ): Promise<TaskDetailData> {
+    await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
 
     const existing = await this.prisma.taskTag.findFirst({
@@ -970,8 +985,23 @@ export class TaskService {
   private async searchTasks(
     scope: TaskSearchScope,
     query: ListTasksQuery,
+    enforceWorkspaceVisibility = false,
   ): Promise<TaskSearchResult> {
     const where = this.buildTaskSearchWhere(scope, query);
+    if (enforceWorkspaceVisibility && !scope.projectId && !scope.listId) {
+      const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+        scope.workspaceId,
+        scope.userId,
+      );
+      const listWhere = where.list as Prisma.TaskListWhereInput;
+      where.list = {
+        ...listWhere,
+        project: {
+          ...((listWhere.project ?? {}) as Prisma.ProjectWhereInput),
+          OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+        },
+      } satisfies Prisma.TaskListWhereInput;
+    }
     const orderBy = this.buildTaskSearchOrderBy(scope, query);
     const skip = (query.page - 1) * query.limit;
 
@@ -1278,6 +1308,25 @@ export class TaskService {
     if (!list) throw new NotFoundException(TASK_LIST_NOT_FOUND);
 
     return list;
+  }
+
+  private async assertTaskUnlocked(
+    workspaceId: string,
+    userId: string,
+    taskId: string,
+  ): Promise<void> {
+    const task = await this.prisma.task.findFirst({
+      where: {
+        id: taskId,
+        deletedAt: null,
+        list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
+      },
+      select: { list: { select: { projectId: true } } },
+    });
+
+    if (!task) throw new NotFoundException(TASK_NOT_FOUND);
+
+    await this.projectSecurity.assertUnlocked(workspaceId, task.list.projectId, userId);
   }
 
   private async findListForProjectOrThrow(projectId: string, listId: string) {

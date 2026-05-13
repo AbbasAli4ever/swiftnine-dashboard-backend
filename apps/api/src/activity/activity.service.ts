@@ -8,6 +8,7 @@ import {
   type ActivityCategory,
 } from './activity.constants';
 import type { ListActivityDto } from './dto/list-activity.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 type ActivityLogClient = Pick<PrismaService, 'activityLog'> | Prisma.TransactionClient;
 
@@ -71,7 +72,10 @@ export type ActivityFeedResult = {
 
 @Injectable()
 export class ActivityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectSecurity: ProjectSecurityService,
+  ) {}
 
   async log(input: ActivityLogInput, client: ActivityLogClient = this.prisma): Promise<void> {
     await client.activityLog.create({
@@ -118,10 +122,11 @@ export class ActivityService {
         deletedAt: null,
         list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
       },
-      select: { id: true },
+      select: { id: true, list: { select: { projectId: true } } },
     });
 
     if (!task) throw new NotFoundException('Task not found');
+    await this.projectSecurity.assertUnlocked(workspaceId, task.list.projectId, actorId);
 
     const scopedIds = await this.getTaskRelatedActivityIds([taskId], dto.includeSubtasks ?? true);
     const baseWhere = this.buildBaseWhere(workspaceId, actorId, {
@@ -232,11 +237,14 @@ export class ActivityService {
     dto: ListActivityDto,
   ): Promise<Prisma.ActivityLogWhereInput> {
     const baseWhere = this.buildBaseWhere(workspaceId, actorId, dto);
-    const scopeConditions = await this.buildScopeConditions(workspaceId, dto);
-    if (scopeConditions.length === 0) return baseWhere;
+    const scopeConditions = await this.buildScopeConditions(workspaceId, actorId, dto);
+    const visibilityWhere = await this.buildLockedProjectExclusion(workspaceId, actorId);
+    if (scopeConditions.length === 0) {
+      return { AND: [baseWhere, visibilityWhere] };
+    }
 
     return {
-      AND: [baseWhere, { OR: scopeConditions }],
+      AND: [baseWhere, visibilityWhere, { OR: scopeConditions }],
     };
   }
 
@@ -280,9 +288,21 @@ export class ActivityService {
 
   private async buildScopeConditions(
     workspaceId: string,
+    actorId: string,
     dto: ListActivityDto,
   ): Promise<Prisma.ActivityLogWhereInput[]> {
     if (dto.taskId) {
+      const task = await this.prisma.task.findFirst({
+        where: {
+          id: dto.taskId,
+          deletedAt: null,
+          list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
+        },
+        select: { list: { select: { projectId: true } } },
+      });
+      if (!task) throw new NotFoundException('Task not found');
+      await this.projectSecurity.assertUnlocked(workspaceId, task.list.projectId, actorId);
+
       const scopedIds = await this.getTaskRelatedActivityIds([dto.taskId], dto.includeSubtasks ?? true);
       return [
         { entityType: 'task', entityId: { in: scopedIds.taskIds } },
@@ -299,9 +319,10 @@ export class ActivityService {
     if (dto.listId) {
       const list = await this.prisma.taskList.findFirst({
         where: { id: dto.listId, deletedAt: null, project: { workspaceId, deletedAt: null } },
-        select: { id: true },
+        select: { id: true, projectId: true },
       });
       if (!list) throw new NotFoundException('Task list not found');
+      await this.projectSecurity.assertUnlocked(workspaceId, list.projectId, actorId);
       return this.getListScopeConditions([dto.listId], dto.includeSubtasks ?? true);
     }
 
@@ -311,6 +332,7 @@ export class ActivityService {
         select: { id: true },
       });
       if (!project) throw new NotFoundException('Project not found');
+      await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, actorId);
 
       const lists = await this.prisma.taskList.findMany({
         where: { projectId: dto.projectId, deletedAt: null },
@@ -405,6 +427,76 @@ export class ActivityService {
       select: { id: true },
     });
     return statuses.map((status) => status.id);
+  }
+
+  private async buildLockedProjectExclusion(
+    workspaceId: string,
+    actorId: string,
+  ): Promise<Prisma.ActivityLogWhereInput> {
+    const lockedProjects = await this.prisma.project.findMany({
+      where: { workspaceId, deletedAt: null, passwordHash: { not: null } },
+      select: { id: true },
+    });
+    const lockedProjectIds = lockedProjects.map((project) => project.id);
+    if (lockedProjectIds.length === 0) return {};
+
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      lockedProjectIds,
+      actorId,
+    );
+    const hiddenProjectIds = lockedProjectIds.filter((id) => !unlockedProjectIds.has(id));
+    if (hiddenProjectIds.length === 0) return {};
+
+    const [statuses, lists, tasks] = await Promise.all([
+      this.prisma.status.findMany({
+        where: { projectId: { in: hiddenProjectIds } },
+        select: { id: true },
+      }),
+      this.prisma.taskList.findMany({
+        where: { projectId: { in: hiddenProjectIds } },
+        select: { id: true },
+      }),
+      this.prisma.task.findMany({
+        where: { list: { projectId: { in: hiddenProjectIds } } },
+        select: { id: true },
+      }),
+    ]);
+
+    const taskIds = tasks.map((task) => task.id);
+    const [comments, attachments, timeEntries] = await Promise.all([
+      this.prisma.comment.findMany({
+        where: { taskId: { in: taskIds } },
+        select: { id: true },
+      }),
+      this.prisma.attachment.findMany({
+        where: {
+          OR: [
+            { taskId: { in: taskIds } },
+            { doc: { projectId: { in: hiddenProjectIds } } },
+            { channelMessage: { channel: { projectId: { in: hiddenProjectIds } } } },
+          ],
+        },
+        select: { id: true },
+      }),
+      this.prisma.timeEntry.findMany({
+        where: { taskId: { in: taskIds } },
+        select: { id: true },
+      }),
+    ]);
+
+    return {
+      NOT: {
+        OR: [
+          { entityType: 'project', entityId: { in: hiddenProjectIds } },
+          { entityType: 'status', entityId: { in: statuses.map((status) => status.id) } },
+          { entityType: 'task_list', entityId: { in: lists.map((list) => list.id) } },
+          { entityType: 'task', entityId: { in: taskIds } },
+          { entityType: 'comment', entityId: { in: comments.map((comment) => comment.id) } },
+          { entityType: 'attachment', entityId: { in: attachments.map((attachment) => attachment.id) } },
+          { entityType: 'time_entry', entityId: { in: timeEntries.map((entry) => entry.id) } },
+        ],
+      },
+    };
   }
 
   private toFeedResult(rows: RawActivity[], limit: number): ActivityFeedResult {

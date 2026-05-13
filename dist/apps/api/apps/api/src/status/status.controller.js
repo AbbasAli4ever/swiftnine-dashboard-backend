@@ -37,7 +37,7 @@ let StatusController = class StatusController {
         return (0, common_2.ok)(status, 'Status created successfully');
     }
     async findAll(req, dto) {
-        const statuses = await this.statusService.findAll(req.workspaceContext.workspaceId, dto.projectId);
+        const statuses = await this.statusService.findAll(req.workspaceContext.workspaceId, dto.projectId, req.user.id);
         return (0, common_2.ok)(statuses);
     }
     async reorder(req, dto) {

@@ -23,30 +23,39 @@ const auth_service_1 = require("../auth/auth.service");
 const cors_config_1 = require("../config/cors.config");
 const presence_service_1 = require("../presence/presence.service");
 const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
+const database_1 = require("../../../../libs/database/src");
 const doc_locks_service_1 = require("./doc-locks.service");
 const doc_presence_service_1 = require("./doc-presence.service");
 const docs_service_1 = require("./docs.service");
+const project_realtime_lock_service_1 = require("../project-security/project-realtime-lock.service");
 let DocsGateway = DocsGateway_1 = class DocsGateway {
     docs;
     docPresence;
     locks;
+    prisma;
     jwt;
     auth;
     presence;
     metrics;
+    projectRealtimeLocks;
     server;
     logger = new common_1.Logger(DocsGateway_1.name);
-    constructor(docs, docPresence, locks, jwt, auth, presence, metrics, config) {
+    constructor(docs, docPresence, locks, prisma, jwt, auth, presence, metrics, projectRealtimeLocks, config) {
         this.docs = docs;
         this.docPresence = docPresence;
         this.locks = locks;
+        this.prisma = prisma;
         this.jwt = jwt;
         this.auth = auth;
         this.presence = presence;
         this.metrics = metrics;
+        this.projectRealtimeLocks = projectRealtimeLocks;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Docs realtime uses in-memory presence and locks; configure Redis before scaling instances');
         }
+        this.projectRealtimeLocks.lockChanged$.subscribe((event) => {
+            void this.evictProjectDocs(event.projectId, event.reason);
+        });
     }
     async handleConnection(client) {
         try {
@@ -70,7 +79,7 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     async handleJoin(client, payload) {
         const user = this.requireUser(client);
         const docId = this.requireString(payload.docId, 'docId');
-        await this.docs.findOne(user.id, docId);
+        await this.assertCanViewDocForWs(user.id, docId);
         await client.join(this.roomName(docId));
         this.docPresence.join(docId, client.id, user);
         client.emit('doc:presence-snapshot', { users: this.presenceSnapshot(docId) });
@@ -196,6 +205,10 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
         this.locks.releaseForSocket(client.id, docId);
         this.emitRoomState(docId);
     }
+    leaveSocketIdFromRoom(socketId, docId) {
+        this.docPresence.leave(socketId, docId);
+        this.locks.releaseForSocket(socketId, docId);
+    }
     emitRoomState(docId) {
         this.server.to(this.roomName(docId)).emit('doc:presence-snapshot', {
             users: this.presenceSnapshot(docId),
@@ -218,6 +231,50 @@ let DocsGateway = DocsGateway_1 = class DocsGateway {
     }
     roomName(docId) {
         return `doc:${docId}`;
+    }
+    async assertCanViewDocForWs(userId, docId) {
+        try {
+            await this.docs.findOne(userId, docId);
+        }
+        catch (error) {
+            const response = error instanceof common_1.HttpException ? error.getResponse() : null;
+            if (response &&
+                typeof response === 'object' &&
+                'code' in response &&
+                response.code === 'PROJECT_LOCKED') {
+                throw new websockets_1.WsException({
+                    code: 'PROJECT_LOCKED',
+                    message: 'Project is locked',
+                });
+            }
+            const message = error instanceof Error ? error.message : 'Document access denied';
+            throw new websockets_1.WsException({
+                code: 'DOC_ACCESS_DENIED',
+                message,
+            });
+        }
+    }
+    async evictProjectDocs(projectId, reason) {
+        if (!this.server)
+            return;
+        const docs = await this.prisma.doc.findMany({
+            where: { projectId, deletedAt: null },
+            select: { id: true },
+        });
+        for (const doc of docs) {
+            const room = this.roomName(doc.id);
+            const socketIds = Array.from(this.server.sockets.adapter.rooms.get(room) ?? []);
+            this.server.to(room).emit('project:lock-changed', {
+                projectId,
+                docId: doc.id,
+                reason,
+            });
+            for (const socketId of socketIds) {
+                this.leaveSocketIdFromRoom(socketId, doc.id);
+            }
+            await this.server.in(room).socketsLeave(room);
+            this.emitRoomState(doc.id);
+        }
     }
 };
 exports.DocsGateway = DocsGateway;
@@ -281,10 +338,12 @@ exports.DocsGateway = DocsGateway = DocsGateway_1 = __decorate([
     __metadata("design:paramtypes", [docs_service_1.DocsService,
         doc_presence_service_1.DocPresenceService,
         doc_locks_service_1.DocLocksService,
+        database_1.PrismaService,
         jwt_1.JwtService,
         auth_service_1.AuthService,
         presence_service_1.PresenceService,
         realtime_metrics_service_1.RealtimeMetricsService,
+        project_realtime_lock_service_1.ProjectRealtimeLockService,
         config_1.ConfigService])
 ], DocsGateway);
 //# sourceMappingURL=docs.gateway.js.map

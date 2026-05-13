@@ -14,14 +14,17 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const notifications_service_1 = require("../notifications/notifications.service");
 const chat_system_service_1 = require("../chat/chat-system.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 let ChannelsService = class ChannelsService {
     prisma;
     notifications;
     chatSystem;
-    constructor(prisma, notifications, chatSystem) {
+    projectSecurity;
+    constructor(prisma, notifications, chatSystem, projectSecurity) {
         this.prisma = prisma;
         this.notifications = notifications;
         this.chatSystem = chatSystem;
+        this.projectSecurity = projectSecurity;
     }
     channelLabel(name) {
         return name?.trim() || 'this channel';
@@ -63,6 +66,7 @@ let ChannelsService = class ChannelsService {
         return channels.map((channel) => this.mapChannel(channel, userId));
     }
     async listByProject(workspaceId, projectId, userId) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: { id: true },
@@ -85,6 +89,7 @@ let ChannelsService = class ChannelsService {
     }
     async create(workspaceId, userId, dto) {
         if (dto.projectId) {
+            await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
             const project = await this.prisma.project.findFirst({
                 where: { id: dto.projectId, workspaceId, deletedAt: null },
                 select: { id: true },
@@ -438,6 +443,7 @@ exports.ChannelsService = ChannelsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
         notifications_service_1.NotificationsService,
-        chat_system_service_1.ChatSystemService])
+        chat_system_service_1.ChatSystemService,
+        project_security_service_1.ProjectSecurityService])
 ], ChannelsService);
 //# sourceMappingURL=channels.service.js.map

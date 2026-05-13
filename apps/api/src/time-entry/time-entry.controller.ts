@@ -98,6 +98,7 @@ export class TimeEntryController {
   ): Promise<ApiRes<TimeEntryData[]>> {
     const entries = await this.timeEntryService.findAllByTask(
       req.workspaceContext.workspaceId,
+      req.user.id,
       taskId,
     );
     return ok(entries);

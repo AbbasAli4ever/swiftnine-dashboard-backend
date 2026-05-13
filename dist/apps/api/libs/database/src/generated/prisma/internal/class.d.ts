@@ -52,6 +52,15 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get project(): Prisma.ProjectDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get projectUnlockSession(): Prisma.ProjectUnlockSessionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get projectUnlockAttempt(): Prisma.ProjectUnlockAttemptDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get projectPasswordResetToken(): Prisma.ProjectPasswordResetTokenDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get taskList(): Prisma.TaskListDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

@@ -1,7 +1,9 @@
 import { PrismaService } from "../../../../libs/database/src";
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export declare class FavoritesService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, projectSecurity: ProjectSecurityService);
     favoriteProject(workspaceId: string, userId: string, projectId: string): Promise<{
         isFavorite: boolean;
     }>;
@@ -14,7 +16,14 @@ export declare class FavoritesService {
     unfavoriteTask(workspaceId: string, userId: string, taskId: string): Promise<{
         isFavorite: boolean;
     }>;
-    listProjectFavorites(workspaceId: string, userId: string, includeArchived?: boolean): Promise<{
+    listProjectFavorites(workspaceId: string, userId: string, includeArchived?: boolean): Promise<({
+        id: string;
+        workspaceId: string;
+        locked: boolean;
+        isFavorite: boolean;
+        favoritedAt: Date;
+    } | {
+        locked: boolean;
         isFavorite: boolean;
         favoritedAt: Date;
         description: string | null;
@@ -31,6 +40,10 @@ export declare class FavoritesService {
         icon: string | null;
         taskIdPrefix: string;
         isArchived: boolean;
+        passwordUpdatedAt: Date | null;
+        _count: {
+            taskLists: number;
+        };
         statuses: {
             id: string;
             name: string;
@@ -41,7 +54,7 @@ export declare class FavoritesService {
             isProtected: boolean;
             isClosed: boolean;
         }[];
-    }[]>;
+    })[]>;
     listTaskFavorites(workspaceId: string, userId: string, includeArchived?: boolean): Promise<{
         isFavorite: boolean;
         favoritedAt: Date;

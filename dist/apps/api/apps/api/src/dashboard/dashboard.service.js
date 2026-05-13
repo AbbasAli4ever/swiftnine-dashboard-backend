@@ -181,7 +181,7 @@ let DashboardService = class DashboardService {
         });
     }
     buildAttachments(attachments, taskIdPrefix) {
-        return attachments.flatMap((attachment) => attachment.task ? [{
+        return attachments.flatMap((attachment) => attachment.task && attachment.mimeType && attachment.fileSize !== null ? [{
                 id: attachment.id,
                 taskId: attachment.task.id,
                 taskKey: `${taskIdPrefix}-${attachment.task.taskNumber}`,

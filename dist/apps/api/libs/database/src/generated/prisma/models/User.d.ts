@@ -195,6 +195,8 @@ export type UserWhereInput = {
     workspaceMembers?: Prisma.WorkspaceMemberListRelationFilter;
     projectFavorites?: Prisma.ProjectFavoriteListRelationFilter;
     taskFavorites?: Prisma.TaskFavoriteListRelationFilter;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionListRelationFilter;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptListRelationFilter;
     channelMembers?: Prisma.ChannelMemberListRelationFilter;
     channelMessagesSent?: Prisma.ChannelMessageListRelationFilter;
     channelMessagesPinned?: Prisma.ChannelMessageListRelationFilter;
@@ -204,6 +206,7 @@ export type UserWhereInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestListRelationFilter;
     workspaceInvitesSent?: Prisma.WorkspaceInviteListRelationFilter;
     projectsCreated?: Prisma.ProjectListRelationFilter;
+    projectPasswordsSet?: Prisma.ProjectListRelationFilter;
     taskListsCreated?: Prisma.TaskListListRelationFilter;
     taskListsOwned?: Prisma.TaskListListRelationFilter;
     tasksCreated?: Prisma.TaskListRelationFilter;
@@ -249,6 +252,8 @@ export type UserOrderByWithRelationInput = {
     workspaceMembers?: Prisma.WorkspaceMemberOrderByRelationAggregateInput;
     projectFavorites?: Prisma.ProjectFavoriteOrderByRelationAggregateInput;
     taskFavorites?: Prisma.TaskFavoriteOrderByRelationAggregateInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionOrderByRelationAggregateInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptOrderByRelationAggregateInput;
     channelMembers?: Prisma.ChannelMemberOrderByRelationAggregateInput;
     channelMessagesSent?: Prisma.ChannelMessageOrderByRelationAggregateInput;
     channelMessagesPinned?: Prisma.ChannelMessageOrderByRelationAggregateInput;
@@ -258,6 +263,7 @@ export type UserOrderByWithRelationInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestOrderByRelationAggregateInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteOrderByRelationAggregateInput;
     projectsCreated?: Prisma.ProjectOrderByRelationAggregateInput;
+    projectPasswordsSet?: Prisma.ProjectOrderByRelationAggregateInput;
     taskListsCreated?: Prisma.TaskListOrderByRelationAggregateInput;
     taskListsOwned?: Prisma.TaskListOrderByRelationAggregateInput;
     tasksCreated?: Prisma.TaskOrderByRelationAggregateInput;
@@ -306,6 +312,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
     workspaceMembers?: Prisma.WorkspaceMemberListRelationFilter;
     projectFavorites?: Prisma.ProjectFavoriteListRelationFilter;
     taskFavorites?: Prisma.TaskFavoriteListRelationFilter;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionListRelationFilter;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptListRelationFilter;
     channelMembers?: Prisma.ChannelMemberListRelationFilter;
     channelMessagesSent?: Prisma.ChannelMessageListRelationFilter;
     channelMessagesPinned?: Prisma.ChannelMessageListRelationFilter;
@@ -315,6 +323,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestListRelationFilter;
     workspaceInvitesSent?: Prisma.WorkspaceInviteListRelationFilter;
     projectsCreated?: Prisma.ProjectListRelationFilter;
+    projectPasswordsSet?: Prisma.ProjectListRelationFilter;
     taskListsCreated?: Prisma.TaskListListRelationFilter;
     taskListsOwned?: Prisma.TaskListListRelationFilter;
     tasksCreated?: Prisma.TaskListRelationFilter;
@@ -404,6 +413,8 @@ export type UserCreateInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -413,6 +424,7 @@ export type UserCreateInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -458,6 +470,8 @@ export type UserUncheckedCreateInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -467,6 +481,7 @@ export type UserUncheckedCreateInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -512,6 +527,8 @@ export type UserUpdateInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -521,6 +538,7 @@ export type UserUpdateInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -566,6 +584,8 @@ export type UserUncheckedUpdateInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -575,6 +595,7 @@ export type UserUncheckedUpdateInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -807,12 +828,50 @@ export type UserCreateNestedOneWithoutProjectsCreatedInput = {
     connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectsCreatedInput;
     connect?: Prisma.UserWhereUniqueInput;
 };
+export type UserCreateNestedOneWithoutProjectPasswordsSetInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedCreateWithoutProjectPasswordsSetInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectPasswordsSetInput;
+    connect?: Prisma.UserWhereUniqueInput;
+};
 export type UserUpdateOneRequiredWithoutProjectsCreatedNestedInput = {
     create?: Prisma.XOR<Prisma.UserCreateWithoutProjectsCreatedInput, Prisma.UserUncheckedCreateWithoutProjectsCreatedInput>;
     connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectsCreatedInput;
     upsert?: Prisma.UserUpsertWithoutProjectsCreatedInput;
     connect?: Prisma.UserWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectsCreatedInput, Prisma.UserUpdateWithoutProjectsCreatedInput>, Prisma.UserUncheckedUpdateWithoutProjectsCreatedInput>;
+};
+export type UserUpdateOneWithoutProjectPasswordsSetNestedInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedCreateWithoutProjectPasswordsSetInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectPasswordsSetInput;
+    upsert?: Prisma.UserUpsertWithoutProjectPasswordsSetInput;
+    disconnect?: Prisma.UserWhereInput | boolean;
+    delete?: Prisma.UserWhereInput | boolean;
+    connect?: Prisma.UserWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectPasswordsSetInput, Prisma.UserUpdateWithoutProjectPasswordsSetInput>, Prisma.UserUncheckedUpdateWithoutProjectPasswordsSetInput>;
+};
+export type UserCreateNestedOneWithoutProjectUnlockSessionsInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockSessionsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectUnlockSessionsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+};
+export type UserUpdateOneRequiredWithoutProjectUnlockSessionsNestedInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockSessionsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectUnlockSessionsInput;
+    upsert?: Prisma.UserUpsertWithoutProjectUnlockSessionsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectUnlockSessionsInput, Prisma.UserUpdateWithoutProjectUnlockSessionsInput>, Prisma.UserUncheckedUpdateWithoutProjectUnlockSessionsInput>;
+};
+export type UserCreateNestedOneWithoutProjectUnlockAttemptsInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockAttemptsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectUnlockAttemptsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+};
+export type UserUpdateOneRequiredWithoutProjectUnlockAttemptsNestedInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockAttemptsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectUnlockAttemptsInput;
+    upsert?: Prisma.UserUpsertWithoutProjectUnlockAttemptsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectUnlockAttemptsInput, Prisma.UserUpdateWithoutProjectUnlockAttemptsInput>, Prisma.UserUncheckedUpdateWithoutProjectUnlockAttemptsInput>;
 };
 export type UserCreateNestedOneWithoutTaskListsCreatedInput = {
     create?: Prisma.XOR<Prisma.UserCreateWithoutTaskListsCreatedInput, Prisma.UserUncheckedCreateWithoutTaskListsCreatedInput>;
@@ -1184,6 +1243,8 @@ export type UserCreateWithoutRefreshTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -1193,6 +1254,7 @@ export type UserCreateWithoutRefreshTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -1237,6 +1299,8 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -1246,6 +1310,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -1303,6 +1368,8 @@ export type UserUpdateWithoutRefreshTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -1312,6 +1379,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -1356,6 +1424,8 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -1365,6 +1435,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -1409,6 +1480,8 @@ export type UserCreateWithoutPasswordResetTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -1418,6 +1491,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -1462,6 +1536,8 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -1471,6 +1547,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -1528,6 +1605,8 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -1537,6 +1616,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -1581,6 +1661,8 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -1590,6 +1672,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -1634,6 +1717,8 @@ export type UserCreateWithoutEmailVerificationTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -1643,6 +1728,7 @@ export type UserCreateWithoutEmailVerificationTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -1687,6 +1773,8 @@ export type UserUncheckedCreateWithoutEmailVerificationTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -1696,6 +1784,7 @@ export type UserUncheckedCreateWithoutEmailVerificationTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -1753,6 +1842,8 @@ export type UserUpdateWithoutEmailVerificationTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -1762,6 +1853,7 @@ export type UserUpdateWithoutEmailVerificationTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -1806,6 +1898,8 @@ export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -1815,6 +1909,7 @@ export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -1859,6 +1954,8 @@ export type UserCreateWithoutWorkspacesCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -1868,6 +1965,7 @@ export type UserCreateWithoutWorkspacesCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -1912,6 +2010,8 @@ export type UserUncheckedCreateWithoutWorkspacesCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -1921,6 +2021,7 @@ export type UserUncheckedCreateWithoutWorkspacesCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -1978,6 +2079,8 @@ export type UserUpdateWithoutWorkspacesCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -1987,6 +2090,7 @@ export type UserUpdateWithoutWorkspacesCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -2031,6 +2135,8 @@ export type UserUncheckedUpdateWithoutWorkspacesCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -2040,6 +2146,7 @@ export type UserUncheckedUpdateWithoutWorkspacesCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -2084,6 +2191,8 @@ export type UserCreateWithoutWorkspaceMembersInput = {
     workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -2093,6 +2202,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -2137,6 +2247,8 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -2146,6 +2258,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -2203,6 +2316,8 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
     workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -2212,6 +2327,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -2256,6 +2372,8 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -2265,6 +2383,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -2310,6 +2429,8 @@ export type UserCreateWithoutWorkspaceInvitesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -2318,6 +2439,7 @@ export type UserCreateWithoutWorkspaceInvitesSentInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -2363,6 +2485,8 @@ export type UserUncheckedCreateWithoutWorkspaceInvitesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -2371,6 +2495,7 @@ export type UserUncheckedCreateWithoutWorkspaceInvitesSentInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -2429,6 +2554,8 @@ export type UserUpdateWithoutWorkspaceInvitesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -2437,6 +2564,7 @@ export type UserUpdateWithoutWorkspaceInvitesSentInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -2482,6 +2610,8 @@ export type UserUncheckedUpdateWithoutWorkspaceInvitesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -2490,6 +2620,7 @@ export type UserUncheckedUpdateWithoutWorkspaceInvitesSentInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -2535,6 +2666,8 @@ export type UserCreateWithoutProjectsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -2543,6 +2676,7 @@ export type UserCreateWithoutProjectsCreatedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -2588,6 +2722,8 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -2596,6 +2732,7 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -2619,6 +2756,122 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
 export type UserCreateOrConnectWithoutProjectsCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
     create: Prisma.XOR<Prisma.UserCreateWithoutProjectsCreatedInput, Prisma.UserUncheckedCreateWithoutProjectsCreatedInput>;
+};
+export type UserCreateWithoutProjectPasswordsSetInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+};
+export type UserUncheckedCreateWithoutProjectPasswordsSetInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocUncheckedCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+};
+export type UserCreateOrConnectWithoutProjectPasswordsSetInput = {
+    where: Prisma.UserWhereUniqueInput;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedCreateWithoutProjectPasswordsSetInput>;
 };
 export type UserUpsertWithoutProjectsCreatedInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutProjectsCreatedInput, Prisma.UserUncheckedUpdateWithoutProjectsCreatedInput>;
@@ -2654,6 +2907,8 @@ export type UserUpdateWithoutProjectsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -2662,6 +2917,7 @@ export type UserUpdateWithoutProjectsCreatedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -2707,6 +2963,8 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -2715,6 +2973,602 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUncheckedUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserUpsertWithoutProjectPasswordsSetInput = {
+    update: Prisma.XOR<Prisma.UserUpdateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedUpdateWithoutProjectPasswordsSetInput>;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedCreateWithoutProjectPasswordsSetInput>;
+    where?: Prisma.UserWhereInput;
+};
+export type UserUpdateToOneWithWhereWithoutProjectPasswordsSetInput = {
+    where?: Prisma.UserWhereInput;
+    data: Prisma.XOR<Prisma.UserUpdateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedUpdateWithoutProjectPasswordsSetInput>;
+};
+export type UserUpdateWithoutProjectPasswordsSetInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserUncheckedUpdateWithoutProjectPasswordsSetInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUncheckedUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserCreateWithoutProjectUnlockSessionsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+};
+export type UserUncheckedCreateWithoutProjectUnlockSessionsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocUncheckedCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+};
+export type UserCreateOrConnectWithoutProjectUnlockSessionsInput = {
+    where: Prisma.UserWhereUniqueInput;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockSessionsInput>;
+};
+export type UserUpsertWithoutProjectUnlockSessionsInput = {
+    update: Prisma.XOR<Prisma.UserUpdateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedUpdateWithoutProjectUnlockSessionsInput>;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockSessionsInput>;
+    where?: Prisma.UserWhereInput;
+};
+export type UserUpdateToOneWithWhereWithoutProjectUnlockSessionsInput = {
+    where?: Prisma.UserWhereInput;
+    data: Prisma.XOR<Prisma.UserUpdateWithoutProjectUnlockSessionsInput, Prisma.UserUncheckedUpdateWithoutProjectUnlockSessionsInput>;
+};
+export type UserUpdateWithoutProjectUnlockSessionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserUncheckedUpdateWithoutProjectUnlockSessionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUncheckedUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserCreateWithoutProjectUnlockAttemptsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+};
+export type UserUncheckedCreateWithoutProjectUnlockAttemptsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocUncheckedCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+};
+export type UserCreateOrConnectWithoutProjectUnlockAttemptsInput = {
+    where: Prisma.UserWhereUniqueInput;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockAttemptsInput>;
+};
+export type UserUpsertWithoutProjectUnlockAttemptsInput = {
+    update: Prisma.XOR<Prisma.UserUpdateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedUpdateWithoutProjectUnlockAttemptsInput>;
+    create: Prisma.XOR<Prisma.UserCreateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedCreateWithoutProjectUnlockAttemptsInput>;
+    where?: Prisma.UserWhereInput;
+};
+export type UserUpdateToOneWithWhereWithoutProjectUnlockAttemptsInput = {
+    where?: Prisma.UserWhereInput;
+    data: Prisma.XOR<Prisma.UserUpdateWithoutProjectUnlockAttemptsInput, Prisma.UserUncheckedUpdateWithoutProjectUnlockAttemptsInput>;
+};
+export type UserUpdateWithoutProjectUnlockAttemptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserUncheckedUpdateWithoutProjectUnlockAttemptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -2760,6 +3614,8 @@ export type UserCreateWithoutTaskListsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -2769,6 +3625,7 @@ export type UserCreateWithoutTaskListsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
     taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
@@ -2813,6 +3670,8 @@ export type UserUncheckedCreateWithoutTaskListsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -2822,6 +3681,7 @@ export type UserUncheckedCreateWithoutTaskListsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
@@ -2870,6 +3730,8 @@ export type UserCreateWithoutTaskListsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -2879,6 +3741,7 @@ export type UserCreateWithoutTaskListsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
     taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
@@ -2923,6 +3786,8 @@ export type UserUncheckedCreateWithoutTaskListsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -2932,6 +3797,7 @@ export type UserUncheckedCreateWithoutTaskListsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
@@ -2989,6 +3855,8 @@ export type UserUpdateWithoutTaskListsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -2998,6 +3866,7 @@ export type UserUpdateWithoutTaskListsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
@@ -3042,6 +3911,8 @@ export type UserUncheckedUpdateWithoutTaskListsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -3051,6 +3922,7 @@ export type UserUncheckedUpdateWithoutTaskListsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
@@ -3104,6 +3976,8 @@ export type UserUpdateWithoutTaskListsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -3113,6 +3987,7 @@ export type UserUpdateWithoutTaskListsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
@@ -3157,6 +4032,8 @@ export type UserUncheckedUpdateWithoutTaskListsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -3166,6 +4043,7 @@ export type UserUncheckedUpdateWithoutTaskListsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
@@ -3210,6 +4088,8 @@ export type UserCreateWithoutTasksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -3219,6 +4099,7 @@ export type UserCreateWithoutTasksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
@@ -3263,6 +4144,8 @@ export type UserUncheckedCreateWithoutTasksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -3272,6 +4155,7 @@ export type UserUncheckedCreateWithoutTasksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
@@ -3329,6 +4213,8 @@ export type UserUpdateWithoutTasksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -3338,6 +4224,7 @@ export type UserUpdateWithoutTasksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
@@ -3382,6 +4269,8 @@ export type UserUncheckedUpdateWithoutTasksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -3391,6 +4280,7 @@ export type UserUncheckedUpdateWithoutTasksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
@@ -3434,6 +4324,8 @@ export type UserCreateWithoutProjectFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -3443,6 +4335,7 @@ export type UserCreateWithoutProjectFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -3487,6 +4380,8 @@ export type UserUncheckedCreateWithoutProjectFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -3496,6 +4391,7 @@ export type UserUncheckedCreateWithoutProjectFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -3553,6 +4449,8 @@ export type UserUpdateWithoutProjectFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -3562,6 +4460,7 @@ export type UserUpdateWithoutProjectFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -3606,6 +4505,8 @@ export type UserUncheckedUpdateWithoutProjectFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -3615,6 +4516,7 @@ export type UserUncheckedUpdateWithoutProjectFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -3659,6 +4561,8 @@ export type UserCreateWithoutTaskFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -3668,6 +4572,7 @@ export type UserCreateWithoutTaskFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -3712,6 +4617,8 @@ export type UserUncheckedCreateWithoutTaskFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -3721,6 +4628,7 @@ export type UserUncheckedCreateWithoutTaskFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -3778,6 +4686,8 @@ export type UserUpdateWithoutTaskFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -3787,6 +4697,7 @@ export type UserUpdateWithoutTaskFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -3831,6 +4742,8 @@ export type UserUncheckedUpdateWithoutTaskFavoritesInput = {
     workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -3840,6 +4753,7 @@ export type UserUncheckedUpdateWithoutTaskFavoritesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -3885,6 +4799,8 @@ export type UserCreateWithoutTaskAssignmentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -3894,6 +4810,7 @@ export type UserCreateWithoutTaskAssignmentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -3938,6 +4855,8 @@ export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -3947,6 +4866,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -3995,6 +4915,8 @@ export type UserCreateWithoutTaskAssignmentsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -4004,6 +4926,7 @@ export type UserCreateWithoutTaskAssignmentsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -4048,6 +4971,8 @@ export type UserUncheckedCreateWithoutTaskAssignmentsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -4057,6 +4982,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -4114,6 +5040,8 @@ export type UserUpdateWithoutTaskAssignmentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -4123,6 +5051,7 @@ export type UserUpdateWithoutTaskAssignmentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -4167,6 +5096,8 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -4176,6 +5107,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -4229,6 +5161,8 @@ export type UserUpdateWithoutTaskAssignmentsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -4238,6 +5172,7 @@ export type UserUpdateWithoutTaskAssignmentsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -4282,6 +5217,8 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -4291,6 +5228,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -4335,6 +5273,8 @@ export type UserCreateWithoutCommentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -4344,6 +5284,7 @@ export type UserCreateWithoutCommentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -4388,6 +5329,8 @@ export type UserUncheckedCreateWithoutCommentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -4397,6 +5340,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -4454,6 +5398,8 @@ export type UserUpdateWithoutCommentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -4463,6 +5409,7 @@ export type UserUpdateWithoutCommentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -4507,6 +5454,8 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -4516,6 +5465,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -4560,6 +5510,8 @@ export type UserCreateWithoutMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -4569,6 +5521,7 @@ export type UserCreateWithoutMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -4613,6 +5566,8 @@ export type UserUncheckedCreateWithoutMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -4622,6 +5577,7 @@ export type UserUncheckedCreateWithoutMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -4679,6 +5635,8 @@ export type UserUpdateWithoutMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -4688,6 +5646,7 @@ export type UserUpdateWithoutMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -4732,6 +5691,8 @@ export type UserUncheckedUpdateWithoutMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -4741,6 +5702,7 @@ export type UserUncheckedUpdateWithoutMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -4785,6 +5747,8 @@ export type UserCreateWithoutNotificationsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -4794,6 +5758,7 @@ export type UserCreateWithoutNotificationsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -4838,6 +5803,8 @@ export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -4847,6 +5814,7 @@ export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -4895,6 +5863,8 @@ export type UserCreateWithoutNotificationsTriggeredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -4904,6 +5874,7 @@ export type UserCreateWithoutNotificationsTriggeredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -4948,6 +5919,8 @@ export type UserUncheckedCreateWithoutNotificationsTriggeredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -4957,6 +5930,7 @@ export type UserUncheckedCreateWithoutNotificationsTriggeredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -5014,6 +5988,8 @@ export type UserUpdateWithoutNotificationsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -5023,6 +5999,7 @@ export type UserUpdateWithoutNotificationsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -5067,6 +6044,8 @@ export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -5076,6 +6055,7 @@ export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -5129,6 +6109,8 @@ export type UserUpdateWithoutNotificationsTriggeredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -5138,6 +6120,7 @@ export type UserUpdateWithoutNotificationsTriggeredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -5182,6 +6165,8 @@ export type UserUncheckedUpdateWithoutNotificationsTriggeredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -5191,6 +6176,7 @@ export type UserUncheckedUpdateWithoutNotificationsTriggeredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -5235,6 +6221,8 @@ export type UserCreateWithoutAttachmentsUploadedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -5244,6 +6232,7 @@ export type UserCreateWithoutAttachmentsUploadedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -5288,6 +6277,8 @@ export type UserUncheckedCreateWithoutAttachmentsUploadedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -5297,6 +6288,7 @@ export type UserUncheckedCreateWithoutAttachmentsUploadedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -5354,6 +6346,8 @@ export type UserUpdateWithoutAttachmentsUploadedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -5363,6 +6357,7 @@ export type UserUpdateWithoutAttachmentsUploadedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -5407,6 +6402,8 @@ export type UserUncheckedUpdateWithoutAttachmentsUploadedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -5416,6 +6413,7 @@ export type UserUncheckedUpdateWithoutAttachmentsUploadedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -5460,6 +6458,8 @@ export type UserCreateWithoutTimeEntriesInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -5469,6 +6469,7 @@ export type UserCreateWithoutTimeEntriesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -5513,6 +6514,8 @@ export type UserUncheckedCreateWithoutTimeEntriesInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -5522,6 +6525,7 @@ export type UserUncheckedCreateWithoutTimeEntriesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -5579,6 +6583,8 @@ export type UserUpdateWithoutTimeEntriesInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -5588,6 +6594,7 @@ export type UserUpdateWithoutTimeEntriesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -5632,6 +6639,8 @@ export type UserUncheckedUpdateWithoutTimeEntriesInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -5641,6 +6650,7 @@ export type UserUncheckedUpdateWithoutTimeEntriesInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -5685,6 +6695,8 @@ export type UserCreateWithoutActivityLogsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -5694,6 +6706,7 @@ export type UserCreateWithoutActivityLogsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -5738,6 +6751,8 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -5747,6 +6762,7 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -5804,6 +6820,8 @@ export type UserUpdateWithoutActivityLogsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -5813,6 +6831,7 @@ export type UserUpdateWithoutActivityLogsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -5857,6 +6876,8 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -5866,6 +6887,7 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -5910,6 +6932,8 @@ export type UserCreateWithoutChannelMembersInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
@@ -5918,6 +6942,7 @@ export type UserCreateWithoutChannelMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -5963,6 +6988,8 @@ export type UserUncheckedCreateWithoutChannelMembersInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
@@ -5971,6 +6998,7 @@ export type UserUncheckedCreateWithoutChannelMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -6029,6 +7057,8 @@ export type UserUpdateWithoutChannelMembersInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
@@ -6037,6 +7067,7 @@ export type UserUpdateWithoutChannelMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -6082,6 +7113,8 @@ export type UserUncheckedUpdateWithoutChannelMembersInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
@@ -6090,6 +7123,7 @@ export type UserUncheckedUpdateWithoutChannelMembersInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -6135,6 +7169,8 @@ export type UserCreateWithoutChannelMessagesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
@@ -6143,6 +7179,7 @@ export type UserCreateWithoutChannelMessagesSentInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -6188,6 +7225,8 @@ export type UserUncheckedCreateWithoutChannelMessagesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
@@ -6196,6 +7235,7 @@ export type UserUncheckedCreateWithoutChannelMessagesSentInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -6245,6 +7285,8 @@ export type UserCreateWithoutChannelMessagesPinnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
@@ -6253,6 +7295,7 @@ export type UserCreateWithoutChannelMessagesPinnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -6298,6 +7341,8 @@ export type UserUncheckedCreateWithoutChannelMessagesPinnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
@@ -6306,6 +7351,7 @@ export type UserUncheckedCreateWithoutChannelMessagesPinnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -6364,6 +7410,8 @@ export type UserUpdateWithoutChannelMessagesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
@@ -6372,6 +7420,7 @@ export type UserUpdateWithoutChannelMessagesSentInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -6417,6 +7466,8 @@ export type UserUncheckedUpdateWithoutChannelMessagesSentInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
@@ -6425,6 +7476,7 @@ export type UserUncheckedUpdateWithoutChannelMessagesSentInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -6479,6 +7531,8 @@ export type UserUpdateWithoutChannelMessagesPinnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
@@ -6487,6 +7541,7 @@ export type UserUpdateWithoutChannelMessagesPinnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -6532,6 +7587,8 @@ export type UserUncheckedUpdateWithoutChannelMessagesPinnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
@@ -6540,6 +7597,7 @@ export type UserUncheckedUpdateWithoutChannelMessagesPinnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -6585,6 +7643,8 @@ export type UserCreateWithoutChannelMessageMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -6593,6 +7653,7 @@ export type UserCreateWithoutChannelMessageMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -6638,6 +7699,8 @@ export type UserUncheckedCreateWithoutChannelMessageMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -6646,6 +7709,7 @@ export type UserUncheckedCreateWithoutChannelMessageMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -6704,6 +7768,8 @@ export type UserUpdateWithoutChannelMessageMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -6712,6 +7778,7 @@ export type UserUpdateWithoutChannelMessageMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -6757,6 +7824,8 @@ export type UserUncheckedUpdateWithoutChannelMessageMentionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -6765,6 +7834,7 @@ export type UserUncheckedUpdateWithoutChannelMessageMentionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -6810,6 +7880,8 @@ export type UserCreateWithoutChannelMessageReactionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -6818,6 +7890,7 @@ export type UserCreateWithoutChannelMessageReactionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -6863,6 +7936,8 @@ export type UserUncheckedCreateWithoutChannelMessageReactionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -6871,6 +7946,7 @@ export type UserUncheckedCreateWithoutChannelMessageReactionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -6929,6 +8005,8 @@ export type UserUpdateWithoutChannelMessageReactionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -6937,6 +8015,7 @@ export type UserUpdateWithoutChannelMessageReactionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -6982,6 +8061,8 @@ export type UserUncheckedUpdateWithoutChannelMessageReactionsInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -6990,6 +8071,7 @@ export type UserUncheckedUpdateWithoutChannelMessageReactionsInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -7035,6 +8117,8 @@ export type UserCreateWithoutChannelJoinRequestsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -7043,6 +8127,7 @@ export type UserCreateWithoutChannelJoinRequestsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -7088,6 +8173,8 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -7096,6 +8183,7 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -7145,6 +8233,8 @@ export type UserCreateWithoutChannelJoinRequestsDecidedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -7153,6 +8243,7 @@ export type UserCreateWithoutChannelJoinRequestsDecidedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -7198,6 +8289,8 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsDecidedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -7206,6 +8299,7 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsDecidedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -7264,6 +8358,8 @@ export type UserUpdateWithoutChannelJoinRequestsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -7272,6 +8368,7 @@ export type UserUpdateWithoutChannelJoinRequestsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -7317,6 +8414,8 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsMadeInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -7325,6 +8424,7 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsMadeInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -7379,6 +8479,8 @@ export type UserUpdateWithoutChannelJoinRequestsDecidedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -7387,6 +8489,7 @@ export type UserUpdateWithoutChannelJoinRequestsDecidedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -7432,6 +8535,8 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -7440,6 +8545,7 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput = {
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -7485,6 +8591,8 @@ export type UserCreateWithoutDocsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -7494,6 +8602,7 @@ export type UserCreateWithoutDocsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -7538,6 +8647,8 @@ export type UserUncheckedCreateWithoutDocsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -7547,6 +8658,7 @@ export type UserUncheckedCreateWithoutDocsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -7604,6 +8716,8 @@ export type UserUpdateWithoutDocsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -7613,6 +8727,7 @@ export type UserUpdateWithoutDocsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -7657,6 +8772,8 @@ export type UserUncheckedUpdateWithoutDocsOwnedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -7666,6 +8783,7 @@ export type UserUncheckedUpdateWithoutDocsOwnedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -7710,6 +8828,8 @@ export type UserCreateWithoutDocVersionsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -7719,6 +8839,7 @@ export type UserCreateWithoutDocVersionsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -7763,6 +8884,8 @@ export type UserUncheckedCreateWithoutDocVersionsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -7772,6 +8895,7 @@ export type UserUncheckedCreateWithoutDocVersionsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -7829,6 +8953,8 @@ export type UserUpdateWithoutDocVersionsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -7838,6 +8964,7 @@ export type UserUpdateWithoutDocVersionsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -7882,6 +9009,8 @@ export type UserUncheckedUpdateWithoutDocVersionsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -7891,6 +9020,7 @@ export type UserUncheckedUpdateWithoutDocVersionsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -7935,6 +9065,8 @@ export type UserCreateWithoutDocPermissionsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -7944,6 +9076,7 @@ export type UserCreateWithoutDocPermissionsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -7988,6 +9121,8 @@ export type UserUncheckedCreateWithoutDocPermissionsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -7997,6 +9132,7 @@ export type UserUncheckedCreateWithoutDocPermissionsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -8045,6 +9181,8 @@ export type UserCreateWithoutDocPermissionsGrantedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -8054,6 +9192,7 @@ export type UserCreateWithoutDocPermissionsGrantedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -8098,6 +9237,8 @@ export type UserUncheckedCreateWithoutDocPermissionsGrantedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -8107,6 +9248,7 @@ export type UserUncheckedCreateWithoutDocPermissionsGrantedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -8164,6 +9306,8 @@ export type UserUpdateWithoutDocPermissionsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -8173,6 +9317,7 @@ export type UserUpdateWithoutDocPermissionsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -8217,6 +9362,8 @@ export type UserUncheckedUpdateWithoutDocPermissionsReceivedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -8226,6 +9373,7 @@ export type UserUncheckedUpdateWithoutDocPermissionsReceivedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -8279,6 +9427,8 @@ export type UserUpdateWithoutDocPermissionsGrantedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -8288,6 +9438,7 @@ export type UserUpdateWithoutDocPermissionsGrantedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -8332,6 +9483,8 @@ export type UserUncheckedUpdateWithoutDocPermissionsGrantedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -8341,6 +9494,7 @@ export type UserUncheckedUpdateWithoutDocPermissionsGrantedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -8385,6 +9539,8 @@ export type UserCreateWithoutDocThreadsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -8394,6 +9550,7 @@ export type UserCreateWithoutDocThreadsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -8438,6 +9595,8 @@ export type UserUncheckedCreateWithoutDocThreadsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -8447,6 +9606,7 @@ export type UserUncheckedCreateWithoutDocThreadsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -8504,6 +9664,8 @@ export type UserUpdateWithoutDocThreadsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -8513,6 +9675,7 @@ export type UserUpdateWithoutDocThreadsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -8557,6 +9720,8 @@ export type UserUncheckedUpdateWithoutDocThreadsCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -8566,6 +9731,7 @@ export type UserUncheckedUpdateWithoutDocThreadsCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -8610,6 +9776,8 @@ export type UserCreateWithoutDocCommentsAuthoredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -8619,6 +9787,7 @@ export type UserCreateWithoutDocCommentsAuthoredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -8663,6 +9832,8 @@ export type UserUncheckedCreateWithoutDocCommentsAuthoredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -8672,6 +9843,7 @@ export type UserUncheckedCreateWithoutDocCommentsAuthoredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -8729,6 +9901,8 @@ export type UserUpdateWithoutDocCommentsAuthoredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -8738,6 +9912,7 @@ export type UserUpdateWithoutDocCommentsAuthoredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -8782,6 +9957,8 @@ export type UserUncheckedUpdateWithoutDocCommentsAuthoredInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -8791,6 +9968,7 @@ export type UserUncheckedUpdateWithoutDocCommentsAuthoredInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -8835,6 +10013,8 @@ export type UserCreateWithoutDocShareLinksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
@@ -8844,6 +10024,7 @@ export type UserCreateWithoutDocShareLinksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
@@ -8888,6 +10069,8 @@ export type UserUncheckedCreateWithoutDocShareLinksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
     channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
@@ -8897,6 +10080,7 @@ export type UserUncheckedCreateWithoutDocShareLinksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
     projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
     taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
     taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
     tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
@@ -8954,6 +10138,8 @@ export type UserUpdateWithoutDocShareLinksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
@@ -8963,6 +10149,7 @@ export type UserUpdateWithoutDocShareLinksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
@@ -9007,6 +10194,8 @@ export type UserUncheckedUpdateWithoutDocShareLinksCreatedInput = {
     workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
     channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
     channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
     channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
@@ -9016,6 +10205,7 @@ export type UserUncheckedUpdateWithoutDocShareLinksCreatedInput = {
     channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
     taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
     taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
     tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
@@ -9043,6 +10233,8 @@ export type UserCountOutputType = {
     workspaceMembers: number;
     projectFavorites: number;
     taskFavorites: number;
+    projectUnlockSessions: number;
+    projectUnlockAttempts: number;
     channelMembers: number;
     channelMessagesSent: number;
     channelMessagesPinned: number;
@@ -9052,6 +10244,7 @@ export type UserCountOutputType = {
     channelJoinRequestsDecided: number;
     workspaceInvitesSent: number;
     projectsCreated: number;
+    projectPasswordsSet: number;
     taskListsCreated: number;
     taskListsOwned: number;
     tasksCreated: number;
@@ -9080,6 +10273,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
     workspaceMembers?: boolean | UserCountOutputTypeCountWorkspaceMembersArgs;
     projectFavorites?: boolean | UserCountOutputTypeCountProjectFavoritesArgs;
     taskFavorites?: boolean | UserCountOutputTypeCountTaskFavoritesArgs;
+    projectUnlockSessions?: boolean | UserCountOutputTypeCountProjectUnlockSessionsArgs;
+    projectUnlockAttempts?: boolean | UserCountOutputTypeCountProjectUnlockAttemptsArgs;
     channelMembers?: boolean | UserCountOutputTypeCountChannelMembersArgs;
     channelMessagesSent?: boolean | UserCountOutputTypeCountChannelMessagesSentArgs;
     channelMessagesPinned?: boolean | UserCountOutputTypeCountChannelMessagesPinnedArgs;
@@ -9089,6 +10284,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
     channelJoinRequestsDecided?: boolean | UserCountOutputTypeCountChannelJoinRequestsDecidedArgs;
     workspaceInvitesSent?: boolean | UserCountOutputTypeCountWorkspaceInvitesSentArgs;
     projectsCreated?: boolean | UserCountOutputTypeCountProjectsCreatedArgs;
+    projectPasswordsSet?: boolean | UserCountOutputTypeCountProjectPasswordsSetArgs;
     taskListsCreated?: boolean | UserCountOutputTypeCountTaskListsCreatedArgs;
     taskListsOwned?: boolean | UserCountOutputTypeCountTaskListsOwnedArgs;
     tasksCreated?: boolean | UserCountOutputTypeCountTasksCreatedArgs;
@@ -9133,6 +10329,12 @@ export type UserCountOutputTypeCountProjectFavoritesArgs<ExtArgs extends runtime
 export type UserCountOutputTypeCountTaskFavoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.TaskFavoriteWhereInput;
 };
+export type UserCountOutputTypeCountProjectUnlockSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectUnlockSessionWhereInput;
+};
+export type UserCountOutputTypeCountProjectUnlockAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectUnlockAttemptWhereInput;
+};
 export type UserCountOutputTypeCountChannelMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ChannelMemberWhereInput;
 };
@@ -9158,6 +10360,9 @@ export type UserCountOutputTypeCountWorkspaceInvitesSentArgs<ExtArgs extends run
     where?: Prisma.WorkspaceInviteWhereInput;
 };
 export type UserCountOutputTypeCountProjectsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectWhereInput;
+};
+export type UserCountOutputTypeCountProjectPasswordsSetArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ProjectWhereInput;
 };
 export type UserCountOutputTypeCountTaskListsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -9242,6 +10447,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
     workspaceMembers?: boolean | Prisma.User$workspaceMembersArgs<ExtArgs>;
     projectFavorites?: boolean | Prisma.User$projectFavoritesArgs<ExtArgs>;
     taskFavorites?: boolean | Prisma.User$taskFavoritesArgs<ExtArgs>;
+    projectUnlockSessions?: boolean | Prisma.User$projectUnlockSessionsArgs<ExtArgs>;
+    projectUnlockAttempts?: boolean | Prisma.User$projectUnlockAttemptsArgs<ExtArgs>;
     channelMembers?: boolean | Prisma.User$channelMembersArgs<ExtArgs>;
     channelMessagesSent?: boolean | Prisma.User$channelMessagesSentArgs<ExtArgs>;
     channelMessagesPinned?: boolean | Prisma.User$channelMessagesPinnedArgs<ExtArgs>;
@@ -9251,6 +10458,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
     channelJoinRequestsDecided?: boolean | Prisma.User$channelJoinRequestsDecidedArgs<ExtArgs>;
     workspaceInvitesSent?: boolean | Prisma.User$workspaceInvitesSentArgs<ExtArgs>;
     projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>;
+    projectPasswordsSet?: boolean | Prisma.User$projectPasswordsSetArgs<ExtArgs>;
     taskListsCreated?: boolean | Prisma.User$taskListsCreatedArgs<ExtArgs>;
     taskListsOwned?: boolean | Prisma.User$taskListsOwnedArgs<ExtArgs>;
     tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>;
@@ -9338,6 +10546,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     workspaceMembers?: boolean | Prisma.User$workspaceMembersArgs<ExtArgs>;
     projectFavorites?: boolean | Prisma.User$projectFavoritesArgs<ExtArgs>;
     taskFavorites?: boolean | Prisma.User$taskFavoritesArgs<ExtArgs>;
+    projectUnlockSessions?: boolean | Prisma.User$projectUnlockSessionsArgs<ExtArgs>;
+    projectUnlockAttempts?: boolean | Prisma.User$projectUnlockAttemptsArgs<ExtArgs>;
     channelMembers?: boolean | Prisma.User$channelMembersArgs<ExtArgs>;
     channelMessagesSent?: boolean | Prisma.User$channelMessagesSentArgs<ExtArgs>;
     channelMessagesPinned?: boolean | Prisma.User$channelMessagesPinnedArgs<ExtArgs>;
@@ -9347,6 +10557,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     channelJoinRequestsDecided?: boolean | Prisma.User$channelJoinRequestsDecidedArgs<ExtArgs>;
     workspaceInvitesSent?: boolean | Prisma.User$workspaceInvitesSentArgs<ExtArgs>;
     projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>;
+    projectPasswordsSet?: boolean | Prisma.User$projectPasswordsSetArgs<ExtArgs>;
     taskListsCreated?: boolean | Prisma.User$taskListsCreatedArgs<ExtArgs>;
     taskListsOwned?: boolean | Prisma.User$taskListsOwnedArgs<ExtArgs>;
     tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>;
@@ -9380,6 +10591,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
         workspaceMembers: Prisma.$WorkspaceMemberPayload<ExtArgs>[];
         projectFavorites: Prisma.$ProjectFavoritePayload<ExtArgs>[];
         taskFavorites: Prisma.$TaskFavoritePayload<ExtArgs>[];
+        projectUnlockSessions: Prisma.$ProjectUnlockSessionPayload<ExtArgs>[];
+        projectUnlockAttempts: Prisma.$ProjectUnlockAttemptPayload<ExtArgs>[];
         channelMembers: Prisma.$ChannelMemberPayload<ExtArgs>[];
         channelMessagesSent: Prisma.$ChannelMessagePayload<ExtArgs>[];
         channelMessagesPinned: Prisma.$ChannelMessagePayload<ExtArgs>[];
@@ -9389,6 +10602,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
         channelJoinRequestsDecided: Prisma.$ChannelJoinRequestPayload<ExtArgs>[];
         workspaceInvitesSent: Prisma.$WorkspaceInvitePayload<ExtArgs>[];
         projectsCreated: Prisma.$ProjectPayload<ExtArgs>[];
+        projectPasswordsSet: Prisma.$ProjectPayload<ExtArgs>[];
         taskListsCreated: Prisma.$TaskListPayload<ExtArgs>[];
         taskListsOwned: Prisma.$TaskListPayload<ExtArgs>[];
         tasksCreated: Prisma.$TaskPayload<ExtArgs>[];
@@ -9486,6 +10700,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
     workspaceMembers<T extends Prisma.User$workspaceMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workspaceMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     projectFavorites<T extends Prisma.User$projectFavoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectFavoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskFavorites<T extends Prisma.User$taskFavoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$taskFavoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    projectUnlockSessions<T extends Prisma.User$projectUnlockSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectUnlockSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectUnlockSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    projectUnlockAttempts<T extends Prisma.User$projectUnlockAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectUnlockAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectUnlockAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     channelMembers<T extends Prisma.User$channelMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$channelMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     channelMessagesSent<T extends Prisma.User$channelMessagesSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$channelMessagesSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     channelMessagesPinned<T extends Prisma.User$channelMessagesPinnedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$channelMessagesPinnedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -9495,6 +10711,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
     channelJoinRequestsDecided<T extends Prisma.User$channelJoinRequestsDecidedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$channelJoinRequestsDecidedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelJoinRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     workspaceInvitesSent<T extends Prisma.User$workspaceInvitesSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workspaceInvitesSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     projectsCreated<T extends Prisma.User$projectsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    projectPasswordsSet<T extends Prisma.User$projectPasswordsSetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectPasswordsSetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskListsCreated<T extends Prisma.User$taskListsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$taskListsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskListsOwned<T extends Prisma.User$taskListsOwnedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$taskListsOwnedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     tasksCreated<T extends Prisma.User$tasksCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -9712,6 +10929,28 @@ export type User$taskFavoritesArgs<ExtArgs extends runtime.Types.Extensions.Inte
     skip?: number;
     distinct?: Prisma.TaskFavoriteScalarFieldEnum | Prisma.TaskFavoriteScalarFieldEnum[];
 };
+export type User$projectUnlockSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectUnlockSessionSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectUnlockSessionOmit<ExtArgs> | null;
+    include?: Prisma.ProjectUnlockSessionInclude<ExtArgs> | null;
+    where?: Prisma.ProjectUnlockSessionWhereInput;
+    orderBy?: Prisma.ProjectUnlockSessionOrderByWithRelationInput | Prisma.ProjectUnlockSessionOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectUnlockSessionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectUnlockSessionScalarFieldEnum | Prisma.ProjectUnlockSessionScalarFieldEnum[];
+};
+export type User$projectUnlockAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectUnlockAttemptSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectUnlockAttemptOmit<ExtArgs> | null;
+    include?: Prisma.ProjectUnlockAttemptInclude<ExtArgs> | null;
+    where?: Prisma.ProjectUnlockAttemptWhereInput;
+    orderBy?: Prisma.ProjectUnlockAttemptOrderByWithRelationInput | Prisma.ProjectUnlockAttemptOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectUnlockAttemptWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectUnlockAttemptScalarFieldEnum | Prisma.ProjectUnlockAttemptScalarFieldEnum[];
+};
 export type User$channelMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ChannelMemberSelect<ExtArgs> | null;
     omit?: Prisma.ChannelMemberOmit<ExtArgs> | null;
@@ -9801,6 +11040,17 @@ export type User$workspaceInvitesSentArgs<ExtArgs extends runtime.Types.Extensio
     distinct?: Prisma.WorkspaceInviteScalarFieldEnum | Prisma.WorkspaceInviteScalarFieldEnum[];
 };
 export type User$projectsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectOmit<ExtArgs> | null;
+    include?: Prisma.ProjectInclude<ExtArgs> | null;
+    where?: Prisma.ProjectWhereInput;
+    orderBy?: Prisma.ProjectOrderByWithRelationInput | Prisma.ProjectOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[];
+};
+export type User$projectPasswordsSetArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectSelect<ExtArgs> | null;
     omit?: Prisma.ProjectOmit<ExtArgs> | null;
     include?: Prisma.ProjectInclude<ExtArgs> | null;

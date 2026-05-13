@@ -13,6 +13,7 @@ exports.ActivityService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const activity_constants_1 = require("./activity.constants");
+const project_security_service_1 = require("../project-security/project-security.service");
 const ACTIVITY_SELECT = {
     id: true,
     workspaceId: true,
@@ -37,8 +38,10 @@ const ACTIVITY_SELECT = {
 };
 let ActivityService = class ActivityService {
     prisma;
-    constructor(prisma) {
+    projectSecurity;
+    constructor(prisma, projectSecurity) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
     }
     async log(input, client = this.prisma) {
         await client.activityLog.create({
@@ -71,10 +74,11 @@ let ActivityService = class ActivityService {
                 deletedAt: null,
                 list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
             },
-            select: { id: true },
+            select: { id: true, list: { select: { projectId: true } } },
         });
         if (!task)
             throw new common_1.NotFoundException('Task not found');
+        await this.projectSecurity.assertUnlocked(workspaceId, task.list.projectId, actorId);
         const scopedIds = await this.getTaskRelatedActivityIds([taskId], dto.includeSubtasks ?? true);
         const baseWhere = this.buildBaseWhere(workspaceId, actorId, {
             ...dto,
@@ -184,11 +188,13 @@ let ActivityService = class ActivityService {
     }
     async buildWorkspaceWhere(workspaceId, actorId, dto) {
         const baseWhere = this.buildBaseWhere(workspaceId, actorId, dto);
-        const scopeConditions = await this.buildScopeConditions(workspaceId, dto);
-        if (scopeConditions.length === 0)
-            return baseWhere;
+        const scopeConditions = await this.buildScopeConditions(workspaceId, actorId, dto);
+        const visibilityWhere = await this.buildLockedProjectExclusion(workspaceId, actorId);
+        if (scopeConditions.length === 0) {
+            return { AND: [baseWhere, visibilityWhere] };
+        }
         return {
-            AND: [baseWhere, { OR: scopeConditions }],
+            AND: [baseWhere, visibilityWhere, { OR: scopeConditions }],
         };
     }
     buildBaseWhere(workspaceId, actorId, dto) {
@@ -228,8 +234,19 @@ let ActivityService = class ActivityService {
         }
         return and.length === 1 ? and[0] : { AND: and };
     }
-    async buildScopeConditions(workspaceId, dto) {
+    async buildScopeConditions(workspaceId, actorId, dto) {
         if (dto.taskId) {
+            const task = await this.prisma.task.findFirst({
+                where: {
+                    id: dto.taskId,
+                    deletedAt: null,
+                    list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
+                },
+                select: { list: { select: { projectId: true } } },
+            });
+            if (!task)
+                throw new common_1.NotFoundException('Task not found');
+            await this.projectSecurity.assertUnlocked(workspaceId, task.list.projectId, actorId);
             const scopedIds = await this.getTaskRelatedActivityIds([dto.taskId], dto.includeSubtasks ?? true);
             return [
                 { entityType: 'task', entityId: { in: scopedIds.taskIds } },
@@ -245,10 +262,11 @@ let ActivityService = class ActivityService {
         if (dto.listId) {
             const list = await this.prisma.taskList.findFirst({
                 where: { id: dto.listId, deletedAt: null, project: { workspaceId, deletedAt: null } },
-                select: { id: true },
+                select: { id: true, projectId: true },
             });
             if (!list)
                 throw new common_1.NotFoundException('Task list not found');
+            await this.projectSecurity.assertUnlocked(workspaceId, list.projectId, actorId);
             return this.getListScopeConditions([dto.listId], dto.includeSubtasks ?? true);
         }
         if (dto.projectId) {
@@ -258,6 +276,7 @@ let ActivityService = class ActivityService {
             });
             if (!project)
                 throw new common_1.NotFoundException('Project not found');
+            await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, actorId);
             const lists = await this.prisma.taskList.findMany({
                 where: { projectId: dto.projectId, deletedAt: null },
                 select: { id: true },
@@ -336,6 +355,67 @@ let ActivityService = class ActivityService {
             select: { id: true },
         });
         return statuses.map((status) => status.id);
+    }
+    async buildLockedProjectExclusion(workspaceId, actorId) {
+        const lockedProjects = await this.prisma.project.findMany({
+            where: { workspaceId, deletedAt: null, passwordHash: { not: null } },
+            select: { id: true },
+        });
+        const lockedProjectIds = lockedProjects.map((project) => project.id);
+        if (lockedProjectIds.length === 0)
+            return {};
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, actorId);
+        const hiddenProjectIds = lockedProjectIds.filter((id) => !unlockedProjectIds.has(id));
+        if (hiddenProjectIds.length === 0)
+            return {};
+        const [statuses, lists, tasks] = await Promise.all([
+            this.prisma.status.findMany({
+                where: { projectId: { in: hiddenProjectIds } },
+                select: { id: true },
+            }),
+            this.prisma.taskList.findMany({
+                where: { projectId: { in: hiddenProjectIds } },
+                select: { id: true },
+            }),
+            this.prisma.task.findMany({
+                where: { list: { projectId: { in: hiddenProjectIds } } },
+                select: { id: true },
+            }),
+        ]);
+        const taskIds = tasks.map((task) => task.id);
+        const [comments, attachments, timeEntries] = await Promise.all([
+            this.prisma.comment.findMany({
+                where: { taskId: { in: taskIds } },
+                select: { id: true },
+            }),
+            this.prisma.attachment.findMany({
+                where: {
+                    OR: [
+                        { taskId: { in: taskIds } },
+                        { doc: { projectId: { in: hiddenProjectIds } } },
+                        { channelMessage: { channel: { projectId: { in: hiddenProjectIds } } } },
+                    ],
+                },
+                select: { id: true },
+            }),
+            this.prisma.timeEntry.findMany({
+                where: { taskId: { in: taskIds } },
+                select: { id: true },
+            }),
+        ]);
+        return {
+            NOT: {
+                OR: [
+                    { entityType: 'project', entityId: { in: hiddenProjectIds } },
+                    { entityType: 'status', entityId: { in: statuses.map((status) => status.id) } },
+                    { entityType: 'task_list', entityId: { in: lists.map((list) => list.id) } },
+                    { entityType: 'task', entityId: { in: taskIds } },
+                    { entityType: 'comment', entityId: { in: comments.map((comment) => comment.id) } },
+                    { entityType: 'attachment', entityId: { in: attachments.map((attachment) => attachment.id) } },
+                    { entityType: 'time_entry', entityId: { in: timeEntries.map((entry) => entry.id) } },
+                ],
+            },
+        };
     }
     toFeedResult(rows, limit) {
         const hasNext = rows.length > limit;
@@ -444,6 +524,7 @@ let ActivityService = class ActivityService {
 exports.ActivityService = ActivityService;
 exports.ActivityService = ActivityService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService])
 ], ActivityService);
 //# sourceMappingURL=activity.service.js.map

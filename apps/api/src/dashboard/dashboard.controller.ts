@@ -10,6 +10,7 @@ import {
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { ProjectUnlockedGuard } from '../project-security/guards/project-unlocked.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { DashboardService, type ProjectDashboardData } from './dashboard.service';
 import { ProjectDashboardResponseDto } from './dto/project-dashboard-response.dto';
@@ -17,7 +18,7 @@ import { ProjectDashboardResponseDto } from './dto/project-dashboard-response.dt
 @ApiTags('dashboard')
 @ApiBearerAuth()
 @Controller('projects/:projectId/dashboard')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, ProjectUnlockedGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}

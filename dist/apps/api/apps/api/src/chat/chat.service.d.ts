@@ -11,6 +11,7 @@ import type { MarkReadDto } from './dto/mark-read.dto';
 import type { MessageContextQuery } from './dto/message-context.dto';
 import type { SearchMessagesQuery } from './dto/search-messages.dto';
 import type { SendMessageDto } from './dto/send-message.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export declare class ChatService {
     private readonly prisma;
     private readonly fanout;
@@ -18,7 +19,8 @@ export declare class ChatService {
     private readonly gateway;
     private readonly rateLimits;
     private readonly metrics;
-    constructor(prisma: PrismaService, fanout: ChatFanoutService, attachments: AttachmentsService, gateway: ChatGateway, rateLimits: ChatRateLimitService, metrics: RealtimeMetricsService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, fanout: ChatFanoutService, attachments: AttachmentsService, gateway: ChatGateway, rateLimits: ChatRateLimitService, metrics: RealtimeMetricsService, projectSecurity: ProjectSecurityService);
     listMessages(workspaceId: string, userId: string, channelId: string, query: ListMessagesQuery): Promise<{
         items: {
             id: string;
@@ -69,8 +71,8 @@ export declare class ChatService {
                 expiresAt: Date;
                 id: string;
                 fileName: string;
-                mimeType: string;
                 s3Key: string;
+                mimeType: string;
             }[];
             replyTo: {
                 id: string;
@@ -88,6 +90,7 @@ export declare class ChatService {
                 id: string;
                 name: string | null;
                 workspaceId: string;
+                projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
                 privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
             };
@@ -143,8 +146,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -162,6 +165,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -216,8 +220,8 @@ export declare class ChatService {
                 expiresAt: Date;
                 id: string;
                 fileName: string;
-                mimeType: string;
                 s3Key: string;
+                mimeType: string;
             }[];
             replyTo: {
                 id: string;
@@ -235,6 +239,7 @@ export declare class ChatService {
                 id: string;
                 name: string | null;
                 workspaceId: string;
+                projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
                 privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
             };
@@ -292,8 +297,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -311,6 +316,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -364,8 +370,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -383,6 +389,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -436,8 +443,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -455,6 +462,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -519,8 +527,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -538,6 +546,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -591,8 +600,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -610,6 +619,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };
@@ -734,8 +744,8 @@ export declare class ChatService {
                 expiresAt: Date;
                 id: string;
                 fileName: string;
-                mimeType: string;
                 s3Key: string;
+                mimeType: string;
             }[];
             replyTo: {
                 id: string;
@@ -753,6 +763,7 @@ export declare class ChatService {
                 id: string;
                 name: string | null;
                 workspaceId: string;
+                projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
                 privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
             };
@@ -808,8 +819,8 @@ export declare class ChatService {
             expiresAt: Date;
             id: string;
             fileName: string;
-            mimeType: string;
             s3Key: string;
+            mimeType: string;
         }[];
         replyTo: {
             id: string;
@@ -827,6 +838,7 @@ export declare class ChatService {
             id: string;
             name: string | null;
             workspaceId: string;
+            projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
             privacy: import("@app/database/generated/prisma/enums").ChannelPrivacy;
         };

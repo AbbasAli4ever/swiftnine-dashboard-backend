@@ -30,6 +30,10 @@ let EmailService = EmailService_1 = class EmailService {
         const html = buildPasswordResetEmail(fullName, resetUrl);
         await this.send(to, 'Reset your Dashboard password', html);
     }
+    async sendProjectPasswordResetEmail(to, fullName, projectName, resetUrl) {
+        const html = buildProjectPasswordResetEmail(fullName, projectName, resetUrl);
+        await this.send(to, `Reset password for ${projectName}`, html);
+    }
     async sendWorkspaceInviteEmail(to, inviterName, workspaceName, inviteUrl) {
         const html = buildWorkspaceInviteEmail(inviterName, workspaceName, inviteUrl);
         await this.send(to, `${inviterName} invited you to ${workspaceName} on Dashboard`, html);
@@ -152,6 +156,43 @@ function buildPasswordResetEmail(fullName, resetUrl) {
     </p>
     <p style="margin:0 0 20px;font-size:13px;color:#a0a3b1;text-align:center;">
       If you didn't request a password reset, you can safely ignore this email.
+    </p>
+
+    <div style="border-top:1px solid #f0f1f5;padding-top:20px;">
+      <p style="margin:0;font-size:12px;color:#a0a3b1;word-break:break-all;">
+        Or copy this link into your browser:<br/>
+        <a href="${resetUrl}" style="color:#7b68ee;">${resetUrl}</a>
+      </p>
+    </div>
+  `;
+    return baseLayout(content);
+}
+function buildProjectPasswordResetEmail(fullName, projectName, resetUrl) {
+    const firstName = fullName.split(' ')[0] ?? fullName;
+    const content = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a1d27;">Reset project password</h1>
+    <p style="margin:0 0 28px;font-size:15px;color:#6b6f82;line-height:1.6;">
+      Hey ${firstName}, we received a request to reset the password for
+      <strong>${projectName}</strong>.
+      Click the button below to choose a new project password.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+      <tr>
+        <td align="center" style="background-color:#7b68ee;border-radius:8px;">
+          <a href="${resetUrl}"
+             style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
+            Reset Project Password
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 8px;font-size:13px;color:#a0a3b1;text-align:center;">
+      This link expires in <strong>1 hour</strong>.
+    </p>
+    <p style="margin:0 0 20px;font-size:13px;color:#a0a3b1;text-align:center;">
+      If you didn't request this reset, you can safely ignore this email.
     </p>
 
     <div style="border-top:1px solid #f0f1f5;padding-top:20px;">

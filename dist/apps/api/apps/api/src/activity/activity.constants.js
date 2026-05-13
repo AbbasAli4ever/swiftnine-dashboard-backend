@@ -71,6 +71,9 @@ exports.ACTION_CATEGORY_MAP = {
     file_uploaded: 'attachments',
     file_deleted: 'attachments',
     attachment_added: 'attachments',
+    attachment_uploaded: 'attachments',
+    attachment_linked: 'attachments',
+    attachment_updated: 'attachments',
     attachment_deleted: 'attachments',
     comment_added: 'comments',
     comment_created: 'comments',
@@ -94,5 +97,10 @@ exports.ACTION_CATEGORY_MAP = {
     invite_sent: 'invite',
     invite_accepted: 'invite',
     invite_revoked: 'invite',
+    project_password_set: 'project',
+    project_password_changed: 'project',
+    project_password_removed: 'project',
+    project_password_reset_requested: 'project',
+    project_password_reset_completed: 'project',
 };
 //# sourceMappingURL=activity.constants.js.map

@@ -13,15 +13,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationsService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
+const project_security_service_1 = require("../project-security/project-security.service");
 const sse_service_1 = require("./sse.service");
 let NotificationsService = NotificationsService_1 = class NotificationsService {
     prisma;
+    projectSecurity;
     sse;
     logger = new common_1.Logger(NotificationsService_1.name);
     snoozeWatcher;
     retentionWatcher;
-    constructor(prisma, sse) {
+    constructor(prisma, projectSecurity, sse) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
         this.sse = sse;
         this.startSnoozeWatcher();
         this.startRetentionWatcher();
@@ -54,6 +57,9 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 where: { id: notif.id },
                 data: { isSnoozed: false, snoozedAt: null },
             });
+            if (!(await this.isNotificationVisibleToUser(updated.userId, updated))) {
+                continue;
+            }
             const members = await this.prisma.workspaceMember.findMany({
                 where: { userId: updated.userId, deletedAt: null },
                 select: { id: true },
@@ -109,6 +115,99 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             return commentTaskIds.get(notification.referenceId) ?? null;
         }
         return null;
+    }
+    notificationReferenceKey(notification) {
+        if (!notification.referenceType || !notification.referenceId)
+            return null;
+        return `${notification.referenceType}:${notification.referenceId}`;
+    }
+    async resolveNotificationProjectIds(notifications) {
+        const result = new Map();
+        const taskIds = Array.from(new Set(notifications
+            .filter((n) => n.referenceType === 'task' && n.referenceId)
+            .map((n) => n.referenceId)));
+        const commentIds = Array.from(new Set(notifications
+            .filter((n) => n.referenceType === 'comment' && n.referenceId)
+            .map((n) => n.referenceId)));
+        const channelMessageIds = Array.from(new Set(notifications
+            .filter((n) => n.referenceType === 'channel_message' && n.referenceId)
+            .map((n) => n.referenceId)));
+        if (taskIds.length > 0) {
+            const tasks = await this.prisma.task.findMany({
+                where: { id: { in: taskIds }, deletedAt: null },
+                select: { id: true, list: { select: { projectId: true } } },
+            });
+            tasks.forEach((task) => {
+                result.set(`task:${task.id}`, task.list?.projectId ?? null);
+            });
+        }
+        if (commentIds.length > 0) {
+            const comments = await this.prisma.comment.findMany({
+                where: { id: { in: commentIds }, deletedAt: null },
+                select: {
+                    id: true,
+                    task: { select: { list: { select: { projectId: true } } } },
+                },
+            });
+            comments.forEach((comment) => {
+                result.set(`comment:${comment.id}`, comment.task?.list?.projectId ?? null);
+            });
+        }
+        if (channelMessageIds.length > 0) {
+            const messages = await this.prisma.channelMessage.findMany({
+                where: { id: { in: channelMessageIds }, deletedAt: null },
+                select: {
+                    id: true,
+                    channel: { select: { projectId: true } },
+                },
+            });
+            messages.forEach((message) => {
+                result.set(`channel_message:${message.id}`, message.channel?.projectId ?? null);
+            });
+        }
+        return result;
+    }
+    isProjectBoundReference(notification) {
+        return ['task', 'comment', 'channel_message'].includes(notification.referenceType ?? '');
+    }
+    async filterVisibleNotificationsForUser(userId, notifications) {
+        if (notifications.length === 0)
+            return notifications;
+        const projectIdsByReference = await this.resolveNotificationProjectIds(notifications);
+        const referencedProjectIds = Array.from(new Set(Array.from(projectIdsByReference.values()).filter(Boolean)));
+        const projects = referencedProjectIds.length === 0
+            ? []
+            : await this.prisma.project.findMany({
+                where: { id: { in: referencedProjectIds }, deletedAt: null },
+                select: { id: true, passwordHash: true },
+            });
+        const projectLockState = new Map(projects.map((project) => [project.id, Boolean(project.passwordHash)]));
+        const lockedProjectIds = projects
+            .filter((project) => Boolean(project.passwordHash))
+            .map((project) => project.id);
+        const unlockedProjectIds = lockedProjectIds.length === 0
+            ? new Set()
+            : await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, userId);
+        return notifications.filter((notification) => {
+            const key = this.notificationReferenceKey(notification);
+            if (!key)
+                return true;
+            const hasResolvedReference = projectIdsByReference.has(key);
+            const projectId = projectIdsByReference.get(key);
+            if (!projectId) {
+                return hasResolvedReference || !this.isProjectBoundReference(notification);
+            }
+            const isLocked = projectLockState.get(projectId);
+            if (isLocked === undefined)
+                return false;
+            return !isLocked || unlockedProjectIds.has(projectId);
+        });
+    }
+    async isNotificationVisibleToUser(userId, notification) {
+        const visible = await this.filterVisibleNotificationsForUser(userId, [
+            notification,
+        ]);
+        return visible.length > 0;
     }
     async addTaskIds(notifications) {
         const taskIds = Array.from(new Set(notifications
@@ -191,6 +290,12 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         }
         if (member.userId === actorUserId)
             return null;
+        if (!(await this.isNotificationVisibleToUser(member.userId, {
+            referenceType,
+            referenceId,
+        }))) {
+            return null;
+        }
         const notif = await this.prisma.notification.create({
             data: {
                 userId: member.userId,
@@ -240,6 +345,7 @@ exports.NotificationsService = NotificationsService;
 exports.NotificationsService = NotificationsService = NotificationsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService,
         sse_service_1.NotificationsSseService])
 ], NotificationsService);
 //# sourceMappingURL=notifications.service.js.map

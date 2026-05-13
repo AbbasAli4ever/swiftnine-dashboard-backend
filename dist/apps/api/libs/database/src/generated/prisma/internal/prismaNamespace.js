@@ -33,8 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelJoinRequestScalarFieldEnum = exports.ChannelMessageReactionScalarFieldEnum = exports.ChannelMessageMentionScalarFieldEnum = exports.ChannelMessageScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskFavoriteScalarFieldEnum = exports.ProjectFavoriteScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
-exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = void 0;
+exports.ChannelMessageReactionScalarFieldEnum = exports.ChannelMessageMentionScalarFieldEnum = exports.ChannelMessageScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskFavoriteScalarFieldEnum = exports.ProjectFavoriteScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectPasswordResetTokenScalarFieldEnum = exports.ProjectUnlockAttemptScalarFieldEnum = exports.ProjectUnlockSessionScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelJoinRequestScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -69,6 +69,9 @@ exports.ModelName = {
     WorkspaceMember: 'WorkspaceMember',
     WorkspaceInvite: 'WorkspaceInvite',
     Project: 'Project',
+    ProjectUnlockSession: 'ProjectUnlockSession',
+    ProjectUnlockAttempt: 'ProjectUnlockAttempt',
+    ProjectPasswordResetToken: 'ProjectPasswordResetToken',
     TaskList: 'TaskList',
     Status: 'Status',
     Tag: 'Tag',
@@ -189,9 +192,35 @@ exports.ProjectScalarFieldEnum = {
     taskCounter: 'taskCounter',
     isArchived: 'isArchived',
     createdBy: 'createdBy',
+    passwordHash: 'passwordHash',
+    passwordSetBy: 'passwordSetBy',
+    passwordUpdatedAt: 'passwordUpdatedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
+};
+exports.ProjectUnlockSessionScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    userId: 'userId',
+    expiresAt: 'expiresAt',
+    createdAt: 'createdAt'
+};
+exports.ProjectUnlockAttemptScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    userId: 'userId',
+    failedCount: 'failedCount',
+    lockedUntil: 'lockedUntil',
+    lastFailAt: 'lastFailAt'
+};
+exports.ProjectPasswordResetTokenScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    tokenHash: 'tokenHash',
+    expiresAt: 'expiresAt',
+    usedAt: 'usedAt',
+    createdAt: 'createdAt'
 };
 exports.TaskListScalarFieldEnum = {
     id: 'id',
@@ -328,11 +357,16 @@ exports.AttachmentScalarFieldEnum = {
     taskId: 'taskId',
     docId: 'docId',
     channelMessageId: 'channelMessageId',
+    projectId: 'projectId',
     uploadedBy: 'uploadedBy',
     fileName: 'fileName',
     s3Key: 's3Key',
     mimeType: 'mimeType',
     fileSize: 'fileSize',
+    kind: 'kind',
+    linkUrl: 'linkUrl',
+    title: 'title',
+    description: 'description',
     createdAt: 'createdAt',
     deletedAt: 'deletedAt'
 };

@@ -5,9 +5,11 @@ import type { Socket } from 'socket.io';
 import { AuthService, type AuthUser } from '../auth/auth.service';
 import { PresenceService } from '../presence/presence.service';
 import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
+import { PrismaService } from "../../../../libs/database/src";
 import { DocLocksService } from './doc-locks.service';
 import { DocPresenceService } from './doc-presence.service';
 import { DocsService } from './docs.service';
+import { ProjectRealtimeLockService } from '../project-security/project-realtime-lock.service';
 type DocsSocketData = {
     user?: AuthUser;
 };
@@ -28,13 +30,15 @@ export declare class DocsGateway implements OnGatewayConnection, OnGatewayDiscon
     private readonly docs;
     private readonly docPresence;
     private readonly locks;
+    private readonly prisma;
     private readonly jwt;
     private readonly auth;
     private readonly presence;
     private readonly metrics;
+    private readonly projectRealtimeLocks;
     private server;
     private readonly logger;
-    constructor(docs: DocsService, docPresence: DocPresenceService, locks: DocLocksService, jwt: JwtService, auth: AuthService, presence: PresenceService, metrics: RealtimeMetricsService, config: ConfigService);
+    constructor(docs: DocsService, docPresence: DocPresenceService, locks: DocLocksService, prisma: PrismaService, jwt: JwtService, auth: AuthService, presence: PresenceService, metrics: RealtimeMetricsService, projectRealtimeLocks: ProjectRealtimeLockService, config: ConfigService);
     handleConnection(client: DocsSocket): Promise<void>;
     handleDisconnect(client: DocsSocket): Promise<void>;
     handleJoin(client: DocsSocket, payload: DocIdPayload): Promise<void>;
@@ -48,9 +52,12 @@ export declare class DocsGateway implements OnGatewayConnection, OnGatewayDiscon
     private requireString;
     private leaveAllRooms;
     private leaveRoom;
+    private leaveSocketIdFromRoom;
     private emitRoomState;
     private emitLockSnapshot;
     private presenceSnapshot;
     private roomName;
+    private assertCanViewDocForWs;
+    private evictProjectDocs;
 }
 export {};

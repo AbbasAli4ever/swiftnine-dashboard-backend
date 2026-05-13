@@ -13,14 +13,18 @@ exports.StatusService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const status_constants_1 = require("./status.constants");
+const project_security_service_1 = require("../project-security/project-security.service");
 const STATUS_NAME_TAKEN = 'A status with this name already exists in this project';
 let StatusService = class StatusService {
     prisma;
-    constructor(prisma) {
+    projectSecurity;
+    constructor(prisma, projectSecurity) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
     }
     async create(workspaceId, userId, role, dto) {
         this.assertOwner(role);
+        await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
         const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
         const name = dto.name.trim();
         await this.assertUniqueStatusName(project.id, name);
@@ -52,7 +56,8 @@ let StatusService = class StatusService {
         });
         return status;
     }
-    async findAll(workspaceId, projectId) {
+    async findAll(workspaceId, projectId, userId) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         await this.findProjectOrThrow(workspaceId, projectId);
         const statuses = await this.listProjectStatuses(projectId);
         return this.groupStatuses(projectId, statuses);
@@ -173,6 +178,7 @@ let StatusService = class StatusService {
     }
     async reorder(workspaceId, userId, role, dto) {
         this.assertOwner(role);
+        await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
         const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
         const statuses = await this.listProjectStatuses(project.id);
         const allIds = statuses.map((status) => status.id);
@@ -237,10 +243,11 @@ let StatusService = class StatusService {
                 }),
             });
         });
-        return this.findAll(workspaceId, project.id);
+        return this.findAll(workspaceId, project.id, userId);
     }
     async applyDefaultTemplate(workspaceId, userId, role, dto) {
         this.assertOwner(role);
+        await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
         const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
         const statuses = await this.listProjectStatuses(project.id);
         await this.prisma.$transaction(async (tx) => {
@@ -290,7 +297,7 @@ let StatusService = class StatusService {
                 },
             });
         });
-        return this.findAll(workspaceId, project.id);
+        return this.findAll(workspaceId, project.id, userId);
     }
     assertOwner(role) {
         if (role !== 'OWNER') {
@@ -368,6 +375,7 @@ let StatusService = class StatusService {
 exports.StatusService = StatusService;
 exports.StatusService = StatusService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService])
 ], StatusService);
 //# sourceMappingURL=status.service.js.map

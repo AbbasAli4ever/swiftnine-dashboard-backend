@@ -65,6 +65,9 @@ let NotificationsController = class NotificationsController {
         });
         if (!member)
             return;
+        if (!(await this.notifications.isNotificationVisibleToUser(req.user.id, notification))) {
+            return;
+        }
         try {
             this.sse.broadcastToMember(member.id, 'notification:updated', await this.notifications.toNotificationPayload(notification));
         }
@@ -117,7 +120,8 @@ let NotificationsController = class NotificationsController {
             orderBy: { createdAt: 'desc' },
             take: 200,
         });
-        this.sse.sendToClient(res, 'notifications:init', await this.notifications.addTaskIds(notifs));
+        const visibleNotifs = await this.notifications.filterVisibleNotificationsForUser(member.userId, notifs);
+        this.sse.sendToClient(res, 'notifications:init', await this.notifications.addTaskIds(visibleNotifs));
     }
     async updateNotificationClear(req, id, dto) {
         await this.findOwnedNotification(req, id);
@@ -207,7 +211,8 @@ let NotificationsController = class NotificationsController {
             orderBy: { createdAt: 'desc' },
             take: 500,
         });
-        return (await this.notifications.addTaskIds(notifs));
+        const visibleNotifs = await this.notifications.filterVisibleNotificationsForUser(member.userId, notifs);
+        return (await this.notifications.addTaskIds(visibleNotifs));
     }
     async getSnoozed(req) {
         const member = await this.getCurrentWorkspaceMember(req);
@@ -226,7 +231,8 @@ let NotificationsController = class NotificationsController {
             orderBy: { snoozedAt: 'asc' },
             take: 500,
         });
-        return (await this.notifications.addTaskIds(notifs));
+        const visibleNotifs = await this.notifications.filterVisibleNotificationsForUser(member.userId, notifs);
+        return (await this.notifications.addTaskIds(visibleNotifs));
     }
 };
 exports.NotificationsController = NotificationsController;

@@ -12,6 +12,7 @@ import type { ReorderBoardTasksDto } from './dto/reorder-board-tasks.dto';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 type RawTaskDetail = Prisma.TaskGetPayload<{
     select: typeof TASK_DETAIL_SELECT;
 }>;
@@ -57,8 +58,9 @@ export declare class TaskService {
     private readonly prisma;
     private readonly activity;
     private readonly notifications;
+    private readonly projectSecurity;
     private readonly favorites?;
-    constructor(prisma: PrismaService, activity: ActivityService, notifications: NotificationsService, favorites?: FavoritesService | undefined);
+    constructor(prisma: PrismaService, activity: ActivityService, notifications: NotificationsService, projectSecurity: ProjectSecurityService, favorites?: FavoritesService | undefined);
     create(workspaceId: string, userId: string, projectId: string, listId: string, dto: CreateTaskDto): Promise<TaskDetailData>;
     findAllByList(workspaceId: string, userId: string, projectId: string, listId: string): Promise<TaskListItemData[]>;
     findTasksByList(workspaceId: string, userId: string, projectId: string, listId: string, query: ListTasksQuery): Promise<TaskSearchResult>;
@@ -92,6 +94,7 @@ export declare class TaskService {
     private addUtcDays;
     private extractTaskNumber;
     private findListOrThrow;
+    private assertTaskUnlocked;
     private findListForProjectOrThrow;
     private findProjectOrThrow;
     private findStatusOrThrow;

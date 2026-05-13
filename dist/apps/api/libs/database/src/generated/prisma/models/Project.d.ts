@@ -25,6 +25,9 @@ export type ProjectMinAggregateOutputType = {
     taskCounter: number | null;
     isArchived: boolean | null;
     createdBy: string | null;
+    passwordHash: string | null;
+    passwordSetBy: string | null;
+    passwordUpdatedAt: Date | null;
     createdAt: Date | null;
     updatedAt: Date | null;
     deletedAt: Date | null;
@@ -40,6 +43,9 @@ export type ProjectMaxAggregateOutputType = {
     taskCounter: number | null;
     isArchived: boolean | null;
     createdBy: string | null;
+    passwordHash: string | null;
+    passwordSetBy: string | null;
+    passwordUpdatedAt: Date | null;
     createdAt: Date | null;
     updatedAt: Date | null;
     deletedAt: Date | null;
@@ -55,6 +61,9 @@ export type ProjectCountAggregateOutputType = {
     taskCounter: number;
     isArchived: number;
     createdBy: number;
+    passwordHash: number;
+    passwordSetBy: number;
+    passwordUpdatedAt: number;
     createdAt: number;
     updatedAt: number;
     deletedAt: number;
@@ -77,6 +86,9 @@ export type ProjectMinAggregateInputType = {
     taskCounter?: true;
     isArchived?: true;
     createdBy?: true;
+    passwordHash?: true;
+    passwordSetBy?: true;
+    passwordUpdatedAt?: true;
     createdAt?: true;
     updatedAt?: true;
     deletedAt?: true;
@@ -92,6 +104,9 @@ export type ProjectMaxAggregateInputType = {
     taskCounter?: true;
     isArchived?: true;
     createdBy?: true;
+    passwordHash?: true;
+    passwordSetBy?: true;
+    passwordUpdatedAt?: true;
     createdAt?: true;
     updatedAt?: true;
     deletedAt?: true;
@@ -107,6 +122,9 @@ export type ProjectCountAggregateInputType = {
     taskCounter?: true;
     isArchived?: true;
     createdBy?: true;
+    passwordHash?: true;
+    passwordSetBy?: true;
+    passwordUpdatedAt?: true;
     createdAt?: true;
     updatedAt?: true;
     deletedAt?: true;
@@ -151,6 +169,9 @@ export type ProjectGroupByOutputType = {
     taskCounter: number;
     isArchived: boolean;
     createdBy: string;
+    passwordHash: string | null;
+    passwordSetBy: string | null;
+    passwordUpdatedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date | null;
@@ -177,16 +198,24 @@ export type ProjectWhereInput = {
     taskCounter?: Prisma.IntFilter<"Project"> | number;
     isArchived?: Prisma.BoolFilter<"Project"> | boolean;
     createdBy?: Prisma.StringFilter<"Project"> | string;
+    passwordHash?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordSetBy?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordUpdatedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    passwordSetter?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
     channels?: Prisma.ChannelListRelationFilter;
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
     docs?: Prisma.DocListRelationFilter;
     favorites?: Prisma.ProjectFavoriteListRelationFilter;
+    unlockSessions?: Prisma.ProjectUnlockSessionListRelationFilter;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptListRelationFilter;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenListRelationFilter;
+    attachments?: Prisma.AttachmentListRelationFilter;
 };
 export type ProjectOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -199,16 +228,24 @@ export type ProjectOrderByWithRelationInput = {
     taskCounter?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
+    passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder;
+    passwordSetBy?: Prisma.SortOrderInput | Prisma.SortOrder;
+    passwordUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     workspace?: Prisma.WorkspaceOrderByWithRelationInput;
     creator?: Prisma.UserOrderByWithRelationInput;
+    passwordSetter?: Prisma.UserOrderByWithRelationInput;
     channels?: Prisma.ChannelOrderByRelationAggregateInput;
     taskLists?: Prisma.TaskListOrderByRelationAggregateInput;
     statuses?: Prisma.StatusOrderByRelationAggregateInput;
     docs?: Prisma.DocOrderByRelationAggregateInput;
     favorites?: Prisma.ProjectFavoriteOrderByRelationAggregateInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionOrderByRelationAggregateInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptOrderByRelationAggregateInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenOrderByRelationAggregateInput;
+    attachments?: Prisma.AttachmentOrderByRelationAggregateInput;
 };
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -225,16 +262,24 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
     taskCounter?: Prisma.IntFilter<"Project"> | number;
     isArchived?: Prisma.BoolFilter<"Project"> | boolean;
     createdBy?: Prisma.StringFilter<"Project"> | string;
+    passwordHash?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordSetBy?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordUpdatedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>;
     creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    passwordSetter?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
     channels?: Prisma.ChannelListRelationFilter;
     taskLists?: Prisma.TaskListListRelationFilter;
     statuses?: Prisma.StatusListRelationFilter;
     docs?: Prisma.DocListRelationFilter;
     favorites?: Prisma.ProjectFavoriteListRelationFilter;
+    unlockSessions?: Prisma.ProjectUnlockSessionListRelationFilter;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptListRelationFilter;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenListRelationFilter;
+    attachments?: Prisma.AttachmentListRelationFilter;
 }, "id" | "workspaceId_taskIdPrefix">;
 export type ProjectOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -247,6 +292,9 @@ export type ProjectOrderByWithAggregationInput = {
     taskCounter?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
+    passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder;
+    passwordSetBy?: Prisma.SortOrderInput | Prisma.SortOrder;
+    passwordUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -270,6 +318,9 @@ export type ProjectScalarWhereWithAggregatesInput = {
     taskCounter?: Prisma.IntWithAggregatesFilter<"Project"> | number;
     isArchived?: Prisma.BoolWithAggregatesFilter<"Project"> | boolean;
     createdBy?: Prisma.StringWithAggregatesFilter<"Project"> | string;
+    passwordHash?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null;
+    passwordSetBy?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null;
+    passwordUpdatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string;
     updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null;
@@ -283,16 +334,23 @@ export type ProjectCreateInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateInput = {
     id?: string;
@@ -305,6 +363,9 @@ export type ProjectUncheckedCreateInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -313,6 +374,10 @@ export type ProjectUncheckedCreateInput = {
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -323,16 +388,23 @@ export type ProjectUpdateInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -345,6 +417,9 @@ export type ProjectUncheckedUpdateInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -353,6 +428,10 @@ export type ProjectUncheckedUpdateInput = {
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateManyInput = {
     id?: string;
@@ -365,6 +444,9 @@ export type ProjectCreateManyInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -378,6 +460,8 @@ export type ProjectUpdateManyMutationInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -393,6 +477,9 @@ export type ProjectUncheckedUpdateManyInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -420,6 +507,9 @@ export type ProjectCountOrderByAggregateInput = {
     taskCounter?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
+    passwordHash?: Prisma.SortOrder;
+    passwordSetBy?: Prisma.SortOrder;
+    passwordUpdatedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -438,6 +528,9 @@ export type ProjectMaxOrderByAggregateInput = {
     taskCounter?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
+    passwordHash?: Prisma.SortOrder;
+    passwordSetBy?: Prisma.SortOrder;
+    passwordUpdatedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -453,6 +546,9 @@ export type ProjectMinOrderByAggregateInput = {
     taskCounter?: Prisma.SortOrder;
     isArchived?: Prisma.SortOrder;
     createdBy?: Prisma.SortOrder;
+    passwordHash?: Prisma.SortOrder;
+    passwordSetBy?: Prisma.SortOrder;
+    passwordUpdatedAt?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -474,10 +570,22 @@ export type ProjectCreateNestedManyWithoutCreatorInput = {
     createMany?: Prisma.ProjectCreateManyCreatorInputEnvelope;
     connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
 };
+export type ProjectCreateNestedManyWithoutPasswordSetterInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput> | Prisma.ProjectCreateWithoutPasswordSetterInput[] | Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput[];
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput | Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput[];
+    createMany?: Prisma.ProjectCreateManyPasswordSetterInputEnvelope;
+    connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+};
 export type ProjectUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutCreatorInput, Prisma.ProjectUncheckedCreateWithoutCreatorInput> | Prisma.ProjectCreateWithoutCreatorInput[] | Prisma.ProjectUncheckedCreateWithoutCreatorInput[];
     connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutCreatorInput | Prisma.ProjectCreateOrConnectWithoutCreatorInput[];
     createMany?: Prisma.ProjectCreateManyCreatorInputEnvelope;
+    connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+};
+export type ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput> | Prisma.ProjectCreateWithoutPasswordSetterInput[] | Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput[];
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput | Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput[];
+    createMany?: Prisma.ProjectCreateManyPasswordSetterInputEnvelope;
     connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
 };
 export type ProjectUpdateManyWithoutCreatorNestedInput = {
@@ -493,6 +601,19 @@ export type ProjectUpdateManyWithoutCreatorNestedInput = {
     updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutCreatorInput | Prisma.ProjectUpdateManyWithWhereWithoutCreatorInput[];
     deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[];
 };
+export type ProjectUpdateManyWithoutPasswordSetterNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput> | Prisma.ProjectCreateWithoutPasswordSetterInput[] | Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput[];
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput | Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput[];
+    upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutPasswordSetterInput | Prisma.ProjectUpsertWithWhereUniqueWithoutPasswordSetterInput[];
+    createMany?: Prisma.ProjectCreateManyPasswordSetterInputEnvelope;
+    set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    update?: Prisma.ProjectUpdateWithWhereUniqueWithoutPasswordSetterInput | Prisma.ProjectUpdateWithWhereUniqueWithoutPasswordSetterInput[];
+    updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutPasswordSetterInput | Prisma.ProjectUpdateManyWithWhereWithoutPasswordSetterInput[];
+    deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[];
+};
 export type ProjectUncheckedUpdateManyWithoutCreatorNestedInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutCreatorInput, Prisma.ProjectUncheckedCreateWithoutCreatorInput> | Prisma.ProjectCreateWithoutCreatorInput[] | Prisma.ProjectUncheckedCreateWithoutCreatorInput[];
     connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutCreatorInput | Prisma.ProjectCreateOrConnectWithoutCreatorInput[];
@@ -504,6 +625,19 @@ export type ProjectUncheckedUpdateManyWithoutCreatorNestedInput = {
     connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
     update?: Prisma.ProjectUpdateWithWhereUniqueWithoutCreatorInput | Prisma.ProjectUpdateWithWhereUniqueWithoutCreatorInput[];
     updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutCreatorInput | Prisma.ProjectUpdateManyWithWhereWithoutCreatorInput[];
+    deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[];
+};
+export type ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput> | Prisma.ProjectCreateWithoutPasswordSetterInput[] | Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput[];
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput | Prisma.ProjectCreateOrConnectWithoutPasswordSetterInput[];
+    upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutPasswordSetterInput | Prisma.ProjectUpsertWithWhereUniqueWithoutPasswordSetterInput[];
+    createMany?: Prisma.ProjectCreateManyPasswordSetterInputEnvelope;
+    set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[];
+    update?: Prisma.ProjectUpdateWithWhereUniqueWithoutPasswordSetterInput | Prisma.ProjectUpdateWithWhereUniqueWithoutPasswordSetterInput[];
+    updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutPasswordSetterInput | Prisma.ProjectUpdateManyWithWhereWithoutPasswordSetterInput[];
     deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[];
 };
 export type ProjectCreateNestedManyWithoutWorkspaceInput = {
@@ -551,6 +685,42 @@ export type IntFieldUpdateOperationsInput = {
     multiply?: number;
     divide?: number;
 };
+export type ProjectCreateNestedOneWithoutUnlockSessionsInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedCreateWithoutUnlockSessionsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutUnlockSessionsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneRequiredWithoutUnlockSessionsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedCreateWithoutUnlockSessionsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutUnlockSessionsInput;
+    upsert?: Prisma.ProjectUpsertWithoutUnlockSessionsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutUnlockSessionsInput, Prisma.ProjectUpdateWithoutUnlockSessionsInput>, Prisma.ProjectUncheckedUpdateWithoutUnlockSessionsInput>;
+};
+export type ProjectCreateNestedOneWithoutUnlockAttemptsInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedCreateWithoutUnlockAttemptsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutUnlockAttemptsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneRequiredWithoutUnlockAttemptsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedCreateWithoutUnlockAttemptsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutUnlockAttemptsInput;
+    upsert?: Prisma.ProjectUpsertWithoutUnlockAttemptsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutUnlockAttemptsInput, Prisma.ProjectUpdateWithoutUnlockAttemptsInput>, Prisma.ProjectUncheckedUpdateWithoutUnlockAttemptsInput>;
+};
+export type ProjectCreateNestedOneWithoutPasswordResetTokensInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedCreateWithoutPasswordResetTokensInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordResetTokensInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneRequiredWithoutPasswordResetTokensNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedCreateWithoutPasswordResetTokensInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutPasswordResetTokensInput;
+    upsert?: Prisma.ProjectUpsertWithoutPasswordResetTokensInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutPasswordResetTokensInput, Prisma.ProjectUpdateWithoutPasswordResetTokensInput>, Prisma.ProjectUncheckedUpdateWithoutPasswordResetTokensInput>;
+};
 export type ProjectCreateNestedOneWithoutTaskListsInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutTaskListsInput, Prisma.ProjectUncheckedCreateWithoutTaskListsInput>;
     connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutTaskListsInput;
@@ -586,6 +756,20 @@ export type ProjectUpdateOneRequiredWithoutFavoritesNestedInput = {
     upsert?: Prisma.ProjectUpsertWithoutFavoritesInput;
     connect?: Prisma.ProjectWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutFavoritesInput, Prisma.ProjectUpdateWithoutFavoritesInput>, Prisma.ProjectUncheckedUpdateWithoutFavoritesInput>;
+};
+export type ProjectCreateNestedOneWithoutAttachmentsInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutAttachmentsInput, Prisma.ProjectUncheckedCreateWithoutAttachmentsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutAttachmentsInput;
+    connect?: Prisma.ProjectWhereUniqueInput;
+};
+export type ProjectUpdateOneWithoutAttachmentsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProjectCreateWithoutAttachmentsInput, Prisma.ProjectUncheckedCreateWithoutAttachmentsInput>;
+    connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutAttachmentsInput;
+    upsert?: Prisma.ProjectUpsertWithoutAttachmentsInput;
+    disconnect?: Prisma.ProjectWhereInput | boolean;
+    delete?: Prisma.ProjectWhereInput | boolean;
+    connect?: Prisma.ProjectWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.ProjectUpdateWithoutAttachmentsInput>, Prisma.ProjectUncheckedUpdateWithoutAttachmentsInput>;
 };
 export type ProjectCreateNestedOneWithoutChannelsInput = {
     create?: Prisma.XOR<Prisma.ProjectCreateWithoutChannelsInput, Prisma.ProjectUncheckedCreateWithoutChannelsInput>;
@@ -624,15 +808,22 @@ export type ProjectCreateWithoutCreatorInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutCreatorInput = {
     id?: string;
@@ -644,6 +835,9 @@ export type ProjectUncheckedCreateWithoutCreatorInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -652,6 +846,10 @@ export type ProjectUncheckedCreateWithoutCreatorInput = {
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutCreatorInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -659,6 +857,66 @@ export type ProjectCreateOrConnectWithoutCreatorInput = {
 };
 export type ProjectCreateManyCreatorInputEnvelope = {
     data: Prisma.ProjectCreateManyCreatorInput | Prisma.ProjectCreateManyCreatorInput[];
+    skipDuplicates?: boolean;
+};
+export type ProjectCreateWithoutPasswordSetterInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutPasswordSetterInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutPasswordSetterInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput>;
+};
+export type ProjectCreateManyPasswordSetterInputEnvelope = {
+    data: Prisma.ProjectCreateManyPasswordSetterInput | Prisma.ProjectCreateManyPasswordSetterInput[];
     skipDuplicates?: boolean;
 };
 export type ProjectUpsertWithWhereUniqueWithoutCreatorInput = {
@@ -688,9 +946,25 @@ export type ProjectScalarWhereInput = {
     taskCounter?: Prisma.IntFilter<"Project"> | number;
     isArchived?: Prisma.BoolFilter<"Project"> | boolean;
     createdBy?: Prisma.StringFilter<"Project"> | string;
+    passwordHash?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordSetBy?: Prisma.StringNullableFilter<"Project"> | string | null;
+    passwordUpdatedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null;
+};
+export type ProjectUpsertWithWhereUniqueWithoutPasswordSetterInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutPasswordSetterInput, Prisma.ProjectUncheckedUpdateWithoutPasswordSetterInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordSetterInput, Prisma.ProjectUncheckedCreateWithoutPasswordSetterInput>;
+};
+export type ProjectUpdateWithWhereUniqueWithoutPasswordSetterInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutPasswordSetterInput, Prisma.ProjectUncheckedUpdateWithoutPasswordSetterInput>;
+};
+export type ProjectUpdateManyWithWhereWithoutPasswordSetterInput = {
+    where: Prisma.ProjectScalarWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateManyMutationInput, Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterInput>;
 };
 export type ProjectCreateWithoutWorkspaceInput = {
     id?: string;
@@ -701,15 +975,22 @@ export type ProjectCreateWithoutWorkspaceInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     id?: string;
@@ -721,6 +1002,9 @@ export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -729,6 +1013,10 @@ export type ProjectUncheckedCreateWithoutWorkspaceInput = {
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutWorkspaceInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -751,6 +1039,357 @@ export type ProjectUpdateManyWithWhereWithoutWorkspaceInput = {
     where: Prisma.ProjectScalarWhereInput;
     data: Prisma.XOR<Prisma.ProjectUpdateManyMutationInput, Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceInput>;
 };
+export type ProjectCreateWithoutUnlockSessionsInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutUnlockSessionsInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutUnlockSessionsInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedCreateWithoutUnlockSessionsInput>;
+};
+export type ProjectUpsertWithoutUnlockSessionsInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedUpdateWithoutUnlockSessionsInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedCreateWithoutUnlockSessionsInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutUnlockSessionsInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutUnlockSessionsInput, Prisma.ProjectUncheckedUpdateWithoutUnlockSessionsInput>;
+};
+export type ProjectUpdateWithoutUnlockSessionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutUnlockSessionsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectCreateWithoutUnlockAttemptsInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutUnlockAttemptsInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutUnlockAttemptsInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedCreateWithoutUnlockAttemptsInput>;
+};
+export type ProjectUpsertWithoutUnlockAttemptsInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedUpdateWithoutUnlockAttemptsInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedCreateWithoutUnlockAttemptsInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutUnlockAttemptsInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutUnlockAttemptsInput, Prisma.ProjectUncheckedUpdateWithoutUnlockAttemptsInput>;
+};
+export type ProjectUpdateWithoutUnlockAttemptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutUnlockAttemptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectCreateWithoutPasswordResetTokensInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutPasswordResetTokensInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutPasswordResetTokensInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedCreateWithoutPasswordResetTokensInput>;
+};
+export type ProjectUpsertWithoutPasswordResetTokensInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedUpdateWithoutPasswordResetTokensInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedCreateWithoutPasswordResetTokensInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutPasswordResetTokensInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutPasswordResetTokensInput, Prisma.ProjectUncheckedUpdateWithoutPasswordResetTokensInput>;
+};
+export type ProjectUpdateWithoutPasswordResetTokensInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutPasswordResetTokensInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
+};
 export type ProjectCreateWithoutTaskListsInput = {
     id?: string;
     name: string;
@@ -760,15 +1399,22 @@ export type ProjectCreateWithoutTaskListsInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutTaskListsInput = {
     id?: string;
@@ -781,6 +1427,9 @@ export type ProjectUncheckedCreateWithoutTaskListsInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -788,6 +1437,10 @@ export type ProjectUncheckedCreateWithoutTaskListsInput = {
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutTaskListsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -811,15 +1464,22 @@ export type ProjectUpdateWithoutTaskListsInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -832,6 +1492,9 @@ export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -839,6 +1502,10 @@ export type ProjectUncheckedUpdateWithoutTaskListsInput = {
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutStatusesInput = {
     id?: string;
@@ -849,15 +1516,22 @@ export type ProjectCreateWithoutStatusesInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutStatusesInput = {
     id?: string;
@@ -870,6 +1544,9 @@ export type ProjectUncheckedCreateWithoutStatusesInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -877,6 +1554,10 @@ export type ProjectUncheckedCreateWithoutStatusesInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutStatusesInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -900,15 +1581,22 @@ export type ProjectUpdateWithoutStatusesInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutStatusesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -921,6 +1609,9 @@ export type ProjectUncheckedUpdateWithoutStatusesInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -928,6 +1619,10 @@ export type ProjectUncheckedUpdateWithoutStatusesInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutFavoritesInput = {
     id?: string;
@@ -938,15 +1633,22 @@ export type ProjectCreateWithoutFavoritesInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutFavoritesInput = {
     id?: string;
@@ -959,6 +1661,9 @@ export type ProjectUncheckedCreateWithoutFavoritesInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -966,6 +1671,10 @@ export type ProjectUncheckedCreateWithoutFavoritesInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutFavoritesInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -989,15 +1698,22 @@ export type ProjectUpdateWithoutFavoritesInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutFavoritesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1010,6 +1726,9 @@ export type ProjectUncheckedUpdateWithoutFavoritesInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1017,6 +1736,127 @@ export type ProjectUncheckedUpdateWithoutFavoritesInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectCreateWithoutAttachmentsInput = {
+    id?: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
+    creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+};
+export type ProjectUncheckedCreateWithoutAttachmentsInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutProjectInput;
+    taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
+    statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+};
+export type ProjectCreateOrConnectWithoutAttachmentsInput = {
+    where: Prisma.ProjectWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutAttachmentsInput, Prisma.ProjectUncheckedCreateWithoutAttachmentsInput>;
+};
+export type ProjectUpsertWithoutAttachmentsInput = {
+    update: Prisma.XOR<Prisma.ProjectUpdateWithoutAttachmentsInput, Prisma.ProjectUncheckedUpdateWithoutAttachmentsInput>;
+    create: Prisma.XOR<Prisma.ProjectCreateWithoutAttachmentsInput, Prisma.ProjectUncheckedCreateWithoutAttachmentsInput>;
+    where?: Prisma.ProjectWhereInput;
+};
+export type ProjectUpdateToOneWithWhereWithoutAttachmentsInput = {
+    where?: Prisma.ProjectWhereInput;
+    data: Prisma.XOR<Prisma.ProjectUpdateWithoutAttachmentsInput, Prisma.ProjectUncheckedUpdateWithoutAttachmentsInput>;
+};
+export type ProjectUpdateWithoutAttachmentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutAttachmentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutChannelsInput = {
     id?: string;
@@ -1027,15 +1867,22 @@ export type ProjectCreateWithoutChannelsInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutChannelsInput = {
     id?: string;
@@ -1048,6 +1895,9 @@ export type ProjectUncheckedCreateWithoutChannelsInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -1055,6 +1905,10 @@ export type ProjectUncheckedCreateWithoutChannelsInput = {
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutChannelsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -1078,15 +1932,22 @@ export type ProjectUpdateWithoutChannelsInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutChannelsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1099,6 +1960,9 @@ export type ProjectUncheckedUpdateWithoutChannelsInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1106,6 +1970,10 @@ export type ProjectUncheckedUpdateWithoutChannelsInput = {
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateWithoutDocsInput = {
     id?: string;
@@ -1116,15 +1984,22 @@ export type ProjectCreateWithoutDocsInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
     workspace: Prisma.WorkspaceCreateNestedOneWithoutProjectsInput;
     creator: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput;
+    passwordSetter?: Prisma.UserCreateNestedOneWithoutProjectPasswordsSetInput;
     channels?: Prisma.ChannelCreateNestedManyWithoutProjectInput;
     taskLists?: Prisma.TaskListCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutProjectInput;
 };
 export type ProjectUncheckedCreateWithoutDocsInput = {
     id?: string;
@@ -1137,6 +2012,9 @@ export type ProjectUncheckedCreateWithoutDocsInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -1144,6 +2022,10 @@ export type ProjectUncheckedCreateWithoutDocsInput = {
     taskLists?: Prisma.TaskListUncheckedCreateNestedManyWithoutProjectInput;
     statuses?: Prisma.StatusUncheckedCreateNestedManyWithoutProjectInput;
     favorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutProjectInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutProjectInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutProjectInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedCreateNestedManyWithoutProjectInput;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutProjectInput;
 };
 export type ProjectCreateOrConnectWithoutDocsInput = {
     where: Prisma.ProjectWhereUniqueInput;
@@ -1167,15 +2049,22 @@ export type ProjectUpdateWithoutDocsInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutDocsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1188,6 +2077,9 @@ export type ProjectUncheckedUpdateWithoutDocsInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1195,6 +2087,10 @@ export type ProjectUncheckedUpdateWithoutDocsInput = {
     taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectCreateManyCreatorInput = {
     id?: string;
@@ -1206,6 +2102,26 @@ export type ProjectCreateManyCreatorInput = {
     taskIdPrefix: string;
     taskCounter?: number;
     isArchived?: boolean;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+};
+export type ProjectCreateManyPasswordSetterInput = {
+    id?: string;
+    workspaceId: string;
+    name: string;
+    description?: string | null;
+    color?: string;
+    icon?: string | null;
+    taskIdPrefix: string;
+    taskCounter?: number;
+    isArchived?: boolean;
+    createdBy: string;
+    passwordHash?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -1219,15 +2135,22 @@ export type ProjectUpdateWithoutCreatorInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1239,6 +2162,9 @@ export type ProjectUncheckedUpdateWithoutCreatorInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1247,6 +2173,10 @@ export type ProjectUncheckedUpdateWithoutCreatorInput = {
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateManyWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1258,6 +2188,78 @@ export type ProjectUncheckedUpdateManyWithoutCreatorInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+export type ProjectUpdateWithoutPasswordSetterInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutProjectsNestedInput;
+    creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateWithoutPasswordSetterInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutProjectNestedInput;
+    taskLists?: Prisma.TaskListUncheckedUpdateManyWithoutProjectNestedInput;
+    statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
+    favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
+};
+export type ProjectUncheckedUpdateManyWithoutPasswordSetterInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    workspaceId?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    color?: Prisma.StringFieldUpdateOperationsInput | string;
+    icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
+    isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1272,6 +2274,9 @@ export type ProjectCreateManyWorkspaceInput = {
     taskCounter?: number;
     isArchived?: boolean;
     createdBy: string;
+    passwordHash?: string | null;
+    passwordSetBy?: string | null;
+    passwordUpdatedAt?: Date | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     deletedAt?: Date | string | null;
@@ -1285,15 +2290,22 @@ export type ProjectUpdateWithoutWorkspaceInput = {
     taskIdPrefix?: Prisma.StringFieldUpdateOperationsInput | string;
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     creator?: Prisma.UserUpdateOneRequiredWithoutProjectsCreatedNestedInput;
+    passwordSetter?: Prisma.UserUpdateOneWithoutProjectPasswordsSetNestedInput;
     channels?: Prisma.ChannelUpdateManyWithoutProjectNestedInput;
     taskLists?: Prisma.TaskListUpdateManyWithoutProjectNestedInput;
     statuses?: Prisma.StatusUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1305,6 +2317,9 @@ export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1313,6 +2328,10 @@ export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
     statuses?: Prisma.StatusUncheckedUpdateManyWithoutProjectNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutProjectNestedInput;
     favorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutProjectNestedInput;
+    unlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutProjectNestedInput;
+    passwordResetTokens?: Prisma.ProjectPasswordResetTokenUncheckedUpdateManyWithoutProjectNestedInput;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutProjectNestedInput;
 };
 export type ProjectUncheckedUpdateManyWithoutWorkspaceInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1324,6 +2343,9 @@ export type ProjectUncheckedUpdateManyWithoutWorkspaceInput = {
     taskCounter?: Prisma.IntFieldUpdateOperationsInput | number;
     isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordSetBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    passwordUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1334,6 +2356,10 @@ export type ProjectCountOutputType = {
     statuses: number;
     docs: number;
     favorites: number;
+    unlockSessions: number;
+    unlockAttempts: number;
+    passwordResetTokens: number;
+    attachments: number;
 };
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     channels?: boolean | ProjectCountOutputTypeCountChannelsArgs;
@@ -1341,6 +2367,10 @@ export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
     statuses?: boolean | ProjectCountOutputTypeCountStatusesArgs;
     docs?: boolean | ProjectCountOutputTypeCountDocsArgs;
     favorites?: boolean | ProjectCountOutputTypeCountFavoritesArgs;
+    unlockSessions?: boolean | ProjectCountOutputTypeCountUnlockSessionsArgs;
+    unlockAttempts?: boolean | ProjectCountOutputTypeCountUnlockAttemptsArgs;
+    passwordResetTokens?: boolean | ProjectCountOutputTypeCountPasswordResetTokensArgs;
+    attachments?: boolean | ProjectCountOutputTypeCountAttachmentsArgs;
 };
 export type ProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectCountOutputTypeSelect<ExtArgs> | null;
@@ -1360,6 +2390,18 @@ export type ProjectCountOutputTypeCountDocsArgs<ExtArgs extends runtime.Types.Ex
 export type ProjectCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ProjectFavoriteWhereInput;
 };
+export type ProjectCountOutputTypeCountUnlockSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectUnlockSessionWhereInput;
+};
+export type ProjectCountOutputTypeCountUnlockAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectUnlockAttemptWhereInput;
+};
+export type ProjectCountOutputTypeCountPasswordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProjectPasswordResetTokenWhereInput;
+};
+export type ProjectCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.AttachmentWhereInput;
+};
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     workspaceId?: boolean;
@@ -1371,16 +2413,24 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     taskCounter?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
+    passwordHash?: boolean;
+    passwordSetBy?: boolean;
+    passwordUpdatedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
     channels?: boolean | Prisma.Project$channelsArgs<ExtArgs>;
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     docs?: boolean | Prisma.Project$docsArgs<ExtArgs>;
     favorites?: boolean | Prisma.Project$favoritesArgs<ExtArgs>;
+    unlockSessions?: boolean | Prisma.Project$unlockSessionsArgs<ExtArgs>;
+    unlockAttempts?: boolean | Prisma.Project$unlockAttemptsArgs<ExtArgs>;
+    passwordResetTokens?: boolean | Prisma.Project$passwordResetTokensArgs<ExtArgs>;
+    attachments?: boolean | Prisma.Project$attachmentsArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["project"]>;
 export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1394,11 +2444,15 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
     taskCounter?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
+    passwordHash?: boolean;
+    passwordSetBy?: boolean;
+    passwordUpdatedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
 }, ExtArgs["result"]["project"]>;
 export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -1411,11 +2465,15 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
     taskCounter?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
+    passwordHash?: boolean;
+    passwordSetBy?: boolean;
+    passwordUpdatedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
 }, ExtArgs["result"]["project"]>;
 export type ProjectSelectScalar = {
     id?: boolean;
@@ -1428,39 +2486,54 @@ export type ProjectSelectScalar = {
     taskCounter?: boolean;
     isArchived?: boolean;
     createdBy?: boolean;
+    passwordHash?: boolean;
+    passwordSetBy?: boolean;
+    passwordUpdatedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
 };
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "name" | "description" | "color" | "icon" | "taskIdPrefix" | "taskCounter" | "isArchived" | "createdBy" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["project"]>;
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "name" | "description" | "color" | "icon" | "taskIdPrefix" | "taskCounter" | "isArchived" | "createdBy" | "passwordHash" | "passwordSetBy" | "passwordUpdatedAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["project"]>;
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
     channels?: boolean | Prisma.Project$channelsArgs<ExtArgs>;
     taskLists?: boolean | Prisma.Project$taskListsArgs<ExtArgs>;
     statuses?: boolean | Prisma.Project$statusesArgs<ExtArgs>;
     docs?: boolean | Prisma.Project$docsArgs<ExtArgs>;
     favorites?: boolean | Prisma.Project$favoritesArgs<ExtArgs>;
+    unlockSessions?: boolean | Prisma.Project$unlockSessionsArgs<ExtArgs>;
+    unlockAttempts?: boolean | Prisma.Project$unlockAttemptsArgs<ExtArgs>;
+    passwordResetTokens?: boolean | Prisma.Project$passwordResetTokensArgs<ExtArgs>;
+    attachments?: boolean | Prisma.Project$attachmentsArgs<ExtArgs>;
     _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
 };
 export type ProjectIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>;
     creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    passwordSetter?: boolean | Prisma.Project$passwordSetterArgs<ExtArgs>;
 };
 export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "Project";
     objects: {
         workspace: Prisma.$WorkspacePayload<ExtArgs>;
         creator: Prisma.$UserPayload<ExtArgs>;
+        passwordSetter: Prisma.$UserPayload<ExtArgs> | null;
         channels: Prisma.$ChannelPayload<ExtArgs>[];
         taskLists: Prisma.$TaskListPayload<ExtArgs>[];
         statuses: Prisma.$StatusPayload<ExtArgs>[];
         docs: Prisma.$DocPayload<ExtArgs>[];
         favorites: Prisma.$ProjectFavoritePayload<ExtArgs>[];
+        unlockSessions: Prisma.$ProjectUnlockSessionPayload<ExtArgs>[];
+        unlockAttempts: Prisma.$ProjectUnlockAttemptPayload<ExtArgs>[];
+        passwordResetTokens: Prisma.$ProjectPasswordResetTokenPayload<ExtArgs>[];
+        attachments: Prisma.$AttachmentPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1473,6 +2546,9 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         taskCounter: number;
         isArchived: boolean;
         createdBy: string;
+        passwordHash: string | null;
+        passwordSetBy: string | null;
+        passwordUpdatedAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -1530,11 +2606,16 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
     readonly [Symbol.toStringTag]: "PrismaPromise";
     workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    passwordSetter<T extends Prisma.Project$passwordSetterArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$passwordSetterArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     channels<T extends Prisma.Project$channelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$channelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChannelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskLists<T extends Prisma.Project$taskListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$taskListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     statuses<T extends Prisma.Project$statusesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$statusesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StatusPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     docs<T extends Prisma.Project$docsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$docsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     favorites<T extends Prisma.Project$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    unlockSessions<T extends Prisma.Project$unlockSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$unlockSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectUnlockSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    unlockAttempts<T extends Prisma.Project$unlockAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$unlockAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectUnlockAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    passwordResetTokens<T extends Prisma.Project$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    attachments<T extends Prisma.Project$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -1550,6 +2631,9 @@ export interface ProjectFieldRefs {
     readonly taskCounter: Prisma.FieldRef<"Project", 'Int'>;
     readonly isArchived: Prisma.FieldRef<"Project", 'Boolean'>;
     readonly createdBy: Prisma.FieldRef<"Project", 'String'>;
+    readonly passwordHash: Prisma.FieldRef<"Project", 'String'>;
+    readonly passwordSetBy: Prisma.FieldRef<"Project", 'String'>;
+    readonly passwordUpdatedAt: Prisma.FieldRef<"Project", 'DateTime'>;
     readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>;
     readonly updatedAt: Prisma.FieldRef<"Project", 'DateTime'>;
     readonly deletedAt: Prisma.FieldRef<"Project", 'DateTime'>;
@@ -1654,6 +2738,12 @@ export type ProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
     where?: Prisma.ProjectWhereInput;
     limit?: number;
 };
+export type Project$passwordSetterArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.UserSelect<ExtArgs> | null;
+    omit?: Prisma.UserOmit<ExtArgs> | null;
+    include?: Prisma.UserInclude<ExtArgs> | null;
+    where?: Prisma.UserWhereInput;
+};
 export type Project$channelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ChannelSelect<ExtArgs> | null;
     omit?: Prisma.ChannelOmit<ExtArgs> | null;
@@ -1708,6 +2798,50 @@ export type Project$favoritesArgs<ExtArgs extends runtime.Types.Extensions.Inter
     take?: number;
     skip?: number;
     distinct?: Prisma.ProjectFavoriteScalarFieldEnum | Prisma.ProjectFavoriteScalarFieldEnum[];
+};
+export type Project$unlockSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectUnlockSessionSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectUnlockSessionOmit<ExtArgs> | null;
+    include?: Prisma.ProjectUnlockSessionInclude<ExtArgs> | null;
+    where?: Prisma.ProjectUnlockSessionWhereInput;
+    orderBy?: Prisma.ProjectUnlockSessionOrderByWithRelationInput | Prisma.ProjectUnlockSessionOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectUnlockSessionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectUnlockSessionScalarFieldEnum | Prisma.ProjectUnlockSessionScalarFieldEnum[];
+};
+export type Project$unlockAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectUnlockAttemptSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectUnlockAttemptOmit<ExtArgs> | null;
+    include?: Prisma.ProjectUnlockAttemptInclude<ExtArgs> | null;
+    where?: Prisma.ProjectUnlockAttemptWhereInput;
+    orderBy?: Prisma.ProjectUnlockAttemptOrderByWithRelationInput | Prisma.ProjectUnlockAttemptOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectUnlockAttemptWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectUnlockAttemptScalarFieldEnum | Prisma.ProjectUnlockAttemptScalarFieldEnum[];
+};
+export type Project$passwordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProjectPasswordResetTokenSelect<ExtArgs> | null;
+    omit?: Prisma.ProjectPasswordResetTokenOmit<ExtArgs> | null;
+    include?: Prisma.ProjectPasswordResetTokenInclude<ExtArgs> | null;
+    where?: Prisma.ProjectPasswordResetTokenWhereInput;
+    orderBy?: Prisma.ProjectPasswordResetTokenOrderByWithRelationInput | Prisma.ProjectPasswordResetTokenOrderByWithRelationInput[];
+    cursor?: Prisma.ProjectPasswordResetTokenWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProjectPasswordResetTokenScalarFieldEnum | Prisma.ProjectPasswordResetTokenScalarFieldEnum[];
+};
+export type Project$attachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.AttachmentSelect<ExtArgs> | null;
+    omit?: Prisma.AttachmentOmit<ExtArgs> | null;
+    include?: Prisma.AttachmentInclude<ExtArgs> | null;
+    where?: Prisma.AttachmentWhereInput;
+    orderBy?: Prisma.AttachmentOrderByWithRelationInput | Prisma.AttachmentOrderByWithRelationInput[];
+    cursor?: Prisma.AttachmentWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.AttachmentScalarFieldEnum | Prisma.AttachmentScalarFieldEnum[];
 };
 export type ProjectDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProjectSelect<ExtArgs> | null;

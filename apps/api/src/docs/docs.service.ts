@@ -27,6 +27,7 @@ import {
 import type { CreateDocInput } from './dto/create-doc.dto';
 import type { UpdateDocInput } from './dto/update-doc.dto';
 import type { ListDocsQuery } from './dto/list-docs-query.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 export type DocData = Prisma.DocGetPayload<{ select: typeof DOC_SELECT }>;
 
@@ -61,11 +62,15 @@ export class DocsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly permissions: DocPermissionsService,
+    private readonly projectSecurity: ProjectSecurityService,
   ) {}
 
   async create(userId: string, dto: CreateDocInput): Promise<DocData> {
     await this.assertWorkspaceMember(userId, dto.workspaceId);
     await this.assertScopeIsValid(dto);
+    if (dto.scope === 'PROJECT' && dto.projectId) {
+      await this.projectSecurity.assertUnlocked(dto.workspaceId, dto.projectId, userId);
+    }
 
     const normalized = dto.contentJson
       ? normalizeDocContent(dto.contentJson)
@@ -88,6 +93,9 @@ export class DocsService {
 
   async findAll(userId: string, query: ListDocsQuery): Promise<DocData[]> {
     await this.assertWorkspaceMember(userId, query.workspaceId);
+    if (query.projectId) {
+      await this.projectSecurity.assertUnlocked(query.workspaceId, query.projectId, userId);
+    }
 
     const docs = await this.prisma.doc.findMany({
       where: {
@@ -100,12 +108,13 @@ export class DocsService {
       orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
     });
 
-    return this.filterViewable(userId, docs);
+    return this.filterUnlockedProjectDocs(userId, await this.filterViewable(userId, docs));
   }
 
   async findOne(userId: string, docId: string): Promise<DocData> {
     const doc = await this.findDocOrThrow(docId);
     await this.permissions.assertCanView(userId, doc);
+    await this.assertDocProjectUnlocked(userId, doc);
     return doc;
   }
 
@@ -116,6 +125,7 @@ export class DocsService {
   ): Promise<DocData> {
     const doc = await this.findDocOrThrow(docId);
     await this.permissions.assertCanEdit(userId, doc);
+    await this.assertDocProjectUnlocked(userId, doc);
 
     const data: Prisma.DocUpdateInput = {};
 
@@ -142,6 +152,7 @@ export class DocsService {
   async assertCanEditDoc(userId: string, docId: string): Promise<DocData> {
     const doc = await this.findDocOrThrow(docId);
     await this.permissions.assertCanEdit(userId, doc);
+    await this.assertDocProjectUnlocked(userId, doc);
     return doc;
   }
 
@@ -158,6 +169,7 @@ export class DocsService {
 
     const doc = await this.findDocOrThrow(input.docId);
     await this.permissions.assertCanEdit(userId, doc);
+    await this.assertDocProjectUnlocked(userId, doc);
 
     if (!Number.isInteger(input.baseVersion) || input.baseVersion < 0) {
       throw new BadRequestException('baseVersion must be a non-negative integer');
@@ -257,6 +269,7 @@ export class DocsService {
   async remove(userId: string, docId: string): Promise<void> {
     const doc = await this.findDocOrThrow(docId);
     await this.permissions.assertCanOwn(userId, doc);
+    await this.assertDocProjectUnlocked(userId, doc);
 
     await this.prisma.doc.update({
       where: { id: docId },
@@ -313,6 +326,46 @@ export class DocsService {
     if (dto.projectId) {
       throw new BadRequestException('projectId is only allowed for project documents');
     }
+  }
+
+  private async assertDocProjectUnlocked(
+    userId: string,
+    doc: Pick<DocData, 'workspaceId' | 'projectId'>,
+  ): Promise<void> {
+    if (!doc.projectId) return;
+    await this.projectSecurity.assertUnlocked(doc.workspaceId, doc.projectId, userId);
+  }
+
+  private async filterUnlockedProjectDocs(
+    userId: string,
+    docs: DocData[],
+  ): Promise<DocData[]> {
+    const projectIds = Array.from(
+      new Set(docs.map((doc) => doc.projectId).filter((id): id is string => Boolean(id))),
+    );
+    if (projectIds.length === 0) return docs;
+
+    const projects = await this.prisma.project.findMany({
+      where: { id: { in: projectIds } },
+      select: { id: true, passwordHash: true },
+    });
+    const unlockedByDefaultIds = new Set(
+      projects.filter((project) => !project.passwordHash).map((project) => project.id),
+    );
+    const lockedProjectIds = projects
+      .filter((project) => Boolean(project.passwordHash))
+      .map((project) => project.id);
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      lockedProjectIds,
+      userId,
+    );
+
+    return docs.filter(
+      (doc) =>
+        !doc.projectId ||
+        unlockedByDefaultIds.has(doc.projectId) ||
+        unlockedProjectIds.has(doc.projectId),
+    );
   }
 
   private async filterViewable(

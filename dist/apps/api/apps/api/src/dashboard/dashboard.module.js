@@ -10,6 +10,7 @@ exports.DashboardModule = void 0;
 const common_1 = require("@nestjs/common");
 const auth_module_1 = require("../auth/auth.module");
 const workspace_module_1 = require("../workspace/workspace.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 const dashboard_controller_1 = require("./dashboard.controller");
 const dashboard_service_1 = require("./dashboard.service");
 let DashboardModule = class DashboardModule {
@@ -17,7 +18,7 @@ let DashboardModule = class DashboardModule {
 exports.DashboardModule = DashboardModule;
 exports.DashboardModule = DashboardModule = __decorate([
     (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule, workspace_module_1.WorkspaceModule],
+        imports: [auth_module_1.AuthModule, workspace_module_1.WorkspaceModule, project_security_module_1.ProjectSecurityModule],
         controllers: [dashboard_controller_1.DashboardController],
         providers: [dashboard_service_1.DashboardService],
     })

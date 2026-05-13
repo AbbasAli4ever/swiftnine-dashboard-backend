@@ -19,6 +19,7 @@ import type { MarkReadDto } from './dto/mark-read.dto';
 import type { MessageContextQuery } from './dto/message-context.dto';
 import type { SearchMessagesQuery } from './dto/search-messages.dto';
 import type { SendMessageDto } from './dto/send-message.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 const MESSAGE_EDIT_WINDOW_MS = 5 * 60 * 1000;
 const CHAT_CURSOR_SEPARATOR = ':';
@@ -37,6 +38,7 @@ export class ChatService {
     private readonly gateway: ChatGateway,
     private readonly rateLimits: ChatRateLimitService,
     private readonly metrics: RealtimeMetricsService,
+    private readonly projectSecurity: ProjectSecurityService,
   ) {}
 
   async listMessages(
@@ -667,6 +669,10 @@ export class ChatService {
     if (query.channelId) {
       await this.assertChannelMember(workspaceId, query.channelId, userId);
     }
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+      workspaceId,
+      userId,
+    );
 
     const messages = await this.prisma.channelMessage.findMany({
       where: {
@@ -676,6 +682,15 @@ export class ChatService {
           workspaceId,
           members: { some: { userId } },
           ...(query.channelId ? { id: query.channelId } : {}),
+          ...(!query.channelId
+            ? {
+                OR: [
+                  { projectId: null },
+                  { project: { passwordHash: null } },
+                  { projectId: { in: Array.from(unlockedProjectIds) } },
+                ],
+              }
+            : {}),
         },
         ...(cursor
           ? {
@@ -784,7 +799,8 @@ export class ChatService {
 
     const expectedPrefix = this.channelAttachmentPrefix(channelId);
     const invalid = attachments.filter(
-      (attachment) => !attachment.s3Key.startsWith(expectedPrefix),
+      (attachment) =>
+        !attachment.s3Key || !attachment.s3Key.startsWith(expectedPrefix),
     );
     if (invalid.length > 0) {
       throw new BadRequestException(
@@ -819,6 +835,7 @@ export class ChatService {
             kind: true,
             name: true,
             privacy: true,
+            projectId: true,
             members: {
               select: {
                 userId: true,
@@ -832,6 +849,13 @@ export class ChatService {
 
     if (!membership) {
       throw new ForbiddenException('Channel membership required');
+    }
+    if (membership.channel.projectId) {
+      await this.projectSecurity.assertUnlocked(
+        workspaceId,
+        membership.channel.projectId,
+        userId,
+      );
     }
 
     return membership;
@@ -856,6 +880,13 @@ export class ChatService {
     if (!message) {
       throw new NotFoundException('Message not found');
     }
+    if (message.channel.projectId) {
+      await this.projectSecurity.assertUnlocked(
+        workspaceId,
+        message.channel.projectId,
+        userId,
+      );
+    }
 
     return message;
   }
@@ -869,6 +900,7 @@ export class ChatService {
           kind: true,
           privacy: true,
           name: true,
+          projectId: true,
         },
       },
       sender: { select: { id: true, fullName: true, avatarUrl: true } },

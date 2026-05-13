@@ -4,6 +4,7 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
 import { PresenceModule } from '../presence/presence.module';
 import { RealtimeMetricsModule } from '../realtime/realtime-metrics.module';
+import { ProjectSecurityModule } from '../project-security/project-security.module';
 import { DocsGateway } from './docs.gateway';
 import { DocsController } from './docs.controller';
 import { DocsService } from './docs.service';
@@ -18,6 +19,7 @@ import { DocRolesGuard } from './guards/doc-roles.guard';
     AuthModule,
     PresenceModule,
     RealtimeMetricsModule,
+    ProjectSecurityModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -6,6 +6,7 @@ import { DocPermissionsService } from './doc-permissions.service';
 import type { CreateDocInput } from './dto/create-doc.dto';
 import type { UpdateDocInput } from './dto/update-doc.dto';
 import type { ListDocsQuery } from './dto/list-docs-query.dto';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export type DocData = Prisma.DocGetPayload<{
     select: typeof DOC_SELECT;
 }>;
@@ -28,9 +29,10 @@ export declare class DocSaveConflictException extends ConflictException {
 export declare class DocsService {
     private readonly prisma;
     private readonly permissions;
+    private readonly projectSecurity;
     private readonly autosaveTimestamps;
     private readonly contentSnapshots;
-    constructor(prisma: PrismaService, permissions: DocPermissionsService);
+    constructor(prisma: PrismaService, permissions: DocPermissionsService, projectSecurity: ProjectSecurityService);
     create(userId: string, dto: CreateDocInput): Promise<DocData>;
     findAll(userId: string, query: ListDocsQuery): Promise<DocData[]>;
     findOne(userId: string, docId: string): Promise<DocData>;
@@ -41,6 +43,8 @@ export declare class DocsService {
     private findDocOrThrow;
     private assertWorkspaceMember;
     private assertScopeIsValid;
+    private assertDocProjectUnlocked;
+    private filterUnlockedProjectDocs;
     private filterViewable;
     private normalizeTitle;
     private rememberSnapshot;

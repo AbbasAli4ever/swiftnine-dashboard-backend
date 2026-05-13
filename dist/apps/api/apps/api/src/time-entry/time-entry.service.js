@@ -13,12 +13,16 @@ exports.TimeEntryService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const time_entry_constants_1 = require("./time-entry.constants");
+const project_security_service_1 = require("../project-security/project-security.service");
 let TimeEntryService = class TimeEntryService {
     prisma;
-    constructor(prisma) {
+    projectSecurity;
+    constructor(prisma, projectSecurity) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
     }
     async addManual(workspaceId, userId, taskId, dto) {
+        await this.assertTaskUnlocked(workspaceId, userId, taskId);
         await this.findTaskOrThrow(workspaceId, taskId);
         let startTime;
         let endTime;
@@ -59,6 +63,7 @@ let TimeEntryService = class TimeEntryService {
         return entry;
     }
     async startTimer(workspaceId, userId, taskId) {
+        await this.assertTaskUnlocked(workspaceId, userId, taskId);
         await this.findTaskOrThrow(workspaceId, taskId);
         const existingActive = await this.findActiveTimerForUser(workspaceId, userId);
         let stoppedEntry = null;
@@ -88,6 +93,7 @@ let TimeEntryService = class TimeEntryService {
         return { stoppedEntry, activeEntry };
     }
     async stopTimer(workspaceId, userId, taskId) {
+        await this.assertTaskUnlocked(workspaceId, userId, taskId);
         await this.findTaskOrThrow(workspaceId, taskId);
         const active = await this.prisma.timeEntry.findFirst({
             where: {
@@ -102,8 +108,9 @@ let TimeEntryService = class TimeEntryService {
             throw new common_1.NotFoundException(time_entry_constants_1.NO_ACTIVE_TIMER);
         return this.stopActiveEntry(workspaceId, userId, active.id);
     }
-    async findAllByTask(workspaceId, taskId) {
-        await this.findTaskOrThrow(workspaceId, taskId);
+    async findAllByTask(workspaceId, userId, taskId) {
+        const task = await this.findTaskOrThrow(workspaceId, taskId);
+        await this.projectSecurity.assertUnlocked(workspaceId, task.projectId, userId);
         return this.prisma.timeEntry.findMany({
             where: { taskId, deletedAt: null },
             select: time_entry_constants_1.TIME_ENTRY_SELECT,
@@ -115,6 +122,7 @@ let TimeEntryService = class TimeEntryService {
     }
     async update(workspaceId, userId, entryId, dto) {
         const entry = await this.findEntryOrThrow(workspaceId, entryId);
+        await this.assertTaskUnlocked(workspaceId, userId, entry.taskId);
         if (entry.userId !== userId)
             throw new common_1.ForbiddenException(time_entry_constants_1.FORBIDDEN_TIME_ENTRY);
         const updateData = {};
@@ -150,6 +158,7 @@ let TimeEntryService = class TimeEntryService {
     }
     async remove(workspaceId, userId, entryId) {
         const entry = await this.findEntryOrThrow(workspaceId, entryId);
+        await this.assertTaskUnlocked(workspaceId, userId, entry.taskId);
         if (entry.userId !== userId)
             throw new common_1.ForbiddenException(time_entry_constants_1.FORBIDDEN_TIME_ENTRY);
         await this.prisma.$transaction(async (tx) => {
@@ -173,11 +182,15 @@ let TimeEntryService = class TimeEntryService {
                 deletedAt: null,
                 list: { deletedAt: null, project: { workspaceId, deletedAt: null } },
             },
-            select: { id: true },
+            select: {
+                id: true,
+                createdBy: true,
+                list: { select: { projectId: true } },
+            },
         });
         if (!task)
             throw new common_1.NotFoundException(time_entry_constants_1.TASK_NOT_FOUND);
-        return task;
+        return { id: task.id, projectId: task.list.projectId, userId: task.createdBy };
     }
     async findEntryOrThrow(workspaceId, entryId) {
         const entry = await this.prisma.timeEntry.findFirst({
@@ -193,15 +206,30 @@ let TimeEntryService = class TimeEntryService {
         return entry;
     }
     async findActiveTimerForUser(workspaceId, userId) {
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(workspaceId, userId);
         return this.prisma.timeEntry.findFirst({
             where: {
                 userId,
                 endTime: null,
                 deletedAt: null,
-                task: { deletedAt: null, list: { deletedAt: null, project: { workspaceId, deletedAt: null } } },
+                task: {
+                    deletedAt: null,
+                    list: {
+                        deletedAt: null,
+                        project: {
+                            workspaceId,
+                            deletedAt: null,
+                            OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+                        },
+                    },
+                },
             },
             select: time_entry_constants_1.TIME_ENTRY_SELECT,
         });
+    }
+    async assertTaskUnlocked(workspaceId, userId, taskId) {
+        const task = await this.findTaskOrThrow(workspaceId, taskId);
+        await this.projectSecurity.assertUnlocked(workspaceId, task.projectId, userId);
     }
     async stopActiveEntry(workspaceId, userId, entryId) {
         const entry = await this.prisma.timeEntry.findFirstOrThrow({
@@ -231,6 +259,7 @@ let TimeEntryService = class TimeEntryService {
 exports.TimeEntryService = TimeEntryService;
 exports.TimeEntryService = TimeEntryService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService])
 ], TimeEntryService);
 //# sourceMappingURL=time-entry.service.js.map

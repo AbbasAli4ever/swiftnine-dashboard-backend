@@ -13,22 +13,45 @@ exports.DocSearchService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const doc_permissions_service_1 = require("./doc-permissions.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 let DocSearchService = class DocSearchService {
     prisma;
     permissions;
-    constructor(prisma, permissions) {
+    projectSecurity;
+    constructor(prisma, permissions, projectSecurity) {
         this.prisma = prisma;
         this.permissions = permissions;
+        this.projectSecurity = projectSecurity;
     }
     async search(params) {
         const query = params.query.trim();
         if (!query)
             return [];
+        if (params.projectId) {
+            await this.projectSecurity.assertUnlocked(params.workspaceId, params.projectId, params.userId);
+        }
         const rows = params.projectId
             ? await this.searchProject(query, params.workspaceId, params.projectId, params.userId)
             : await this.searchWorkspace(query, params.workspaceId, params.userId);
         const results = [];
+        const lockedProjectIds = Array.from(new Set(rows.map((row) => row.projectId).filter((id) => Boolean(id))));
+        const projects = lockedProjectIds.length
+            ? await this.prisma.project.findMany({
+                where: { id: { in: lockedProjectIds } },
+                select: { id: true, passwordHash: true },
+            })
+            : [];
+        const unlockedByDefaultIds = new Set(projects.filter((project) => !project.passwordHash).map((project) => project.id));
+        const passwordProtectedProjectIds = projects
+            .filter((project) => Boolean(project.passwordHash))
+            .map((project) => project.id);
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(passwordProtectedProjectIds, params.userId);
         for (const row of rows) {
+            if (row.projectId &&
+                !unlockedByDefaultIds.has(row.projectId) &&
+                !unlockedProjectIds.has(row.projectId)) {
+                continue;
+            }
             const role = await this.permissions.resolveEffectiveRole(params.userId, {
                 id: row.id,
                 scope: row.scope,
@@ -142,6 +165,7 @@ exports.DocSearchService = DocSearchService;
 exports.DocSearchService = DocSearchService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
-        doc_permissions_service_1.DocPermissionsService])
+        doc_permissions_service_1.DocPermissionsService,
+        project_security_service_1.ProjectSecurityService])
 ], DocSearchService);
 //# sourceMappingURL=doc-search.service.js.map

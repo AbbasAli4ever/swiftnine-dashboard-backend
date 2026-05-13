@@ -9,13 +9,18 @@ import {
   TASK_NOT_FOUND,
 } from '../task/task.constants';
 import type { Prisma } from '@app/database/generated/prisma/client';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 type RawTaskListItem = Prisma.TaskGetPayload<{ select: typeof TASK_LIST_ITEM_SELECT }>;
 @Injectable()
 export class FavoritesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectSecurity: ProjectSecurityService,
+  ) {}
 
   async favoriteProject(workspaceId: string, userId: string, projectId: string) {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
     await this.findActiveProjectOrThrow(workspaceId, projectId);
 
     await this.prisma.projectFavorite.upsert({
@@ -28,6 +33,7 @@ export class FavoritesService {
   }
 
   async unfavoriteProject(workspaceId: string, userId: string, projectId: string) {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
     await this.findProjectOrThrow(workspaceId, projectId);
     await this.prisma.projectFavorite.deleteMany({ where: { userId, projectId } });
     return { isFavorite: false };
@@ -67,16 +73,46 @@ export class FavoritesService {
       },
       select: {
         createdAt: true,
-        project: { select: PROJECT_WITH_STATUSES_SELECT },
+        project: {
+          select: {
+            ...PROJECT_WITH_STATUSES_SELECT,
+            passwordHash: true,
+            passwordUpdatedAt: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return rows.map((row) => ({
-      ...row.project,
-      isFavorite: true,
-      favoritedAt: row.createdAt,
-    }));
+    const lockedProjectIds = rows
+      .filter((row) => Boolean(row.project.passwordHash))
+      .map((row) => row.project.id);
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      lockedProjectIds,
+      userId,
+    );
+
+    return rows.map((row) => {
+      const { passwordHash, ...project } = row.project;
+      const isLockedForUser = Boolean(passwordHash) && !unlockedProjectIds.has(project.id);
+
+      if (isLockedForUser) {
+        return {
+          id: project.id,
+          workspaceId: project.workspaceId,
+          locked: true,
+          isFavorite: true,
+          favoritedAt: row.createdAt,
+        };
+      }
+
+      return {
+        ...project,
+        locked: false,
+        isFavorite: true,
+        favoritedAt: row.createdAt,
+      };
+    });
   }
 
   async listTaskFavorites(

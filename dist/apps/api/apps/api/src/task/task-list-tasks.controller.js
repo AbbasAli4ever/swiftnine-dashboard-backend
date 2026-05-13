@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const workspace_guard_1 = require("../workspace/workspace.guard");
+const project_unlocked_guard_1 = require("../project-security/guards/project-unlocked.guard");
 const task_service_1 = require("./task.service");
 const create_task_dto_1 = require("./dto/create-task.dto");
 const reorder_tasks_dto_1 = require("./dto/reorder-tasks.dto");
@@ -108,7 +109,7 @@ exports.TaskListTasksController = TaskListTasksController = __decorate([
     (0, swagger_1.ApiTags)('tasks'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('projects/:projectId/lists/:listId/tasks'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, workspace_guard_1.WorkspaceGuard, project_unlocked_guard_1.ProjectUnlockedGuard),
     (0, swagger_1.ApiHeader)({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' }),
     __metadata("design:paramtypes", [task_service_1.TaskService])
 ], TaskListTasksController);

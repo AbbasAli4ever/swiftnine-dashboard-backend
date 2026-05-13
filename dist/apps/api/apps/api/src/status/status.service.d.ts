@@ -1,6 +1,7 @@
 import { PrismaService } from "../../../../libs/database/src";
 import type { Prisma, Role } from "../../../../libs/database/src/generated/prisma/client";
 import { STATUS_SELECT } from './status.constants';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 import type { CreateStatusDto } from './dto/create-status.dto';
 import type { UpdateStatusDto } from './dto/update-status.dto';
 import type { DeleteStatusDto } from './dto/delete-status.dto';
@@ -20,9 +21,10 @@ export type GroupedStatuses = {
 };
 export declare class StatusService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly projectSecurity;
+    constructor(prisma: PrismaService, projectSecurity: ProjectSecurityService);
     create(workspaceId: string, userId: string, role: Role, dto: CreateStatusDto): Promise<StatusData>;
-    findAll(workspaceId: string, projectId: string): Promise<GroupedStatuses>;
+    findAll(workspaceId: string, projectId: string, userId: string): Promise<GroupedStatuses>;
     findOne(workspaceId: string, statusId: string): Promise<StatusData>;
     update(workspaceId: string, statusId: string, userId: string, role: Role, dto: UpdateStatusDto): Promise<StatusData>;
     remove(workspaceId: string, statusId: string, userId: string, role: Role, dto: DeleteStatusDto): Promise<void>;

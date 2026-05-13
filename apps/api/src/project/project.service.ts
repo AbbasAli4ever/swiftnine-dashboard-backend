@@ -20,15 +20,35 @@ import {
   PROJECT_WITH_STATUSES_SELECT,
 } from './project.constants';
 import { FavoritesService } from '../favorites/favorites.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 export type ProjectData = Prisma.ProjectGetPayload<{ select: typeof PROJECT_SELECT }>;
 type RawProjectWithDetails = Prisma.ProjectGetPayload<{ select: typeof PROJECT_WITH_STATUSES_SELECT }>;
+type RawProjectWithSecurity = RawProjectWithDetails & {
+  passwordHash: string | null;
+  passwordUpdatedAt: Date | null;
+};
 export type ProjectWithDetails = RawProjectWithDetails & { isFavorite: boolean };
+export type LockedProjectListItem = {
+  id: string;
+  workspaceId: string;
+  locked: true;
+  isFavorite: boolean;
+  favoritedAt?: Date;
+};
+export type ProjectListItem =
+  | (ProjectWithDetails & {
+      locked: false;
+      passwordUpdatedAt: Date | null;
+      favoritedAt?: Date;
+    })
+  | LockedProjectListItem;
 
 @Injectable()
 export class ProjectService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly projectSecurity: ProjectSecurityService,
     private readonly favorites?: FavoritesService,
   ) {}
 
@@ -81,29 +101,39 @@ export class ProjectService {
     workspaceId: string,
     userId: string,
     includeArchived = false,
-  ): Promise<ProjectWithDetails[]> {
+  ): Promise<ProjectListItem[]> {
     const projects = await this.prisma.project.findMany({
       where: {
         workspaceId,
         deletedAt: null,
         ...(includeArchived ? {} : { isArchived: false }),
       },
-      select: PROJECT_WITH_STATUSES_SELECT,
+      select: {
+        ...PROJECT_WITH_STATUSES_SELECT,
+        passwordHash: true,
+        passwordUpdatedAt: true,
+      },
       orderBy: { createdAt: 'asc' },
     });
-    return this.withFavoriteState(userId, projects);
+    return this.applyProjectVisibility(userId, await this.withFavoriteState(userId, projects));
   }
 
-  async findArchived(workspaceId: string, userId: string): Promise<ProjectWithDetails[]> {
+  async findArchived(workspaceId: string, userId: string): Promise<ProjectListItem[]> {
     const projects = await this.prisma.project.findMany({
       where: { workspaceId, deletedAt: null, isArchived: true },
-      select: PROJECT_WITH_STATUSES_SELECT,
+      select: {
+        ...PROJECT_WITH_STATUSES_SELECT,
+        passwordHash: true,
+        passwordUpdatedAt: true,
+      },
       orderBy: { updatedAt: 'desc' },
     });
-    return this.withFavoriteState(userId, projects);
+    return this.applyProjectVisibility(userId, await this.withFavoriteState(userId, projects));
   }
 
   async findOne(workspaceId: string, userId: string, projectId: string): Promise<ProjectWithDetails> {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
       select: PROJECT_WITH_STATUSES_SELECT,
@@ -118,6 +148,8 @@ export class ProjectService {
     userId: string,
     dto: UpdateProjectDto,
   ): Promise<ProjectWithDetails> {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
       select: PROJECT_SELECT,
@@ -179,6 +211,7 @@ export class ProjectService {
     role: Role,
   ): Promise<ProjectWithDetails> {
     this.assertCanArchive(role);
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
 
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
@@ -215,6 +248,7 @@ export class ProjectService {
     role: Role,
   ): Promise<ProjectWithDetails> {
     this.assertCanArchive(role);
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
 
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
@@ -246,6 +280,7 @@ export class ProjectService {
 
   async remove(workspaceId: string, projectId: string, userId: string, role: Role): Promise<void> {
     if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
 
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
@@ -256,7 +291,7 @@ export class ProjectService {
     const now = new Date();
 
     await this.prisma.$transaction(async (tx) => {
-      // Cascade soft delete: tasks → task lists → statuses → project
+      // Cascade soft delete project-owned records before hiding the project.
       const taskLists = await tx.taskList.findMany({
         where: { projectId, deletedAt: null },
         select: { id: true },
@@ -276,6 +311,11 @@ export class ProjectService {
       });
 
       await tx.status.updateMany({
+        where: { projectId, deletedAt: null },
+        data: { deletedAt: now },
+      });
+
+      await tx.attachment.updateMany({
         where: { projectId, deletedAt: null },
         data: { deletedAt: now },
       });
@@ -328,5 +368,38 @@ export class ProjectService {
       isFavorite: favoriteIds.has(project.id),
     }));
     return Array.isArray(input) ? enriched : enriched[0];
+  }
+
+  private async applyProjectVisibility(
+    userId: string,
+    projects: Array<RawProjectWithSecurity & { isFavorite: boolean; favoritedAt?: Date }>,
+  ): Promise<ProjectListItem[]> {
+    const lockedProjectIds = projects
+      .filter((project) => Boolean(project.passwordHash))
+      .map((project) => project.id);
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      lockedProjectIds,
+      userId,
+    );
+
+    return projects.map((project) => {
+      const { passwordHash, ...safeProject } = project;
+      const isLockedForUser = Boolean(passwordHash) && !unlockedProjectIds.has(project.id);
+
+      if (isLockedForUser) {
+        return {
+          id: project.id,
+          workspaceId: project.workspaceId,
+          locked: true,
+          isFavorite: project.isFavorite,
+          ...(project.favoritedAt ? { favoritedAt: project.favoritedAt } : {}),
+        };
+      }
+
+      return {
+        ...safeProject,
+        locked: false,
+      };
+    });
   }
 }
