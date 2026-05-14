@@ -23,6 +23,7 @@ import { ChatModule } from './chat/chat.module';
 import { DocsModule } from './docs/docs.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { PresenceModule } from './presence/presence.module';
+import { ProjectSecurityModule } from './project-security/project-security.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PresenceModule } from './presence/presence.module';
     UserModule,
     WorkspaceModule,
     AttachmentsModule,
+    ProjectSecurityModule,
     ProjectModule,
     StatusModule,
     TaskListModule,

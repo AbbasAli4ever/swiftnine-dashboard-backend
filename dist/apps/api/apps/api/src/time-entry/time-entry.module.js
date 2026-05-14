@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const time_entry_service_1 = require("./time-entry.service");
 const time_entry_controller_1 = require("./time-entry.controller");
 const time_entry_manage_controller_1 = require("./time-entry-manage.controller");
+const project_security_module_1 = require("../project-security/project-security.module");
 let TimeEntryModule = class TimeEntryModule {
 };
 exports.TimeEntryModule = TimeEntryModule;
 exports.TimeEntryModule = TimeEntryModule = __decorate([
     (0, common_1.Module)({
+        imports: [project_security_module_1.ProjectSecurityModule],
         controllers: [time_entry_controller_1.TimeEntryController, time_entry_manage_controller_1.TimeEntryManageController],
         providers: [time_entry_service_1.TimeEntryService],
     })

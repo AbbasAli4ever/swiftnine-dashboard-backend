@@ -49,6 +49,11 @@ export declare const StatusGroup: {
     readonly CLOSED: "CLOSED";
 };
 export type StatusGroup = (typeof StatusGroup)[keyof typeof StatusGroup];
+export declare const AttachmentKind: {
+    readonly FILE: "FILE";
+    readonly LINK: "LINK";
+};
+export type AttachmentKind = (typeof AttachmentKind)[keyof typeof AttachmentKind];
 export declare const ChannelPrivacy: {
     readonly PUBLIC: "PUBLIC";
     readonly PRIVATE: "PRIVATE";

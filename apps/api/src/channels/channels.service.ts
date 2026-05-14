@@ -10,6 +10,7 @@ import type { UpdateChannelDto } from './dto/update-channel.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { Role } from '@app/database/generated/prisma/client';
 import { ChatSystemService } from '../chat/chat-system.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 @Injectable()
 export class ChannelsService {
@@ -17,6 +18,7 @@ export class ChannelsService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly chatSystem: ChatSystemService,
+    private readonly projectSecurity: ProjectSecurityService,
   ) {}
 
   private channelLabel(name: string | null | undefined) {
@@ -66,6 +68,8 @@ export class ChannelsService {
   }
 
   async listByProject(workspaceId: string, projectId: string, userId: string) {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
       select: { id: true },
@@ -91,6 +95,8 @@ export class ChannelsService {
   async create(workspaceId: string, userId: string, dto: CreateChannelDto) {
     // validate optional project belongs to workspace
     if (dto.projectId) {
+      await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
+
       const project = await this.prisma.project.findFirst({
         where: { id: dto.projectId, workspaceId, deletedAt: null },
         select: { id: true },

@@ -15,6 +15,7 @@ const auth_module_1 = require("../auth/auth.module");
 const notifications_module_1 = require("../notifications/notifications.module");
 const presence_module_1 = require("../presence/presence.module");
 const realtime_metrics_module_1 = require("../realtime/realtime-metrics.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 const chat_controller_1 = require("./chat.controller");
 const chat_fanout_service_1 = require("./chat-fanout.service");
 const chat_gateway_1 = require("./chat.gateway");
@@ -32,6 +33,7 @@ exports.ChatModule = ChatModule = __decorate([
             attachments_module_1.AttachmentsModule,
             presence_module_1.PresenceModule,
             realtime_metrics_module_1.RealtimeMetricsModule,
+            project_security_module_1.ProjectSecurityModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],

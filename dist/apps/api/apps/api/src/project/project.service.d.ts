@@ -4,6 +4,7 @@ import type { CreateProjectDto } from './dto/create-project.dto';
 import type { UpdateProjectDto } from './dto/update-project.dto';
 import { PROJECT_SELECT, PROJECT_WITH_STATUSES_SELECT } from './project.constants';
 import { FavoritesService } from '../favorites/favorites.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 export type ProjectData = Prisma.ProjectGetPayload<{
     select: typeof PROJECT_SELECT;
 }>;
@@ -13,13 +14,26 @@ type RawProjectWithDetails = Prisma.ProjectGetPayload<{
 export type ProjectWithDetails = RawProjectWithDetails & {
     isFavorite: boolean;
 };
+export type LockedProjectListItem = {
+    id: string;
+    workspaceId: string;
+    locked: true;
+    isFavorite: boolean;
+    favoritedAt?: Date;
+};
+export type ProjectListItem = (ProjectWithDetails & {
+    locked: false;
+    passwordUpdatedAt: Date | null;
+    favoritedAt?: Date;
+}) | LockedProjectListItem;
 export declare class ProjectService {
     private readonly prisma;
+    private readonly projectSecurity;
     private readonly favorites?;
-    constructor(prisma: PrismaService, favorites?: FavoritesService | undefined);
+    constructor(prisma: PrismaService, projectSecurity: ProjectSecurityService, favorites?: FavoritesService | undefined);
     create(workspaceId: string, userId: string, dto: CreateProjectDto): Promise<ProjectWithDetails>;
-    findAll(workspaceId: string, userId: string, includeArchived?: boolean): Promise<ProjectWithDetails[]>;
-    findArchived(workspaceId: string, userId: string): Promise<ProjectWithDetails[]>;
+    findAll(workspaceId: string, userId: string, includeArchived?: boolean): Promise<ProjectListItem[]>;
+    findArchived(workspaceId: string, userId: string): Promise<ProjectListItem[]>;
     findOne(workspaceId: string, userId: string, projectId: string): Promise<ProjectWithDetails>;
     update(workspaceId: string, projectId: string, userId: string, dto: UpdateProjectDto): Promise<ProjectWithDetails>;
     archive(workspaceId: string, projectId: string, userId: string, role: Role): Promise<ProjectWithDetails>;
@@ -27,5 +41,6 @@ export declare class ProjectService {
     remove(workspaceId: string, projectId: string, userId: string, role: Role): Promise<void>;
     private assertCanArchive;
     private withFavoriteState;
+    private applyProjectVisibility;
 }
 export {};

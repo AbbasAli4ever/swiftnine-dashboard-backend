@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DocVersionType = exports.DocRole = exports.DocScope = exports.ChannelJoinRequestStatus = exports.ChannelMessageKind = exports.ChannelKind = exports.ChannelPrivacy = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
+exports.DocVersionType = exports.DocRole = exports.DocScope = exports.ChannelJoinRequestStatus = exports.ChannelMessageKind = exports.ChannelKind = exports.ChannelPrivacy = exports.AttachmentKind = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
     ADMIN: 'ADMIN',
@@ -45,6 +45,10 @@ exports.StatusGroup = {
     ACTIVE: 'ACTIVE',
     DONE: 'DONE',
     CLOSED: 'CLOSED'
+};
+exports.AttachmentKind = {
+    FILE: 'FILE',
+    LINK: 'LINK'
 };
 exports.ChannelPrivacy = {
     PUBLIC: 'PUBLIC',

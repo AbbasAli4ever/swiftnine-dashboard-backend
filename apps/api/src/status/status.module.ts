@@ -3,9 +3,10 @@ import { StatusController } from './status.controller';
 import { StatusService } from './status.service';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { RolesModule } from '../roles/roles.module';
+import { ProjectSecurityModule } from '../project-security/project-security.module';
 
 @Module({
-  imports: [WorkspaceModule, RolesModule],
+  imports: [WorkspaceModule, RolesModule, ProjectSecurityModule],
   controllers: [StatusController],
   providers: [StatusService],
 })

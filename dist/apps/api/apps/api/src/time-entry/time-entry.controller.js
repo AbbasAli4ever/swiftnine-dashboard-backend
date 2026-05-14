@@ -41,7 +41,7 @@ let TimeEntryController = class TimeEntryController {
         return (0, common_2.ok)(entry, 'Timer stopped');
     }
     async findAll(req, taskId) {
-        const entries = await this.timeEntryService.findAllByTask(req.workspaceContext.workspaceId, taskId);
+        const entries = await this.timeEntryService.findAllByTask(req.workspaceContext.workspaceId, req.user.id, taskId);
         return (0, common_2.ok)(entries);
     }
 };

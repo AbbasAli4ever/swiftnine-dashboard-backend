@@ -6,6 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PresenceModule } from '../presence/presence.module';
 import { RealtimeMetricsModule } from '../realtime/realtime-metrics.module';
+import { ProjectSecurityModule } from '../project-security/project-security.module';
 import { ChatController } from './chat.controller';
 import { ChatFanoutService } from './chat-fanout.service';
 import { ChatGateway } from './chat.gateway';
@@ -20,6 +21,7 @@ import { ChatSystemService } from './chat-system.service';
     AttachmentsModule,
     PresenceModule,
     RealtimeMetricsModule,
+    ProjectSecurityModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

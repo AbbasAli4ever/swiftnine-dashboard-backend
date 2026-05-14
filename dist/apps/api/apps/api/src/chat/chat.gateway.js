@@ -25,6 +25,8 @@ const auth_constants_1 = require("../auth/auth.constants");
 const websockets_1 = require("@nestjs/websockets");
 const chat_rate_limit_service_1 = require("./chat-rate-limit.service");
 const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
+const project_realtime_lock_service_1 = require("../project-security/project-realtime-lock.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 let ChatGateway = ChatGateway_1 = class ChatGateway {
     prisma;
     jwt;
@@ -32,18 +34,25 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     presence;
     rateLimits;
     metrics;
+    projectSecurity;
+    projectRealtimeLocks;
     server;
     logger = new common_1.Logger(ChatGateway_1.name);
-    constructor(prisma, jwt, auth, presence, rateLimits, metrics, config) {
+    constructor(prisma, jwt, auth, presence, rateLimits, metrics, projectSecurity, projectRealtimeLocks, config) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.auth = auth;
         this.presence = presence;
         this.rateLimits = rateLimits;
         this.metrics = metrics;
+        this.projectSecurity = projectSecurity;
+        this.projectRealtimeLocks = projectRealtimeLocks;
         if (Number(config.get('INSTANCE_COUNT') ?? '1') > 1) {
             this.logger.warn('Chat realtime uses in-memory room fanout; configure Redis before scaling instances');
         }
+        this.projectRealtimeLocks.lockChanged$.subscribe((event) => {
+            void this.evictProjectChannels(event.projectId, event.reason);
+        });
     }
     async handleConnection(client) {
         try {
@@ -174,10 +183,21 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     async assertChannelMember(channelId, userId) {
         const membership = await this.prisma.channelMember.findFirst({
             where: { channelId, userId },
-            select: { id: true },
+            select: {
+                id: true,
+                channel: {
+                    select: {
+                        workspaceId: true,
+                        projectId: true,
+                    },
+                },
+            },
         });
         if (!membership) {
             throw new websockets_1.WsException('Channel membership required');
+        }
+        if (membership.channel.projectId) {
+            await this.assertProjectUnlockedForWs(membership.channel.workspaceId, membership.channel.projectId, userId);
         }
     }
     roomName(channelId) {
@@ -186,9 +206,59 @@ let ChatGateway = ChatGateway_1 = class ChatGateway {
     async joinMemberChannelRooms(client, userId) {
         const memberships = await this.prisma.channelMember.findMany({
             where: { userId },
-            select: { channelId: true },
+            select: {
+                channelId: true,
+                channel: {
+                    select: {
+                        workspaceId: true,
+                        projectId: true,
+                        project: { select: { passwordHash: true } },
+                    },
+                },
+            },
         });
-        await Promise.all(memberships.map((membership) => client.join(this.roomName(membership.channelId))));
+        const lockedProjectIds = memberships
+            .map((membership) => membership.channel.project?.passwordHash ? membership.channel.projectId : null)
+            .filter((projectId) => Boolean(projectId));
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, userId);
+        await Promise.all(memberships
+            .filter((membership) => {
+            const projectId = membership.channel.projectId;
+            if (!projectId)
+                return true;
+            if (!membership.channel.project?.passwordHash)
+                return true;
+            return unlockedProjectIds.has(projectId);
+        })
+            .map((membership) => client.join(this.roomName(membership.channelId))));
+    }
+    async assertProjectUnlockedForWs(workspaceId, projectId, userId) {
+        try {
+            await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+        }
+        catch {
+            throw new websockets_1.WsException({
+                code: 'PROJECT_LOCKED',
+                message: 'Project is locked',
+            });
+        }
+    }
+    async evictProjectChannels(projectId, reason) {
+        if (!this.server)
+            return;
+        const channels = await this.prisma.channel.findMany({
+            where: { projectId },
+            select: { id: true },
+        });
+        await Promise.all(channels.map(async (channel) => {
+            const room = this.roomName(channel.id);
+            this.server.to(room).emit('project:lock-changed', {
+                projectId,
+                channelId: channel.id,
+                reason,
+            });
+            await this.server.in(room).socketsLeave(room);
+        }));
     }
 };
 exports.ChatGateway = ChatGateway;
@@ -239,6 +309,8 @@ exports.ChatGateway = ChatGateway = ChatGateway_1 = __decorate([
         presence_service_1.PresenceService,
         chat_rate_limit_service_1.ChatRateLimitService,
         realtime_metrics_service_1.RealtimeMetricsService,
+        project_security_service_1.ProjectSecurityService,
+        project_realtime_lock_service_1.ProjectRealtimeLockService,
         config_1.ConfigService])
 ], ChatGateway);
 //# sourceMappingURL=chat.gateway.js.map

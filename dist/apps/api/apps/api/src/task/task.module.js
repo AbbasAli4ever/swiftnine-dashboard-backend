@@ -16,12 +16,13 @@ const task_board_controller_1 = require("./task-board.controller");
 const activity_module_1 = require("../activity/activity.module");
 const notifications_module_1 = require("../notifications/notifications.module");
 const favorites_module_1 = require("../favorites/favorites.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 let TaskModule = class TaskModule {
 };
 exports.TaskModule = TaskModule;
 exports.TaskModule = TaskModule = __decorate([
     (0, common_1.Module)({
-        imports: [activity_module_1.ActivityModule, notifications_module_1.NotificationsModule, favorites_module_1.FavoritesModule],
+        imports: [activity_module_1.ActivityModule, notifications_module_1.NotificationsModule, favorites_module_1.FavoritesModule, project_security_module_1.ProjectSecurityModule],
         controllers: [
             task_controller_1.TaskController,
             task_list_tasks_controller_1.TaskListTasksController,

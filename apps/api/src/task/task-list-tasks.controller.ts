@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { ProjectUnlockedGuard } from '../project-security/guards/project-unlocked.guard';
 import { TaskService, type TaskDetailData, type TaskListItemData } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ReorderTasksDto } from './dto/reorder-tasks.dto';
@@ -40,7 +41,7 @@ import {
 @ApiTags('tasks')
 @ApiBearerAuth()
 @Controller('projects/:projectId/lists/:listId/tasks')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, ProjectUnlockedGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class TaskListTasksController {
   constructor(private readonly taskService: TaskService) {}

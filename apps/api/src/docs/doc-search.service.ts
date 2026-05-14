@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { DocScope } from '@app/database/generated/prisma/client';
 import { DocPermissionsService } from './doc-permissions.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 export interface DocSearchResult {
   id: string;
@@ -19,6 +20,7 @@ export class DocSearchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly permissions: DocPermissionsService,
+    private readonly projectSecurity: ProjectSecurityService,
   ) {}
 
   async search(params: {
@@ -29,13 +31,44 @@ export class DocSearchService {
   }): Promise<DocSearchResult[]> {
     const query = params.query.trim();
     if (!query) return [];
+    if (params.projectId) {
+      await this.projectSecurity.assertUnlocked(params.workspaceId, params.projectId, params.userId);
+    }
 
     const rows = params.projectId
       ? await this.searchProject(query, params.workspaceId, params.projectId, params.userId)
       : await this.searchWorkspace(query, params.workspaceId, params.userId);
 
     const results: DocSearchResult[] = [];
+    const lockedProjectIds = Array.from(
+      new Set(rows.map((row) => row.projectId).filter((id): id is string => Boolean(id))),
+    );
+    const projects = lockedProjectIds.length
+      ? await this.prisma.project.findMany({
+          where: { id: { in: lockedProjectIds } },
+          select: { id: true, passwordHash: true },
+        })
+      : [];
+    const unlockedByDefaultIds = new Set(
+      projects.filter((project) => !project.passwordHash).map((project) => project.id),
+    );
+    const passwordProtectedProjectIds = projects
+      .filter((project) => Boolean(project.passwordHash))
+      .map((project) => project.id);
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      passwordProtectedProjectIds,
+      params.userId,
+    );
+
     for (const row of rows) {
+      if (
+        row.projectId &&
+        !unlockedByDefaultIds.has(row.projectId) &&
+        !unlockedProjectIds.has(row.projectId)
+      ) {
+        continue;
+      }
+
       const role = await this.permissions.resolveEffectiveRole(params.userId, {
         id: row.id,
         scope: row.scope,

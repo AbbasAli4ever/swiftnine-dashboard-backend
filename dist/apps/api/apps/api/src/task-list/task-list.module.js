@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const task_list_controller_1 = require("./task-list.controller");
 const task_list_service_1 = require("./task-list.service");
 const workspace_module_1 = require("../workspace/workspace.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 let TaskListModule = class TaskListModule {
 };
 exports.TaskListModule = TaskListModule;
 exports.TaskListModule = TaskListModule = __decorate([
     (0, common_1.Module)({
-        imports: [workspace_module_1.WorkspaceModule],
+        imports: [workspace_module_1.WorkspaceModule, project_security_module_1.ProjectSecurityModule],
         controllers: [task_list_controller_1.TaskListController],
         providers: [task_list_service_1.TaskListService],
     })

@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -23,9 +24,11 @@ import { AuthService, type AuthUser } from '../auth/auth.service';
 import { buildWebsocketCorsOptions } from '../config/cors.config';
 import { PresenceService } from '../presence/presence.service';
 import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
+import { PrismaService } from '@app/database';
 import { DocLocksService } from './doc-locks.service';
 import { DocPresenceService } from './doc-presence.service';
 import { DocSaveConflictException, DocsService } from './docs.service';
+import { ProjectRealtimeLockService } from '../project-security/project-realtime-lock.service';
 
 type DocsSocketData = {
   user?: AuthUser;
@@ -62,15 +65,21 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly docs: DocsService,
     private readonly docPresence: DocPresenceService,
     private readonly locks: DocLocksService,
+    private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly auth: AuthService,
     private readonly presence: PresenceService,
     private readonly metrics: RealtimeMetricsService,
+    private readonly projectRealtimeLocks: ProjectRealtimeLockService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
       this.logger.warn('Docs realtime uses in-memory presence and locks; configure Redis before scaling instances');
     }
+
+    this.projectRealtimeLocks.lockChanged$.subscribe((event) => {
+      void this.evictProjectDocs(event.projectId, event.reason);
+    });
   }
 
   async handleConnection(client: DocsSocket): Promise<void> {
@@ -101,7 +110,7 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.requireUser(client);
     const docId = this.requireString(payload.docId, 'docId');
 
-    await this.docs.findOne(user.id, docId);
+    await this.assertCanViewDocForWs(user.id, docId);
     await client.join(this.roomName(docId));
     this.docPresence.join(docId, client.id, user);
 
@@ -271,6 +280,11 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.emitRoomState(docId);
   }
 
+  private leaveSocketIdFromRoom(socketId: string, docId: string): void {
+    this.docPresence.leave(socketId, docId);
+    this.locks.releaseForSocket(socketId, docId);
+  }
+
   private emitRoomState(docId: string): void {
     this.server.to(this.roomName(docId)).emit('doc:presence-snapshot', {
       users: this.presenceSnapshot(docId),
@@ -296,5 +310,57 @@ export class DocsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private roomName(docId: string): string {
     return `doc:${docId}`;
+  }
+
+  private async assertCanViewDocForWs(userId: string, docId: string): Promise<void> {
+    try {
+      await this.docs.findOne(userId, docId);
+    } catch (error) {
+      const response = error instanceof HttpException ? error.getResponse() : null;
+      if (
+        response &&
+        typeof response === 'object' &&
+        'code' in response &&
+        response.code === 'PROJECT_LOCKED'
+      ) {
+        throw new WsException({
+          code: 'PROJECT_LOCKED',
+          message: 'Project is locked',
+        });
+      }
+
+      const message = error instanceof Error ? error.message : 'Document access denied';
+      throw new WsException({
+        code: 'DOC_ACCESS_DENIED',
+        message,
+      });
+    }
+  }
+
+  private async evictProjectDocs(projectId: string, reason: string): Promise<void> {
+    if (!this.server) return;
+
+    const docs = await this.prisma.doc.findMany({
+      where: { projectId, deletedAt: null },
+      select: { id: true },
+    });
+
+    for (const doc of docs) {
+      const room = this.roomName(doc.id);
+      const socketIds = Array.from(this.server.sockets.adapter.rooms.get(room) ?? []);
+
+      this.server.to(room).emit('project:lock-changed', {
+        projectId,
+        docId: doc.id,
+        reason,
+      });
+
+      for (const socketId of socketIds) {
+        this.leaveSocketIdFromRoom(socketId, doc.id);
+      }
+
+      await this.server.in(room).socketsLeave(room);
+      this.emitRoomState(doc.id);
+    }
   }
 }

@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const activity_controller_1 = require("./activity.controller");
 const activity_service_1 = require("./activity.service");
+const project_security_module_1 = require("../project-security/project-security.module");
 let ActivityModule = class ActivityModule {
 };
 exports.ActivityModule = ActivityModule;
 exports.ActivityModule = ActivityModule = __decorate([
     (0, common_1.Module)({
-        imports: [database_1.DatabaseModule],
+        imports: [database_1.DatabaseModule, project_security_module_1.ProjectSecurityModule],
         controllers: [activity_controller_1.ActivityController],
         providers: [activity_service_1.ActivityService],
         exports: [activity_service_1.ActivityService],

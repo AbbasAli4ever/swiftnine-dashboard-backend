@@ -18,6 +18,7 @@ const attachments_service_1 = require("../attachments/attachments.service");
 const chat_gateway_1 = require("./chat.gateway");
 const chat_rate_limit_service_1 = require("./chat-rate-limit.service");
 const realtime_metrics_service_1 = require("../realtime/realtime-metrics.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 const MESSAGE_EDIT_WINDOW_MS = 5 * 60 * 1000;
 const CHAT_CURSOR_SEPARATOR = ':';
 let ChatService = class ChatService {
@@ -27,13 +28,15 @@ let ChatService = class ChatService {
     gateway;
     rateLimits;
     metrics;
-    constructor(prisma, fanout, attachments, gateway, rateLimits, metrics) {
+    projectSecurity;
+    constructor(prisma, fanout, attachments, gateway, rateLimits, metrics, projectSecurity) {
         this.prisma = prisma;
         this.fanout = fanout;
         this.attachments = attachments;
         this.gateway = gateway;
         this.rateLimits = rateLimits;
         this.metrics = metrics;
+        this.projectSecurity = projectSecurity;
     }
     async listMessages(workspaceId, userId, channelId, query) {
         await this.assertChannelMember(workspaceId, channelId, userId);
@@ -470,6 +473,7 @@ let ChatService = class ChatService {
         if (query.channelId) {
             await this.assertChannelMember(workspaceId, query.channelId, userId);
         }
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(workspaceId, userId);
         const messages = await this.prisma.channelMessage.findMany({
             where: {
                 deletedAt: null,
@@ -478,6 +482,15 @@ let ChatService = class ChatService {
                     workspaceId,
                     members: { some: { userId } },
                     ...(query.channelId ? { id: query.channelId } : {}),
+                    ...(!query.channelId
+                        ? {
+                            OR: [
+                                { projectId: null },
+                                { project: { passwordHash: null } },
+                                { projectId: { in: Array.from(unlockedProjectIds) } },
+                            ],
+                        }
+                        : {}),
                 },
                 ...(cursor
                     ? {
@@ -555,7 +568,7 @@ let ChatService = class ChatService {
             throw new common_1.BadRequestException('One or more attachments are invalid for this message');
         }
         const expectedPrefix = this.channelAttachmentPrefix(channelId);
-        const invalid = attachments.filter((attachment) => !attachment.s3Key.startsWith(expectedPrefix));
+        const invalid = attachments.filter((attachment) => !attachment.s3Key || !attachment.s3Key.startsWith(expectedPrefix));
         if (invalid.length > 0) {
             throw new common_1.BadRequestException('One or more attachments do not belong to this channel');
         }
@@ -581,6 +594,7 @@ let ChatService = class ChatService {
                         kind: true,
                         name: true,
                         privacy: true,
+                        projectId: true,
                         members: {
                             select: {
                                 userId: true,
@@ -593,6 +607,9 @@ let ChatService = class ChatService {
         });
         if (!membership) {
             throw new common_1.ForbiddenException('Channel membership required');
+        }
+        if (membership.channel.projectId) {
+            await this.projectSecurity.assertUnlocked(workspaceId, membership.channel.projectId, userId);
         }
         return membership;
     }
@@ -610,6 +627,9 @@ let ChatService = class ChatService {
         if (!message) {
             throw new common_1.NotFoundException('Message not found');
         }
+        if (message.channel.projectId) {
+            await this.projectSecurity.assertUnlocked(workspaceId, message.channel.projectId, userId);
+        }
         return message;
     }
     messageInclude() {
@@ -621,6 +641,7 @@ let ChatService = class ChatService {
                     kind: true,
                     privacy: true,
                     name: true,
+                    projectId: true,
                 },
             },
             sender: { select: { id: true, fullName: true, avatarUrl: true } },
@@ -775,6 +796,7 @@ exports.ChatService = ChatService = __decorate([
         attachments_service_1.AttachmentsService,
         chat_gateway_1.ChatGateway,
         chat_rate_limit_service_1.ChatRateLimitService,
-        realtime_metrics_service_1.RealtimeMetricsService])
+        realtime_metrics_service_1.RealtimeMetricsService,
+        project_security_service_1.ProjectSecurityService])
 ], ChatService);
 //# sourceMappingURL=chat.service.js.map

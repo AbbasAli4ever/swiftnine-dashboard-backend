@@ -5,6 +5,7 @@ export declare class EmailService {
     private get fromAddress();
     sendOtpEmail(to: string, fullName: string, otp: string): Promise<void>;
     sendPasswordResetEmail(to: string, fullName: string, resetUrl: string): Promise<void>;
+    sendProjectPasswordResetEmail(to: string, fullName: string, projectName: string, resetUrl: string): Promise<void>;
     sendWorkspaceInviteEmail(to: string, inviterName: string, workspaceName: string, inviteUrl: string): Promise<void>;
     private send;
 }

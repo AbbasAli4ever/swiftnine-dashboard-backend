@@ -44,7 +44,11 @@ export class CommentsController {
       ? (JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()) as { exp?: number }).exp
       : undefined;
 
-    const comments = await this.commentsService.getCommentsForTask(req.workspaceContext.workspaceId, taskId);
+    const comments = await this.commentsService.getCommentsForTask(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      taskId,
+    );
 
     this.sse.registerClient(taskId, res, tokenExp);
     this.sse.sendToClient(res, 'comments:init', comments);

@@ -12,6 +12,7 @@ import {
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { ProjectUnlockedGuard } from '../project-security/guards/project-unlocked.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { ListTasksQueryDto, type ListTasksQuery } from './dto/list-tasks-query.dto';
 import { PaginatedTasksResponseDto } from './dto/task-list-item-response.dto';
@@ -21,7 +22,7 @@ import { TaskSearchSwaggerQueries } from './task-search.swagger';
 @ApiTags('tasks')
 @ApiBearerAuth()
 @Controller('projects/:projectId/tasks')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, ProjectUnlockedGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class TaskProjectTasksController {
   constructor(private readonly taskService: TaskService) {}

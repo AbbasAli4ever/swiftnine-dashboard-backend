@@ -14,11 +14,14 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const project_constants_1 = require("./project.constants");
 const favorites_service_1 = require("../favorites/favorites.service");
+const project_security_service_1 = require("../project-security/project-security.service");
 let ProjectService = class ProjectService {
     prisma;
+    projectSecurity;
     favorites;
-    constructor(prisma, favorites) {
+    constructor(prisma, projectSecurity, favorites) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
         this.favorites = favorites;
     }
     async create(workspaceId, userId, dto) {
@@ -68,20 +71,29 @@ let ProjectService = class ProjectService {
                 deletedAt: null,
                 ...(includeArchived ? {} : { isArchived: false }),
             },
-            select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+            select: {
+                ...project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+                passwordHash: true,
+                passwordUpdatedAt: true,
+            },
             orderBy: { createdAt: 'asc' },
         });
-        return this.withFavoriteState(userId, projects);
+        return this.applyProjectVisibility(userId, await this.withFavoriteState(userId, projects));
     }
     async findArchived(workspaceId, userId) {
         const projects = await this.prisma.project.findMany({
             where: { workspaceId, deletedAt: null, isArchived: true },
-            select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+            select: {
+                ...project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+                passwordHash: true,
+                passwordUpdatedAt: true,
+            },
             orderBy: { updatedAt: 'desc' },
         });
-        return this.withFavoriteState(userId, projects);
+        return this.applyProjectVisibility(userId, await this.withFavoriteState(userId, projects));
     }
     async findOne(workspaceId, userId, projectId) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: project_constants_1.PROJECT_WITH_STATUSES_SELECT,
@@ -91,6 +103,7 @@ let ProjectService = class ProjectService {
         return this.withFavoriteState(userId, project);
     }
     async update(workspaceId, projectId, userId, dto) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: project_constants_1.PROJECT_SELECT,
@@ -141,6 +154,7 @@ let ProjectService = class ProjectService {
     }
     async archive(workspaceId, projectId, userId, role) {
         this.assertCanArchive(role);
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: { id: true, name: true, isArchived: true },
@@ -169,6 +183,7 @@ let ProjectService = class ProjectService {
     }
     async restore(workspaceId, projectId, userId, role) {
         this.assertCanArchive(role);
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: { id: true, name: true, isArchived: true },
@@ -198,6 +213,7 @@ let ProjectService = class ProjectService {
     async remove(workspaceId, projectId, userId, role) {
         if (role !== 'OWNER')
             throw new common_1.ForbiddenException(project_constants_1.OWNER_ONLY);
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         const project = await this.prisma.project.findFirst({
             where: { id: projectId, workspaceId, deletedAt: null },
             select: { id: true, name: true },
@@ -222,6 +238,10 @@ let ProjectService = class ProjectService {
                 data: { deletedAt: now },
             });
             await tx.status.updateMany({
+                where: { projectId, deletedAt: null },
+                data: { deletedAt: now },
+            });
+            await tx.attachment.updateMany({
                 where: { projectId, deletedAt: null },
                 data: { deletedAt: now },
             });
@@ -257,11 +277,35 @@ let ProjectService = class ProjectService {
         }));
         return Array.isArray(input) ? enriched : enriched[0];
     }
+    async applyProjectVisibility(userId, projects) {
+        const lockedProjectIds = projects
+            .filter((project) => Boolean(project.passwordHash))
+            .map((project) => project.id);
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, userId);
+        return projects.map((project) => {
+            const { passwordHash, ...safeProject } = project;
+            const isLockedForUser = Boolean(passwordHash) && !unlockedProjectIds.has(project.id);
+            if (isLockedForUser) {
+                return {
+                    id: project.id,
+                    workspaceId: project.workspaceId,
+                    locked: true,
+                    isFavorite: project.isFavorite,
+                    ...(project.favoritedAt ? { favoritedAt: project.favoritedAt } : {}),
+                };
+            }
+            return {
+                ...safeProject,
+                locked: false,
+            };
+        });
+    }
 };
 exports.ProjectService = ProjectService;
 exports.ProjectService = ProjectService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService,
         favorites_service_1.FavoritesService])
 ], ProjectService);
 //# sourceMappingURL=project.service.js.map

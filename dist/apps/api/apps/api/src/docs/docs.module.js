@@ -13,6 +13,7 @@ const jwt_1 = require("@nestjs/jwt");
 const auth_module_1 = require("../auth/auth.module");
 const presence_module_1 = require("../presence/presence.module");
 const realtime_metrics_module_1 = require("../realtime/realtime-metrics.module");
+const project_security_module_1 = require("../project-security/project-security.module");
 const docs_gateway_1 = require("./docs.gateway");
 const docs_controller_1 = require("./docs.controller");
 const docs_service_1 = require("./docs.service");
@@ -30,6 +31,7 @@ exports.DocsModule = DocsModule = __decorate([
             auth_module_1.AuthModule,
             presence_module_1.PresenceModule,
             realtime_metrics_module_1.RealtimeMetricsModule,
+            project_security_module_1.ProjectSecurityModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],

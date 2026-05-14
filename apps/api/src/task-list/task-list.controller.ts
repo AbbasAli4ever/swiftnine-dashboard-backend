@@ -24,6 +24,7 @@ import {
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
+import { ProjectUnlockedGuard } from '../project-security/guards/project-unlocked.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { TaskListService, type TaskListData } from './task-list.service';
 import { CreateTaskListDto } from './dto/create-task-list.dto';
@@ -33,7 +34,7 @@ import { ReorderTaskListsDto } from './dto/reorder-task-lists.dto';
 @ApiTags('task-lists')
 @ApiBearerAuth()
 @Controller('projects/:projectId/lists')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, ProjectUnlockedGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class TaskListController {
   constructor(private readonly taskListService: TaskListService) {}

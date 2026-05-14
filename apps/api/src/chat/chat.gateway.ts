@@ -26,6 +26,8 @@ import {
 import type { Server, Socket } from 'socket.io';
 import { ChatRateLimitService } from './chat-rate-limit.service';
 import { RealtimeMetricsService } from '../realtime/realtime-metrics.service';
+import { ProjectRealtimeLockService } from '../project-security/project-realtime-lock.service';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 
 type ChatSocketData = {
   user?: AuthUser;
@@ -79,6 +81,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly presence: PresenceService,
     private readonly rateLimits: ChatRateLimitService,
     private readonly metrics: RealtimeMetricsService,
+    private readonly projectSecurity: ProjectSecurityService,
+    private readonly projectRealtimeLocks: ProjectRealtimeLockService,
     config: ConfigService,
   ) {
     if (Number(config.get<string>('INSTANCE_COUNT') ?? '1') > 1) {
@@ -86,6 +90,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         'Chat realtime uses in-memory room fanout; configure Redis before scaling instances',
       );
     }
+
+    this.projectRealtimeLocks.lockChanged$.subscribe((event) => {
+      void this.evictProjectChannels(event.projectId, event.reason);
+    });
   }
 
   async handleConnection(client: ChatSocket): Promise<void> {
@@ -279,11 +287,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     const membership = await this.prisma.channelMember.findFirst({
       where: { channelId, userId },
-      select: { id: true },
+      select: {
+        id: true,
+        channel: {
+          select: {
+            workspaceId: true,
+            projectId: true,
+          },
+        },
+      },
     });
 
     if (!membership) {
       throw new WsException('Channel membership required');
+    }
+
+    if (membership.channel.projectId) {
+      await this.assertProjectUnlockedForWs(
+        membership.channel.workspaceId,
+        membership.channel.projectId,
+        userId,
+      );
     }
   }
 
@@ -297,11 +321,76 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     const memberships = await this.prisma.channelMember.findMany({
       where: { userId },
-      select: { channelId: true },
+      select: {
+        channelId: true,
+        channel: {
+          select: {
+            workspaceId: true,
+            projectId: true,
+            project: { select: { passwordHash: true } },
+          },
+        },
+      },
+    });
+
+    const lockedProjectIds = memberships
+      .map((membership) =>
+        membership.channel.project?.passwordHash ? membership.channel.projectId : null,
+      )
+      .filter((projectId): projectId is string => Boolean(projectId));
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      lockedProjectIds,
+      userId,
+    );
+
+    await Promise.all(
+      memberships
+        .filter((membership) => {
+          const projectId = membership.channel.projectId;
+          if (!projectId) return true;
+          if (!membership.channel.project?.passwordHash) return true;
+          return unlockedProjectIds.has(projectId);
+        })
+        .map((membership) => client.join(this.roomName(membership.channelId))),
+    );
+  }
+
+  private async assertProjectUnlockedForWs(
+    workspaceId: string,
+    projectId: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+    } catch {
+      throw new WsException({
+        code: 'PROJECT_LOCKED',
+        message: 'Project is locked',
+      });
+    }
+  }
+
+  private async evictProjectChannels(
+    projectId: string,
+    reason: string,
+  ): Promise<void> {
+    if (!this.server) return;
+
+    const channels = await this.prisma.channel.findMany({
+      where: { projectId },
+      select: { id: true },
     });
 
     await Promise.all(
-      memberships.map((membership) => client.join(this.roomName(membership.channelId))),
+      channels.map(async (channel) => {
+        const room = this.roomName(channel.id);
+        this.server.to(room).emit('project:lock-changed', {
+          projectId,
+          channelId: channel.id,
+          reason,
+        });
+        await this.server.in(room).socketsLeave(room);
+      }),
     );
   }
 }

@@ -16,6 +16,7 @@ const doc_permissions_constants_1 = require("./doc-permissions.constants");
 const doc_permissions_service_1 = require("./doc-permissions.service");
 const doc_content_1 = require("./doc-content");
 const doc_blocks_util_1 = require("./doc-blocks.util");
+const project_security_service_1 = require("../project-security/project-security.service");
 class DocSaveConflictException extends common_1.ConflictException {
     conflictBlockIds;
     reason;
@@ -29,15 +30,20 @@ exports.DocSaveConflictException = DocSaveConflictException;
 let DocsService = class DocsService {
     prisma;
     permissions;
+    projectSecurity;
     autosaveTimestamps = new Map();
     contentSnapshots = new Map();
-    constructor(prisma, permissions) {
+    constructor(prisma, permissions, projectSecurity) {
         this.prisma = prisma;
         this.permissions = permissions;
+        this.projectSecurity = projectSecurity;
     }
     async create(userId, dto) {
         await this.assertWorkspaceMember(userId, dto.workspaceId);
         await this.assertScopeIsValid(dto);
+        if (dto.scope === 'PROJECT' && dto.projectId) {
+            await this.projectSecurity.assertUnlocked(dto.workspaceId, dto.projectId, userId);
+        }
         const normalized = dto.contentJson
             ? (0, doc_content_1.normalizeDocContent)(dto.contentJson)
             : (0, doc_content_1.defaultDocContent)();
@@ -57,6 +63,9 @@ let DocsService = class DocsService {
     }
     async findAll(userId, query) {
         await this.assertWorkspaceMember(userId, query.workspaceId);
+        if (query.projectId) {
+            await this.projectSecurity.assertUnlocked(query.workspaceId, query.projectId, userId);
+        }
         const docs = await this.prisma.doc.findMany({
             where: {
                 workspaceId: query.workspaceId,
@@ -67,16 +76,18 @@ let DocsService = class DocsService {
             select: doc_permissions_constants_1.DOC_SELECT,
             orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
         });
-        return this.filterViewable(userId, docs);
+        return this.filterUnlockedProjectDocs(userId, await this.filterViewable(userId, docs));
     }
     async findOne(userId, docId) {
         const doc = await this.findDocOrThrow(docId);
         await this.permissions.assertCanView(userId, doc);
+        await this.assertDocProjectUnlocked(userId, doc);
         return doc;
     }
     async update(userId, docId, dto) {
         const doc = await this.findDocOrThrow(docId);
         await this.permissions.assertCanEdit(userId, doc);
+        await this.assertDocProjectUnlocked(userId, doc);
         const data = {};
         if (dto.title !== undefined) {
             data.title = this.normalizeTitle(dto.title);
@@ -98,6 +109,7 @@ let DocsService = class DocsService {
     async assertCanEditDoc(userId, docId) {
         const doc = await this.findDocOrThrow(docId);
         await this.permissions.assertCanEdit(userId, doc);
+        await this.assertDocProjectUnlocked(userId, doc);
         return doc;
     }
     async autosave(userId, input, now = Date.now()) {
@@ -108,6 +120,7 @@ let DocsService = class DocsService {
         }
         const doc = await this.findDocOrThrow(input.docId);
         await this.permissions.assertCanEdit(userId, doc);
+        await this.assertDocProjectUnlocked(userId, doc);
         if (!Number.isInteger(input.baseVersion) || input.baseVersion < 0) {
             throw new common_1.BadRequestException('baseVersion must be a non-negative integer');
         }
@@ -176,6 +189,7 @@ let DocsService = class DocsService {
     async remove(userId, docId) {
         const doc = await this.findDocOrThrow(docId);
         await this.permissions.assertCanOwn(userId, doc);
+        await this.assertDocProjectUnlocked(userId, doc);
         await this.prisma.doc.update({
             where: { id: docId },
             data: { deletedAt: new Date() },
@@ -226,6 +240,28 @@ let DocsService = class DocsService {
             throw new common_1.BadRequestException('projectId is only allowed for project documents');
         }
     }
+    async assertDocProjectUnlocked(userId, doc) {
+        if (!doc.projectId)
+            return;
+        await this.projectSecurity.assertUnlocked(doc.workspaceId, doc.projectId, userId);
+    }
+    async filterUnlockedProjectDocs(userId, docs) {
+        const projectIds = Array.from(new Set(docs.map((doc) => doc.projectId).filter((id) => Boolean(id))));
+        if (projectIds.length === 0)
+            return docs;
+        const projects = await this.prisma.project.findMany({
+            where: { id: { in: projectIds } },
+            select: { id: true, passwordHash: true },
+        });
+        const unlockedByDefaultIds = new Set(projects.filter((project) => !project.passwordHash).map((project) => project.id));
+        const lockedProjectIds = projects
+            .filter((project) => Boolean(project.passwordHash))
+            .map((project) => project.id);
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, userId);
+        return docs.filter((doc) => !doc.projectId ||
+            unlockedByDefaultIds.has(doc.projectId) ||
+            unlockedProjectIds.has(doc.projectId));
+    }
     async filterViewable(userId, docs) {
         const viewable = [];
         for (const doc of docs) {
@@ -258,6 +294,7 @@ exports.DocsService = DocsService;
 exports.DocsService = DocsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [database_1.PrismaService,
-        doc_permissions_service_1.DocPermissionsService])
+        doc_permissions_service_1.DocPermissionsService,
+        project_security_service_1.ProjectSecurityService])
 ], DocsService);
 //# sourceMappingURL=docs.service.js.map

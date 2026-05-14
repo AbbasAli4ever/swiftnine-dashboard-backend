@@ -24,6 +24,7 @@ import {
   STATUS_NOT_FOUND,
   STATUS_SELECT,
 } from './status.constants';
+import { ProjectSecurityService } from '../project-security/project-security.service';
 import type { CreateStatusDto } from './dto/create-status.dto';
 import type { UpdateStatusDto } from './dto/update-status.dto';
 import type { DeleteStatusDto } from './dto/delete-status.dto';
@@ -45,7 +46,10 @@ const STATUS_NAME_TAKEN = 'A status with this name already exists in this projec
 
 @Injectable()
 export class StatusService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectSecurity: ProjectSecurityService,
+  ) {}
 
   async create(
     workspaceId: string,
@@ -54,6 +58,7 @@ export class StatusService {
     dto: CreateStatusDto,
   ): Promise<StatusData> {
     this.assertOwner(role);
+    await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
     const name = dto.name.trim();
 
@@ -90,7 +95,8 @@ export class StatusService {
     return status;
   }
 
-  async findAll(workspaceId: string, projectId: string): Promise<GroupedStatuses> {
+  async findAll(workspaceId: string, projectId: string, userId: string): Promise<GroupedStatuses> {
+    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
     await this.findProjectOrThrow(workspaceId, projectId);
     const statuses = await this.listProjectStatuses(projectId);
     return this.groupStatuses(projectId, statuses);
@@ -251,6 +257,7 @@ export class StatusService {
     dto: ReorderStatusesDto,
   ): Promise<GroupedStatuses> {
     this.assertOwner(role);
+    await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
     const statuses = await this.listProjectStatuses(project.id);
 
@@ -330,7 +337,7 @@ export class StatusService {
       });
     });
 
-    return this.findAll(workspaceId, project.id);
+    return this.findAll(workspaceId, project.id, userId);
   }
 
   async applyDefaultTemplate(
@@ -340,6 +347,7 @@ export class StatusService {
     dto: DefaultStatusesDto,
   ): Promise<GroupedStatuses> {
     this.assertOwner(role);
+    await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
     const statuses = await this.listProjectStatuses(project.id);
 
@@ -395,7 +403,7 @@ export class StatusService {
       });
     });
 
-    return this.findAll(workspaceId, project.id);
+    return this.findAll(workspaceId, project.id, userId);
   }
 
   private assertOwner(role: Role): void {

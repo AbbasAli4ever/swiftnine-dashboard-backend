@@ -165,6 +165,9 @@ export declare const ModelName: {
     readonly WorkspaceMember: "WorkspaceMember";
     readonly WorkspaceInvite: "WorkspaceInvite";
     readonly Project: "Project";
+    readonly ProjectUnlockSession: "ProjectUnlockSession";
+    readonly ProjectUnlockAttempt: "ProjectUnlockAttempt";
+    readonly ProjectPasswordResetToken: "ProjectPasswordResetToken";
     readonly TaskList: "TaskList";
     readonly Status: "Status";
     readonly Tag: "Tag";
@@ -204,7 +207,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "channelMessage" | "channelMessageMention" | "channelMessageReaction" | "channelJoinRequest" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "projectUnlockSession" | "projectUnlockAttempt" | "projectPasswordResetToken" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "channelMessage" | "channelMessageMention" | "channelMessageReaction" | "channelJoinRequest" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -797,6 +800,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 count: {
                     args: Prisma.ProjectCountArgs<ExtArgs>;
                     result: runtime.Types.Utils.Optional<Prisma.ProjectCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ProjectUnlockSession: {
+            payload: Prisma.$ProjectUnlockSessionPayload<ExtArgs>;
+            fields: Prisma.ProjectUnlockSessionFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ProjectUnlockSessionFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ProjectUnlockSessionFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ProjectUnlockSessionFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ProjectUnlockSessionFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                findMany: {
+                    args: Prisma.ProjectUnlockSessionFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>[];
+                };
+                create: {
+                    args: Prisma.ProjectUnlockSessionCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                createMany: {
+                    args: Prisma.ProjectUnlockSessionCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ProjectUnlockSessionCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>[];
+                };
+                delete: {
+                    args: Prisma.ProjectUnlockSessionDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                update: {
+                    args: Prisma.ProjectUnlockSessionUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ProjectUnlockSessionDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ProjectUnlockSessionUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ProjectUnlockSessionUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ProjectUnlockSessionUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockSessionPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ProjectUnlockSessionAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateProjectUnlockSession>;
+                };
+                groupBy: {
+                    args: Prisma.ProjectUnlockSessionGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectUnlockSessionGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ProjectUnlockSessionCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectUnlockSessionCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ProjectUnlockAttempt: {
+            payload: Prisma.$ProjectUnlockAttemptPayload<ExtArgs>;
+            fields: Prisma.ProjectUnlockAttemptFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ProjectUnlockAttemptFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ProjectUnlockAttemptFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ProjectUnlockAttemptFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ProjectUnlockAttemptFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                findMany: {
+                    args: Prisma.ProjectUnlockAttemptFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>[];
+                };
+                create: {
+                    args: Prisma.ProjectUnlockAttemptCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                createMany: {
+                    args: Prisma.ProjectUnlockAttemptCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ProjectUnlockAttemptCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>[];
+                };
+                delete: {
+                    args: Prisma.ProjectUnlockAttemptDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                update: {
+                    args: Prisma.ProjectUnlockAttemptUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ProjectUnlockAttemptDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ProjectUnlockAttemptUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ProjectUnlockAttemptUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ProjectUnlockAttemptUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectUnlockAttemptPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ProjectUnlockAttemptAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateProjectUnlockAttempt>;
+                };
+                groupBy: {
+                    args: Prisma.ProjectUnlockAttemptGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectUnlockAttemptGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ProjectUnlockAttemptCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectUnlockAttemptCountAggregateOutputType> | number;
+                };
+            };
+        };
+        ProjectPasswordResetToken: {
+            payload: Prisma.$ProjectPasswordResetTokenPayload<ExtArgs>;
+            fields: Prisma.ProjectPasswordResetTokenFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.ProjectPasswordResetTokenFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.ProjectPasswordResetTokenFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                findFirst: {
+                    args: Prisma.ProjectPasswordResetTokenFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.ProjectPasswordResetTokenFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                findMany: {
+                    args: Prisma.ProjectPasswordResetTokenFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>[];
+                };
+                create: {
+                    args: Prisma.ProjectPasswordResetTokenCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                createMany: {
+                    args: Prisma.ProjectPasswordResetTokenCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.ProjectPasswordResetTokenCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>[];
+                };
+                delete: {
+                    args: Prisma.ProjectPasswordResetTokenDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                update: {
+                    args: Prisma.ProjectPasswordResetTokenUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.ProjectPasswordResetTokenDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.ProjectPasswordResetTokenUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.ProjectPasswordResetTokenUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>[];
+                };
+                upsert: {
+                    args: Prisma.ProjectPasswordResetTokenUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectPasswordResetTokenPayload>;
+                };
+                aggregate: {
+                    args: Prisma.ProjectPasswordResetTokenAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateProjectPasswordResetToken>;
+                };
+                groupBy: {
+                    args: Prisma.ProjectPasswordResetTokenGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectPasswordResetTokenGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.ProjectPasswordResetTokenCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.ProjectPasswordResetTokenCountAggregateOutputType> | number;
                 };
             };
         };
@@ -2922,11 +3147,40 @@ export declare const ProjectScalarFieldEnum: {
     readonly taskCounter: "taskCounter";
     readonly isArchived: "isArchived";
     readonly createdBy: "createdBy";
+    readonly passwordHash: "passwordHash";
+    readonly passwordSetBy: "passwordSetBy";
+    readonly passwordUpdatedAt: "passwordUpdatedAt";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
     readonly deletedAt: "deletedAt";
 };
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum];
+export declare const ProjectUnlockSessionScalarFieldEnum: {
+    readonly id: "id";
+    readonly projectId: "projectId";
+    readonly userId: "userId";
+    readonly expiresAt: "expiresAt";
+    readonly createdAt: "createdAt";
+};
+export type ProjectUnlockSessionScalarFieldEnum = (typeof ProjectUnlockSessionScalarFieldEnum)[keyof typeof ProjectUnlockSessionScalarFieldEnum];
+export declare const ProjectUnlockAttemptScalarFieldEnum: {
+    readonly id: "id";
+    readonly projectId: "projectId";
+    readonly userId: "userId";
+    readonly failedCount: "failedCount";
+    readonly lockedUntil: "lockedUntil";
+    readonly lastFailAt: "lastFailAt";
+};
+export type ProjectUnlockAttemptScalarFieldEnum = (typeof ProjectUnlockAttemptScalarFieldEnum)[keyof typeof ProjectUnlockAttemptScalarFieldEnum];
+export declare const ProjectPasswordResetTokenScalarFieldEnum: {
+    readonly id: "id";
+    readonly projectId: "projectId";
+    readonly tokenHash: "tokenHash";
+    readonly expiresAt: "expiresAt";
+    readonly usedAt: "usedAt";
+    readonly createdAt: "createdAt";
+};
+export type ProjectPasswordResetTokenScalarFieldEnum = (typeof ProjectPasswordResetTokenScalarFieldEnum)[keyof typeof ProjectPasswordResetTokenScalarFieldEnum];
 export declare const TaskListScalarFieldEnum: {
     readonly id: "id";
     readonly projectId: "projectId";
@@ -3074,11 +3328,16 @@ export declare const AttachmentScalarFieldEnum: {
     readonly taskId: "taskId";
     readonly docId: "docId";
     readonly channelMessageId: "channelMessageId";
+    readonly projectId: "projectId";
     readonly uploadedBy: "uploadedBy";
     readonly fileName: "fileName";
     readonly s3Key: "s3Key";
     readonly mimeType: "mimeType";
     readonly fileSize: "fileSize";
+    readonly kind: "kind";
+    readonly linkUrl: "linkUrl";
+    readonly title: "title";
+    readonly description: "description";
     readonly createdAt: "createdAt";
     readonly deletedAt: "deletedAt";
 };
@@ -3300,6 +3559,8 @@ export type EnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 export type ListEnumStatusGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusGroup[]'>;
 export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>;
 export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>;
+export type EnumAttachmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttachmentKind'>;
+export type ListEnumAttachmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttachmentKind[]'>;
 export type EnumChannelKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelKind'>;
 export type ListEnumChannelKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelKind[]'>;
 export type EnumChannelPrivacyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelPrivacy'>;
@@ -3348,6 +3609,9 @@ export type GlobalOmitConfig = {
     workspaceMember?: Prisma.WorkspaceMemberOmit;
     workspaceInvite?: Prisma.WorkspaceInviteOmit;
     project?: Prisma.ProjectOmit;
+    projectUnlockSession?: Prisma.ProjectUnlockSessionOmit;
+    projectUnlockAttempt?: Prisma.ProjectUnlockAttemptOmit;
+    projectPasswordResetToken?: Prisma.ProjectPasswordResetTokenOmit;
     taskList?: Prisma.TaskListOmit;
     status?: Prisma.StatusOmit;
     tag?: Prisma.TagOmit;

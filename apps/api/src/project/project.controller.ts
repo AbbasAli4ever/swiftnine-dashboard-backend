@@ -25,7 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
-import { ProjectService, type ProjectWithDetails } from './project.service';
+import { ProjectService, type ProjectListItem, type ProjectWithDetails } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
@@ -63,7 +63,7 @@ export class ProjectController {
   async findAll(
     @Req() req: WorkspaceRequest,
     @Query('includeArchived') includeArchived?: string,
-  ): Promise<ApiRes<ProjectWithDetails[]>> {
+  ): Promise<ApiRes<ProjectListItem[]>> {
     const projects = await this.projectService.findAll(
       req.workspaceContext.workspaceId,
       req.user.id,
@@ -76,7 +76,7 @@ export class ProjectController {
   @ApiOperation({ summary: 'List archived projects in the workspace' })
   @ApiResponse({ status: 200, description: 'Archived projects returned' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  async findArchived(@Req() req: WorkspaceRequest): Promise<ApiRes<ProjectWithDetails[]>> {
+  async findArchived(@Req() req: WorkspaceRequest): Promise<ApiRes<ProjectListItem[]>> {
     const projects = await this.projectService.findArchived(
       req.workspaceContext.workspaceId,
       req.user.id,

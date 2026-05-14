@@ -14,12 +14,16 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
 const project_constants_1 = require("../project/project.constants");
 const task_constants_1 = require("../task/task.constants");
+const project_security_service_1 = require("../project-security/project-security.service");
 let FavoritesService = class FavoritesService {
     prisma;
-    constructor(prisma) {
+    projectSecurity;
+    constructor(prisma, projectSecurity) {
         this.prisma = prisma;
+        this.projectSecurity = projectSecurity;
     }
     async favoriteProject(workspaceId, userId, projectId) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         await this.findActiveProjectOrThrow(workspaceId, projectId);
         await this.prisma.projectFavorite.upsert({
             where: { userId_projectId: { userId, projectId } },
@@ -29,6 +33,7 @@ let FavoritesService = class FavoritesService {
         return { isFavorite: true };
     }
     async unfavoriteProject(workspaceId, userId, projectId) {
+        await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
         await this.findProjectOrThrow(workspaceId, projectId);
         await this.prisma.projectFavorite.deleteMany({ where: { userId, projectId } });
         return { isFavorite: false };
@@ -59,15 +64,39 @@ let FavoritesService = class FavoritesService {
             },
             select: {
                 createdAt: true,
-                project: { select: project_constants_1.PROJECT_WITH_STATUSES_SELECT },
+                project: {
+                    select: {
+                        ...project_constants_1.PROJECT_WITH_STATUSES_SELECT,
+                        passwordHash: true,
+                        passwordUpdatedAt: true,
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
         });
-        return rows.map((row) => ({
-            ...row.project,
-            isFavorite: true,
-            favoritedAt: row.createdAt,
-        }));
+        const lockedProjectIds = rows
+            .filter((row) => Boolean(row.project.passwordHash))
+            .map((row) => row.project.id);
+        const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(lockedProjectIds, userId);
+        return rows.map((row) => {
+            const { passwordHash, ...project } = row.project;
+            const isLockedForUser = Boolean(passwordHash) && !unlockedProjectIds.has(project.id);
+            if (isLockedForUser) {
+                return {
+                    id: project.id,
+                    workspaceId: project.workspaceId,
+                    locked: true,
+                    isFavorite: true,
+                    favoritedAt: row.createdAt,
+                };
+            }
+            return {
+                ...project,
+                locked: false,
+                isFavorite: true,
+                favoritedAt: row.createdAt,
+            };
+        });
     }
     async listTaskFavorites(workspaceId, userId, includeArchived = false) {
         const rows = await this.prisma.taskFavorite.findMany({
@@ -175,6 +204,7 @@ let FavoritesService = class FavoritesService {
 exports.FavoritesService = FavoritesService;
 exports.FavoritesService = FavoritesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [database_1.PrismaService])
+    __metadata("design:paramtypes", [database_1.PrismaService,
+        project_security_service_1.ProjectSecurityService])
 ], FavoritesService);
 //# sourceMappingURL=favorites.service.js.map
