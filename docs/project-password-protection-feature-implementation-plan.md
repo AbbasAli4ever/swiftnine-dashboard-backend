@@ -88,7 +88,7 @@ These are the working decisions for implementation unless product requirements c
 | Password change effect | Delete all unlock sessions immediately |
 | Password removal effect | Delete password hash and all unlock sessions |
 | Reset delivery | Email project owner via existing mailer |
-| Reset token storage | Hashed token in DB |
+| Reset OTP storage | Hashed OTP in DB |
 | Projects list behavior | Locked projects remain visible but redacted until unlocked |
 | Search/notifications behavior | Locked project content must be filtered out until unlocked |
 | Realtime behavior | No project room join without active unlock |
@@ -221,7 +221,7 @@ model ProjectPasswordResetToken {
 ## 5.3 Data-safety notes
 
 - do not store raw passwords
-- do not store raw reset tokens
+- do not store raw reset OTPs
 - do not return `passwordHash` from API responses
 - include new password-related project fields only in internal selects where needed
 
@@ -239,7 +239,7 @@ Recommended endpoints:
 | `POST` | `/projects/:projectId/unlock` | Submit password and create unlock session |
 | `GET` | `/projects/:projectId/lock-status` | Return lock state and active unlock expiry |
 | `POST` | `/projects/:projectId/password/reset-request` | Send reset email to project owner |
-| `POST` | `/projects/:projectId/password/reset-confirm` | Set new password using reset token |
+| `POST` | `/projects/:projectId/password/reset-confirm` | Set new password using reset OTP |
 
 Expected response behavior:
 
@@ -257,8 +257,7 @@ Recommended error codes:
 - `INVALID_PASSWORD_FORMAT`
 - `PASSWORD_ALREADY_SET`
 - `PROJECT_PASSWORD_NOT_SET`
-- `RESET_TOKEN_INVALID`
-- `RESET_TOKEN_EXPIRED`
+- `RESET_OTP_INVALID`
 
 ---
 
@@ -428,7 +427,7 @@ Ship the core feature API before touching every project-content surface.
 8. Reuse existing email patterns from:
    - `apps/api/src/auth/auth.service.ts`
    - `libs/common/src/email/email.service.ts`
-9. Build reset links from `FRONTEND_URL`.
+9. Send reset OTPs directly in email instead of building reset links from `FRONTEND_URL`.
 
 ### Permission rules
 
@@ -716,7 +715,7 @@ Make the feature production-safe and maintainable.
 
 ### Optional follow-up
 
-- scheduled cleanup for expired unlock sessions and used/expired reset tokens
+- scheduled cleanup for expired unlock sessions and used/expired reset OTP records
 - dedicated telemetry counters for lockouts and unlock attempts
 
 ### Validation
@@ -861,4 +860,3 @@ If starting immediately, the best first chunk is:
 - Prisma client generates
 - shared services are injectable
 - no endpoint behavior has changed yet outside internal wiring
-

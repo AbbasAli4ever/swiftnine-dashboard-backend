@@ -14,7 +14,7 @@ Project password protection is opt-in per project.
 - Unlock state is per user and per project.
 - Unlock expires after 24 hours.
 - Password change, password reset, and password removal invalidate active unlock sessions immediately.
-- Passwords and reset tokens are never returned by the API.
+- Passwords and reset OTPs are never returned by the API.
 
 Use `locked` and lock-status responses to decide whether to show protected UI, not role alone.
 
@@ -178,7 +178,7 @@ Use this when:
 
 `POST /projects/:projectId/password/reset-request`
 
-Allowed for workspace `OWNER` or project creator. Sends email to the project creator.
+Allowed for workspace `OWNER` or project creator. Sends a reset OTP email to the project creator.
 
 Request body: none.
 
@@ -194,7 +194,7 @@ Request:
 
 ```json
 {
-  "token": "reset-token-from-email",
+  "otp": "123456",
   "newPassword": "NewSecret123"
 }
 ```
@@ -235,7 +235,7 @@ Project-security codes:
 - `INVALID_PASSWORD_FORMAT`: show password rule validation.
 - `PASSWORD_ALREADY_SET`: refresh lock status; project already has a password.
 - `PROJECT_PASSWORD_NOT_SET`: refresh lock status; project is no longer protected.
-- `RESET_TOKEN_INVALID`: reset link is invalid or expired.
+- `RESET_OTP_INVALID`: reset code is invalid or expired.
 - `RESET_REQUEST_RATE_LIMITED`: show cooldown message before another reset request.
 - `PROJECT_PASSWORD_MANAGER_ONLY`: hide/disable password management for this user.
 - `PROJECT_NOT_FOUND`: navigate away or show not found.
@@ -429,13 +429,13 @@ Show controls only when the user is likely allowed:
 
 Still handle `PROJECT_PASSWORD_MANAGER_ONLY` because backend is the source of truth.
 
-### Reset Link Screen
+### Reset OTP Screen
 
-1. Read `projectId` from route and `token` from query string.
+1. Read `projectId` from route and collect the 6-digit OTP from the user.
 2. Require the user to be authenticated and workspace-selected.
-3. Submit `POST /projects/:projectId/password/reset-confirm`.
+3. Submit `POST /projects/:projectId/password/reset-confirm` with `otp` and `newPassword`.
 4. On success, route to project unlock flow or project list.
-5. On `RESET_TOKEN_INVALID`, show expired/invalid link state.
+5. On `RESET_OTP_INVALID`, show expired/invalid code state.
 
 ## Cache Invalidation Checklist
 

@@ -168,7 +168,7 @@ export class ProjectPasswordController {
 
   @Post(':projectId/password/reset-confirm')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset project password using an emailed token' })
+  @ApiOperation({ summary: 'Reset project password using an emailed OTP' })
   @ApiParam({ name: 'projectId', description: 'Project UUID' })
   @ApiResponse({ status: 200, description: 'Project password reset' })
   async confirmReset(
@@ -176,9 +176,9 @@ export class ProjectPasswordController {
     @Param('projectId') projectId: string,
     @Body() dto: ConfirmProjectPasswordResetDto,
   ): Promise<ApiRes<{ projectId: string; passwordUpdatedAt: Date }>> {
-    const result = await this.projectPasswords.resetPasswordWithToken(
+    const result = await this.projectPasswords.resetPasswordWithOtp(
       projectId,
-      dto.token,
+      dto.otp,
       dto.newPassword,
       req.user.id,
     );

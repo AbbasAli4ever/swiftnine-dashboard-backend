@@ -39,7 +39,7 @@ export declare class ProjectPasswordService {
         unlockedUntil: Date;
     }>;
     requestPasswordReset(workspaceId: string, projectId: string, actorUserId: string, actorRole: Role): Promise<void>;
-    resetPasswordWithToken(projectId: string, token: string, newPassword: string, actorUserId?: string): Promise<{
+    resetPasswordWithOtp(projectId: string, otp: string, newPassword: string, actorUserId?: string): Promise<{
         projectId: string;
         passwordUpdatedAt: Date;
     }>;

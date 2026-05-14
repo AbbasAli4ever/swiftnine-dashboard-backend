@@ -8,16 +8,16 @@ export declare const TOO_MANY_ATTEMPTS = "Too many failed attempts. Try again la
 export declare const INVALID_PASSWORD_FORMAT = "Project password must be at least 8 characters and include at least 1 digit";
 export declare const PASSWORD_ALREADY_SET = "Project password is already set";
 export declare const PROJECT_PASSWORD_NOT_SET = "Project password is not set";
-export declare const RESET_TOKEN_INVALID = "Project password reset token is invalid or expired";
+export declare const RESET_OTP_INVALID = "Project password reset code is invalid or expired";
 export declare const RESET_REQUEST_RATE_LIMITED = "Project password reset was requested recently. Try again later";
 export declare const PROJECT_PASSWORD_SALT_ROUNDS = 10;
 export declare const PROJECT_UNLOCK_TTL_MS: number;
 export declare const PROJECT_UNLOCK_MAX_FAILED_ATTEMPTS = 5;
 export declare const PROJECT_UNLOCK_LOCKOUT_MS: number;
 export declare const PROJECT_UNLOCK_FAILED_ATTEMPT_WINDOW_MS: number;
-export declare const PROJECT_PASSWORD_RESET_TOKEN_TTL_MS: number;
+export declare const PROJECT_PASSWORD_RESET_OTP_TTL_MS: number;
 export declare const PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS: number;
-export declare const PROJECT_PASSWORD_RESET_TOKEN_USED_RETENTION_MS: number;
+export declare const PROJECT_PASSWORD_RESET_OTP_USED_RETENTION_MS: number;
 export declare const PROJECT_SECURITY_CLEANUP_INTERVAL_MS: number;
 export declare const PROJECT_PASSWORD_PATTERN: RegExp;
 export declare const PROJECT_SECURITY_PROJECT_SELECT: {
@@ -33,7 +33,7 @@ export declare const PROJECT_SECURITY_PROJECT_SELECT: {
 export type ProjectSecurityProject = Prisma.ProjectGetPayload<{
     select: typeof PROJECT_SECURITY_PROJECT_SELECT;
 }>;
-export type ProjectSecurityErrorCode = 'PROJECT_LOCKED' | 'INVALID_PASSWORD' | 'TOO_MANY_ATTEMPTS' | 'INVALID_PASSWORD_FORMAT' | 'PASSWORD_ALREADY_SET' | 'PROJECT_PASSWORD_NOT_SET' | 'RESET_TOKEN_INVALID' | 'RESET_REQUEST_RATE_LIMITED' | 'PROJECT_PASSWORD_MANAGER_ONLY' | 'PROJECT_NOT_FOUND';
+export type ProjectSecurityErrorCode = 'PROJECT_LOCKED' | 'INVALID_PASSWORD' | 'TOO_MANY_ATTEMPTS' | 'INVALID_PASSWORD_FORMAT' | 'PASSWORD_ALREADY_SET' | 'PROJECT_PASSWORD_NOT_SET' | 'RESET_OTP_INVALID' | 'RESET_REQUEST_RATE_LIMITED' | 'PROJECT_PASSWORD_MANAGER_ONLY' | 'PROJECT_NOT_FOUND';
 export declare function projectSecurityError(code: ProjectSecurityErrorCode, message: string): {
     code: ProjectSecurityErrorCode;
     message: string;
@@ -46,5 +46,5 @@ export declare function tooManyAttemptsException(): ForbiddenException;
 export declare function invalidPasswordFormatException(): BadRequestException;
 export declare function passwordAlreadySetException(): ConflictException;
 export declare function projectPasswordNotSetException(): BadRequestException;
-export declare function resetTokenInvalidException(): UnauthorizedException;
+export declare function resetOtpInvalidException(): UnauthorizedException;
 export declare function resetRequestRateLimitedException(): HttpException;

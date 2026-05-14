@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PROJECT_SECURITY_PROJECT_SELECT = exports.PROJECT_PASSWORD_PATTERN = exports.PROJECT_SECURITY_CLEANUP_INTERVAL_MS = exports.PROJECT_PASSWORD_RESET_TOKEN_USED_RETENTION_MS = exports.PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS = exports.PROJECT_PASSWORD_RESET_TOKEN_TTL_MS = exports.PROJECT_UNLOCK_FAILED_ATTEMPT_WINDOW_MS = exports.PROJECT_UNLOCK_LOCKOUT_MS = exports.PROJECT_UNLOCK_MAX_FAILED_ATTEMPTS = exports.PROJECT_UNLOCK_TTL_MS = exports.PROJECT_PASSWORD_SALT_ROUNDS = exports.RESET_REQUEST_RATE_LIMITED = exports.RESET_TOKEN_INVALID = exports.PROJECT_PASSWORD_NOT_SET = exports.PASSWORD_ALREADY_SET = exports.INVALID_PASSWORD_FORMAT = exports.TOO_MANY_ATTEMPTS = exports.INVALID_PASSWORD = exports.PROJECT_PASSWORD_MANAGER_ONLY = exports.PROJECT_LOCKED = exports.PROJECT_NOT_FOUND = void 0;
+exports.PROJECT_SECURITY_PROJECT_SELECT = exports.PROJECT_PASSWORD_PATTERN = exports.PROJECT_SECURITY_CLEANUP_INTERVAL_MS = exports.PROJECT_PASSWORD_RESET_OTP_USED_RETENTION_MS = exports.PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS = exports.PROJECT_PASSWORD_RESET_OTP_TTL_MS = exports.PROJECT_UNLOCK_FAILED_ATTEMPT_WINDOW_MS = exports.PROJECT_UNLOCK_LOCKOUT_MS = exports.PROJECT_UNLOCK_MAX_FAILED_ATTEMPTS = exports.PROJECT_UNLOCK_TTL_MS = exports.PROJECT_PASSWORD_SALT_ROUNDS = exports.RESET_REQUEST_RATE_LIMITED = exports.RESET_OTP_INVALID = exports.PROJECT_PASSWORD_NOT_SET = exports.PASSWORD_ALREADY_SET = exports.INVALID_PASSWORD_FORMAT = exports.TOO_MANY_ATTEMPTS = exports.INVALID_PASSWORD = exports.PROJECT_PASSWORD_MANAGER_ONLY = exports.PROJECT_LOCKED = exports.PROJECT_NOT_FOUND = void 0;
 exports.projectSecurityError = projectSecurityError;
 exports.projectNotFoundException = projectNotFoundException;
 exports.projectLockedException = projectLockedException;
@@ -10,7 +10,7 @@ exports.tooManyAttemptsException = tooManyAttemptsException;
 exports.invalidPasswordFormatException = invalidPasswordFormatException;
 exports.passwordAlreadySetException = passwordAlreadySetException;
 exports.projectPasswordNotSetException = projectPasswordNotSetException;
-exports.resetTokenInvalidException = resetTokenInvalidException;
+exports.resetOtpInvalidException = resetOtpInvalidException;
 exports.resetRequestRateLimitedException = resetRequestRateLimitedException;
 const common_1 = require("@nestjs/common");
 exports.PROJECT_NOT_FOUND = 'Project not found';
@@ -21,16 +21,16 @@ exports.TOO_MANY_ATTEMPTS = 'Too many failed attempts. Try again later';
 exports.INVALID_PASSWORD_FORMAT = 'Project password must be at least 8 characters and include at least 1 digit';
 exports.PASSWORD_ALREADY_SET = 'Project password is already set';
 exports.PROJECT_PASSWORD_NOT_SET = 'Project password is not set';
-exports.RESET_TOKEN_INVALID = 'Project password reset token is invalid or expired';
+exports.RESET_OTP_INVALID = 'Project password reset code is invalid or expired';
 exports.RESET_REQUEST_RATE_LIMITED = 'Project password reset was requested recently. Try again later';
 exports.PROJECT_PASSWORD_SALT_ROUNDS = 10;
 exports.PROJECT_UNLOCK_TTL_MS = 24 * 60 * 60 * 1000;
 exports.PROJECT_UNLOCK_MAX_FAILED_ATTEMPTS = 5;
 exports.PROJECT_UNLOCK_LOCKOUT_MS = 15 * 60 * 1000;
 exports.PROJECT_UNLOCK_FAILED_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
-exports.PROJECT_PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+exports.PROJECT_PASSWORD_RESET_OTP_TTL_MS = 15 * 60 * 1000;
 exports.PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS = 5 * 60 * 1000;
-exports.PROJECT_PASSWORD_RESET_TOKEN_USED_RETENTION_MS = 24 * 60 * 60 * 1000;
+exports.PROJECT_PASSWORD_RESET_OTP_USED_RETENTION_MS = 24 * 60 * 60 * 1000;
 exports.PROJECT_SECURITY_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 exports.PROJECT_PASSWORD_PATTERN = /^(?=.*\d).{8,}$/;
 exports.PROJECT_SECURITY_PROJECT_SELECT = {
@@ -70,8 +70,8 @@ function passwordAlreadySetException() {
 function projectPasswordNotSetException() {
     return new common_1.BadRequestException(projectSecurityError('PROJECT_PASSWORD_NOT_SET', exports.PROJECT_PASSWORD_NOT_SET));
 }
-function resetTokenInvalidException() {
-    return new common_1.UnauthorizedException(projectSecurityError('RESET_TOKEN_INVALID', exports.RESET_TOKEN_INVALID));
+function resetOtpInvalidException() {
+    return new common_1.UnauthorizedException(projectSecurityError('RESET_OTP_INVALID', exports.RESET_OTP_INVALID));
 }
 function resetRequestRateLimitedException() {
     return new common_1.HttpException(projectSecurityError('RESET_REQUEST_RATE_LIMITED', exports.RESET_REQUEST_RATE_LIMITED), common_1.HttpStatus.TOO_MANY_REQUESTS);

@@ -4,7 +4,10 @@ exports.ConfirmProjectPasswordResetDto = exports.ConfirmProjectPasswordResetSche
 const nestjs_zod_1 = require("nestjs-zod");
 const zod_1 = require("zod");
 exports.ConfirmProjectPasswordResetSchema = zod_1.z.object({
-    token: zod_1.z.string().uuid('Invalid reset token'),
+    otp: zod_1.z
+        .string()
+        .length(6, 'OTP must be 6 digits')
+        .regex(/^\d{6}$/, 'OTP must be numeric'),
     newPassword: zod_1.z.string().min(1),
 });
 class ConfirmProjectPasswordResetDto extends (0, nestjs_zod_1.createZodDto)(exports.ConfirmProjectPasswordResetSchema) {
