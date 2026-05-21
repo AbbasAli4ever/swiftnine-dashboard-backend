@@ -362,6 +362,7 @@ model TaskList {
   creator User    @relation("TaskListCreator", fields: [createdBy], references: [id])
   owner   User?   @relation("TaskListOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   tasks   Task[]
+  attachments Attachment[]
 
   @@index([projectId, position])
   @@index([ownerUserId])
@@ -617,6 +618,7 @@ model Attachment {
   docId            String?        @map("doc_id")
   channelMessageId String?        @map("channel_message_id")
   projectId        String?        @map("project_id")
+  taskListId       String?        @map("task_list_id")
   uploadedBy       String         @map("uploaded_by")
   fileName         String         @map("file_name")
   s3Key            String?        @unique @map("s3_key")
@@ -634,12 +636,14 @@ model Attachment {
   doc            Doc?            @relation(fields: [docId], references: [id], onDelete: Cascade)
   channelMessage ChannelMessage? @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
   project        Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskList       TaskList?       @relation(fields: [taskListId], references: [id], onDelete: Cascade)
   uploader       User            @relation(fields: [uploadedBy], references: [id])
 
   @@index([taskId])
   @@index([docId])
   @@index([channelMessageId])
   @@index([projectId])
+  @@index([taskListId])
   @@map("attachments")
 }
 

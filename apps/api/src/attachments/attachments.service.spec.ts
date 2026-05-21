@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AttachmentsService } from './attachments.service';
 import { CreateProjectLinkSchema } from './dto/create-project-link.dto';
+import { CreateTaskListLinkSchema } from './dto/create-task-list-link.dto';
 
 jest.mock('@app/database', () => ({
   PrismaService: class PrismaService {},
@@ -24,6 +25,7 @@ describe('AttachmentsService doc attachments', () => {
       update: jest.Mock;
     };
     task: { findFirst: jest.Mock };
+    taskList: { findFirst: jest.Mock };
     project: { findFirst: jest.Mock };
     workspaceMember: { findFirst: jest.Mock };
     channelMember: { findFirst: jest.Mock };
@@ -49,6 +51,7 @@ describe('AttachmentsService doc attachments', () => {
         update: jest.fn(),
       },
       task: { findFirst: jest.fn() },
+      taskList: { findFirst: jest.fn() },
       project: { findFirst: jest.fn() },
       workspaceMember: { findFirst: jest.fn() },
       channelMember: { findFirst: jest.fn() },
@@ -721,6 +724,356 @@ describe('AttachmentsService doc attachments', () => {
       s3Key: 'swiftnine/docs/app/attachments/project-project-1/file.pdf',
     });
   });
+
+  it('presigns task list uploads under the list attachment prefix and checks project unlock', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+
+    const result = await service.presignTaskListUpload('user-1', 'workspace-1', 'list-1', {
+      fileName: 'list brief.pdf',
+      mimeType: 'application/pdf',
+      fileSize: 2048,
+    });
+
+    expect(prisma.taskList.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'list-1',
+        deletedAt: null,
+        project: {
+          workspaceId: 'workspace-1',
+          deletedAt: null,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+            workspaceId: true,
+          },
+        },
+      },
+    });
+    expect(projectSecurity.assertUnlocked).toHaveBeenCalledWith(
+      'workspace-1',
+      'project-1',
+      'user-1',
+    );
+    expect(result.s3Key).toContain('attachments/list-list-1/');
+    expect(result.s3Key).toContain('list_brief.pdf');
+    expect(result.attachmentId).toBeNull();
+  });
+
+  it('confirms task list file uploads as FILE attachments', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.create.mockResolvedValue(taskListFileAttachmentFixture());
+
+    const result = await service.confirmTaskListUpload(
+      'user-1',
+      'workspace-1',
+      'list-1',
+      {
+        s3Key: 'swiftnine/docs/app/attachments/list-list-1/file.pdf',
+        fileName: 'file.pdf',
+        mimeType: 'application/pdf',
+        fileSize: 123,
+        title: 'File title',
+      },
+    );
+
+    expect(prisma.attachment.create).toHaveBeenCalledWith({
+      data: {
+        taskListId: 'list-1',
+        uploadedBy: 'user-1',
+        kind: 'FILE',
+        fileName: 'file.pdf',
+        s3Key: 'swiftnine/docs/app/attachments/list-list-1/file.pdf',
+        mimeType: 'application/pdf',
+        fileSize: BigInt(123),
+        linkUrl: null,
+        title: 'File title',
+        description: null,
+      },
+      select: expect.any(Object),
+    });
+    expect(activity.log).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      entityType: 'attachment',
+      entityId: 'attachment-file-1',
+      action: 'attachment_uploaded',
+      metadata: {
+        taskListId: 'list-1',
+        taskListName: 'Backlog',
+        projectId: 'project-1',
+        projectName: 'Launch',
+        kind: 'FILE',
+        fileName: 'file.pdf',
+        mimeType: 'application/pdf',
+        fileSize: 123,
+      },
+      performedBy: 'user-1',
+    });
+    expect(result).toMatchObject({
+      id: 'attachment-file-1',
+      kind: 'FILE',
+      viewUrl: 'https://signed.example.com/object',
+    });
+  });
+
+  it('rejects task list confirmations for keys outside the list prefix', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+
+    await expect(
+      service.confirmTaskListUpload('user-1', 'workspace-1', 'list-1', {
+        s3Key: 'swiftnine/docs/app/attachments/list-other/file.pdf',
+        fileName: 'file.pdf',
+        mimeType: 'application/pdf',
+        fileSize: 123,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.attachment.create).not.toHaveBeenCalled();
+  });
+
+  it('creates task list link attachments without S3 metadata', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.create.mockResolvedValue(taskListLinkAttachmentFixture());
+
+    const result = await service.createTaskListLink('user-1', 'workspace-1', 'list-1', {
+      linkUrl: 'https://example.com/reference',
+      title: 'Reference link',
+      description: 'Useful reference',
+    });
+
+    expect(prisma.attachment.create).toHaveBeenCalledWith({
+      data: {
+        taskListId: 'list-1',
+        uploadedBy: 'user-1',
+        kind: 'LINK',
+        fileName: 'Reference link',
+        s3Key: null,
+        mimeType: null,
+        fileSize: null,
+        linkUrl: 'https://example.com/reference',
+        title: 'Reference link',
+        description: 'Useful reference',
+      },
+      select: expect.any(Object),
+    });
+    expect(activity.log).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      entityType: 'attachment',
+      entityId: 'attachment-link-1',
+      action: 'attachment_linked',
+      metadata: {
+        taskListId: 'list-1',
+        taskListName: 'Backlog',
+        projectId: 'project-1',
+        projectName: 'Launch',
+        kind: 'LINK',
+        linkUrl: 'https://example.com/reference',
+        title: 'Reference link',
+      },
+      performedBy: 'user-1',
+    });
+    expect(result).toMatchObject({
+      id: 'attachment-link-1',
+      kind: 'LINK',
+      linkUrl: 'https://example.com/reference',
+    });
+  });
+
+  it('rejects task list link URLs with unsupported schemes', () => {
+    expect(() =>
+      CreateTaskListLinkSchema.parse({
+        linkUrl: 'ftp://example.com/reference',
+        title: 'Reference link',
+      }),
+    ).toThrow('linkUrl must start with http:// or https://');
+  });
+
+  it('lists task list attachments without including project attachment scope', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.findMany.mockResolvedValue([
+      taskListLinkAttachmentFixture('attachment-link-2'),
+      taskListLinkAttachmentFixture('attachment-link-1'),
+    ]);
+
+    const result = await service.listTaskListAttachments(
+      'user-1',
+      'workspace-1',
+      'list-1',
+      {
+        kind: 'LINK',
+        uploadedBy: 'user-1',
+        q: 'reference',
+        limit: 1,
+      },
+    );
+
+    expect(prisma.attachment.findMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        taskListId: 'list-1',
+        deletedAt: null,
+        kind: 'LINK',
+        uploadedBy: 'user-1',
+        OR: expect.any(Array),
+      }),
+      select: expect.any(Object),
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 2,
+    });
+    expect(prisma.attachment.findMany.mock.calls[0][0].where).not.toHaveProperty(
+      'projectId',
+    );
+    expect(result.items).toHaveLength(1);
+    expect(result.nextCursor).toContain('attachment-link-2');
+  });
+
+  it('returns single task list file attachments with view URLs', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.findFirst.mockResolvedValue(taskListFileAttachmentFixture());
+
+    const result = await service.getTaskListAttachment(
+      'user-1',
+      'workspace-1',
+      'list-1',
+      'attachment-file-1',
+    );
+
+    expect(prisma.attachment.findFirst).toHaveBeenCalledWith({
+      where: { id: 'attachment-file-1', taskListId: 'list-1', deletedAt: null },
+      select: expect.any(Object),
+    });
+    expect(result).toMatchObject({
+      id: 'attachment-file-1',
+      kind: 'FILE',
+      viewUrl: 'https://signed.example.com/object',
+    });
+  });
+
+  it('updates task list attachment metadata for uploader or admins only', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.findFirst.mockResolvedValue({
+      id: 'attachment-link-1',
+      uploadedBy: 'user-1',
+      kind: 'LINK',
+      title: 'Reference link',
+      description: 'Useful reference',
+    });
+    prisma.attachment.update.mockResolvedValue(
+      taskListLinkAttachmentFixture('attachment-link-1', 'Updated link'),
+    );
+
+    const result = await service.updateTaskListAttachment(
+      'user-1',
+      'workspace-1',
+      'MEMBER',
+      'list-1',
+      'attachment-link-1',
+      { title: 'Updated link' },
+    );
+
+    expect(prisma.attachment.update).toHaveBeenCalledWith({
+      where: { id: 'attachment-link-1' },
+      data: { title: 'Updated link', fileName: 'Updated link' },
+      select: expect.any(Object),
+    });
+    expect(activity.log).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      entityType: 'attachment',
+      entityId: 'attachment-link-1',
+      action: 'attachment_updated',
+      metadata: {
+        taskListId: 'list-1',
+        taskListName: 'Backlog',
+        projectId: 'project-1',
+        projectName: 'Launch',
+        kind: 'LINK',
+        changedFields: ['title'],
+        old: {
+          title: 'Reference link',
+          description: 'Useful reference',
+        },
+        new: {
+          title: 'Updated link',
+          description: 'Useful reference',
+        },
+      },
+      performedBy: 'user-1',
+    });
+    expect(result.title).toBe('Updated link');
+  });
+
+  it('blocks task list attachment metadata updates by other members', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.findFirst.mockResolvedValue({
+      id: 'attachment-link-1',
+      uploadedBy: 'user-1',
+      kind: 'LINK',
+    });
+
+    await expect(
+      service.updateTaskListAttachment(
+        'user-2',
+        'workspace-1',
+        'MEMBER',
+        'list-1',
+        'attachment-link-1',
+        { title: 'Nope' },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('soft deletes task list attachments for admins', async () => {
+    prisma.taskList.findFirst.mockResolvedValue(taskListFixture());
+    prisma.attachment.findFirst.mockResolvedValue({
+      id: 'attachment-file-1',
+      uploadedBy: 'user-1',
+      kind: 'FILE',
+      fileName: 'file.pdf',
+      mimeType: 'application/pdf',
+      fileSize: BigInt(123),
+      s3Key: 'swiftnine/docs/app/attachments/list-list-1/file.pdf',
+      linkUrl: null,
+    });
+    prisma.attachment.update.mockResolvedValue({ id: 'attachment-file-1' });
+
+    const result = await service.deleteTaskListAttachment(
+      'admin-1',
+      'workspace-1',
+      'ADMIN',
+      'list-1',
+      'attachment-file-1',
+    );
+
+    expect(prisma.attachment.update).toHaveBeenCalledWith({
+      where: { id: 'attachment-file-1' },
+      data: { deletedAt: expect.any(Date) },
+    });
+    expect(activity.log).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      entityType: 'attachment',
+      entityId: 'attachment-file-1',
+      action: 'attachment_deleted',
+      metadata: {
+        taskListId: 'list-1',
+        taskListName: 'Backlog',
+        projectId: 'project-1',
+        projectName: 'Launch',
+        kind: 'FILE',
+        fileName: 'file.pdf',
+        mimeType: 'application/pdf',
+        fileSize: 123,
+        linkUrl: null,
+      },
+      performedBy: 'admin-1',
+    });
+    expect(result).toEqual({
+      id: 'attachment-file-1',
+      s3Key: 'swiftnine/docs/app/attachments/list-list-1/file.pdf',
+    });
+  });
 });
 
 function docFixture() {
@@ -739,6 +1092,18 @@ function projectFixture() {
     id: 'project-1',
     name: 'Launch',
     workspaceId: 'workspace-1',
+  };
+}
+
+function taskListFixture() {
+  return {
+    id: 'list-1',
+    name: 'Backlog',
+    project: {
+      id: 'project-1',
+      name: 'Launch',
+      workspaceId: 'workspace-1',
+    },
   };
 }
 
@@ -797,6 +1162,51 @@ function projectAttachmentSearchFixture() {
     fileName: 'Reference link',
     linkUrl: 'https://example.com/reference',
     createdAt: new Date('2026-05-13T10:30:00.000Z'),
+    uploader: {
+      id: 'user-1',
+      fullName: 'User One',
+      avatarUrl: null,
+    },
+  };
+}
+
+function taskListFileAttachmentFixture(id = 'attachment-file-1') {
+  return {
+    id,
+    kind: 'FILE',
+    title: 'File title',
+    description: null,
+    fileName: 'file.pdf',
+    mimeType: 'application/pdf',
+    fileSize: BigInt(123),
+    s3Key: 'swiftnine/docs/app/attachments/list-list-1/file.pdf',
+    linkUrl: null,
+    uploadedBy: 'user-1',
+    createdAt: new Date('2026-05-21T10:30:00.000Z'),
+    uploader: {
+      id: 'user-1',
+      fullName: 'User One',
+      avatarUrl: null,
+    },
+  };
+}
+
+function taskListLinkAttachmentFixture(
+  id = 'attachment-link-1',
+  title = 'Reference link',
+) {
+  return {
+    id,
+    kind: 'LINK',
+    title,
+    description: 'Useful reference',
+    fileName: title,
+    mimeType: null,
+    fileSize: null,
+    s3Key: null,
+    linkUrl: 'https://example.com/reference',
+    uploadedBy: 'user-1',
+    createdAt: new Date('2026-05-21T10:30:00.000Z'),
     uploader: {
       id: 'user-1',
       fullName: 'User One',

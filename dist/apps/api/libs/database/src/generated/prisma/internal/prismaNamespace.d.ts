@@ -3329,6 +3329,7 @@ export declare const AttachmentScalarFieldEnum: {
     readonly docId: "docId";
     readonly channelMessageId: "channelMessageId";
     readonly projectId: "projectId";
+    readonly taskListId: "taskListId";
     readonly uploadedBy: "uploadedBy";
     readonly fileName: "fileName";
     readonly s3Key: "s3Key";
