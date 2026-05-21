@@ -2,7 +2,10 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 export const ConfirmProjectPasswordResetSchema = z.object({
-  token: z.string().uuid('Invalid reset token'),
+  otp: z
+    .string()
+    .length(6, 'OTP must be 6 digits')
+    .regex(/^\d{6}$/, 'OTP must be numeric'),
   newPassword: z.string().min(1),
 });
 

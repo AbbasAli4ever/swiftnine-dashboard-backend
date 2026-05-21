@@ -5,11 +5,16 @@ import { ActivityService } from '../activity/activity.service';
 import { DocPermissionsService } from '../docs/doc-permissions.service';
 import { ProjectSecurityService } from '../project-security/project-security.service';
 import type { ConfirmProjectAttachmentInput } from './dto/confirm-project-attachment.dto';
+import type { ConfirmTaskListAttachmentInput } from './dto/confirm-task-list-attachment.dto';
 import type { CreateProjectLinkInput } from './dto/create-project-link.dto';
+import type { CreateTaskListLinkInput } from './dto/create-task-list-link.dto';
 import type { ListProjectAttachmentsQuery } from './dto/list-project-attachments.query.dto';
+import type { ListTaskListAttachmentsQuery } from './dto/list-task-list-attachments.query.dto';
 import type { PresignProjectAttachmentInput } from './dto/presign-project-attachment.dto';
+import type { PresignTaskListAttachmentInput } from './dto/presign-task-list-attachment.dto';
 import type { ProjectAttachmentListResponseDto, ProjectAttachmentResponseDto } from './dto/project-attachment-response.dto';
 import type { ProjectAttachmentSearchResponseDto } from './dto/project-attachment-search-response.dto';
+import type { TaskListAttachmentListResponseDto, TaskListAttachmentResponseDto } from './dto/task-list-attachment-response.dto';
 import type { UpdateProjectAttachmentInput } from './dto/update-project-attachment.dto';
 export declare class AttachmentsService {
     private readonly prisma;
@@ -41,6 +46,21 @@ export declare class AttachmentsService {
     }): Promise<ProjectAttachmentSearchResponseDto[]>;
     updateProjectAttachment(userId: string, workspaceId: string, role: Role, projectId: string, attachmentId: string, dto: UpdateProjectAttachmentInput): Promise<ProjectAttachmentResponseDto>;
     deleteProjectAttachment(userId: string, workspaceId: string, role: Role, projectId: string, attachmentId: string): Promise<{
+        id: string;
+        s3Key: string | null;
+    }>;
+    presignTaskListUpload(userId: string, workspaceId: string, listId: string, dto: PresignTaskListAttachmentInput): Promise<{
+        uploadUrl: string;
+        s3Key: string;
+        expiresAt: Date;
+        attachmentId: null;
+    }>;
+    confirmTaskListUpload(userId: string, workspaceId: string, listId: string, dto: ConfirmTaskListAttachmentInput): Promise<TaskListAttachmentResponseDto>;
+    createTaskListLink(userId: string, workspaceId: string, listId: string, dto: CreateTaskListLinkInput): Promise<TaskListAttachmentResponseDto>;
+    listTaskListAttachments(userId: string, workspaceId: string, listId: string, query: ListTaskListAttachmentsQuery): Promise<TaskListAttachmentListResponseDto>;
+    getTaskListAttachment(userId: string, workspaceId: string, listId: string, attachmentId: string): Promise<TaskListAttachmentResponseDto>;
+    updateTaskListAttachment(userId: string, workspaceId: string, role: Role, listId: string, attachmentId: string, dto: UpdateProjectAttachmentInput): Promise<TaskListAttachmentResponseDto>;
+    deleteTaskListAttachment(userId: string, workspaceId: string, role: Role, listId: string, attachmentId: string): Promise<{
         id: string;
         s3Key: string | null;
     }>;
@@ -91,8 +111,11 @@ export declare class AttachmentsService {
     private findChannelMemberOrThrow;
     private assertTaskUnlocked;
     private findProjectForAttachmentOrThrow;
+    private findTaskListForAttachmentOrThrow;
     private projectAttachmentPrefix;
+    private taskListAttachmentPrefix;
     private assertProjectAttachmentKey;
+    private assertTaskListAttachmentKey;
     private normalizeProjectAttachmentLimit;
     private decodeProjectAttachmentCursor;
     private encodeProjectAttachmentCursor;
@@ -100,6 +123,7 @@ export declare class AttachmentsService {
     private projectAttachmentSelect;
     private projectAttachmentSearchSelect;
     private toProjectAttachmentResponse;
+    private toTaskListAttachmentResponse;
     private toProjectAttachmentSearchResponse;
     private resolveUploadedFileMetadata;
     private assertDocAttachmentKey;

@@ -21,6 +21,7 @@ export type AttachmentMinAggregateOutputType = {
     docId: string | null;
     channelMessageId: string | null;
     projectId: string | null;
+    taskListId: string | null;
     uploadedBy: string | null;
     fileName: string | null;
     s3Key: string | null;
@@ -39,6 +40,7 @@ export type AttachmentMaxAggregateOutputType = {
     docId: string | null;
     channelMessageId: string | null;
     projectId: string | null;
+    taskListId: string | null;
     uploadedBy: string | null;
     fileName: string | null;
     s3Key: string | null;
@@ -57,6 +59,7 @@ export type AttachmentCountAggregateOutputType = {
     docId: number;
     channelMessageId: number;
     projectId: number;
+    taskListId: number;
     uploadedBy: number;
     fileName: number;
     s3Key: number;
@@ -82,6 +85,7 @@ export type AttachmentMinAggregateInputType = {
     docId?: true;
     channelMessageId?: true;
     projectId?: true;
+    taskListId?: true;
     uploadedBy?: true;
     fileName?: true;
     s3Key?: true;
@@ -100,6 +104,7 @@ export type AttachmentMaxAggregateInputType = {
     docId?: true;
     channelMessageId?: true;
     projectId?: true;
+    taskListId?: true;
     uploadedBy?: true;
     fileName?: true;
     s3Key?: true;
@@ -118,6 +123,7 @@ export type AttachmentCountAggregateInputType = {
     docId?: true;
     channelMessageId?: true;
     projectId?: true;
+    taskListId?: true;
     uploadedBy?: true;
     fileName?: true;
     s3Key?: true;
@@ -165,6 +171,7 @@ export type AttachmentGroupByOutputType = {
     docId: string | null;
     channelMessageId: string | null;
     projectId: string | null;
+    taskListId: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key: string | null;
@@ -194,6 +201,7 @@ export type AttachmentWhereInput = {
     docId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     channelMessageId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     projectId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
+    taskListId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     uploadedBy?: Prisma.StringFilter<"Attachment"> | string;
     fileName?: Prisma.StringFilter<"Attachment"> | string;
     s3Key?: Prisma.StringNullableFilter<"Attachment"> | string | null;
@@ -209,6 +217,7 @@ export type AttachmentWhereInput = {
     doc?: Prisma.XOR<Prisma.DocNullableScalarRelationFilter, Prisma.DocWhereInput> | null;
     channelMessage?: Prisma.XOR<Prisma.ChannelMessageNullableScalarRelationFilter, Prisma.ChannelMessageWhereInput> | null;
     project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null;
+    taskList?: Prisma.XOR<Prisma.TaskListNullableScalarRelationFilter, Prisma.TaskListWhereInput> | null;
     uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
 };
 export type AttachmentOrderByWithRelationInput = {
@@ -217,6 +226,7 @@ export type AttachmentOrderByWithRelationInput = {
     docId?: Prisma.SortOrderInput | Prisma.SortOrder;
     channelMessageId?: Prisma.SortOrderInput | Prisma.SortOrder;
     projectId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    taskListId?: Prisma.SortOrderInput | Prisma.SortOrder;
     uploadedBy?: Prisma.SortOrder;
     fileName?: Prisma.SortOrder;
     s3Key?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -232,6 +242,7 @@ export type AttachmentOrderByWithRelationInput = {
     doc?: Prisma.DocOrderByWithRelationInput;
     channelMessage?: Prisma.ChannelMessageOrderByWithRelationInput;
     project?: Prisma.ProjectOrderByWithRelationInput;
+    taskList?: Prisma.TaskListOrderByWithRelationInput;
     uploader?: Prisma.UserOrderByWithRelationInput;
 };
 export type AttachmentWhereUniqueInput = Prisma.AtLeast<{
@@ -244,6 +255,7 @@ export type AttachmentWhereUniqueInput = Prisma.AtLeast<{
     docId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     channelMessageId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     projectId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
+    taskListId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     uploadedBy?: Prisma.StringFilter<"Attachment"> | string;
     fileName?: Prisma.StringFilter<"Attachment"> | string;
     mimeType?: Prisma.StringNullableFilter<"Attachment"> | string | null;
@@ -258,6 +270,7 @@ export type AttachmentWhereUniqueInput = Prisma.AtLeast<{
     doc?: Prisma.XOR<Prisma.DocNullableScalarRelationFilter, Prisma.DocWhereInput> | null;
     channelMessage?: Prisma.XOR<Prisma.ChannelMessageNullableScalarRelationFilter, Prisma.ChannelMessageWhereInput> | null;
     project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null;
+    taskList?: Prisma.XOR<Prisma.TaskListNullableScalarRelationFilter, Prisma.TaskListWhereInput> | null;
     uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
 }, "id" | "s3Key">;
 export type AttachmentOrderByWithAggregationInput = {
@@ -266,6 +279,7 @@ export type AttachmentOrderByWithAggregationInput = {
     docId?: Prisma.SortOrderInput | Prisma.SortOrder;
     channelMessageId?: Prisma.SortOrderInput | Prisma.SortOrder;
     projectId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    taskListId?: Prisma.SortOrderInput | Prisma.SortOrder;
     uploadedBy?: Prisma.SortOrder;
     fileName?: Prisma.SortOrder;
     s3Key?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -292,6 +306,7 @@ export type AttachmentScalarWhereWithAggregatesInput = {
     docId?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null;
     channelMessageId?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null;
     projectId?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null;
+    taskListId?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null;
     uploadedBy?: Prisma.StringWithAggregatesFilter<"Attachment"> | string;
     fileName?: Prisma.StringWithAggregatesFilter<"Attachment"> | string;
     s3Key?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null;
@@ -320,6 +335,7 @@ export type AttachmentCreateInput = {
     doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
     channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
     uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
 };
 export type AttachmentUncheckedCreateInput = {
@@ -328,6 +344,7 @@ export type AttachmentUncheckedCreateInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -356,6 +373,7 @@ export type AttachmentUpdateInput = {
     doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
     channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
     uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
 };
 export type AttachmentUncheckedUpdateInput = {
@@ -364,6 +382,7 @@ export type AttachmentUncheckedUpdateInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -382,6 +401,7 @@ export type AttachmentCreateManyInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -413,6 +433,7 @@ export type AttachmentUncheckedUpdateManyInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -439,6 +460,7 @@ export type AttachmentCountOrderByAggregateInput = {
     docId?: Prisma.SortOrder;
     channelMessageId?: Prisma.SortOrder;
     projectId?: Prisma.SortOrder;
+    taskListId?: Prisma.SortOrder;
     uploadedBy?: Prisma.SortOrder;
     fileName?: Prisma.SortOrder;
     s3Key?: Prisma.SortOrder;
@@ -460,6 +482,7 @@ export type AttachmentMaxOrderByAggregateInput = {
     docId?: Prisma.SortOrder;
     channelMessageId?: Prisma.SortOrder;
     projectId?: Prisma.SortOrder;
+    taskListId?: Prisma.SortOrder;
     uploadedBy?: Prisma.SortOrder;
     fileName?: Prisma.SortOrder;
     s3Key?: Prisma.SortOrder;
@@ -478,6 +501,7 @@ export type AttachmentMinOrderByAggregateInput = {
     docId?: Prisma.SortOrder;
     channelMessageId?: Prisma.SortOrder;
     projectId?: Prisma.SortOrder;
+    taskListId?: Prisma.SortOrder;
     uploadedBy?: Prisma.SortOrder;
     fileName?: Prisma.SortOrder;
     s3Key?: Prisma.SortOrder;
@@ -567,6 +591,44 @@ export type AttachmentUncheckedUpdateManyWithoutProjectNestedInput = {
     connect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
     update?: Prisma.AttachmentUpdateWithWhereUniqueWithoutProjectInput | Prisma.AttachmentUpdateWithWhereUniqueWithoutProjectInput[];
     updateMany?: Prisma.AttachmentUpdateManyWithWhereWithoutProjectInput | Prisma.AttachmentUpdateManyWithWhereWithoutProjectInput[];
+    deleteMany?: Prisma.AttachmentScalarWhereInput | Prisma.AttachmentScalarWhereInput[];
+};
+export type AttachmentCreateNestedManyWithoutTaskListInput = {
+    create?: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput> | Prisma.AttachmentCreateWithoutTaskListInput[] | Prisma.AttachmentUncheckedCreateWithoutTaskListInput[];
+    connectOrCreate?: Prisma.AttachmentCreateOrConnectWithoutTaskListInput | Prisma.AttachmentCreateOrConnectWithoutTaskListInput[];
+    createMany?: Prisma.AttachmentCreateManyTaskListInputEnvelope;
+    connect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+};
+export type AttachmentUncheckedCreateNestedManyWithoutTaskListInput = {
+    create?: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput> | Prisma.AttachmentCreateWithoutTaskListInput[] | Prisma.AttachmentUncheckedCreateWithoutTaskListInput[];
+    connectOrCreate?: Prisma.AttachmentCreateOrConnectWithoutTaskListInput | Prisma.AttachmentCreateOrConnectWithoutTaskListInput[];
+    createMany?: Prisma.AttachmentCreateManyTaskListInputEnvelope;
+    connect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+};
+export type AttachmentUpdateManyWithoutTaskListNestedInput = {
+    create?: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput> | Prisma.AttachmentCreateWithoutTaskListInput[] | Prisma.AttachmentUncheckedCreateWithoutTaskListInput[];
+    connectOrCreate?: Prisma.AttachmentCreateOrConnectWithoutTaskListInput | Prisma.AttachmentCreateOrConnectWithoutTaskListInput[];
+    upsert?: Prisma.AttachmentUpsertWithWhereUniqueWithoutTaskListInput | Prisma.AttachmentUpsertWithWhereUniqueWithoutTaskListInput[];
+    createMany?: Prisma.AttachmentCreateManyTaskListInputEnvelope;
+    set?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    disconnect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    delete?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    connect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    update?: Prisma.AttachmentUpdateWithWhereUniqueWithoutTaskListInput | Prisma.AttachmentUpdateWithWhereUniqueWithoutTaskListInput[];
+    updateMany?: Prisma.AttachmentUpdateManyWithWhereWithoutTaskListInput | Prisma.AttachmentUpdateManyWithWhereWithoutTaskListInput[];
+    deleteMany?: Prisma.AttachmentScalarWhereInput | Prisma.AttachmentScalarWhereInput[];
+};
+export type AttachmentUncheckedUpdateManyWithoutTaskListNestedInput = {
+    create?: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput> | Prisma.AttachmentCreateWithoutTaskListInput[] | Prisma.AttachmentUncheckedCreateWithoutTaskListInput[];
+    connectOrCreate?: Prisma.AttachmentCreateOrConnectWithoutTaskListInput | Prisma.AttachmentCreateOrConnectWithoutTaskListInput[];
+    upsert?: Prisma.AttachmentUpsertWithWhereUniqueWithoutTaskListInput | Prisma.AttachmentUpsertWithWhereUniqueWithoutTaskListInput[];
+    createMany?: Prisma.AttachmentCreateManyTaskListInputEnvelope;
+    set?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    disconnect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    delete?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    connect?: Prisma.AttachmentWhereUniqueInput | Prisma.AttachmentWhereUniqueInput[];
+    update?: Prisma.AttachmentUpdateWithWhereUniqueWithoutTaskListInput | Prisma.AttachmentUpdateWithWhereUniqueWithoutTaskListInput[];
+    updateMany?: Prisma.AttachmentUpdateManyWithWhereWithoutTaskListInput | Prisma.AttachmentUpdateManyWithWhereWithoutTaskListInput[];
     deleteMany?: Prisma.AttachmentScalarWhereInput | Prisma.AttachmentScalarWhereInput[];
 };
 export type AttachmentCreateNestedManyWithoutTaskInput = {
@@ -709,6 +771,7 @@ export type AttachmentCreateWithoutUploaderInput = {
     doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
     channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
 };
 export type AttachmentUncheckedCreateWithoutUploaderInput = {
     id?: string;
@@ -716,6 +779,7 @@ export type AttachmentUncheckedCreateWithoutUploaderInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     fileName: string;
     s3Key?: string | null;
     mimeType?: string | null;
@@ -757,6 +821,7 @@ export type AttachmentScalarWhereInput = {
     docId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     channelMessageId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     projectId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
+    taskListId?: Prisma.StringNullableFilter<"Attachment"> | string | null;
     uploadedBy?: Prisma.StringFilter<"Attachment"> | string;
     fileName?: Prisma.StringFilter<"Attachment"> | string;
     s3Key?: Prisma.StringNullableFilter<"Attachment"> | string | null;
@@ -784,6 +849,7 @@ export type AttachmentCreateWithoutProjectInput = {
     task?: Prisma.TaskCreateNestedOneWithoutAttachmentsInput;
     doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
     channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
     uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
 };
 export type AttachmentUncheckedCreateWithoutProjectInput = {
@@ -791,6 +857,7 @@ export type AttachmentUncheckedCreateWithoutProjectInput = {
     taskId?: string | null;
     docId?: string | null;
     channelMessageId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -824,6 +891,63 @@ export type AttachmentUpdateManyWithWhereWithoutProjectInput = {
     where: Prisma.AttachmentScalarWhereInput;
     data: Prisma.XOR<Prisma.AttachmentUpdateManyMutationInput, Prisma.AttachmentUncheckedUpdateManyWithoutProjectInput>;
 };
+export type AttachmentCreateWithoutTaskListInput = {
+    id?: string;
+    fileName: string;
+    s3Key?: string | null;
+    mimeType?: string | null;
+    fileSize?: bigint | number | null;
+    kind?: $Enums.AttachmentKind;
+    linkUrl?: string | null;
+    title?: string | null;
+    description?: string | null;
+    createdAt?: Date | string;
+    deletedAt?: Date | string | null;
+    task?: Prisma.TaskCreateNestedOneWithoutAttachmentsInput;
+    doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
+    channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
+    project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
+};
+export type AttachmentUncheckedCreateWithoutTaskListInput = {
+    id?: string;
+    taskId?: string | null;
+    docId?: string | null;
+    channelMessageId?: string | null;
+    projectId?: string | null;
+    uploadedBy: string;
+    fileName: string;
+    s3Key?: string | null;
+    mimeType?: string | null;
+    fileSize?: bigint | number | null;
+    kind?: $Enums.AttachmentKind;
+    linkUrl?: string | null;
+    title?: string | null;
+    description?: string | null;
+    createdAt?: Date | string;
+    deletedAt?: Date | string | null;
+};
+export type AttachmentCreateOrConnectWithoutTaskListInput = {
+    where: Prisma.AttachmentWhereUniqueInput;
+    create: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput>;
+};
+export type AttachmentCreateManyTaskListInputEnvelope = {
+    data: Prisma.AttachmentCreateManyTaskListInput | Prisma.AttachmentCreateManyTaskListInput[];
+    skipDuplicates?: boolean;
+};
+export type AttachmentUpsertWithWhereUniqueWithoutTaskListInput = {
+    where: Prisma.AttachmentWhereUniqueInput;
+    update: Prisma.XOR<Prisma.AttachmentUpdateWithoutTaskListInput, Prisma.AttachmentUncheckedUpdateWithoutTaskListInput>;
+    create: Prisma.XOR<Prisma.AttachmentCreateWithoutTaskListInput, Prisma.AttachmentUncheckedCreateWithoutTaskListInput>;
+};
+export type AttachmentUpdateWithWhereUniqueWithoutTaskListInput = {
+    where: Prisma.AttachmentWhereUniqueInput;
+    data: Prisma.XOR<Prisma.AttachmentUpdateWithoutTaskListInput, Prisma.AttachmentUncheckedUpdateWithoutTaskListInput>;
+};
+export type AttachmentUpdateManyWithWhereWithoutTaskListInput = {
+    where: Prisma.AttachmentScalarWhereInput;
+    data: Prisma.XOR<Prisma.AttachmentUpdateManyMutationInput, Prisma.AttachmentUncheckedUpdateManyWithoutTaskListInput>;
+};
 export type AttachmentCreateWithoutTaskInput = {
     id?: string;
     fileName: string;
@@ -839,6 +963,7 @@ export type AttachmentCreateWithoutTaskInput = {
     doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
     channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
     uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
 };
 export type AttachmentUncheckedCreateWithoutTaskInput = {
@@ -846,6 +971,7 @@ export type AttachmentUncheckedCreateWithoutTaskInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -894,6 +1020,7 @@ export type AttachmentCreateWithoutChannelMessageInput = {
     task?: Prisma.TaskCreateNestedOneWithoutAttachmentsInput;
     doc?: Prisma.DocCreateNestedOneWithoutAttachmentsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
     uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
 };
 export type AttachmentUncheckedCreateWithoutChannelMessageInput = {
@@ -901,6 +1028,7 @@ export type AttachmentUncheckedCreateWithoutChannelMessageInput = {
     taskId?: string | null;
     docId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -949,6 +1077,7 @@ export type AttachmentCreateWithoutDocInput = {
     task?: Prisma.TaskCreateNestedOneWithoutAttachmentsInput;
     channelMessage?: Prisma.ChannelMessageCreateNestedOneWithoutAttachmentsInput;
     project?: Prisma.ProjectCreateNestedOneWithoutAttachmentsInput;
+    taskList?: Prisma.TaskListCreateNestedOneWithoutAttachmentsInput;
     uploader: Prisma.UserCreateNestedOneWithoutAttachmentsUploadedInput;
 };
 export type AttachmentUncheckedCreateWithoutDocInput = {
@@ -956,6 +1085,7 @@ export type AttachmentUncheckedCreateWithoutDocInput = {
     taskId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -995,6 +1125,7 @@ export type AttachmentCreateManyUploaderInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     fileName: string;
     s3Key?: string | null;
     mimeType?: string | null;
@@ -1022,6 +1153,7 @@ export type AttachmentUpdateWithoutUploaderInput = {
     doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
     channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
 };
 export type AttachmentUncheckedUpdateWithoutUploaderInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1029,6 +1161,7 @@ export type AttachmentUncheckedUpdateWithoutUploaderInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1046,6 +1179,7 @@ export type AttachmentUncheckedUpdateManyWithoutUploaderInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1062,6 +1196,7 @@ export type AttachmentCreateManyProjectInput = {
     taskId?: string | null;
     docId?: string | null;
     channelMessageId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -1089,6 +1224,7 @@ export type AttachmentUpdateWithoutProjectInput = {
     task?: Prisma.TaskUpdateOneWithoutAttachmentsNestedInput;
     doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
     channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
     uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
 };
 export type AttachmentUncheckedUpdateWithoutProjectInput = {
@@ -1096,6 +1232,7 @@ export type AttachmentUncheckedUpdateWithoutProjectInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1113,6 +1250,79 @@ export type AttachmentUncheckedUpdateManyWithoutProjectInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+    s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+    kind?: Prisma.EnumAttachmentKindFieldUpdateOperationsInput | $Enums.AttachmentKind;
+    linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+export type AttachmentCreateManyTaskListInput = {
+    id?: string;
+    taskId?: string | null;
+    docId?: string | null;
+    channelMessageId?: string | null;
+    projectId?: string | null;
+    uploadedBy: string;
+    fileName: string;
+    s3Key?: string | null;
+    mimeType?: string | null;
+    fileSize?: bigint | number | null;
+    kind?: $Enums.AttachmentKind;
+    linkUrl?: string | null;
+    title?: string | null;
+    description?: string | null;
+    createdAt?: Date | string;
+    deletedAt?: Date | string | null;
+};
+export type AttachmentUpdateWithoutTaskListInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+    s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+    kind?: Prisma.EnumAttachmentKindFieldUpdateOperationsInput | $Enums.AttachmentKind;
+    linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    task?: Prisma.TaskUpdateOneWithoutAttachmentsNestedInput;
+    doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
+    channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
+    project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
+};
+export type AttachmentUncheckedUpdateWithoutTaskListInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+    s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+    kind?: Prisma.EnumAttachmentKindFieldUpdateOperationsInput | $Enums.AttachmentKind;
+    linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+export type AttachmentUncheckedUpdateManyWithoutTaskListInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1130,6 +1340,7 @@ export type AttachmentCreateManyTaskInput = {
     docId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -1157,6 +1368,7 @@ export type AttachmentUpdateWithoutTaskInput = {
     doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
     channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
     uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
 };
 export type AttachmentUncheckedUpdateWithoutTaskInput = {
@@ -1164,6 +1376,7 @@ export type AttachmentUncheckedUpdateWithoutTaskInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1181,6 +1394,7 @@ export type AttachmentUncheckedUpdateManyWithoutTaskInput = {
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1198,6 +1412,7 @@ export type AttachmentCreateManyChannelMessageInput = {
     taskId?: string | null;
     docId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -1225,6 +1440,7 @@ export type AttachmentUpdateWithoutChannelMessageInput = {
     task?: Prisma.TaskUpdateOneWithoutAttachmentsNestedInput;
     doc?: Prisma.DocUpdateOneWithoutAttachmentsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
     uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
 };
 export type AttachmentUncheckedUpdateWithoutChannelMessageInput = {
@@ -1232,6 +1448,7 @@ export type AttachmentUncheckedUpdateWithoutChannelMessageInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1249,6 +1466,7 @@ export type AttachmentUncheckedUpdateManyWithoutChannelMessageInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     docId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1266,6 +1484,7 @@ export type AttachmentCreateManyDocInput = {
     taskId?: string | null;
     channelMessageId?: string | null;
     projectId?: string | null;
+    taskListId?: string | null;
     uploadedBy: string;
     fileName: string;
     s3Key?: string | null;
@@ -1293,6 +1512,7 @@ export type AttachmentUpdateWithoutDocInput = {
     task?: Prisma.TaskUpdateOneWithoutAttachmentsNestedInput;
     channelMessage?: Prisma.ChannelMessageUpdateOneWithoutAttachmentsNestedInput;
     project?: Prisma.ProjectUpdateOneWithoutAttachmentsNestedInput;
+    taskList?: Prisma.TaskListUpdateOneWithoutAttachmentsNestedInput;
     uploader?: Prisma.UserUpdateOneRequiredWithoutAttachmentsUploadedNestedInput;
 };
 export type AttachmentUncheckedUpdateWithoutDocInput = {
@@ -1300,6 +1520,7 @@ export type AttachmentUncheckedUpdateWithoutDocInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1317,6 +1538,7 @@ export type AttachmentUncheckedUpdateManyWithoutDocInput = {
     taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     channelMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    taskListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string;
     fileName?: Prisma.StringFieldUpdateOperationsInput | string;
     s3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1335,6 +1557,7 @@ export type AttachmentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
     docId?: boolean;
     channelMessageId?: boolean;
     projectId?: boolean;
+    taskListId?: boolean;
     uploadedBy?: boolean;
     fileName?: boolean;
     s3Key?: boolean;
@@ -1350,6 +1573,7 @@ export type AttachmentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["attachment"]>;
 export type AttachmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1358,6 +1582,7 @@ export type AttachmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
     docId?: boolean;
     channelMessageId?: boolean;
     projectId?: boolean;
+    taskListId?: boolean;
     uploadedBy?: boolean;
     fileName?: boolean;
     s3Key?: boolean;
@@ -1373,6 +1598,7 @@ export type AttachmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["attachment"]>;
 export type AttachmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1381,6 +1607,7 @@ export type AttachmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
     docId?: boolean;
     channelMessageId?: boolean;
     projectId?: boolean;
+    taskListId?: boolean;
     uploadedBy?: boolean;
     fileName?: boolean;
     s3Key?: boolean;
@@ -1396,6 +1623,7 @@ export type AttachmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["attachment"]>;
 export type AttachmentSelectScalar = {
@@ -1404,6 +1632,7 @@ export type AttachmentSelectScalar = {
     docId?: boolean;
     channelMessageId?: boolean;
     projectId?: boolean;
+    taskListId?: boolean;
     uploadedBy?: boolean;
     fileName?: boolean;
     s3Key?: boolean;
@@ -1416,12 +1645,13 @@ export type AttachmentSelectScalar = {
     createdAt?: boolean;
     deletedAt?: boolean;
 };
-export type AttachmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "docId" | "channelMessageId" | "projectId" | "uploadedBy" | "fileName" | "s3Key" | "mimeType" | "fileSize" | "kind" | "linkUrl" | "title" | "description" | "createdAt" | "deletedAt", ExtArgs["result"]["attachment"]>;
+export type AttachmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "docId" | "channelMessageId" | "projectId" | "taskListId" | "uploadedBy" | "fileName" | "s3Key" | "mimeType" | "fileSize" | "kind" | "linkUrl" | "title" | "description" | "createdAt" | "deletedAt", ExtArgs["result"]["attachment"]>;
 export type AttachmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     task?: boolean | Prisma.Attachment$taskArgs<ExtArgs>;
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type AttachmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1429,6 +1659,7 @@ export type AttachmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.E
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type AttachmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1436,6 +1667,7 @@ export type AttachmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.E
     doc?: boolean | Prisma.Attachment$docArgs<ExtArgs>;
     channelMessage?: boolean | Prisma.Attachment$channelMessageArgs<ExtArgs>;
     project?: boolean | Prisma.Attachment$projectArgs<ExtArgs>;
+    taskList?: boolean | Prisma.Attachment$taskListArgs<ExtArgs>;
     uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type $AttachmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1445,6 +1677,7 @@ export type $AttachmentPayload<ExtArgs extends runtime.Types.Extensions.Internal
         doc: Prisma.$DocPayload<ExtArgs> | null;
         channelMessage: Prisma.$ChannelMessagePayload<ExtArgs> | null;
         project: Prisma.$ProjectPayload<ExtArgs> | null;
+        taskList: Prisma.$TaskListPayload<ExtArgs> | null;
         uploader: Prisma.$UserPayload<ExtArgs>;
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1453,6 +1686,7 @@ export type $AttachmentPayload<ExtArgs extends runtime.Types.Extensions.Internal
         docId: string | null;
         channelMessageId: string | null;
         projectId: string | null;
+        taskListId: string | null;
         uploadedBy: string;
         fileName: string;
         s3Key: string | null;
@@ -1520,6 +1754,7 @@ export interface Prisma__AttachmentClient<T, Null = never, ExtArgs extends runti
     doc<T extends Prisma.Attachment$docArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Attachment$docArgs<ExtArgs>>): Prisma.Prisma__DocClient<runtime.Types.Result.GetResult<Prisma.$DocPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     channelMessage<T extends Prisma.Attachment$channelMessageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Attachment$channelMessageArgs<ExtArgs>>): Prisma.Prisma__ChannelMessageClient<runtime.Types.Result.GetResult<Prisma.$ChannelMessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     project<T extends Prisma.Attachment$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Attachment$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    taskList<T extends Prisma.Attachment$taskListArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Attachment$taskListArgs<ExtArgs>>): Prisma.Prisma__TaskListClient<runtime.Types.Result.GetResult<Prisma.$TaskListPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     uploader<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
@@ -1531,6 +1766,7 @@ export interface AttachmentFieldRefs {
     readonly docId: Prisma.FieldRef<"Attachment", 'String'>;
     readonly channelMessageId: Prisma.FieldRef<"Attachment", 'String'>;
     readonly projectId: Prisma.FieldRef<"Attachment", 'String'>;
+    readonly taskListId: Prisma.FieldRef<"Attachment", 'String'>;
     readonly uploadedBy: Prisma.FieldRef<"Attachment", 'String'>;
     readonly fileName: Prisma.FieldRef<"Attachment", 'String'>;
     readonly s3Key: Prisma.FieldRef<"Attachment", 'String'>;
@@ -1666,6 +1902,12 @@ export type Attachment$projectArgs<ExtArgs extends runtime.Types.Extensions.Inte
     omit?: Prisma.ProjectOmit<ExtArgs> | null;
     include?: Prisma.ProjectInclude<ExtArgs> | null;
     where?: Prisma.ProjectWhereInput;
+};
+export type Attachment$taskListArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.TaskListSelect<ExtArgs> | null;
+    omit?: Prisma.TaskListOmit<ExtArgs> | null;
+    include?: Prisma.TaskListInclude<ExtArgs> | null;
+    where?: Prisma.TaskListWhereInput;
 };
 export type AttachmentDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.AttachmentSelect<ExtArgs> | null;

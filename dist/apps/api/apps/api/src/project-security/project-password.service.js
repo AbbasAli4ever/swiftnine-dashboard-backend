@@ -244,15 +244,13 @@ let ProjectPasswordService = class ProjectPasswordService {
         });
         if (!projectOwner)
             return;
-        const { token, tokenHash } = await this.resets.createResetToken(project.id);
-        const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
-        const resetUrl = `${frontendUrl}/projects/${project.id}/password/reset?token=${token}`;
+        const { otp, otpHash } = await this.resets.createResetOtp(project.id);
         try {
-            await this.email.sendProjectPasswordResetEmail(projectOwner.email, projectOwner.fullName, project.name, resetUrl);
+            await this.email.sendProjectPasswordResetOtpEmail(projectOwner.email, projectOwner.fullName, project.name, otp);
         }
         catch (error) {
             await this.prisma.projectPasswordResetToken.updateMany({
-                where: { projectId: project.id, tokenHash, usedAt: null },
+                where: { projectId: project.id, tokenHash: otpHash, usedAt: null },
                 data: { usedAt: new Date() },
             });
             throw error;
@@ -269,11 +267,11 @@ let ProjectPasswordService = class ProjectPasswordService {
             }),
         });
     }
-    async resetPasswordWithToken(projectId, token, newPassword, actorUserId) {
+    async resetPasswordWithOtp(projectId, otp, newPassword, actorUserId) {
         this.assertPasswordFormat(newPassword);
-        const stored = await this.resets.findValidResetToken(token);
+        const stored = await this.resets.findValidResetOtp(otp);
         if (stored.projectId !== projectId) {
-            throw (0, project_security_constants_1.resetTokenInvalidException)();
+            throw (0, project_security_constants_1.resetOtpInvalidException)();
         }
         const passwordHash = await this.hashPassword(newPassword);
         const passwordUpdatedAt = new Date();

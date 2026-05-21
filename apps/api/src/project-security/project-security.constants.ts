@@ -19,7 +19,7 @@ export const INVALID_PASSWORD_FORMAT =
   'Project password must be at least 8 characters and include at least 1 digit';
 export const PASSWORD_ALREADY_SET = 'Project password is already set';
 export const PROJECT_PASSWORD_NOT_SET = 'Project password is not set';
-export const RESET_TOKEN_INVALID = 'Project password reset token is invalid or expired';
+export const RESET_OTP_INVALID = 'Project password reset code is invalid or expired';
 export const RESET_REQUEST_RATE_LIMITED =
   'Project password reset was requested recently. Try again later';
 
@@ -28,9 +28,9 @@ export const PROJECT_UNLOCK_TTL_MS = 24 * 60 * 60 * 1000;
 export const PROJECT_UNLOCK_MAX_FAILED_ATTEMPTS = 5;
 export const PROJECT_UNLOCK_LOCKOUT_MS = 15 * 60 * 1000;
 export const PROJECT_UNLOCK_FAILED_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
-export const PROJECT_PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+export const PROJECT_PASSWORD_RESET_OTP_TTL_MS = 15 * 60 * 1000;
 export const PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS = 5 * 60 * 1000;
-export const PROJECT_PASSWORD_RESET_TOKEN_USED_RETENTION_MS = 24 * 60 * 60 * 1000;
+export const PROJECT_PASSWORD_RESET_OTP_USED_RETENTION_MS = 24 * 60 * 60 * 1000;
 export const PROJECT_SECURITY_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 
 export const PROJECT_PASSWORD_PATTERN = /^(?=.*\d).{8,}$/;
@@ -57,7 +57,7 @@ export type ProjectSecurityErrorCode =
   | 'INVALID_PASSWORD_FORMAT'
   | 'PASSWORD_ALREADY_SET'
   | 'PROJECT_PASSWORD_NOT_SET'
-  | 'RESET_TOKEN_INVALID'
+  | 'RESET_OTP_INVALID'
   | 'RESET_REQUEST_RATE_LIMITED'
   | 'PROJECT_PASSWORD_MANAGER_ONLY'
   | 'PROJECT_NOT_FOUND';
@@ -112,9 +112,9 @@ export function projectPasswordNotSetException(): BadRequestException {
   );
 }
 
-export function resetTokenInvalidException(): UnauthorizedException {
+export function resetOtpInvalidException(): UnauthorizedException {
   return new UnauthorizedException(
-    projectSecurityError('RESET_TOKEN_INVALID', RESET_TOKEN_INVALID),
+    projectSecurityError('RESET_OTP_INVALID', RESET_OTP_INVALID),
   );
 }
 

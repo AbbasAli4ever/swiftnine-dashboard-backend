@@ -358,6 +358,7 @@ exports.AttachmentScalarFieldEnum = {
     docId: 'docId',
     channelMessageId: 'channelMessageId',
     projectId: 'projectId',
+    taskListId: 'taskListId',
     uploadedBy: 'uploadedBy',
     fileName: 'fileName',
     s3Key: 's3Key',

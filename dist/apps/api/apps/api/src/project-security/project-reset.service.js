@@ -19,22 +19,22 @@ let ProjectResetService = class ProjectResetService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async createResetToken(projectId, now = new Date()) {
+    async createResetOtp(projectId, now = new Date()) {
         await this.assertResetRequestAllowed(projectId, now);
-        const token = (0, node_crypto_1.randomUUID)();
-        const tokenHash = this.hashToken(token);
-        const expiresAt = new Date(now.getTime() + project_security_constants_1.PROJECT_PASSWORD_RESET_TOKEN_TTL_MS);
+        const otp = this.generateOtp();
+        const otpHash = this.hashOtp(otp);
+        const expiresAt = new Date(now.getTime() + project_security_constants_1.PROJECT_PASSWORD_RESET_OTP_TTL_MS);
         await this.prisma.$transaction([
             this.prisma.projectPasswordResetToken.updateMany({
                 where: { projectId, usedAt: null },
                 data: { usedAt: now },
             }),
             this.prisma.projectPasswordResetToken.create({
-                data: { projectId, tokenHash, expiresAt },
+                data: { projectId, tokenHash: otpHash, expiresAt },
                 select: { id: true },
             }),
         ]);
-        return { token, tokenHash, expiresAt };
+        return { otp, otpHash, expiresAt };
     }
     async assertResetRequestAllowed(projectId, now = new Date()) {
         const recentCutoff = new Date(now.getTime() - project_security_constants_1.PROJECT_PASSWORD_RESET_REQUEST_COOLDOWN_MS);
@@ -49,11 +49,11 @@ let ProjectResetService = class ProjectResetService {
         if (recentToken)
             throw (0, project_security_constants_1.resetRequestRateLimitedException)();
     }
-    async findValidResetToken(rawToken, now = new Date()) {
-        const tokenHash = this.hashToken(rawToken);
+    async findValidResetOtp(otp, now = new Date()) {
+        const otpHash = this.hashOtp(otp);
         const stored = await this.prisma.projectPasswordResetToken.findFirst({
             where: {
-                tokenHash,
+                tokenHash: otpHash,
                 usedAt: null,
                 expiresAt: { gt: now },
                 project: { deletedAt: null },
@@ -61,22 +61,25 @@ let ProjectResetService = class ProjectResetService {
             select: { id: true, projectId: true },
         });
         if (!stored)
-            throw (0, project_security_constants_1.resetTokenInvalidException)();
+            throw (0, project_security_constants_1.resetOtpInvalidException)();
         return stored;
     }
-    async consumeResetToken(rawToken, now = new Date()) {
-        const stored = await this.findValidResetToken(rawToken, now);
+    async consumeResetOtp(otp, now = new Date()) {
+        const stored = await this.findValidResetOtp(otp, now);
         await this.prisma.projectPasswordResetToken.update({
             where: { id: stored.id },
             data: { usedAt: now },
         });
         return stored;
     }
-    hashToken(rawToken) {
-        return (0, node_crypto_1.createHash)('sha256').update(rawToken).digest('hex');
+    generateOtp() {
+        return (0, node_crypto_1.randomInt)(100000, 1000000).toString();
+    }
+    hashOtp(otp) {
+        return (0, node_crypto_1.createHash)('sha256').update(otp).digest('hex');
     }
     async pruneExpiredResetTokens(now = new Date()) {
-        const usedTokenCutoff = new Date(now.getTime() - project_security_constants_1.PROJECT_PASSWORD_RESET_TOKEN_USED_RETENTION_MS);
+        const usedTokenCutoff = new Date(now.getTime() - project_security_constants_1.PROJECT_PASSWORD_RESET_OTP_USED_RETENTION_MS);
         const result = await this.prisma.projectPasswordResetToken.deleteMany({
             where: {
                 OR: [

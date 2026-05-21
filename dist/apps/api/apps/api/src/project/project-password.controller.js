@@ -56,7 +56,7 @@ let ProjectPasswordController = class ProjectPasswordController {
         return (0, common_2.ok)(null, 'Project password reset email requested');
     }
     async confirmReset(req, projectId, dto) {
-        const result = await this.projectPasswords.resetPasswordWithToken(projectId, dto.token, dto.newPassword, req.user.id);
+        const result = await this.projectPasswords.resetPasswordWithOtp(projectId, dto.otp, dto.newPassword, req.user.id);
         return (0, common_2.ok)(result, 'Project password reset successfully');
     }
 };
@@ -137,7 +137,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':projectId/password/reset-confirm'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Reset project password using an emailed token' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Reset project password using an emailed OTP' }),
     (0, swagger_1.ApiParam)({ name: 'projectId', description: 'Project UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Project password reset' }),
     __param(0, (0, common_1.Req)()),

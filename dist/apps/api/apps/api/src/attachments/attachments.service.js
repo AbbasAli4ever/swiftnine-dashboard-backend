@@ -386,6 +386,255 @@ let AttachmentsService = class AttachmentsService {
         });
         return { id: attachment.id, s3Key: attachment.s3Key };
     }
+    async presignTaskListUpload(userId, workspaceId, listId, dto) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const bucket = process.env.AWS_S3_BUCKET;
+        if (!bucket)
+            throw new common_1.InternalServerErrorException('S3 bucket is not configured');
+        const id = (0, node_crypto_1.randomUUID)();
+        const ext = dto.fileName?.split('.').pop() ?? dto.mimeType.split('/').pop() ?? 'bin';
+        const sanitizedFileName = (dto.fileName ?? `${id}.${ext}`).replace(/\s+/g, '_');
+        const s3Key = `${this.taskListAttachmentPrefix(listId)}/${id}-${sanitizedFileName}`;
+        const expiresIn = 60 * 15;
+        const uploadUrl = await (0, s3_request_presigner_1.getSignedUrl)(this.s3, new client_s3_1.PutObjectCommand({ Bucket: bucket, Key: s3Key }), { expiresIn });
+        return {
+            uploadUrl,
+            s3Key,
+            expiresAt: new Date(Date.now() + expiresIn * 1000),
+            attachmentId: null,
+        };
+    }
+    async confirmTaskListUpload(userId, workspaceId, listId, dto) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        this.assertTaskListAttachmentKey(listId, dto.s3Key);
+        const metadata = await this.resolveUploadedFileMetadata(dto.s3Key, dto.fileName, dto.mimeType, dto.fileSize);
+        const attachment = await this.prisma.attachment.create({
+            data: {
+                taskListId: listId,
+                uploadedBy: userId,
+                kind: client_1.AttachmentKind.FILE,
+                fileName: metadata.fileName,
+                s3Key: dto.s3Key,
+                mimeType: metadata.mimeType,
+                fileSize: metadata.fileSize,
+                linkUrl: null,
+                title: dto.title ?? null,
+                description: dto.description ?? null,
+            },
+            select: this.projectAttachmentSelect(),
+        });
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'attachment_uploaded',
+            metadata: {
+                taskListId: listId,
+                taskListName: taskList.name,
+                projectId: taskList.project.id,
+                projectName: taskList.project.name,
+                kind: client_1.AttachmentKind.FILE,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                fileSize: Number(attachment.fileSize),
+            },
+            performedBy: userId,
+        });
+        return this.toTaskListAttachmentResponse(attachment);
+    }
+    async createTaskListLink(userId, workspaceId, listId, dto) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const attachment = await this.prisma.attachment.create({
+            data: {
+                taskListId: listId,
+                uploadedBy: userId,
+                kind: client_1.AttachmentKind.LINK,
+                fileName: dto.title,
+                s3Key: null,
+                mimeType: null,
+                fileSize: null,
+                linkUrl: dto.linkUrl,
+                title: dto.title,
+                description: dto.description ?? null,
+            },
+            select: this.projectAttachmentSelect(),
+        });
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'attachment_linked',
+            metadata: {
+                taskListId: listId,
+                taskListName: taskList.name,
+                projectId: taskList.project.id,
+                projectName: taskList.project.name,
+                kind: client_1.AttachmentKind.LINK,
+                linkUrl: attachment.linkUrl,
+                title: attachment.title,
+            },
+            performedBy: userId,
+        });
+        return this.toTaskListAttachmentResponse(attachment);
+    }
+    async listTaskListAttachments(userId, workspaceId, listId, query) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const cursor = this.decodeProjectAttachmentCursor(query.cursor);
+        const limit = this.normalizeProjectAttachmentLimit(query.limit);
+        const attachments = await this.prisma.attachment.findMany({
+            where: {
+                taskListId: listId,
+                deletedAt: null,
+                ...(query.kind ? { kind: query.kind } : {}),
+                ...(query.uploadedBy ? { uploadedBy: query.uploadedBy } : {}),
+                ...(query.q
+                    ? {
+                        OR: [
+                            { fileName: { contains: query.q, mode: 'insensitive' } },
+                            { title: { contains: query.q, mode: 'insensitive' } },
+                            { description: { contains: query.q, mode: 'insensitive' } },
+                            { linkUrl: { contains: query.q, mode: 'insensitive' } },
+                        ],
+                    }
+                    : {}),
+                ...(cursor
+                    ? {
+                        OR: [
+                            { createdAt: { lt: cursor.createdAt } },
+                            { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                        ],
+                    }
+                    : {}),
+            },
+            select: this.projectAttachmentSelect(),
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            take: limit + 1,
+        });
+        const hasNext = attachments.length > limit;
+        const items = hasNext ? attachments.slice(0, limit) : attachments;
+        return {
+            items: await Promise.all(items.map((attachment) => this.toTaskListAttachmentResponse(attachment))),
+            nextCursor: hasNext
+                ? this.encodeProjectAttachmentCursor(items[items.length - 1])
+                : null,
+            limit,
+        };
+    }
+    async getTaskListAttachment(userId, workspaceId, listId, attachmentId) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const attachment = await this.prisma.attachment.findFirst({
+            where: { id: attachmentId, taskListId: listId, deletedAt: null },
+            select: this.projectAttachmentSelect(),
+        });
+        if (!attachment)
+            throw new common_1.NotFoundException('Attachment not found');
+        return this.toTaskListAttachmentResponse(attachment);
+    }
+    async updateTaskListAttachment(userId, workspaceId, role, listId, attachmentId, dto) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const attachment = await this.prisma.attachment.findFirst({
+            where: { id: attachmentId, taskListId: listId, deletedAt: null },
+            select: {
+                id: true,
+                uploadedBy: true,
+                kind: true,
+                title: true,
+                description: true,
+            },
+        });
+        if (!attachment)
+            throw new common_1.NotFoundException('Attachment not found');
+        this.assertCanManageProjectAttachment(userId, role, attachment);
+        const data = {};
+        if (Object.prototype.hasOwnProperty.call(dto, 'title')) {
+            data.title = dto.title ?? null;
+            if (attachment.kind === client_1.AttachmentKind.LINK && dto.title) {
+                data.fileName = dto.title;
+            }
+        }
+        if (Object.prototype.hasOwnProperty.call(dto, 'description')) {
+            data.description = dto.description ?? null;
+        }
+        const updated = await this.prisma.attachment.update({
+            where: { id: attachment.id },
+            data,
+            select: this.projectAttachmentSelect(),
+        });
+        const changedFields = Object.keys(data).filter((field) => field !== 'fileName');
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'attachment_updated',
+            metadata: {
+                taskListId: listId,
+                taskListName: taskList.name,
+                projectId: taskList.project.id,
+                projectName: taskList.project.name,
+                kind: attachment.kind,
+                changedFields,
+                old: {
+                    title: attachment.title,
+                    description: attachment.description,
+                },
+                new: {
+                    title: updated.title,
+                    description: updated.description,
+                },
+            },
+            performedBy: userId,
+        });
+        return this.toTaskListAttachmentResponse(updated);
+    }
+    async deleteTaskListAttachment(userId, workspaceId, role, listId, attachmentId) {
+        const taskList = await this.findTaskListForAttachmentOrThrow(workspaceId, listId);
+        await this.projectSecurity.assertUnlocked(workspaceId, taskList.project.id, userId);
+        const attachment = await this.prisma.attachment.findFirst({
+            where: { id: attachmentId, taskListId: listId, deletedAt: null },
+            select: {
+                id: true,
+                uploadedBy: true,
+                kind: true,
+                fileName: true,
+                mimeType: true,
+                fileSize: true,
+                s3Key: true,
+                linkUrl: true,
+            },
+        });
+        if (!attachment)
+            throw new common_1.NotFoundException('Attachment not found');
+        this.assertCanManageProjectAttachment(userId, role, attachment);
+        await this.prisma.attachment.update({
+            where: { id: attachment.id },
+            data: { deletedAt: new Date() },
+        });
+        await this.activity.log({
+            workspaceId,
+            entityType: 'attachment',
+            entityId: attachment.id,
+            action: 'attachment_deleted',
+            metadata: {
+                taskListId: listId,
+                taskListName: taskList.name,
+                projectId: taskList.project.id,
+                projectName: taskList.project.name,
+                kind: attachment.kind,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                fileSize: attachment.fileSize === null ? null : Number(attachment.fileSize),
+                linkUrl: attachment.linkUrl,
+            },
+            performedBy: userId,
+        });
+        return { id: attachment.id, s3Key: attachment.s3Key };
+    }
     async createAttachment(actorId, taskId, memberId, s3Key, fileName, mimeType, fileSize) {
         const task = await this.prisma.task.findFirst({
             where: {
@@ -735,15 +984,52 @@ let AttachmentsService = class AttachmentsService {
             throw new common_1.NotFoundException('Project not found');
         return project;
     }
+    async findTaskListForAttachmentOrThrow(workspaceId, listId) {
+        const taskList = await this.prisma.taskList.findFirst({
+            where: {
+                id: listId,
+                deletedAt: null,
+                project: {
+                    workspaceId,
+                    deletedAt: null,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                        workspaceId: true,
+                    },
+                },
+            },
+        });
+        if (!taskList)
+            throw new common_1.NotFoundException('Task list not found');
+        return taskList;
+    }
     projectAttachmentPrefix(projectId) {
         const rawBasePrefix = process.env.AWS_S3_PREFIX ?? 'swiftnine/docs/app';
         const basePrefix = rawBasePrefix.replace(/^\/+|\/+$/g, '');
         return `${basePrefix}/attachments/project-${projectId}`;
     }
+    taskListAttachmentPrefix(listId) {
+        const rawBasePrefix = process.env.AWS_S3_PREFIX ?? 'swiftnine/docs/app';
+        const basePrefix = rawBasePrefix.replace(/^\/+|\/+$/g, '');
+        return `${basePrefix}/attachments/list-${listId}`;
+    }
     assertProjectAttachmentKey(projectId, s3Key) {
         const expectedPrefix = `${this.projectAttachmentPrefix(projectId)}/`;
         if (!s3Key.startsWith(expectedPrefix)) {
             throw new common_1.BadRequestException('S3 key does not belong to this project');
+        }
+    }
+    assertTaskListAttachmentKey(listId, s3Key) {
+        const expectedPrefix = `${this.taskListAttachmentPrefix(listId)}/`;
+        if (!s3Key.startsWith(expectedPrefix)) {
+            throw new common_1.BadRequestException('S3 key does not belong to this task list');
         }
     }
     normalizeProjectAttachmentLimit(limit) {
@@ -816,6 +1102,38 @@ let AttachmentsService = class AttachmentsService {
         };
     }
     async toProjectAttachmentResponse(attachment) {
+        const base = {
+            id: attachment.id,
+            kind: attachment.kind,
+            title: attachment.title,
+            description: attachment.description,
+            uploadedBy: {
+                id: attachment.uploader.id,
+                name: attachment.uploader.fullName,
+                avatarUrl: attachment.uploader.avatarUrl,
+            },
+            createdAt: attachment.createdAt,
+        };
+        if (attachment.kind === client_1.AttachmentKind.LINK) {
+            return {
+                ...base,
+                linkUrl: attachment.linkUrl ?? undefined,
+            };
+        }
+        this.assertFileAttachmentMetadata(attachment);
+        const viewUrl = await (0, s3_request_presigner_1.getSignedUrl)(this.s3, new client_s3_1.GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: attachment.s3Key,
+        }), { expiresIn: 60 * 15 });
+        return {
+            ...base,
+            fileName: attachment.fileName,
+            mimeType: attachment.mimeType,
+            fileSize: Number(attachment.fileSize),
+            viewUrl,
+        };
+    }
+    async toTaskListAttachmentResponse(attachment) {
         const base = {
             id: attachment.id,
             kind: attachment.kind,

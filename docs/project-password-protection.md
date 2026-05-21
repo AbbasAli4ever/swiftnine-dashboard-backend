@@ -22,7 +22,7 @@ The feature is fully opt-in per project — projects without a password behave e
 | What is gated | Project contents (tasks, docs, files, chat), project metadata in lists, notifications/mentions, search results |
 | Password format | Min 8 chars, at least 1 number |
 | Storage | bcrypt hash (cost 12), never reversible, never returned |
-| Forgot password | Email reset link sent to project owner |
+| Forgot password | Email reset OTP sent to project owner |
 | On password change | All existing unlock sessions invalidated immediately |
 | Token transport | Server-side DB record (`ProjectUnlockSession`), checked per request |
 | Realtime / sockets | Cannot join project's socket rooms without an active unlock |
@@ -117,7 +117,7 @@ Error codes (used in HTTP and socket errors):
 - `TOO_MANY_ATTEMPTS`
 - `INVALID_PASSWORD_FORMAT`
 - `PASSWORD_ALREADY_SET`
-- `RESET_TOKEN_INVALID`
+- `RESET_OTP_INVALID`
 
 ---
 
@@ -129,8 +129,8 @@ Error codes (used in HTTP and socket errors):
 | `PUT`  | `/projects/:id/password` | same | Change password (invalidates all unlock sessions) |
 | `DELETE` | `/projects/:id/password` | same | Remove protection (deletes hash + all unlock sessions) |
 | `POST` | `/projects/:id/unlock` | any workspace member with project access | Submit password → create 24h unlock session |
-| `POST` | `/projects/:id/password/reset-request` | any workspace member | Emails reset link to project owner only |
-| `POST` | `/projects/:id/password/reset-confirm` | holder of reset token | Set new password via token |
+| `POST` | `/projects/:id/password/reset-request` | any workspace member | Emails reset OTP to project owner only |
+| `POST` | `/projects/:id/password/reset-confirm` | holder of reset OTP | Set new password via OTP |
 | `GET`  | `/projects/:id/lock-status` | any workspace member | `{ locked: bool, unlockedUntil?: Date }` — cheap, no password required |
 
 `lock-status` exists so the frontend can decide whether to show a password prompt without making a request that gets rejected.
@@ -195,13 +195,13 @@ Reused by set / change / reset-confirm. Reject with `INVALID_PASSWORD_FORMAT`.
 ## Email reset flow
 
 1. **`reset-request`**:
-   - Generate a 32-byte random token; store `sha256(token)` in `ProjectPasswordResetToken` with `expiresAt = now + 1h`.
-   - Email the **project owner only** (the `createdBy` user) with a link containing the raw token.
-   - Rate-limit: 1 request per project per 15 minutes.
+   - Generate a 6-digit OTP; store `sha256(otp)` in `ProjectPasswordResetToken` with `expiresAt = now + 15m`.
+   - Email the **project owner only** (the `createdBy` user) with the raw OTP.
+   - Rate-limit: 1 request per project per 5 minutes.
 2. **`reset-confirm`**:
-   - Look up by `sha256(token)`, ensure not expired and not used.
+   - Look up by `sha256(otp)`, ensure not expired and not used.
    - Validate new password format.
-   - Update `passwordHash`, mark token `usedAt`.
+   - Update `passwordHash`, mark OTP record `usedAt`.
    - **Invalidate all unlock sessions** for the project.
 
 Mailer: reuse the provider already used by `auth.service.ts`.
