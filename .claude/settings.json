@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/app/(admin)/(others-pages)/projects/[id]/password/reset"
+    ]
+  }
+}
