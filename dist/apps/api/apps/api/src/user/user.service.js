@@ -229,6 +229,42 @@ let UserService = class UserService {
             });
         });
     }
+    async adminSetPassword(workspaceId, actorId, actorRole, targetUserId, dto) {
+        if (actorRole !== 'OWNER') {
+            throw new common_1.ForbiddenException('Only the workspace owner can reset a member password');
+        }
+        if (actorId === targetUserId) {
+            throw new common_1.BadRequestException('Use PATCH /user/change-password to change your own password');
+        }
+        const membership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId: targetUserId,
+                deletedAt: null,
+                user: { deletedAt: null },
+            },
+            select: { role: true },
+        });
+        if (!membership) {
+            throw new common_1.NotFoundException('User not found in this workspace');
+        }
+        if (membership.role === 'OWNER') {
+            throw new common_1.ForbiddenException("Workspace owners cannot reset another owner's password");
+        }
+        const newPasswordHash = await bcrypt.hash(dto.newPassword, PASSWORD_SALT_ROUNDS);
+        await this.prisma.$transaction([
+            this.prisma.user.update({
+                where: { id: targetUserId },
+                data: { passwordHash: newPasswordHash },
+            }),
+            this.prisma.refreshToken.deleteMany({
+                where: { userId: targetUserId },
+            }),
+        ]);
+        return {
+            message: 'Password reset successfully. The user has been logged out of all sessions.',
+        };
+    }
     async changePassword(userId, dto) {
         const user = await this.findActiveUserWithPasswordOrThrow(userId);
         if (!user.passwordHash) {

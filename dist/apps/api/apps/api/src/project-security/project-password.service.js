@@ -238,15 +238,13 @@ let ProjectPasswordService = class ProjectPasswordService {
         const project = await this.security.assertPasswordManager(workspaceId, projectId, actorUserId, actorRole);
         if (!project.passwordHash)
             throw (0, project_security_constants_1.projectPasswordNotSetException)();
-        const projectOwner = await this.prisma.user.findFirst({
-            where: { id: project.createdBy, deletedAt: null },
-            select: { email: true, fullName: true },
-        });
-        if (!projectOwner)
-            return;
+        const resetEmail = process.env['PROJECT_PASSWORD_RESET_EMAIL'];
+        if (!resetEmail) {
+            throw new common_1.InternalServerErrorException('PROJECT_PASSWORD_RESET_EMAIL is not configured');
+        }
         const { otp, otpHash } = await this.resets.createResetOtp(project.id);
         try {
-            await this.email.sendProjectPasswordResetOtpEmail(projectOwner.email, projectOwner.fullName, project.name, otp);
+            await this.email.sendProjectPasswordResetOtpEmail(resetEmail, 'Admin', project.name, otp);
         }
         catch (error) {
             await this.prisma.projectPasswordResetToken.updateMany({
