@@ -140,6 +140,7 @@ export type WorkspaceWhereInput = {
     projectFavorites?: Prisma.ProjectFavoriteListRelationFilter;
     taskFavorites?: Prisma.TaskFavoriteListRelationFilter;
     notifications?: Prisma.NotificationListRelationFilter;
+    aiConversations?: Prisma.AiConversationListRelationFilter;
 };
 export type WorkspaceOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -162,6 +163,7 @@ export type WorkspaceOrderByWithRelationInput = {
     projectFavorites?: Prisma.ProjectFavoriteOrderByRelationAggregateInput;
     taskFavorites?: Prisma.TaskFavoriteOrderByRelationAggregateInput;
     notifications?: Prisma.NotificationOrderByRelationAggregateInput;
+    aiConversations?: Prisma.AiConversationOrderByRelationAggregateInput;
 };
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -187,6 +189,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
     projectFavorites?: Prisma.ProjectFavoriteListRelationFilter;
     taskFavorites?: Prisma.TaskFavoriteListRelationFilter;
     notifications?: Prisma.NotificationListRelationFilter;
+    aiConversations?: Prisma.AiConversationListRelationFilter;
 }, "id">;
 export type WorkspaceOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -236,6 +239,7 @@ export type WorkspaceCreateInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateInput = {
     id?: string;
@@ -257,6 +261,7 @@ export type WorkspaceUncheckedCreateInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -278,6 +283,7 @@ export type WorkspaceUpdateInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -299,6 +305,7 @@ export type WorkspaceUncheckedUpdateInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateManyInput = {
     id?: string;
@@ -529,6 +536,18 @@ export type WorkspaceUpdateOneRequiredWithoutChannelsNestedInput = {
     connect?: Prisma.WorkspaceWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutChannelsInput, Prisma.WorkspaceUpdateWithoutChannelsInput>, Prisma.WorkspaceUncheckedUpdateWithoutChannelsInput>;
 };
+export type WorkspaceCreateNestedOneWithoutAiConversationsInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutAiConversationsInput>;
+    connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAiConversationsInput;
+    connect?: Prisma.WorkspaceWhereUniqueInput;
+};
+export type WorkspaceUpdateOneRequiredWithoutAiConversationsNestedInput = {
+    create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutAiConversationsInput>;
+    connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAiConversationsInput;
+    upsert?: Prisma.WorkspaceUpsertWithoutAiConversationsInput;
+    connect?: Prisma.WorkspaceWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutAiConversationsInput, Prisma.WorkspaceUpdateWithoutAiConversationsInput>, Prisma.WorkspaceUncheckedUpdateWithoutAiConversationsInput>;
+};
 export type WorkspaceCreateNestedOneWithoutDocsInput = {
     create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocsInput, Prisma.WorkspaceUncheckedCreateWithoutDocsInput>;
     connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutDocsInput;
@@ -560,6 +579,7 @@ export type WorkspaceCreateWithoutCreatorInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutCreatorInput = {
     id?: string;
@@ -580,6 +600,7 @@ export type WorkspaceUncheckedCreateWithoutCreatorInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutCreatorInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -635,6 +656,7 @@ export type WorkspaceCreateWithoutMembersInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutMembersInput = {
     id?: string;
@@ -655,6 +677,7 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutMembersInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -688,6 +711,7 @@ export type WorkspaceUpdateWithoutMembersInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -708,6 +732,7 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutInvitesInput = {
     id?: string;
@@ -728,6 +753,7 @@ export type WorkspaceCreateWithoutInvitesInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutInvitesInput = {
     id?: string;
@@ -748,6 +774,7 @@ export type WorkspaceUncheckedCreateWithoutInvitesInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutInvitesInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -781,6 +808,7 @@ export type WorkspaceUpdateWithoutInvitesInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -801,6 +829,7 @@ export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutProjectsInput = {
     id?: string;
@@ -821,6 +850,7 @@ export type WorkspaceCreateWithoutProjectsInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutProjectsInput = {
     id?: string;
@@ -841,6 +871,7 @@ export type WorkspaceUncheckedCreateWithoutProjectsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutProjectsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -874,6 +905,7 @@ export type WorkspaceUpdateWithoutProjectsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -894,6 +926,7 @@ export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutTagsInput = {
     id?: string;
@@ -914,6 +947,7 @@ export type WorkspaceCreateWithoutTagsInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutTagsInput = {
     id?: string;
@@ -934,6 +968,7 @@ export type WorkspaceUncheckedCreateWithoutTagsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutTagsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -967,6 +1002,7 @@ export type WorkspaceUpdateWithoutTagsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutTagsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -987,6 +1023,7 @@ export type WorkspaceUncheckedUpdateWithoutTagsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutProjectFavoritesInput = {
     id?: string;
@@ -1007,6 +1044,7 @@ export type WorkspaceCreateWithoutProjectFavoritesInput = {
     docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutProjectFavoritesInput = {
     id?: string;
@@ -1027,6 +1065,7 @@ export type WorkspaceUncheckedCreateWithoutProjectFavoritesInput = {
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutProjectFavoritesInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1060,6 +1099,7 @@ export type WorkspaceUpdateWithoutProjectFavoritesInput = {
     docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutProjectFavoritesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1080,6 +1120,7 @@ export type WorkspaceUncheckedUpdateWithoutProjectFavoritesInput = {
     docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutTaskFavoritesInput = {
     id?: string;
@@ -1100,6 +1141,7 @@ export type WorkspaceCreateWithoutTaskFavoritesInput = {
     docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutTaskFavoritesInput = {
     id?: string;
@@ -1120,6 +1162,7 @@ export type WorkspaceUncheckedCreateWithoutTaskFavoritesInput = {
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutTaskFavoritesInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1153,6 +1196,7 @@ export type WorkspaceUpdateWithoutTaskFavoritesInput = {
     docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutTaskFavoritesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1173,6 +1217,7 @@ export type WorkspaceUncheckedUpdateWithoutTaskFavoritesInput = {
     docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutNotificationsInput = {
     id?: string;
@@ -1193,6 +1238,7 @@ export type WorkspaceCreateWithoutNotificationsInput = {
     docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
     id?: string;
@@ -1213,6 +1259,7 @@ export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
     docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutNotificationsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1246,6 +1293,7 @@ export type WorkspaceUpdateWithoutNotificationsInput = {
     docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1266,6 +1314,7 @@ export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
     docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutActivityLogsInput = {
     id?: string;
@@ -1286,6 +1335,7 @@ export type WorkspaceCreateWithoutActivityLogsInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutActivityLogsInput = {
     id?: string;
@@ -1306,6 +1356,7 @@ export type WorkspaceUncheckedCreateWithoutActivityLogsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutActivityLogsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1339,6 +1390,7 @@ export type WorkspaceUpdateWithoutActivityLogsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutActivityLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1359,6 +1411,7 @@ export type WorkspaceUncheckedUpdateWithoutActivityLogsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateWithoutChannelsInput = {
     id?: string;
@@ -1379,6 +1432,7 @@ export type WorkspaceCreateWithoutChannelsInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutChannelsInput = {
     id?: string;
@@ -1399,6 +1453,7 @@ export type WorkspaceUncheckedCreateWithoutChannelsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutChannelsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1432,6 +1487,7 @@ export type WorkspaceUpdateWithoutChannelsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutChannelsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1446,6 +1502,104 @@ export type WorkspaceUncheckedUpdateWithoutChannelsInput = {
     members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput;
     invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+};
+export type WorkspaceCreateWithoutAiConversationsInput = {
+    id?: string;
+    name: string;
+    logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    creator: Prisma.UserCreateNestedOneWithoutWorkspacesCreatedInput;
+    members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput;
+    invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput;
+    projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput;
+    channels?: Prisma.ChannelCreateNestedManyWithoutWorkspaceInput;
+    tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocCreateNestedManyWithoutWorkspaceInput;
+    projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
+    taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
+    notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+};
+export type WorkspaceUncheckedCreateWithoutAiConversationsInput = {
+    id?: string;
+    name: string;
+    logoUrl?: string | null;
+    workspaceUse: $Enums.WorkspaceUse;
+    managementType: $Enums.WorkspaceManagementType;
+    createdBy: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput;
+    invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput;
+    projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput;
+    channels?: Prisma.ChannelUncheckedCreateNestedManyWithoutWorkspaceInput;
+    tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutWorkspaceInput;
+    docs?: Prisma.DocUncheckedCreateNestedManyWithoutWorkspaceInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
+    notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+};
+export type WorkspaceCreateOrConnectWithoutAiConversationsInput = {
+    where: Prisma.WorkspaceWhereUniqueInput;
+    create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutAiConversationsInput>;
+};
+export type WorkspaceUpsertWithoutAiConversationsInput = {
+    update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedUpdateWithoutAiConversationsInput>;
+    create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutAiConversationsInput>;
+    where?: Prisma.WorkspaceWhereInput;
+};
+export type WorkspaceUpdateToOneWithWhereWithoutAiConversationsInput = {
+    where?: Prisma.WorkspaceWhereInput;
+    data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAiConversationsInput, Prisma.WorkspaceUncheckedUpdateWithoutAiConversationsInput>;
+};
+export type WorkspaceUpdateWithoutAiConversationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    creator?: Prisma.UserUpdateOneRequiredWithoutWorkspacesCreatedNestedInput;
+    members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput;
+    invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput;
+    projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput;
+    channels?: Prisma.ChannelUpdateManyWithoutWorkspaceNestedInput;
+    tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutWorkspaceNestedInput;
+    docs?: Prisma.DocUpdateManyWithoutWorkspaceNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
+    notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+};
+export type WorkspaceUncheckedUpdateWithoutAiConversationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    workspaceUse?: Prisma.EnumWorkspaceUseFieldUpdateOperationsInput | $Enums.WorkspaceUse;
+    managementType?: Prisma.EnumWorkspaceManagementTypeFieldUpdateOperationsInput | $Enums.WorkspaceManagementType;
+    createdBy?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    channels?: Prisma.ChannelUncheckedUpdateManyWithoutWorkspaceNestedInput;
     tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput;
     activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutWorkspaceNestedInput;
     docs?: Prisma.DocUncheckedUpdateManyWithoutWorkspaceNestedInput;
@@ -1472,6 +1626,7 @@ export type WorkspaceCreateWithoutDocsInput = {
     projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceUncheckedCreateWithoutDocsInput = {
     id?: string;
@@ -1492,6 +1647,7 @@ export type WorkspaceUncheckedCreateWithoutDocsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutWorkspaceInput;
     notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutWorkspaceInput;
 };
 export type WorkspaceCreateOrConnectWithoutDocsInput = {
     where: Prisma.WorkspaceWhereUniqueInput;
@@ -1525,6 +1681,7 @@ export type WorkspaceUpdateWithoutDocsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutDocsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1545,6 +1702,7 @@ export type WorkspaceUncheckedUpdateWithoutDocsInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceCreateManyCreatorInput = {
     id?: string;
@@ -1575,6 +1733,7 @@ export type WorkspaceUpdateWithoutCreatorInput = {
     projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1595,6 +1754,7 @@ export type WorkspaceUncheckedUpdateWithoutCreatorInput = {
     projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutWorkspaceNestedInput;
     notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutWorkspaceNestedInput;
 };
 export type WorkspaceUncheckedUpdateManyWithoutCreatorInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1617,6 +1777,7 @@ export type WorkspaceCountOutputType = {
     projectFavorites: number;
     taskFavorites: number;
     notifications: number;
+    aiConversations: number;
 };
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     members?: boolean | WorkspaceCountOutputTypeCountMembersArgs;
@@ -1629,6 +1790,7 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
     projectFavorites?: boolean | WorkspaceCountOutputTypeCountProjectFavoritesArgs;
     taskFavorites?: boolean | WorkspaceCountOutputTypeCountTaskFavoritesArgs;
     notifications?: boolean | WorkspaceCountOutputTypeCountNotificationsArgs;
+    aiConversations?: boolean | WorkspaceCountOutputTypeCountAiConversationsArgs;
 };
 export type WorkspaceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.WorkspaceCountOutputTypeSelect<ExtArgs> | null;
@@ -1663,6 +1825,9 @@ export type WorkspaceCountOutputTypeCountTaskFavoritesArgs<ExtArgs extends runti
 export type WorkspaceCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.NotificationWhereInput;
 };
+export type WorkspaceCountOutputTypeCountAiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.AiConversationWhereInput;
+};
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     name?: boolean;
@@ -1684,6 +1849,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
     projectFavorites?: boolean | Prisma.Workspace$projectFavoritesArgs<ExtArgs>;
     taskFavorites?: boolean | Prisma.Workspace$taskFavoritesArgs<ExtArgs>;
     notifications?: boolean | Prisma.Workspace$notificationsArgs<ExtArgs>;
+    aiConversations?: boolean | Prisma.Workspace$aiConversationsArgs<ExtArgs>;
     _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["workspace"]>;
 export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1734,6 +1900,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
     projectFavorites?: boolean | Prisma.Workspace$projectFavoritesArgs<ExtArgs>;
     taskFavorites?: boolean | Prisma.Workspace$taskFavoritesArgs<ExtArgs>;
     notifications?: boolean | Prisma.Workspace$notificationsArgs<ExtArgs>;
+    aiConversations?: boolean | Prisma.Workspace$aiConversationsArgs<ExtArgs>;
     _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1756,6 +1923,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
         projectFavorites: Prisma.$ProjectFavoritePayload<ExtArgs>[];
         taskFavorites: Prisma.$TaskFavoritePayload<ExtArgs>[];
         notifications: Prisma.$NotificationPayload<ExtArgs>[];
+        aiConversations: Prisma.$AiConversationPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1830,6 +1998,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
     projectFavorites<T extends Prisma.Workspace$projectFavoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$projectFavoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     taskFavorites<T extends Prisma.Workspace$taskFavoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$taskFavoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskFavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     notifications<T extends Prisma.Workspace$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    aiConversations<T extends Prisma.Workspace$aiConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$aiConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -2054,6 +2223,17 @@ export type Workspace$notificationsArgs<ExtArgs extends runtime.Types.Extensions
     take?: number;
     skip?: number;
     distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
+};
+export type Workspace$aiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.AiConversationSelect<ExtArgs> | null;
+    omit?: Prisma.AiConversationOmit<ExtArgs> | null;
+    include?: Prisma.AiConversationInclude<ExtArgs> | null;
+    where?: Prisma.AiConversationWhereInput;
+    orderBy?: Prisma.AiConversationOrderByWithRelationInput | Prisma.AiConversationOrderByWithRelationInput[];
+    cursor?: Prisma.AiConversationWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.AiConversationScalarFieldEnum | Prisma.AiConversationScalarFieldEnum[];
 };
 export type WorkspaceDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.WorkspaceSelect<ExtArgs> | null;

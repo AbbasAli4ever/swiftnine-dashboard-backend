@@ -124,6 +124,12 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get channelJoinRequest(): Prisma.ChannelJoinRequestDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get aiConversation(): Prisma.AiConversationDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get aiConversationMessage(): Prisma.AiConversationMessageDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get doc(): Prisma.DocDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

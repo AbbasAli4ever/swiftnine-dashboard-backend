@@ -30,6 +30,8 @@ export type * from './models/ChannelMessage';
 export type * from './models/ChannelMessageMention';
 export type * from './models/ChannelMessageReaction';
 export type * from './models/ChannelJoinRequest';
+export type * from './models/AiConversation';
+export type * from './models/AiConversationMessage';
 export type * from './models/Doc';
 export type * from './models/DocVersion';
 export type * from './models/DocPermission';

@@ -12,16 +12,16 @@ export declare class ChatSystemService {
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        isEdited: boolean;
-        kind: import("@app/database/generated/prisma/enums").ChannelMessageKind;
         channelId: string;
-        senderId: string | null;
+        kind: import("@app/database/generated/prisma/enums").ChannelMessageKind;
         contentJson: import("@prisma/client/runtime/client").JsonValue;
         plaintext: string;
-        replyToMessageId: string | null;
+        isEdited: boolean;
         editedAt: Date | null;
         isPinned: boolean;
         pinnedAt: Date | null;
+        replyToMessageId: string | null;
         pinnedById: string | null;
+        senderId: string | null;
     }>;
 }

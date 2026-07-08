@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChannelMessageReactionScalarFieldEnum = exports.ChannelMessageMentionScalarFieldEnum = exports.ChannelMessageScalarFieldEnum = exports.ChannelMemberScalarFieldEnum = exports.ChannelScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.TimeEntryScalarFieldEnum = exports.AttachmentScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.MentionScalarFieldEnum = exports.ReactionScalarFieldEnum = exports.CommentScalarFieldEnum = exports.TaskTagScalarFieldEnum = exports.TaskAssigneeScalarFieldEnum = exports.TaskFavoriteScalarFieldEnum = exports.ProjectFavoriteScalarFieldEnum = exports.TaskScalarFieldEnum = exports.TagScalarFieldEnum = exports.StatusScalarFieldEnum = exports.TaskListScalarFieldEnum = exports.ProjectPasswordResetTokenScalarFieldEnum = exports.ProjectUnlockAttemptScalarFieldEnum = exports.ProjectUnlockSessionScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.WorkspaceInviteScalarFieldEnum = exports.WorkspaceMemberScalarFieldEnum = exports.WorkspaceScalarFieldEnum = exports.EmailVerificationTokenScalarFieldEnum = exports.PasswordResetTokenScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
-exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.ChannelJoinRequestScalarFieldEnum = void 0;
+exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = exports.DocShareLinkScalarFieldEnum = exports.DocCommentScalarFieldEnum = exports.DocCommentThreadScalarFieldEnum = exports.DocPermissionScalarFieldEnum = exports.DocVersionScalarFieldEnum = exports.DocScalarFieldEnum = exports.AiConversationMessageScalarFieldEnum = exports.AiConversationScalarFieldEnum = exports.ChannelJoinRequestScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -93,6 +93,8 @@ exports.ModelName = {
     ChannelMessageMention: 'ChannelMessageMention',
     ChannelMessageReaction: 'ChannelMessageReaction',
     ChannelJoinRequest: 'ChannelJoinRequest',
+    AiConversation: 'AiConversation',
+    AiConversationMessage: 'AiConversationMessage',
     Doc: 'Doc',
     DocVersion: 'DocVersion',
     DocPermission: 'DocPermission',
@@ -458,6 +460,23 @@ exports.ChannelJoinRequestScalarFieldEnum = {
     requestedAt: 'requestedAt',
     decidedById: 'decidedById',
     decidedAt: 'decidedAt'
+};
+exports.AiConversationScalarFieldEnum = {
+    id: 'id',
+    workspaceId: 'workspaceId',
+    userId: 'userId',
+    title: 'title',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+};
+exports.AiConversationMessageScalarFieldEnum = {
+    id: 'id',
+    conversationId: 'conversationId',
+    role: 'role',
+    content: 'content',
+    status: 'status',
+    createdAt: 'createdAt'
 };
 exports.DocScalarFieldEnum = {
     id: 'id',

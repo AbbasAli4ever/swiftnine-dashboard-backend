@@ -226,6 +226,7 @@ export type UserWhereInput = {
     docThreadsCreated?: Prisma.DocCommentThreadListRelationFilter;
     docCommentsAuthored?: Prisma.DocCommentListRelationFilter;
     docShareLinksCreated?: Prisma.DocShareLinkListRelationFilter;
+    aiConversations?: Prisma.AiConversationListRelationFilter;
 };
 export type UserOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -283,6 +284,7 @@ export type UserOrderByWithRelationInput = {
     docThreadsCreated?: Prisma.DocCommentThreadOrderByRelationAggregateInput;
     docCommentsAuthored?: Prisma.DocCommentOrderByRelationAggregateInput;
     docShareLinksCreated?: Prisma.DocShareLinkOrderByRelationAggregateInput;
+    aiConversations?: Prisma.AiConversationOrderByRelationAggregateInput;
 };
 export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -343,6 +345,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
     docThreadsCreated?: Prisma.DocCommentThreadListRelationFilter;
     docCommentsAuthored?: Prisma.DocCommentListRelationFilter;
     docShareLinksCreated?: Prisma.DocShareLinkListRelationFilter;
+    aiConversations?: Prisma.AiConversationListRelationFilter;
 }, "id" | "email" | "googleId">;
 export type UserOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -444,6 +447,7 @@ export type UserCreateInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateInput = {
     id?: string;
@@ -501,6 +505,7 @@ export type UserUncheckedCreateInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -558,6 +563,7 @@ export type UserUpdateInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -615,6 +621,7 @@ export type UserUncheckedUpdateInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateManyInput = {
     id?: string;
@@ -1135,6 +1142,18 @@ export type UserUpdateOneWithoutChannelJoinRequestsDecidedNestedInput = {
     connect?: Prisma.UserWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutChannelJoinRequestsDecidedInput, Prisma.UserUpdateWithoutChannelJoinRequestsDecidedInput>, Prisma.UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput>;
 };
+export type UserCreateNestedOneWithoutAiConversationsInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiConversationsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+};
+export type UserUpdateOneRequiredWithoutAiConversationsNestedInput = {
+    create?: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>;
+    connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiConversationsInput;
+    upsert?: Prisma.UserUpsertWithoutAiConversationsInput;
+    connect?: Prisma.UserWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAiConversationsInput, Prisma.UserUpdateWithoutAiConversationsInput>, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>;
+};
 export type UserCreateNestedOneWithoutDocsOwnedInput = {
     create?: Prisma.XOR<Prisma.UserCreateWithoutDocsOwnedInput, Prisma.UserUncheckedCreateWithoutDocsOwnedInput>;
     connectOrCreate?: Prisma.UserCreateOrConnectWithoutDocsOwnedInput;
@@ -1274,6 +1293,7 @@ export type UserCreateWithoutRefreshTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
     id?: string;
@@ -1330,6 +1350,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -1399,6 +1420,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1455,6 +1477,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutPasswordResetTokensInput = {
     id?: string;
@@ -1511,6 +1534,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
     id?: string;
@@ -1567,6 +1591,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -1636,6 +1661,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1692,6 +1718,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutEmailVerificationTokensInput = {
     id?: string;
@@ -1748,6 +1775,7 @@ export type UserCreateWithoutEmailVerificationTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutEmailVerificationTokensInput = {
     id?: string;
@@ -1804,6 +1832,7 @@ export type UserUncheckedCreateWithoutEmailVerificationTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutEmailVerificationTokensInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -1873,6 +1902,7 @@ export type UserUpdateWithoutEmailVerificationTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1929,6 +1959,7 @@ export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutWorkspacesCreatedInput = {
     id?: string;
@@ -1985,6 +2016,7 @@ export type UserCreateWithoutWorkspacesCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutWorkspacesCreatedInput = {
     id?: string;
@@ -2041,6 +2073,7 @@ export type UserUncheckedCreateWithoutWorkspacesCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutWorkspacesCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -2110,6 +2143,7 @@ export type UserUpdateWithoutWorkspacesCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutWorkspacesCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2166,6 +2200,7 @@ export type UserUncheckedUpdateWithoutWorkspacesCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutWorkspaceMembersInput = {
     id?: string;
@@ -2222,6 +2257,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
     id?: string;
@@ -2278,6 +2314,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutWorkspaceMembersInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -2347,6 +2384,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2403,6 +2441,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutWorkspaceInvitesSentInput = {
     id?: string;
@@ -2459,6 +2498,7 @@ export type UserCreateWithoutWorkspaceInvitesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutWorkspaceInvitesSentInput = {
     id?: string;
@@ -2515,6 +2555,7 @@ export type UserUncheckedCreateWithoutWorkspaceInvitesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutWorkspaceInvitesSentInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -2584,6 +2625,7 @@ export type UserUpdateWithoutWorkspaceInvitesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutWorkspaceInvitesSentInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2640,6 +2682,7 @@ export type UserUncheckedUpdateWithoutWorkspaceInvitesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutProjectsCreatedInput = {
     id?: string;
@@ -2696,6 +2739,7 @@ export type UserCreateWithoutProjectsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutProjectsCreatedInput = {
     id?: string;
@@ -2752,6 +2796,7 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutProjectsCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -2812,6 +2857,7 @@ export type UserCreateWithoutProjectPasswordsSetInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutProjectPasswordsSetInput = {
     id?: string;
@@ -2868,6 +2914,7 @@ export type UserUncheckedCreateWithoutProjectPasswordsSetInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutProjectPasswordsSetInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -2937,6 +2984,7 @@ export type UserUpdateWithoutProjectsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2993,6 +3041,7 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutProjectPasswordsSetInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutProjectPasswordsSetInput, Prisma.UserUncheckedUpdateWithoutProjectPasswordsSetInput>;
@@ -3058,6 +3107,7 @@ export type UserUpdateWithoutProjectPasswordsSetInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutProjectPasswordsSetInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -3114,6 +3164,7 @@ export type UserUncheckedUpdateWithoutProjectPasswordsSetInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutProjectUnlockSessionsInput = {
     id?: string;
@@ -3170,6 +3221,7 @@ export type UserCreateWithoutProjectUnlockSessionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutProjectUnlockSessionsInput = {
     id?: string;
@@ -3226,6 +3278,7 @@ export type UserUncheckedCreateWithoutProjectUnlockSessionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutProjectUnlockSessionsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -3295,6 +3348,7 @@ export type UserUpdateWithoutProjectUnlockSessionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutProjectUnlockSessionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -3351,6 +3405,7 @@ export type UserUncheckedUpdateWithoutProjectUnlockSessionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutProjectUnlockAttemptsInput = {
     id?: string;
@@ -3407,6 +3462,7 @@ export type UserCreateWithoutProjectUnlockAttemptsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutProjectUnlockAttemptsInput = {
     id?: string;
@@ -3463,6 +3519,7 @@ export type UserUncheckedCreateWithoutProjectUnlockAttemptsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutProjectUnlockAttemptsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -3532,6 +3589,7 @@ export type UserUpdateWithoutProjectUnlockAttemptsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutProjectUnlockAttemptsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -3588,6 +3646,7 @@ export type UserUncheckedUpdateWithoutProjectUnlockAttemptsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutTaskListsCreatedInput = {
     id?: string;
@@ -3644,6 +3703,7 @@ export type UserCreateWithoutTaskListsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTaskListsCreatedInput = {
     id?: string;
@@ -3700,6 +3760,7 @@ export type UserUncheckedCreateWithoutTaskListsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTaskListsCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -3760,6 +3821,7 @@ export type UserCreateWithoutTaskListsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTaskListsOwnedInput = {
     id?: string;
@@ -3816,6 +3878,7 @@ export type UserUncheckedCreateWithoutTaskListsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTaskListsOwnedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -3885,6 +3948,7 @@ export type UserUpdateWithoutTaskListsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTaskListsCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -3941,6 +4005,7 @@ export type UserUncheckedUpdateWithoutTaskListsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutTaskListsOwnedInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutTaskListsOwnedInput, Prisma.UserUncheckedUpdateWithoutTaskListsOwnedInput>;
@@ -4006,6 +4071,7 @@ export type UserUpdateWithoutTaskListsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTaskListsOwnedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -4062,6 +4128,7 @@ export type UserUncheckedUpdateWithoutTaskListsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutTasksCreatedInput = {
     id?: string;
@@ -4118,6 +4185,7 @@ export type UserCreateWithoutTasksCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTasksCreatedInput = {
     id?: string;
@@ -4174,6 +4242,7 @@ export type UserUncheckedCreateWithoutTasksCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTasksCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -4243,6 +4312,7 @@ export type UserUpdateWithoutTasksCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTasksCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -4299,6 +4369,7 @@ export type UserUncheckedUpdateWithoutTasksCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutProjectFavoritesInput = {
     id?: string;
@@ -4355,6 +4426,7 @@ export type UserCreateWithoutProjectFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutProjectFavoritesInput = {
     id?: string;
@@ -4411,6 +4483,7 @@ export type UserUncheckedCreateWithoutProjectFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutProjectFavoritesInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -4480,6 +4553,7 @@ export type UserUpdateWithoutProjectFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutProjectFavoritesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -4536,6 +4610,7 @@ export type UserUncheckedUpdateWithoutProjectFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutTaskFavoritesInput = {
     id?: string;
@@ -4592,6 +4667,7 @@ export type UserCreateWithoutTaskFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTaskFavoritesInput = {
     id?: string;
@@ -4648,6 +4724,7 @@ export type UserUncheckedCreateWithoutTaskFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTaskFavoritesInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -4717,6 +4794,7 @@ export type UserUpdateWithoutTaskFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTaskFavoritesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -4773,6 +4851,7 @@ export type UserUncheckedUpdateWithoutTaskFavoritesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutTaskAssignmentsInput = {
     id?: string;
@@ -4829,6 +4908,7 @@ export type UserCreateWithoutTaskAssignmentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
     id?: string;
@@ -4885,6 +4965,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTaskAssignmentsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -4945,6 +5026,7 @@ export type UserCreateWithoutTaskAssignmentsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTaskAssignmentsMadeInput = {
     id?: string;
@@ -5001,6 +5083,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTaskAssignmentsMadeInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -5070,6 +5153,7 @@ export type UserUpdateWithoutTaskAssignmentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -5126,6 +5210,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutTaskAssignmentsMadeInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutTaskAssignmentsMadeInput, Prisma.UserUncheckedUpdateWithoutTaskAssignmentsMadeInput>;
@@ -5191,6 +5276,7 @@ export type UserUpdateWithoutTaskAssignmentsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTaskAssignmentsMadeInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -5247,6 +5333,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutCommentsInput = {
     id?: string;
@@ -5303,6 +5390,7 @@ export type UserCreateWithoutCommentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutCommentsInput = {
     id?: string;
@@ -5359,6 +5447,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutCommentsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -5428,6 +5517,7 @@ export type UserUpdateWithoutCommentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutCommentsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -5484,6 +5574,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutMentionsInput = {
     id?: string;
@@ -5540,6 +5631,7 @@ export type UserCreateWithoutMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutMentionsInput = {
     id?: string;
@@ -5596,6 +5688,7 @@ export type UserUncheckedCreateWithoutMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutMentionsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -5665,6 +5758,7 @@ export type UserUpdateWithoutMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutMentionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -5721,6 +5815,7 @@ export type UserUncheckedUpdateWithoutMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutNotificationsReceivedInput = {
     id?: string;
@@ -5777,6 +5872,7 @@ export type UserCreateWithoutNotificationsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
     id?: string;
@@ -5833,6 +5929,7 @@ export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutNotificationsReceivedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -5893,6 +5990,7 @@ export type UserCreateWithoutNotificationsTriggeredInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutNotificationsTriggeredInput = {
     id?: string;
@@ -5949,6 +6047,7 @@ export type UserUncheckedCreateWithoutNotificationsTriggeredInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutNotificationsTriggeredInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -6018,6 +6117,7 @@ export type UserUpdateWithoutNotificationsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -6074,6 +6174,7 @@ export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutNotificationsTriggeredInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsTriggeredInput, Prisma.UserUncheckedUpdateWithoutNotificationsTriggeredInput>;
@@ -6139,6 +6240,7 @@ export type UserUpdateWithoutNotificationsTriggeredInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutNotificationsTriggeredInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -6195,6 +6297,7 @@ export type UserUncheckedUpdateWithoutNotificationsTriggeredInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutAttachmentsUploadedInput = {
     id?: string;
@@ -6251,6 +6354,7 @@ export type UserCreateWithoutAttachmentsUploadedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutAttachmentsUploadedInput = {
     id?: string;
@@ -6307,6 +6411,7 @@ export type UserUncheckedCreateWithoutAttachmentsUploadedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutAttachmentsUploadedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -6376,6 +6481,7 @@ export type UserUpdateWithoutAttachmentsUploadedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutAttachmentsUploadedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -6432,6 +6538,7 @@ export type UserUncheckedUpdateWithoutAttachmentsUploadedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutTimeEntriesInput = {
     id?: string;
@@ -6488,6 +6595,7 @@ export type UserCreateWithoutTimeEntriesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutTimeEntriesInput = {
     id?: string;
@@ -6544,6 +6652,7 @@ export type UserUncheckedCreateWithoutTimeEntriesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutTimeEntriesInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -6613,6 +6722,7 @@ export type UserUpdateWithoutTimeEntriesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutTimeEntriesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -6669,6 +6779,7 @@ export type UserUncheckedUpdateWithoutTimeEntriesInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutActivityLogsInput = {
     id?: string;
@@ -6725,6 +6836,7 @@ export type UserCreateWithoutActivityLogsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutActivityLogsInput = {
     id?: string;
@@ -6781,6 +6893,7 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutActivityLogsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -6850,6 +6963,7 @@ export type UserUpdateWithoutActivityLogsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutActivityLogsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -6906,6 +7020,7 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutChannelMembersInput = {
     id?: string;
@@ -6962,6 +7077,7 @@ export type UserCreateWithoutChannelMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelMembersInput = {
     id?: string;
@@ -7018,6 +7134,7 @@ export type UserUncheckedCreateWithoutChannelMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelMembersInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -7087,6 +7204,7 @@ export type UserUpdateWithoutChannelMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelMembersInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -7143,6 +7261,7 @@ export type UserUncheckedUpdateWithoutChannelMembersInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutChannelMessagesSentInput = {
     id?: string;
@@ -7199,6 +7318,7 @@ export type UserCreateWithoutChannelMessagesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelMessagesSentInput = {
     id?: string;
@@ -7255,6 +7375,7 @@ export type UserUncheckedCreateWithoutChannelMessagesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelMessagesSentInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -7315,6 +7436,7 @@ export type UserCreateWithoutChannelMessagesPinnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelMessagesPinnedInput = {
     id?: string;
@@ -7371,6 +7493,7 @@ export type UserUncheckedCreateWithoutChannelMessagesPinnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelMessagesPinnedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -7440,6 +7563,7 @@ export type UserUpdateWithoutChannelMessagesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelMessagesSentInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -7496,6 +7620,7 @@ export type UserUncheckedUpdateWithoutChannelMessagesSentInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutChannelMessagesPinnedInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutChannelMessagesPinnedInput, Prisma.UserUncheckedUpdateWithoutChannelMessagesPinnedInput>;
@@ -7561,6 +7686,7 @@ export type UserUpdateWithoutChannelMessagesPinnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelMessagesPinnedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -7617,6 +7743,7 @@ export type UserUncheckedUpdateWithoutChannelMessagesPinnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutChannelMessageMentionsInput = {
     id?: string;
@@ -7673,6 +7800,7 @@ export type UserCreateWithoutChannelMessageMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelMessageMentionsInput = {
     id?: string;
@@ -7729,6 +7857,7 @@ export type UserUncheckedCreateWithoutChannelMessageMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelMessageMentionsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -7798,6 +7927,7 @@ export type UserUpdateWithoutChannelMessageMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelMessageMentionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -7854,6 +7984,7 @@ export type UserUncheckedUpdateWithoutChannelMessageMentionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutChannelMessageReactionsInput = {
     id?: string;
@@ -7910,6 +8041,7 @@ export type UserCreateWithoutChannelMessageReactionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelMessageReactionsInput = {
     id?: string;
@@ -7966,6 +8098,7 @@ export type UserUncheckedCreateWithoutChannelMessageReactionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelMessageReactionsInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -8035,6 +8168,7 @@ export type UserUpdateWithoutChannelMessageReactionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelMessageReactionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -8091,6 +8225,7 @@ export type UserUncheckedUpdateWithoutChannelMessageReactionsInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutChannelJoinRequestsMadeInput = {
     id?: string;
@@ -8147,6 +8282,7 @@ export type UserCreateWithoutChannelJoinRequestsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelJoinRequestsMadeInput = {
     id?: string;
@@ -8203,6 +8339,7 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelJoinRequestsMadeInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -8263,6 +8400,7 @@ export type UserCreateWithoutChannelJoinRequestsDecidedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutChannelJoinRequestsDecidedInput = {
     id?: string;
@@ -8319,6 +8457,7 @@ export type UserUncheckedCreateWithoutChannelJoinRequestsDecidedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutChannelJoinRequestsDecidedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -8388,6 +8527,7 @@ export type UserUpdateWithoutChannelJoinRequestsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelJoinRequestsMadeInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -8444,6 +8584,7 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsMadeInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutChannelJoinRequestsDecidedInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutChannelJoinRequestsDecidedInput, Prisma.UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput>;
@@ -8509,6 +8650,7 @@ export type UserUpdateWithoutChannelJoinRequestsDecidedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -8543,6 +8685,248 @@ export type UserUncheckedUpdateWithoutChannelJoinRequestsDecidedInput = {
     channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
     channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedUpdateManyWithoutUserNestedInput;
     channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUncheckedUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUncheckedUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
+};
+export type UserCreateWithoutAiConversationsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+};
+export type UserUncheckedCreateWithoutAiConversationsInput = {
+    id?: string;
+    fullName: string;
+    email: string;
+    passwordHash?: string | null;
+    googleId?: string | null;
+    avatarUrl?: string | null;
+    avatarColor?: string;
+    designation?: string | null;
+    bio?: string | null;
+    isOnline?: boolean;
+    lastSeenAt?: Date | string | null;
+    timezone?: string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    deletedAt?: Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutCreatorInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedCreateNestedManyWithoutUserInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedCreateNestedManyWithoutUserInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedCreateNestedManyWithoutUserInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutSenderInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedCreateNestedManyWithoutPinnedByInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutUserInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedCreateNestedManyWithoutDecidedByInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutSenderInput;
+    projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput;
+    projectPasswordsSet?: Prisma.ProjectUncheckedCreateNestedManyWithoutPasswordSetterInput;
+    taskListsCreated?: Prisma.TaskListUncheckedCreateNestedManyWithoutCreatorInput;
+    taskListsOwned?: Prisma.TaskListUncheckedCreateNestedManyWithoutOwnerInput;
+    tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput;
+    taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutAssignerInput;
+    comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+    mentions?: Prisma.MentionUncheckedCreateNestedManyWithoutMentionedUserInput;
+    notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+    notificationsTriggered?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+    attachmentsUploaded?: Prisma.AttachmentUncheckedCreateNestedManyWithoutUploaderInput;
+    timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput;
+    activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutPerformerInput;
+    docsOwned?: Prisma.DocUncheckedCreateNestedManyWithoutOwnerInput;
+    docVersionsCreated?: Prisma.DocVersionUncheckedCreateNestedManyWithoutCreatedByInput;
+    docPermissionsGranted?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutGrantedByInput;
+    docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
+    docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+};
+export type UserCreateOrConnectWithoutAiConversationsInput = {
+    where: Prisma.UserWhereUniqueInput;
+    create: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>;
+};
+export type UserUpsertWithoutAiConversationsInput = {
+    update: Prisma.XOR<Prisma.UserUpdateWithoutAiConversationsInput, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>;
+    create: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>;
+    where?: Prisma.UserWhereInput;
+};
+export type UserUpdateToOneWithWhereWithoutAiConversationsInput = {
+    where?: Prisma.UserWhereInput;
+    data: Prisma.XOR<Prisma.UserUpdateWithoutAiConversationsInput, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>;
+};
+export type UserUpdateWithoutAiConversationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUpdateManyWithoutDecidedByNestedInput;
+    workspaceInvitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutSenderNestedInput;
+    projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput;
+    projectPasswordsSet?: Prisma.ProjectUpdateManyWithoutPasswordSetterNestedInput;
+    taskListsCreated?: Prisma.TaskListUpdateManyWithoutCreatorNestedInput;
+    taskListsOwned?: Prisma.TaskListUpdateManyWithoutOwnerNestedInput;
+    tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput;
+    taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput;
+    taskAssignmentsMade?: Prisma.TaskAssigneeUpdateManyWithoutAssignerNestedInput;
+    comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+    mentions?: Prisma.MentionUpdateManyWithoutMentionedUserNestedInput;
+    notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+    notificationsTriggered?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+    attachmentsUploaded?: Prisma.AttachmentUpdateManyWithoutUploaderNestedInput;
+    timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput;
+    activityLogs?: Prisma.ActivityLogUpdateManyWithoutPerformerNestedInput;
+    docsOwned?: Prisma.DocUpdateManyWithoutOwnerNestedInput;
+    docVersionsCreated?: Prisma.DocVersionUpdateManyWithoutCreatedByNestedInput;
+    docPermissionsGranted?: Prisma.DocPermissionUpdateManyWithoutGrantedByNestedInput;
+    docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
+    docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
+    docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
+    docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+};
+export type UserUncheckedUpdateWithoutAiConversationsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    fullName?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatarColor?: Prisma.StringFieldUpdateOperationsInput | string;
+    designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notificationPreferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+    passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput;
+    emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput;
+    workspacesCreated?: Prisma.WorkspaceUncheckedUpdateManyWithoutCreatorNestedInput;
+    workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput;
+    projectFavorites?: Prisma.ProjectFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    taskFavorites?: Prisma.TaskFavoriteUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockSessions?: Prisma.ProjectUnlockSessionUncheckedUpdateManyWithoutUserNestedInput;
+    projectUnlockAttempts?: Prisma.ProjectUnlockAttemptUncheckedUpdateManyWithoutUserNestedInput;
+    channelMembers?: Prisma.ChannelMemberUncheckedUpdateManyWithoutUserNestedInput;
+    channelMessagesSent?: Prisma.ChannelMessageUncheckedUpdateManyWithoutSenderNestedInput;
+    channelMessagesPinned?: Prisma.ChannelMessageUncheckedUpdateManyWithoutPinnedByNestedInput;
+    channelMessageMentions?: Prisma.ChannelMessageMentionUncheckedUpdateManyWithoutMentionedUserNestedInput;
+    channelMessageReactions?: Prisma.ChannelMessageReactionUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsMade?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutUserNestedInput;
+    channelJoinRequestsDecided?: Prisma.ChannelJoinRequestUncheckedUpdateManyWithoutDecidedByNestedInput;
     workspaceInvitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutSenderNestedInput;
     projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput;
     projectPasswordsSet?: Prisma.ProjectUncheckedUpdateManyWithoutPasswordSetterNestedInput;
@@ -8621,6 +9005,7 @@ export type UserCreateWithoutDocsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocsOwnedInput = {
     id?: string;
@@ -8677,6 +9062,7 @@ export type UserUncheckedCreateWithoutDocsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocsOwnedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -8746,6 +9132,7 @@ export type UserUpdateWithoutDocsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocsOwnedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -8802,6 +9189,7 @@ export type UserUncheckedUpdateWithoutDocsOwnedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutDocVersionsCreatedInput = {
     id?: string;
@@ -8858,6 +9246,7 @@ export type UserCreateWithoutDocVersionsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocVersionsCreatedInput = {
     id?: string;
@@ -8914,6 +9303,7 @@ export type UserUncheckedCreateWithoutDocVersionsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocVersionsCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -8983,6 +9373,7 @@ export type UserUpdateWithoutDocVersionsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocVersionsCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -9039,6 +9430,7 @@ export type UserUncheckedUpdateWithoutDocVersionsCreatedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutDocPermissionsReceivedInput = {
     id?: string;
@@ -9095,6 +9487,7 @@ export type UserCreateWithoutDocPermissionsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocPermissionsReceivedInput = {
     id?: string;
@@ -9151,6 +9544,7 @@ export type UserUncheckedCreateWithoutDocPermissionsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocPermissionsReceivedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -9211,6 +9605,7 @@ export type UserCreateWithoutDocPermissionsGrantedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocPermissionsGrantedInput = {
     id?: string;
@@ -9267,6 +9662,7 @@ export type UserUncheckedCreateWithoutDocPermissionsGrantedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocPermissionsGrantedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -9336,6 +9732,7 @@ export type UserUpdateWithoutDocPermissionsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocPermissionsReceivedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -9392,6 +9789,7 @@ export type UserUncheckedUpdateWithoutDocPermissionsReceivedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserUpsertWithoutDocPermissionsGrantedInput = {
     update: Prisma.XOR<Prisma.UserUpdateWithoutDocPermissionsGrantedInput, Prisma.UserUncheckedUpdateWithoutDocPermissionsGrantedInput>;
@@ -9457,6 +9855,7 @@ export type UserUpdateWithoutDocPermissionsGrantedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocPermissionsGrantedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -9513,6 +9912,7 @@ export type UserUncheckedUpdateWithoutDocPermissionsGrantedInput = {
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutDocThreadsCreatedInput = {
     id?: string;
@@ -9569,6 +9969,7 @@ export type UserCreateWithoutDocThreadsCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocThreadsCreatedInput = {
     id?: string;
@@ -9625,6 +10026,7 @@ export type UserUncheckedCreateWithoutDocThreadsCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocThreadsCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -9694,6 +10096,7 @@ export type UserUpdateWithoutDocThreadsCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocThreadsCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -9750,6 +10153,7 @@ export type UserUncheckedUpdateWithoutDocThreadsCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutDocCommentsAuthoredInput = {
     id?: string;
@@ -9806,6 +10210,7 @@ export type UserCreateWithoutDocCommentsAuthoredInput = {
     docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docShareLinksCreated?: Prisma.DocShareLinkCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocCommentsAuthoredInput = {
     id?: string;
@@ -9862,6 +10267,7 @@ export type UserUncheckedCreateWithoutDocCommentsAuthoredInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedCreateNestedManyWithoutCreatedByInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocCommentsAuthoredInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -9931,6 +10337,7 @@ export type UserUpdateWithoutDocCommentsAuthoredInput = {
     docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocCommentsAuthoredInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -9987,6 +10394,7 @@ export type UserUncheckedUpdateWithoutDocCommentsAuthoredInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docShareLinksCreated?: Prisma.DocShareLinkUncheckedUpdateManyWithoutCreatedByNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCreateWithoutDocShareLinksCreatedInput = {
     id?: string;
@@ -10043,6 +10451,7 @@ export type UserCreateWithoutDocShareLinksCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionCreateNestedManyWithoutUserInput;
     docThreadsCreated?: Prisma.DocCommentThreadCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentCreateNestedManyWithoutAuthorInput;
+    aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput;
 };
 export type UserUncheckedCreateWithoutDocShareLinksCreatedInput = {
     id?: string;
@@ -10099,6 +10508,7 @@ export type UserUncheckedCreateWithoutDocShareLinksCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedCreateNestedManyWithoutUserInput;
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedCreateNestedManyWithoutCreatedByInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedCreateNestedManyWithoutAuthorInput;
+    aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput;
 };
 export type UserCreateOrConnectWithoutDocShareLinksCreatedInput = {
     where: Prisma.UserWhereUniqueInput;
@@ -10168,6 +10578,7 @@ export type UserUpdateWithoutDocShareLinksCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUpdateManyWithoutUserNestedInput;
     docThreadsCreated?: Prisma.DocCommentThreadUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUpdateManyWithoutAuthorNestedInput;
+    aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput;
 };
 export type UserUncheckedUpdateWithoutDocShareLinksCreatedInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -10224,6 +10635,7 @@ export type UserUncheckedUpdateWithoutDocShareLinksCreatedInput = {
     docPermissionsReceived?: Prisma.DocPermissionUncheckedUpdateManyWithoutUserNestedInput;
     docThreadsCreated?: Prisma.DocCommentThreadUncheckedUpdateManyWithoutCreatedByNestedInput;
     docCommentsAuthored?: Prisma.DocCommentUncheckedUpdateManyWithoutAuthorNestedInput;
+    aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput;
 };
 export type UserCountOutputType = {
     refreshTokens: number;
@@ -10264,6 +10676,7 @@ export type UserCountOutputType = {
     docThreadsCreated: number;
     docCommentsAuthored: number;
     docShareLinksCreated: number;
+    aiConversations: number;
 };
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs;
@@ -10304,6 +10717,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
     docThreadsCreated?: boolean | UserCountOutputTypeCountDocThreadsCreatedArgs;
     docCommentsAuthored?: boolean | UserCountOutputTypeCountDocCommentsAuthoredArgs;
     docShareLinksCreated?: boolean | UserCountOutputTypeCountDocShareLinksCreatedArgs;
+    aiConversations?: boolean | UserCountOutputTypeCountAiConversationsArgs;
 };
 export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null;
@@ -10422,6 +10836,9 @@ export type UserCountOutputTypeCountDocCommentsAuthoredArgs<ExtArgs extends runt
 export type UserCountOutputTypeCountDocShareLinksCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.DocShareLinkWhereInput;
 };
+export type UserCountOutputTypeCountAiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.AiConversationWhereInput;
+};
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     fullName?: boolean;
@@ -10478,6 +10895,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
     docThreadsCreated?: boolean | Prisma.User$docThreadsCreatedArgs<ExtArgs>;
     docCommentsAuthored?: boolean | Prisma.User$docCommentsAuthoredArgs<ExtArgs>;
     docShareLinksCreated?: boolean | Prisma.User$docShareLinksCreatedArgs<ExtArgs>;
+    aiConversations?: boolean | Prisma.User$aiConversationsArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["user"]>;
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -10577,6 +10995,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     docThreadsCreated?: boolean | Prisma.User$docThreadsCreatedArgs<ExtArgs>;
     docCommentsAuthored?: boolean | Prisma.User$docCommentsAuthoredArgs<ExtArgs>;
     docShareLinksCreated?: boolean | Prisma.User$docShareLinksCreatedArgs<ExtArgs>;
+    aiConversations?: boolean | Prisma.User$aiConversationsArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {};
@@ -10622,6 +11041,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
         docThreadsCreated: Prisma.$DocCommentThreadPayload<ExtArgs>[];
         docCommentsAuthored: Prisma.$DocCommentPayload<ExtArgs>[];
         docShareLinksCreated: Prisma.$DocShareLinkPayload<ExtArgs>[];
+        aiConversations: Prisma.$AiConversationPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -10731,6 +11151,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
     docThreadsCreated<T extends Prisma.User$docThreadsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$docThreadsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocCommentThreadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     docCommentsAuthored<T extends Prisma.User$docCommentsAuthoredArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$docCommentsAuthoredArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     docShareLinksCreated<T extends Prisma.User$docShareLinksCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$docShareLinksCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocShareLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    aiConversations<T extends Prisma.User$aiConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$aiConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -11269,6 +11690,17 @@ export type User$docShareLinksCreatedArgs<ExtArgs extends runtime.Types.Extensio
     take?: number;
     skip?: number;
     distinct?: Prisma.DocShareLinkScalarFieldEnum | Prisma.DocShareLinkScalarFieldEnum[];
+};
+export type User$aiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.AiConversationSelect<ExtArgs> | null;
+    omit?: Prisma.AiConversationOmit<ExtArgs> | null;
+    include?: Prisma.AiConversationInclude<ExtArgs> | null;
+    where?: Prisma.AiConversationWhereInput;
+    orderBy?: Prisma.AiConversationOrderByWithRelationInput | Prisma.AiConversationOrderByWithRelationInput[];
+    cursor?: Prisma.AiConversationWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.AiConversationScalarFieldEnum | Prisma.AiConversationScalarFieldEnum[];
 };
 export type UserDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.UserSelect<ExtArgs> | null;

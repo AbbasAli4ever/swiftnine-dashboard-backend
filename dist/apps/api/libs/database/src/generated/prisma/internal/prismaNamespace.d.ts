@@ -189,6 +189,8 @@ export declare const ModelName: {
     readonly ChannelMessageMention: "ChannelMessageMention";
     readonly ChannelMessageReaction: "ChannelMessageReaction";
     readonly ChannelJoinRequest: "ChannelJoinRequest";
+    readonly AiConversation: "AiConversation";
+    readonly AiConversationMessage: "AiConversationMessage";
     readonly Doc: "Doc";
     readonly DocVersion: "DocVersion";
     readonly DocPermission: "DocPermission";
@@ -207,7 +209,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "projectUnlockSession" | "projectUnlockAttempt" | "projectPasswordResetToken" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "channelMessage" | "channelMessageMention" | "channelMessageReaction" | "channelJoinRequest" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
+        modelProps: "user" | "refreshToken" | "passwordResetToken" | "emailVerificationToken" | "workspace" | "workspaceMember" | "workspaceInvite" | "project" | "projectUnlockSession" | "projectUnlockAttempt" | "projectPasswordResetToken" | "taskList" | "status" | "tag" | "task" | "projectFavorite" | "taskFavorite" | "taskAssignee" | "taskTag" | "comment" | "reaction" | "mention" | "notification" | "attachment" | "timeEntry" | "activityLog" | "channel" | "channelMember" | "channelMessage" | "channelMessageMention" | "channelMessageReaction" | "channelJoinRequest" | "aiConversation" | "aiConversationMessage" | "doc" | "docVersion" | "docPermission" | "docCommentThread" | "docComment" | "docShareLink";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -2579,6 +2581,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 };
             };
         };
+        AiConversation: {
+            payload: Prisma.$AiConversationPayload<ExtArgs>;
+            fields: Prisma.AiConversationFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.AiConversationFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.AiConversationFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                findFirst: {
+                    args: Prisma.AiConversationFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.AiConversationFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                findMany: {
+                    args: Prisma.AiConversationFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>[];
+                };
+                create: {
+                    args: Prisma.AiConversationCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                createMany: {
+                    args: Prisma.AiConversationCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.AiConversationCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>[];
+                };
+                delete: {
+                    args: Prisma.AiConversationDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                update: {
+                    args: Prisma.AiConversationUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.AiConversationDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.AiConversationUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.AiConversationUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>[];
+                };
+                upsert: {
+                    args: Prisma.AiConversationUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationPayload>;
+                };
+                aggregate: {
+                    args: Prisma.AiConversationAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateAiConversation>;
+                };
+                groupBy: {
+                    args: Prisma.AiConversationGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AiConversationGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.AiConversationCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AiConversationCountAggregateOutputType> | number;
+                };
+            };
+        };
+        AiConversationMessage: {
+            payload: Prisma.$AiConversationMessagePayload<ExtArgs>;
+            fields: Prisma.AiConversationMessageFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.AiConversationMessageFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.AiConversationMessageFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                findFirst: {
+                    args: Prisma.AiConversationMessageFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.AiConversationMessageFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                findMany: {
+                    args: Prisma.AiConversationMessageFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>[];
+                };
+                create: {
+                    args: Prisma.AiConversationMessageCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                createMany: {
+                    args: Prisma.AiConversationMessageCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.AiConversationMessageCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>[];
+                };
+                delete: {
+                    args: Prisma.AiConversationMessageDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                update: {
+                    args: Prisma.AiConversationMessageUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                deleteMany: {
+                    args: Prisma.AiConversationMessageDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.AiConversationMessageUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.AiConversationMessageUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>[];
+                };
+                upsert: {
+                    args: Prisma.AiConversationMessageUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$AiConversationMessagePayload>;
+                };
+                aggregate: {
+                    args: Prisma.AiConversationMessageAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateAiConversationMessage>;
+                };
+                groupBy: {
+                    args: Prisma.AiConversationMessageGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AiConversationMessageGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.AiConversationMessageCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AiConversationMessageCountAggregateOutputType> | number;
+                };
+            };
+        };
         Doc: {
             payload: Prisma.$DocPayload<ExtArgs>;
             fields: Prisma.DocFieldRefs;
@@ -3439,6 +3589,25 @@ export declare const ChannelJoinRequestScalarFieldEnum: {
     readonly decidedAt: "decidedAt";
 };
 export type ChannelJoinRequestScalarFieldEnum = (typeof ChannelJoinRequestScalarFieldEnum)[keyof typeof ChannelJoinRequestScalarFieldEnum];
+export declare const AiConversationScalarFieldEnum: {
+    readonly id: "id";
+    readonly workspaceId: "workspaceId";
+    readonly userId: "userId";
+    readonly title: "title";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly deletedAt: "deletedAt";
+};
+export type AiConversationScalarFieldEnum = (typeof AiConversationScalarFieldEnum)[keyof typeof AiConversationScalarFieldEnum];
+export declare const AiConversationMessageScalarFieldEnum: {
+    readonly id: "id";
+    readonly conversationId: "conversationId";
+    readonly role: "role";
+    readonly content: "content";
+    readonly status: "status";
+    readonly createdAt: "createdAt";
+};
+export type AiConversationMessageScalarFieldEnum = (typeof AiConversationMessageScalarFieldEnum)[keyof typeof AiConversationMessageScalarFieldEnum];
 export declare const DocScalarFieldEnum: {
     readonly id: "id";
     readonly workspaceId: "workspaceId";
@@ -3570,6 +3739,10 @@ export type EnumChannelMessageKindFieldRefInput<$PrismaModel> = FieldRefInputTyp
 export type ListEnumChannelMessageKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelMessageKind[]'>;
 export type EnumChannelJoinRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelJoinRequestStatus'>;
 export type ListEnumChannelJoinRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelJoinRequestStatus[]'>;
+export type EnumAiMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiMessageRole'>;
+export type ListEnumAiMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiMessageRole[]'>;
+export type EnumAiMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiMessageStatus'>;
+export type ListEnumAiMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiMessageStatus[]'>;
 export type EnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope'>;
 export type ListEnumDocScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocScope[]'>;
 export type EnumDocVersionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocVersionType'>;
@@ -3634,6 +3807,8 @@ export type GlobalOmitConfig = {
     channelMessageMention?: Prisma.ChannelMessageMentionOmit;
     channelMessageReaction?: Prisma.ChannelMessageReactionOmit;
     channelJoinRequest?: Prisma.ChannelJoinRequestOmit;
+    aiConversation?: Prisma.AiConversationOmit;
+    aiConversationMessage?: Prisma.AiConversationMessageOmit;
     doc?: Prisma.DocOmit;
     docVersion?: Prisma.DocVersionOmit;
     docPermission?: Prisma.DocPermissionOmit;

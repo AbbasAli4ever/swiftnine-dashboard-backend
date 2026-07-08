@@ -24,6 +24,7 @@ import { DocsModule } from './docs/docs.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { PresenceModule } from './presence/presence.module';
 import { ProjectSecurityModule } from './project-security/project-security.module';
+import { AiConversationsModule } from './ai-conversations/ai-conversations.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ProjectSecurityModule } from './project-security/project-security.modul
     DashboardModule,
     DocsModule,
     FavoritesModule,
+    AiConversationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

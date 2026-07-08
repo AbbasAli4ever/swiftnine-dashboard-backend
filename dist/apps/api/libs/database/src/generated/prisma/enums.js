@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DocVersionType = exports.DocRole = exports.DocScope = exports.ChannelJoinRequestStatus = exports.ChannelMessageKind = exports.ChannelKind = exports.ChannelPrivacy = exports.AttachmentKind = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
+exports.DocVersionType = exports.DocRole = exports.DocScope = exports.AiMessageStatus = exports.AiMessageRole = exports.ChannelJoinRequestStatus = exports.ChannelMessageKind = exports.ChannelKind = exports.ChannelPrivacy = exports.AttachmentKind = exports.StatusGroup = exports.Priority = exports.InviteStatus = exports.WorkspaceManagementType = exports.WorkspaceUse = exports.Role = void 0;
 exports.Role = {
     OWNER: 'OWNER',
     ADMIN: 'ADMIN',
@@ -66,6 +66,14 @@ exports.ChannelJoinRequestStatus = {
     PENDING: 'PENDING',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED'
+};
+exports.AiMessageRole = {
+    USER: 'USER',
+    ASSISTANT: 'ASSISTANT'
+};
+exports.AiMessageStatus = {
+    COMPLETE: 'COMPLETE',
+    ABORTED: 'ABORTED'
 };
 exports.DocScope = {
     WORKSPACE: 'WORKSPACE',

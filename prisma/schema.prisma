@@ -136,6 +136,7 @@ model User {
   docThreadsCreated          DocCommentThread[]       @relation("DocThreadCreator")
   docCommentsAuthored        DocComment[]             @relation("DocCommentAuthor")
   docShareLinksCreated       DocShareLink[]           @relation("DocShareLinkCreator")
+  aiConversations            AiConversation[]
 
   @@map("users")
 }
@@ -212,6 +213,7 @@ model Workspace {
   projectFavorites ProjectFavorite[]
   taskFavorites    TaskFavorite[]
   notifications    Notification[]
+  aiConversations  AiConversation[]
 
   @@map("workspaces")
 }
@@ -837,6 +839,50 @@ model ChannelJoinRequest {
   @@unique([channelId, userId, status])
   @@index([channelId, status])
   @@map("channel_join_requests")
+}
+
+// ============================================================
+// AI CONVERSATIONS (SwiftBot)
+// ============================================================
+enum AiMessageRole {
+  USER
+  ASSISTANT
+}
+
+enum AiMessageStatus {
+  COMPLETE
+  ABORTED
+}
+
+model AiConversation {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  userId      String    @map("user_id")
+  title       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  workspace Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AiConversationMessage[]
+
+  @@index([workspaceId, userId, deletedAt, updatedAt(sort: Desc)])
+  @@map("ai_conversations")
+}
+
+model AiConversationMessage {
+  id             String          @id @default(uuid())
+  conversationId String          @map("conversation_id")
+  role           AiMessageRole
+  content        String
+  status         AiMessageStatus @default(COMPLETE)
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("ai_conversation_messages")
 }
 
 // ============================================================

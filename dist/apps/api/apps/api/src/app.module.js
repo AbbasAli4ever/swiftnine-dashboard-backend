@@ -33,6 +33,7 @@ const docs_module_1 = require("./docs/docs.module");
 const favorites_module_1 = require("./favorites/favorites.module");
 const presence_module_1 = require("./presence/presence.module");
 const project_security_module_1 = require("./project-security/project-security.module");
+const ai_conversations_module_1 = require("./ai-conversations/ai-conversations.module");
 let AppModule = class AppModule {
     configure(consumer) {
         if (process.env['LOG_LEVEL'] === 'full') {
@@ -66,6 +67,7 @@ exports.AppModule = AppModule = __decorate([
             dashboard_module_1.DashboardModule,
             docs_module_1.DocsModule,
             favorites_module_1.FavoritesModule,
+            ai_conversations_module_1.AiConversationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

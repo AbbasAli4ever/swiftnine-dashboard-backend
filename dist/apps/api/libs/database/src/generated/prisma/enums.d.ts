@@ -75,6 +75,16 @@ export declare const ChannelJoinRequestStatus: {
     readonly REJECTED: "REJECTED";
 };
 export type ChannelJoinRequestStatus = (typeof ChannelJoinRequestStatus)[keyof typeof ChannelJoinRequestStatus];
+export declare const AiMessageRole: {
+    readonly USER: "USER";
+    readonly ASSISTANT: "ASSISTANT";
+};
+export type AiMessageRole = (typeof AiMessageRole)[keyof typeof AiMessageRole];
+export declare const AiMessageStatus: {
+    readonly COMPLETE: "COMPLETE";
+    readonly ABORTED: "ABORTED";
+};
+export type AiMessageStatus = (typeof AiMessageStatus)[keyof typeof AiMessageStatus];
 export declare const DocScope: {
     readonly WORKSPACE: "WORKSPACE";
     readonly PROJECT: "PROJECT";
