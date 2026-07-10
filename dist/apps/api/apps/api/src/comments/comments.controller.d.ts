@@ -17,8 +17,8 @@ export declare class CommentsController {
     addReaction(req: WorkspaceRequest, commentId: string, dto: CreateReactionDto): Promise<ApiRes<{
         member: {
             user: {
-                fullName: string;
                 id: string;
+                fullName: string;
                 avatarUrl: string | null;
             };
             id: string;

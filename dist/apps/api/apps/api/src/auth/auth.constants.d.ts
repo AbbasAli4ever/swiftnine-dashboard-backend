@@ -1,5 +1,6 @@
 import { z } from 'zod';
 export declare const REFRESH_TOKEN_TTL_MS: number;
+export declare const REFRESH_TOKEN_REUSE_GRACE_MS: number;
 export declare const INVALID_CREDENTIALS_MESSAGE = "Invalid email or password";
 export declare const AUTHENTICATION_REQUIRED_MESSAGE = "Authentication token is required";
 export declare const INVALID_ACCESS_TOKEN_MESSAGE = "Invalid or expired access token";

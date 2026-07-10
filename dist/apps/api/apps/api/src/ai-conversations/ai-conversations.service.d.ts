@@ -6,44 +6,44 @@ export declare class AiConversationsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     findAll(workspaceId: string, userId: string): Promise<{
-        title: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        title: string | null;
     }[]>;
     create(workspaceId: string, userId: string, dto: CreateConversationDto): Promise<{
-        title: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        title: string | null;
     }>;
     private findOwnedOrThrow;
     findOne(workspaceId: string, userId: string, conversationId: string): Promise<{
-        title: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        title: string | null;
         messages: {
-            status: import("@app/database/generated/prisma/enums").AiMessageStatus;
-            content: string;
             id: string;
             createdAt: Date;
             role: import("@app/database/generated/prisma/enums").AiMessageRole;
+            status: import("@app/database/generated/prisma/enums").AiMessageStatus;
+            content: string;
         }[];
     }>;
     rename(workspaceId: string, userId: string, conversationId: string, dto: UpdateConversationDto): Promise<{
-        title: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        title: string | null;
     }>;
     remove(workspaceId: string, userId: string, conversationId: string): Promise<void>;
     addMessage(workspaceId: string, userId: string, conversationId: string, dto: CreateMessageDto): Promise<{
-        status: import("@app/database/generated/prisma/enums").AiMessageStatus;
-        content: string;
         id: string;
         createdAt: Date;
         role: import("@app/database/generated/prisma/enums").AiMessageRole;
+        status: import("@app/database/generated/prisma/enums").AiMessageStatus;
+        content: string;
     }>;
     removeMessage(workspaceId: string, userId: string, conversationId: string, messageId: string): Promise<void>;
 }

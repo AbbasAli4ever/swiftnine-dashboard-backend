@@ -3232,6 +3232,7 @@ export declare const RefreshTokenScalarFieldEnum: {
     readonly ipAddress: "ipAddress";
     readonly expiresAt: "expiresAt";
     readonly isRevoked: "isRevoked";
+    readonly revokedAt: "revokedAt";
     readonly createdAt: "createdAt";
 };
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum];

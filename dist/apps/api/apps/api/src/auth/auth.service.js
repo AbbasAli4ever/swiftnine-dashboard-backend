@@ -197,30 +197,41 @@ let AuthService = AuthService_1 = class AuthService {
     }
     async refreshTokens(rawToken) {
         const tokenHash = this.hashToken(rawToken);
+        const now = new Date();
         const stored = await this.prisma.refreshToken.findFirst({
-            where: { tokenHash, isRevoked: false, expiresAt: { gt: new Date() } },
-            select: { id: true, userId: true },
+            where: { tokenHash },
+            select: { id: true, userId: true, isRevoked: true, revokedAt: true, expiresAt: true },
         });
-        if (!stored) {
+        if (!stored || stored.expiresAt <= now) {
             this.logger.warn(`Refresh token rejected: ${JSON.stringify({
                 tokenHashPrefix: tokenHash.slice(0, 12),
                 reason: 'token_not_found_or_expired',
             })}`);
             throw new common_1.UnauthorizedException(auth_constants_1.INVALID_REFRESH_TOKEN_MESSAGE);
         }
-        const user = await this.prisma.user.findFirst({
-            where: { id: stored.userId, deletedAt: null },
-            select: auth_constants_1.AUTH_USER_SELECT,
-        });
-        if (!user) {
-            this.logger.warn(`Refresh token rejected: ${JSON.stringify({
+        if (stored.isRevoked) {
+            const withinGraceWindow = stored.revokedAt !== null &&
+                now.getTime() - stored.revokedAt.getTime() <= auth_constants_1.REFRESH_TOKEN_REUSE_GRACE_MS;
+            if (!withinGraceWindow) {
+                this.logger.warn(`Refresh token rejected: ${JSON.stringify({
+                    tokenHashPrefix: tokenHash.slice(0, 12),
+                    userId: stored.userId,
+                    reason: 'token_reused_outside_grace_window',
+                })}`);
+                throw new common_1.UnauthorizedException(auth_constants_1.INVALID_REFRESH_TOKEN_MESSAGE);
+            }
+            this.logger.warn(`Refresh token reused within grace window, allowing: ${JSON.stringify({
                 tokenHashPrefix: tokenHash.slice(0, 12),
                 userId: stored.userId,
-                reason: 'user_not_found_or_inactive',
             })}`);
-            throw new common_1.UnauthorizedException(auth_constants_1.INVALID_REFRESH_TOKEN_MESSAGE);
+            const user = await this.findActiveUserOrThrow(stored.userId, tokenHash);
+            return this.issueTokens(user);
         }
-        await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+        const user = await this.findActiveUserOrThrow(stored.userId, tokenHash);
+        await this.prisma.refreshToken.update({
+            where: { id: stored.id },
+            data: { isRevoked: true, revokedAt: now },
+        });
         return this.issueTokens(user);
     }
     async logout(rawToken) {
@@ -288,6 +299,21 @@ let AuthService = AuthService_1 = class AuthService {
             },
         });
         return { user, accessToken, refreshToken: rawRefreshToken };
+    }
+    async findActiveUserOrThrow(userId, tokenHash) {
+        const user = await this.prisma.user.findFirst({
+            where: { id: userId, deletedAt: null },
+            select: auth_constants_1.AUTH_USER_SELECT,
+        });
+        if (!user) {
+            this.logger.warn(`Refresh token rejected: ${JSON.stringify({
+                tokenHashPrefix: tokenHash.slice(0, 12),
+                userId,
+                reason: 'user_not_found_or_inactive',
+            })}`);
+            throw new common_1.UnauthorizedException(auth_constants_1.INVALID_REFRESH_TOKEN_MESSAGE);
+        }
+        return user;
     }
     async sendVerificationOtp(userId, email, fullName) {
         const otp = this.generateOtp();

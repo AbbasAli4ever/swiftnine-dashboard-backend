@@ -38,6 +38,7 @@ export declare class AuthService {
     forgotPassword(email: string): Promise<void>;
     resetPassword(token: string, newPassword: string): Promise<void>;
     issueTokens(user: AuthUser): Promise<TokenPair>;
+    private findActiveUserOrThrow;
     private sendVerificationOtp;
     private generateOtp;
     private hashOtp;

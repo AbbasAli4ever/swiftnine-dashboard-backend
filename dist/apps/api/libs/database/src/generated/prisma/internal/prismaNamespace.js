@@ -135,6 +135,7 @@ exports.RefreshTokenScalarFieldEnum = {
     ipAddress: 'ipAddress',
     expiresAt: 'expiresAt',
     isRevoked: 'isRevoked',
+    revokedAt: 'revokedAt',
     createdAt: 'createdAt'
 };
 exports.PasswordResetTokenScalarFieldEnum = {
