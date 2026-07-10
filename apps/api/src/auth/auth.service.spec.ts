@@ -19,6 +19,8 @@ describe('AuthService', () => {
       create: jest.Mock;
       delete: jest.Mock;
       deleteMany: jest.Mock;
+      findFirst: jest.Mock;
+      update: jest.Mock;
     };
   };
   let jwt: { signAsync: jest.Mock };
@@ -42,6 +44,8 @@ describe('AuthService', () => {
         create: jest.fn().mockResolvedValue(undefined),
         delete: jest.fn().mockResolvedValue(undefined),
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+        findFirst: jest.fn(),
+        update: jest.fn().mockResolvedValue(undefined),
       },
     };
     jwt = {
@@ -171,6 +175,107 @@ describe('AuthService', () => {
         tokenHash: expect.any(String),
       },
     });
+  });
+
+  it('rotates a valid refresh token into a new pair', async () => {
+    prisma.refreshToken.findFirst.mockResolvedValue({
+      id: 'rt-1',
+      userId: authUser.id,
+      isRevoked: false,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    prisma.user.findFirst.mockResolvedValue(authUser);
+
+    const result = await service.refreshTokens('raw-refresh-token');
+
+    expect(prisma.refreshToken.update).toHaveBeenCalledWith({
+      where: { id: 'rt-1' },
+      data: { isRevoked: true, revokedAt: expect.any(Date) },
+    });
+    expect(prisma.refreshToken.create).toHaveBeenCalled();
+    expect(result).toEqual({
+      user: authUser,
+      accessToken: 'access-token',
+      refreshToken: expect.any(String),
+    });
+  });
+
+  it('rejects a refresh token that does not exist or is expired', async () => {
+    prisma.refreshToken.findFirst.mockResolvedValue(null);
+
+    await expect(service.refreshTokens('raw-refresh-token')).rejects.toThrow(
+      new UnauthorizedException(
+        'Refresh token is invalid, expired, or already used',
+      ),
+    );
+    expect(prisma.refreshToken.update).not.toHaveBeenCalled();
+
+    prisma.refreshToken.findFirst.mockResolvedValue({
+      id: 'rt-1',
+      userId: authUser.id,
+      isRevoked: false,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() - 1_000),
+    });
+
+    await expect(service.refreshTokens('raw-refresh-token')).rejects.toThrow(
+      new UnauthorizedException(
+        'Refresh token is invalid, expired, or already used',
+      ),
+    );
+  });
+
+  it('allows a just-rotated token to be reused once within the grace window', async () => {
+    prisma.refreshToken.findFirst.mockResolvedValue({
+      id: 'rt-1',
+      userId: authUser.id,
+      isRevoked: true,
+      revokedAt: new Date(Date.now() - 5_000), // 5s ago, inside the 10s grace window
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    prisma.user.findFirst.mockResolvedValue(authUser);
+
+    const result = await service.refreshTokens('raw-refresh-token');
+
+    expect(prisma.refreshToken.update).not.toHaveBeenCalled();
+    expect(prisma.refreshToken.create).toHaveBeenCalled();
+    expect(result.user).toEqual(authUser);
+  });
+
+  it('rejects a revoked token reused outside the grace window', async () => {
+    prisma.refreshToken.findFirst.mockResolvedValue({
+      id: 'rt-1',
+      userId: authUser.id,
+      isRevoked: true,
+      revokedAt: new Date(Date.now() - 20_000), // 20s ago, past the 10s grace window
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+
+    await expect(service.refreshTokens('raw-refresh-token')).rejects.toThrow(
+      new UnauthorizedException(
+        'Refresh token is invalid, expired, or already used',
+      ),
+    );
+    expect(prisma.user.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('rejects refresh for a deleted or missing user', async () => {
+    prisma.refreshToken.findFirst.mockResolvedValue({
+      id: 'rt-1',
+      userId: 'user-1',
+      isRevoked: false,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    prisma.user.findFirst.mockResolvedValue(null);
+
+    await expect(service.refreshTokens('raw-refresh-token')).rejects.toThrow(
+      new UnauthorizedException(
+        'Refresh token is invalid, expired, or already used',
+      ),
+    );
+    expect(prisma.refreshToken.update).not.toHaveBeenCalled();
   });
 
   it('creates a new user for a first-time Google login', async () => {
