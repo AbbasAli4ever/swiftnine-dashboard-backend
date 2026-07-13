@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiConversationsService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("../../../../libs/database/src");
+const client_1 = require("../../../../libs/database/src/generated/prisma/client");
 const ai_conversations_constants_1 = require("./ai-conversations.constants");
 let AiConversationsService = class AiConversationsService {
     prisma;
@@ -39,6 +40,9 @@ let AiConversationsService = class AiConversationsService {
         if (!conversation)
             throw new common_1.NotFoundException(ai_conversations_constants_1.AI_CONVERSATION_NOT_FOUND);
         return conversation;
+    }
+    async assertOwned(workspaceId, userId, conversationId) {
+        await this.findOwnedOrThrow(workspaceId, userId, conversationId);
     }
     async findOne(workspaceId, userId, conversationId) {
         await this.findOwnedOrThrow(workspaceId, userId, conversationId);
@@ -85,6 +89,19 @@ let AiConversationsService = class AiConversationsService {
                     ...(shouldSetTitle ? { title: dto.title.trim() } : {}),
                 },
             });
+            if (dto.attachmentIds?.length) {
+                await tx.attachment.updateMany({
+                    where: {
+                        id: { in: dto.attachmentIds },
+                        aiConversationId: conversationId,
+                        uploadedBy: userId,
+                        uploadStatus: client_1.AttachmentUploadStatus.CONFIRMED,
+                        deletedAt: null,
+                        aiConversationMessageId: null,
+                    },
+                    data: { aiConversationMessageId: message.id },
+                });
+            }
             return message;
         });
     }

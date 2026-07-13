@@ -18,6 +18,7 @@ export declare class AiConversationsService {
         title: string | null;
     }>;
     private findOwnedOrThrow;
+    assertOwned(workspaceId: string, userId: string, conversationId: string): Promise<void>;
     findOne(workspaceId: string, userId: string, conversationId: string): Promise<{
         id: string;
         createdAt: Date;

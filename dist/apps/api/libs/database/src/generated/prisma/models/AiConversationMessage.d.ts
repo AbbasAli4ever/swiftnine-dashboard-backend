@@ -106,6 +106,7 @@ export type AiConversationMessageWhereInput = {
     status?: Prisma.EnumAiMessageStatusFilter<"AiConversationMessage"> | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFilter<"AiConversationMessage"> | Date | string;
     conversation?: Prisma.XOR<Prisma.AiConversationScalarRelationFilter, Prisma.AiConversationWhereInput>;
+    attachments?: Prisma.AttachmentListRelationFilter;
 };
 export type AiConversationMessageOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -115,6 +116,7 @@ export type AiConversationMessageOrderByWithRelationInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     conversation?: Prisma.AiConversationOrderByWithRelationInput;
+    attachments?: Prisma.AttachmentOrderByRelationAggregateInput;
 };
 export type AiConversationMessageWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -127,6 +129,7 @@ export type AiConversationMessageWhereUniqueInput = Prisma.AtLeast<{
     status?: Prisma.EnumAiMessageStatusFilter<"AiConversationMessage"> | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFilter<"AiConversationMessage"> | Date | string;
     conversation?: Prisma.XOR<Prisma.AiConversationScalarRelationFilter, Prisma.AiConversationWhereInput>;
+    attachments?: Prisma.AttachmentListRelationFilter;
 }, "id">;
 export type AiConversationMessageOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -157,6 +160,7 @@ export type AiConversationMessageCreateInput = {
     status?: $Enums.AiMessageStatus;
     createdAt?: Date | string;
     conversation: Prisma.AiConversationCreateNestedOneWithoutMessagesInput;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutAiConversationMessageInput;
 };
 export type AiConversationMessageUncheckedCreateInput = {
     id?: string;
@@ -165,6 +169,7 @@ export type AiConversationMessageUncheckedCreateInput = {
     content: string;
     status?: $Enums.AiMessageStatus;
     createdAt?: Date | string;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutAiConversationMessageInput;
 };
 export type AiConversationMessageUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -173,6 +178,7 @@ export type AiConversationMessageUpdateInput = {
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     conversation?: Prisma.AiConversationUpdateOneRequiredWithoutMessagesNestedInput;
+    attachments?: Prisma.AttachmentUpdateManyWithoutAiConversationMessageNestedInput;
 };
 export type AiConversationMessageUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -181,6 +187,7 @@ export type AiConversationMessageUncheckedUpdateInput = {
     content?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutAiConversationMessageNestedInput;
 };
 export type AiConversationMessageCreateManyInput = {
     id?: string;
@@ -204,6 +211,10 @@ export type AiConversationMessageUncheckedUpdateManyInput = {
     content?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type AiConversationMessageNullableScalarRelationFilter = {
+    is?: Prisma.AiConversationMessageWhereInput | null;
+    isNot?: Prisma.AiConversationMessageWhereInput | null;
 };
 export type AiConversationMessageListRelationFilter = {
     every?: Prisma.AiConversationMessageWhereInput;
@@ -236,6 +247,20 @@ export type AiConversationMessageMinOrderByAggregateInput = {
     content?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
+};
+export type AiConversationMessageCreateNestedOneWithoutAttachmentsInput = {
+    create?: Prisma.XOR<Prisma.AiConversationMessageCreateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedCreateWithoutAttachmentsInput>;
+    connectOrCreate?: Prisma.AiConversationMessageCreateOrConnectWithoutAttachmentsInput;
+    connect?: Prisma.AiConversationMessageWhereUniqueInput;
+};
+export type AiConversationMessageUpdateOneWithoutAttachmentsNestedInput = {
+    create?: Prisma.XOR<Prisma.AiConversationMessageCreateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedCreateWithoutAttachmentsInput>;
+    connectOrCreate?: Prisma.AiConversationMessageCreateOrConnectWithoutAttachmentsInput;
+    upsert?: Prisma.AiConversationMessageUpsertWithoutAttachmentsInput;
+    disconnect?: Prisma.AiConversationMessageWhereInput | boolean;
+    delete?: Prisma.AiConversationMessageWhereInput | boolean;
+    connect?: Prisma.AiConversationMessageWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.AiConversationMessageUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.AiConversationMessageUpdateWithoutAttachmentsInput>, Prisma.AiConversationMessageUncheckedUpdateWithoutAttachmentsInput>;
 };
 export type AiConversationMessageCreateNestedManyWithoutConversationInput = {
     create?: Prisma.XOR<Prisma.AiConversationMessageCreateWithoutConversationInput, Prisma.AiConversationMessageUncheckedCreateWithoutConversationInput> | Prisma.AiConversationMessageCreateWithoutConversationInput[] | Prisma.AiConversationMessageUncheckedCreateWithoutConversationInput[];
@@ -281,12 +306,58 @@ export type EnumAiMessageRoleFieldUpdateOperationsInput = {
 export type EnumAiMessageStatusFieldUpdateOperationsInput = {
     set?: $Enums.AiMessageStatus;
 };
+export type AiConversationMessageCreateWithoutAttachmentsInput = {
+    id?: string;
+    role: $Enums.AiMessageRole;
+    content: string;
+    status?: $Enums.AiMessageStatus;
+    createdAt?: Date | string;
+    conversation: Prisma.AiConversationCreateNestedOneWithoutMessagesInput;
+};
+export type AiConversationMessageUncheckedCreateWithoutAttachmentsInput = {
+    id?: string;
+    conversationId: string;
+    role: $Enums.AiMessageRole;
+    content: string;
+    status?: $Enums.AiMessageStatus;
+    createdAt?: Date | string;
+};
+export type AiConversationMessageCreateOrConnectWithoutAttachmentsInput = {
+    where: Prisma.AiConversationMessageWhereUniqueInput;
+    create: Prisma.XOR<Prisma.AiConversationMessageCreateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedCreateWithoutAttachmentsInput>;
+};
+export type AiConversationMessageUpsertWithoutAttachmentsInput = {
+    update: Prisma.XOR<Prisma.AiConversationMessageUpdateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedUpdateWithoutAttachmentsInput>;
+    create: Prisma.XOR<Prisma.AiConversationMessageCreateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedCreateWithoutAttachmentsInput>;
+    where?: Prisma.AiConversationMessageWhereInput;
+};
+export type AiConversationMessageUpdateToOneWithWhereWithoutAttachmentsInput = {
+    where?: Prisma.AiConversationMessageWhereInput;
+    data: Prisma.XOR<Prisma.AiConversationMessageUpdateWithoutAttachmentsInput, Prisma.AiConversationMessageUncheckedUpdateWithoutAttachmentsInput>;
+};
+export type AiConversationMessageUpdateWithoutAttachmentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    role?: Prisma.EnumAiMessageRoleFieldUpdateOperationsInput | $Enums.AiMessageRole;
+    content?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    conversation?: Prisma.AiConversationUpdateOneRequiredWithoutMessagesNestedInput;
+};
+export type AiConversationMessageUncheckedUpdateWithoutAttachmentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    conversationId?: Prisma.StringFieldUpdateOperationsInput | string;
+    role?: Prisma.EnumAiMessageRoleFieldUpdateOperationsInput | $Enums.AiMessageRole;
+    content?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
 export type AiConversationMessageCreateWithoutConversationInput = {
     id?: string;
     role: $Enums.AiMessageRole;
     content: string;
     status?: $Enums.AiMessageStatus;
     createdAt?: Date | string;
+    attachments?: Prisma.AttachmentCreateNestedManyWithoutAiConversationMessageInput;
 };
 export type AiConversationMessageUncheckedCreateWithoutConversationInput = {
     id?: string;
@@ -294,6 +365,7 @@ export type AiConversationMessageUncheckedCreateWithoutConversationInput = {
     content: string;
     status?: $Enums.AiMessageStatus;
     createdAt?: Date | string;
+    attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutAiConversationMessageInput;
 };
 export type AiConversationMessageCreateOrConnectWithoutConversationInput = {
     where: Prisma.AiConversationMessageWhereUniqueInput;
@@ -340,6 +412,7 @@ export type AiConversationMessageUpdateWithoutConversationInput = {
     content?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    attachments?: Prisma.AttachmentUpdateManyWithoutAiConversationMessageNestedInput;
 };
 export type AiConversationMessageUncheckedUpdateWithoutConversationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -347,6 +420,7 @@ export type AiConversationMessageUncheckedUpdateWithoutConversationInput = {
     content?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutAiConversationMessageNestedInput;
 };
 export type AiConversationMessageUncheckedUpdateManyWithoutConversationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -354,6 +428,18 @@ export type AiConversationMessageUncheckedUpdateManyWithoutConversationInput = {
     content?: Prisma.StringFieldUpdateOperationsInput | string;
     status?: Prisma.EnumAiMessageStatusFieldUpdateOperationsInput | $Enums.AiMessageStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type AiConversationMessageCountOutputType = {
+    attachments: number;
+};
+export type AiConversationMessageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    attachments?: boolean | AiConversationMessageCountOutputTypeCountAttachmentsArgs;
+};
+export type AiConversationMessageCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.AiConversationMessageCountOutputTypeSelect<ExtArgs> | null;
+};
+export type AiConversationMessageCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.AttachmentWhereInput;
 };
 export type AiConversationMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -363,6 +449,8 @@ export type AiConversationMessageSelect<ExtArgs extends runtime.Types.Extensions
     status?: boolean;
     createdAt?: boolean;
     conversation?: boolean | Prisma.AiConversationDefaultArgs<ExtArgs>;
+    attachments?: boolean | Prisma.AiConversationMessage$attachmentsArgs<ExtArgs>;
+    _count?: boolean | Prisma.AiConversationMessageCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["aiConversationMessage"]>;
 export type AiConversationMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -393,6 +481,8 @@ export type AiConversationMessageSelectScalar = {
 export type AiConversationMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "role" | "content" | "status" | "createdAt", ExtArgs["result"]["aiConversationMessage"]>;
 export type AiConversationMessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     conversation?: boolean | Prisma.AiConversationDefaultArgs<ExtArgs>;
+    attachments?: boolean | Prisma.AiConversationMessage$attachmentsArgs<ExtArgs>;
+    _count?: boolean | Prisma.AiConversationMessageCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type AiConversationMessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     conversation?: boolean | Prisma.AiConversationDefaultArgs<ExtArgs>;
@@ -404,6 +494,7 @@ export type $AiConversationMessagePayload<ExtArgs extends runtime.Types.Extensio
     name: "AiConversationMessage";
     objects: {
         conversation: Prisma.$AiConversationPayload<ExtArgs>;
+        attachments: Prisma.$AttachmentPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -465,6 +556,7 @@ export interface AiConversationMessageDelegate<ExtArgs extends runtime.Types.Ext
 export interface Prisma__AiConversationMessageClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
     conversation<T extends Prisma.AiConversationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AiConversationDefaultArgs<ExtArgs>>): Prisma.Prisma__AiConversationClient<runtime.Types.Result.GetResult<Prisma.$AiConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    attachments<T extends Prisma.AiConversationMessage$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AiConversationMessage$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -576,6 +668,17 @@ export type AiConversationMessageDeleteArgs<ExtArgs extends runtime.Types.Extens
 export type AiConversationMessageDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.AiConversationMessageWhereInput;
     limit?: number;
+};
+export type AiConversationMessage$attachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.AttachmentSelect<ExtArgs> | null;
+    omit?: Prisma.AttachmentOmit<ExtArgs> | null;
+    include?: Prisma.AttachmentInclude<ExtArgs> | null;
+    where?: Prisma.AttachmentWhereInput;
+    orderBy?: Prisma.AttachmentOrderByWithRelationInput | Prisma.AttachmentOrderByWithRelationInput[];
+    cursor?: Prisma.AttachmentWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.AttachmentScalarFieldEnum | Prisma.AttachmentScalarFieldEnum[];
 };
 export type AiConversationMessageDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.AiConversationMessageSelect<ExtArgs> | null;

@@ -87,8 +87,8 @@ export declare class ChatService {
                 } | null;
             } | null;
             channel: {
-                id: string;
                 name: string | null;
+                id: string;
                 workspaceId: string;
                 projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -162,8 +162,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -236,8 +236,8 @@ export declare class ChatService {
                 } | null;
             } | null;
             channel: {
-                id: string;
                 name: string | null;
+                id: string;
                 workspaceId: string;
                 projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -313,8 +313,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -386,8 +386,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -459,8 +459,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -543,8 +543,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -616,8 +616,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -760,8 +760,8 @@ export declare class ChatService {
                 } | null;
             } | null;
             channel: {
-                id: string;
                 name: string | null;
+                id: string;
                 workspaceId: string;
                 projectId: string | null;
                 kind: import("@app/database/generated/prisma/enums").ChannelKind;
@@ -835,8 +835,8 @@ export declare class ChatService {
             } | null;
         } | null;
         channel: {
-            id: string;
             name: string | null;
+            id: string;
             workspaceId: string;
             projectId: string | null;
             kind: import("@app/database/generated/prisma/enums").ChannelKind;

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
+import { AttachmentUploadStatus } from '@app/database/generated/prisma/client';
 import {
   AI_CONVERSATION_LIST_SELECT,
   AI_CONVERSATION_MESSAGE_SELECT,
@@ -36,6 +37,11 @@ export class AiConversationsService {
     });
     if (!conversation) throw new NotFoundException(AI_CONVERSATION_NOT_FOUND);
     return conversation;
+  }
+
+  /** Public ownership check reused by AiAttachmentsService — keeps this service the single source of truth for "does this user own this conversation in this workspace". */
+  async assertOwned(workspaceId: string, userId: string, conversationId: string): Promise<void> {
+    await this.findOwnedOrThrow(workspaceId, userId, conversationId);
   }
 
   async findOne(workspaceId: string, userId: string, conversationId: string) {
@@ -100,6 +106,21 @@ export class AiConversationsService {
           ...(shouldSetTitle ? { title: dto.title!.trim() } : {}),
         },
       });
+
+      if (dto.attachmentIds?.length) {
+        await tx.attachment.updateMany({
+          where: {
+            id: { in: dto.attachmentIds },
+            aiConversationId: conversationId,
+            uploadedBy: userId,
+            uploadStatus: AttachmentUploadStatus.CONFIRMED,
+            deletedAt: null,
+            aiConversationMessageId: null,
+          },
+          data: { aiConversationMessageId: message.id },
+        });
+      }
+
       return message;
     });
   }

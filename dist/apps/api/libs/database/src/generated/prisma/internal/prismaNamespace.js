@@ -362,16 +362,22 @@ exports.AttachmentScalarFieldEnum = {
     channelMessageId: 'channelMessageId',
     projectId: 'projectId',
     taskListId: 'taskListId',
+    aiConversationId: 'aiConversationId',
+    aiConversationMessageId: 'aiConversationMessageId',
     uploadedBy: 'uploadedBy',
     fileName: 'fileName',
     s3Key: 's3Key',
     mimeType: 'mimeType',
     fileSize: 'fileSize',
     kind: 'kind',
+    contentType: 'contentType',
+    uploadStatus: 'uploadStatus',
+    metadata: 'metadata',
     linkUrl: 'linkUrl',
     title: 'title',
     description: 'description',
     createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
 };
 exports.TimeEntryScalarFieldEnum = {

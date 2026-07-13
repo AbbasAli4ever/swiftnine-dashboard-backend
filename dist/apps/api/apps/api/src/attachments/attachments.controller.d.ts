@@ -22,19 +22,19 @@ export declare class AttachmentsController {
     }>>;
     create(req: AuthenticatedRequest, dto: CreateAttachmentDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;
+        fileName: string;
+        mimeType: string | null;
         id: string;
         createdAt: Date;
-        fileName: string;
         s3Key: string | null;
-        mimeType: string | null;
     }>>;
     createForDoc(req: AuthenticatedRequest, dto: CreateDocAttachmentDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;
+        fileName: string;
+        mimeType: string | null;
         id: string;
         createdAt: Date;
-        fileName: string;
         s3Key: string | null;
-        mimeType: string | null;
     }>>;
     view(req: AuthenticatedRequest, dto: ViewAttachmentsDto): Promise<import("@app/common").ApiResponse<{
         fileSize: number;

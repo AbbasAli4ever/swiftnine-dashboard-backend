@@ -8,6 +8,7 @@ const CreateMessageSchema = zod_1.z.object({
     content: zod_1.z.string().min(1),
     status: zod_1.z.enum(['COMPLETE', 'ABORTED']).default('COMPLETE'),
     title: zod_1.z.string().trim().min(1).max(200).optional(),
+    attachmentIds: zod_1.z.array(zod_1.z.string().uuid()).max(10).optional(),
 });
 class CreateMessageDto extends (0, nestjs_zod_1.createZodDto)(CreateMessageSchema) {
 }

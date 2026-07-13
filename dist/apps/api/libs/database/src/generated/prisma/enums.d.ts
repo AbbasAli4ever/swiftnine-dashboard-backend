@@ -54,6 +54,25 @@ export declare const AttachmentKind: {
     readonly LINK: "LINK";
 };
 export type AttachmentKind = (typeof AttachmentKind)[keyof typeof AttachmentKind];
+export declare const AttachmentContentType: {
+    readonly IMAGE: "IMAGE";
+    readonly PDF: "PDF";
+    readonly PPT: "PPT";
+    readonly EXCEL: "EXCEL";
+    readonly CSV: "CSV";
+    readonly DOCUMENT: "DOCUMENT";
+    readonly CODE: "CODE";
+    readonly TEXT: "TEXT";
+    readonly GENERATED_IMAGE: "GENERATED_IMAGE";
+    readonly GENERATED_PDF: "GENERATED_PDF";
+    readonly GENERATED_PPT: "GENERATED_PPT";
+};
+export type AttachmentContentType = (typeof AttachmentContentType)[keyof typeof AttachmentContentType];
+export declare const AttachmentUploadStatus: {
+    readonly PENDING: "PENDING";
+    readonly CONFIRMED: "CONFIRMED";
+};
+export type AttachmentUploadStatus = (typeof AttachmentUploadStatus)[keyof typeof AttachmentUploadStatus];
 export declare const ChannelPrivacy: {
     readonly PUBLIC: "PUBLIC";
     readonly PRIVATE: "PRIVATE";

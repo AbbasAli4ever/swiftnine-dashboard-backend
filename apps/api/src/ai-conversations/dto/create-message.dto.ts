@@ -8,6 +8,9 @@ const CreateMessageSchema = z.object({
   // Client-computed title (e.g. truncated first message) — applied only if
   // the conversation has no title yet and this is a USER message.
   title: z.string().trim().min(1).max(200).optional(),
+  // Attachments already presigned+confirmed against this conversation,
+  // linked to this message as part of the same transaction.
+  attachmentIds: z.array(z.string().uuid()).max(10).optional(),
 });
 
 export class CreateMessageDto extends createZodDto(CreateMessageSchema) {}

@@ -73,6 +73,29 @@ enum AttachmentKind {
   LINK
 }
 
+enum AttachmentContentType {
+  IMAGE
+  PDF
+  PPT
+  EXCEL
+  CSV
+  DOCUMENT
+  CODE
+  TEXT
+  GENERATED_IMAGE
+  GENERATED_PDF
+  GENERATED_PPT
+}
+
+// PENDING rows exist briefly between presign and confirm for AI-conversation
+// attachments; every other existing attachment flow creates its row only
+// once the S3 object is confirmed, so this defaults to CONFIRMED and leaves
+// those flows unaffected.
+enum AttachmentUploadStatus {
+  PENDING
+  CONFIRMED
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -143,11 +166,11 @@ model User {
 
 /// Hashed refresh tokens for JWT auth — one user can have multiple sessions
 model RefreshToken {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  tokenHash  String   @unique @map("token_hash")
-  deviceInfo String?  @map("device_info")
-  ipAddress  String?  @map("ip_address")
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  tokenHash  String    @unique @map("token_hash")
+  deviceInfo String?   @map("device_info")
+  ipAddress  String?   @map("ip_address")
   expiresAt  DateTime  @map("expires_at")
   isRevoked  Boolean   @default(false) @map("is_revoked")
   revokedAt  DateTime? @map("revoked_at")
@@ -280,18 +303,18 @@ model Project {
   deletedAt         DateTime? @map("deleted_at")
 
   // Relations
-  workspace            Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creator              User                        @relation("ProjectCreator", fields: [createdBy], references: [id])
-  passwordSetter       User?                       @relation("ProjectPasswordSetter", fields: [passwordSetBy], references: [id])
-  channels             Channel[]
-  taskLists            TaskList[]
-  statuses             Status[]
-  docs                 Doc[]
-  favorites            ProjectFavorite[]
-  unlockSessions       ProjectUnlockSession[]
-  unlockAttempts       ProjectUnlockAttempt[]
-  passwordResetTokens  ProjectPasswordResetToken[]
-  attachments          Attachment[]
+  workspace           Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator             User                        @relation("ProjectCreator", fields: [createdBy], references: [id])
+  passwordSetter      User?                       @relation("ProjectPasswordSetter", fields: [passwordSetBy], references: [id])
+  channels            Channel[]
+  taskLists           TaskList[]
+  statuses            Status[]
+  docs                Doc[]
+  favorites           ProjectFavorite[]
+  unlockSessions      ProjectUnlockSession[]
+  unlockAttempts      ProjectUnlockAttempt[]
+  passwordResetTokens ProjectPasswordResetToken[]
+  attachments         Attachment[]
 
   @@unique([workspaceId, taskIdPrefix])
   @@index([workspaceId])
@@ -361,10 +384,10 @@ model TaskList {
   deletedAt   DateTime? @map("deleted_at")
 
   // Relations
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  creator User    @relation("TaskListCreator", fields: [createdBy], references: [id])
-  owner   User?   @relation("TaskListOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
-  tasks   Task[]
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator     User         @relation("TaskListCreator", fields: [createdBy], references: [id])
+  owner       User?        @relation("TaskListOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  tasks       Task[]
   attachments Attachment[]
 
   @@index([projectId, position])
@@ -614,39 +637,50 @@ model Notification {
   @@map("notifications")
 }
 
-/// File attachments on tasks or docs — stored in AWS S3
+/// File attachments on tasks, docs, channel messages, projects, task lists,
+/// and AI conversations — stored in AWS S3
 model Attachment {
-  id               String         @id @default(uuid())
-  taskId           String?        @map("task_id")
-  docId            String?        @map("doc_id")
-  channelMessageId String?        @map("channel_message_id")
-  projectId        String?        @map("project_id")
-  taskListId       String?        @map("task_list_id")
-  uploadedBy       String         @map("uploaded_by")
-  fileName         String         @map("file_name")
-  s3Key            String?        @unique @map("s3_key")
-  mimeType         String?        @map("mime_type")
-  fileSize         BigInt?        @map("file_size")
-  kind             AttachmentKind @default(FILE)
-  linkUrl          String?        @map("link_url")
-  title            String?
-  description      String?
-  createdAt        DateTime       @default(now()) @map("created_at")
-  deletedAt        DateTime?      @map("deleted_at")
+  id                      String                 @id @default(uuid())
+  taskId                  String?                @map("task_id")
+  docId                   String?                @map("doc_id")
+  channelMessageId        String?                @map("channel_message_id")
+  projectId               String?                @map("project_id")
+  taskListId              String?                @map("task_list_id")
+  aiConversationId        String?                @map("ai_conversation_id")
+  aiConversationMessageId String?                @map("ai_conversation_message_id")
+  uploadedBy              String                 @map("uploaded_by")
+  fileName                String                 @map("file_name")
+  s3Key                   String?                @unique @map("s3_key")
+  mimeType                String?                @map("mime_type")
+  fileSize                BigInt?                @map("file_size")
+  kind                    AttachmentKind         @default(FILE)
+  contentType             AttachmentContentType? @map("content_type")
+  uploadStatus            AttachmentUploadStatus @default(CONFIRMED) @map("upload_status")
+  metadata                Json?
+  linkUrl                 String?                @map("link_url")
+  title                   String?
+  description             String?
+  createdAt               DateTime               @default(now()) @map("created_at")
+  updatedAt               DateTime               @updatedAt @map("updated_at")
+  deletedAt               DateTime?              @map("deleted_at")
 
   // Relations
-  task           Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  doc            Doc?            @relation(fields: [docId], references: [id], onDelete: Cascade)
-  channelMessage ChannelMessage? @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
-  project        Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskList       TaskList?       @relation(fields: [taskListId], references: [id], onDelete: Cascade)
-  uploader       User            @relation(fields: [uploadedBy], references: [id])
+  task                  Task?                  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  doc                   Doc?                   @relation(fields: [docId], references: [id], onDelete: Cascade)
+  channelMessage        ChannelMessage?        @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
+  project               Project?               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskList              TaskList?              @relation(fields: [taskListId], references: [id], onDelete: Cascade)
+  aiConversation        AiConversation?        @relation(fields: [aiConversationId], references: [id], onDelete: Cascade)
+  aiConversationMessage AiConversationMessage? @relation(fields: [aiConversationMessageId], references: [id], onDelete: Cascade)
+  uploader              User                   @relation(fields: [uploadedBy], references: [id])
 
   @@index([taskId])
   @@index([docId])
   @@index([channelMessageId])
   @@index([projectId])
   @@index([taskListId])
+  @@index([aiConversationId, deletedAt, createdAt])
+  @@index([aiConversationMessageId])
   @@map("attachments")
 }
 
@@ -864,9 +898,10 @@ model AiConversation {
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  workspace Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  AiConversationMessage[]
+  workspace   Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    AiConversationMessage[]
+  attachments Attachment[]
 
   @@index([workspaceId, userId, deletedAt, updatedAt(sort: Desc)])
   @@map("ai_conversations")
@@ -881,6 +916,7 @@ model AiConversationMessage {
   createdAt      DateTime        @default(now()) @map("created_at")
 
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
 
   @@index([conversationId, createdAt])
   @@map("ai_conversation_messages")

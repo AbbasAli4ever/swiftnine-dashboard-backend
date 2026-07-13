@@ -344,6 +344,18 @@ export type EnumAttachmentKindFilter<$PrismaModel = never> = {
     notIn?: $Enums.AttachmentKind[] | Prisma.ListEnumAttachmentKindFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel> | $Enums.AttachmentKind;
 };
+export type EnumAttachmentContentTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentContentType | Prisma.EnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    in?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    notIn?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    not?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel> | $Enums.AttachmentContentType | null;
+};
+export type EnumAttachmentUploadStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentUploadStatus | Prisma.EnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel> | $Enums.AttachmentUploadStatus;
+};
 export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel> | null;
     in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel> | null;
@@ -367,6 +379,24 @@ export type EnumAttachmentKindWithAggregatesFilter<$PrismaModel = never> = {
     _count?: Prisma.NestedIntFilter<$PrismaModel>;
     _min?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel>;
+};
+export type EnumAttachmentContentTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentContentType | Prisma.EnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    in?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    notIn?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    not?: Prisma.NestedEnumAttachmentContentTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.AttachmentContentType | null;
+    _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel>;
+};
+export type EnumAttachmentUploadStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentUploadStatus | Prisma.EnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumAttachmentUploadStatusWithAggregatesFilter<$PrismaModel> | $Enums.AttachmentUploadStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel>;
 };
 export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null;
@@ -843,6 +873,18 @@ export type NestedEnumAttachmentKindFilter<$PrismaModel = never> = {
     notIn?: $Enums.AttachmentKind[] | Prisma.ListEnumAttachmentKindFieldRefInput<$PrismaModel>;
     not?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel> | $Enums.AttachmentKind;
 };
+export type NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentContentType | Prisma.EnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    in?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    notIn?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    not?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel> | $Enums.AttachmentContentType | null;
+};
+export type NestedEnumAttachmentUploadStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentUploadStatus | Prisma.EnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel> | $Enums.AttachmentUploadStatus;
+};
 export type NestedBigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel> | null;
     in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel> | null;
@@ -876,6 +918,24 @@ export type NestedEnumAttachmentKindWithAggregatesFilter<$PrismaModel = never> =
     _count?: Prisma.NestedIntFilter<$PrismaModel>;
     _min?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel>;
     _max?: Prisma.NestedEnumAttachmentKindFilter<$PrismaModel>;
+};
+export type NestedEnumAttachmentContentTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentContentType | Prisma.EnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    in?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    notIn?: $Enums.AttachmentContentType[] | Prisma.ListEnumAttachmentContentTypeFieldRefInput<$PrismaModel> | null;
+    not?: Prisma.NestedEnumAttachmentContentTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.AttachmentContentType | null;
+    _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumAttachmentContentTypeNullableFilter<$PrismaModel>;
+};
+export type NestedEnumAttachmentUploadStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AttachmentUploadStatus | Prisma.EnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    in?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AttachmentUploadStatus[] | Prisma.ListEnumAttachmentUploadStatusFieldRefInput<$PrismaModel>;
+    not?: Prisma.NestedEnumAttachmentUploadStatusWithAggregatesFilter<$PrismaModel> | $Enums.AttachmentUploadStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumAttachmentUploadStatusFilter<$PrismaModel>;
 };
 export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null;

@@ -18,5 +18,6 @@ __exportStar(require("./common.module"), exports);
 __exportStar(require("./email/email.service"), exports);
 __exportStar(require("./filters/global-exception.filter"), exports);
 __exportStar(require("./middleware/http-logger.middleware"), exports);
+__exportStar(require("./s3/s3.service"), exports);
 __exportStar(require("./utils/api-response"), exports);
 //# sourceMappingURL=index.js.map

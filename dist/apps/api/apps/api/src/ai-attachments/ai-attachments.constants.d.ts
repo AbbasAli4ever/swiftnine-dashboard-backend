@@ -1,0 +1,22 @@
+import { AttachmentContentType } from "../../../../libs/database/src/generated/prisma/client";
+export declare const AI_ATTACHMENT_NOT_FOUND = "Attachment not found";
+export declare const AI_ATTACHMENT_KEY_PREFIX = "ai-attachments";
+export declare const WIRE_ATTACHMENT_TYPES: readonly ["image", "pdf", "ppt", "excel", "csv", "document", "code", "text", "generated-image", "generated-pdf", "generated-ppt"];
+export type WireAttachmentType = (typeof WIRE_ATTACHMENT_TYPES)[number];
+export declare const WIRE_TO_CONTENT_TYPE: Record<WireAttachmentType, AttachmentContentType>;
+export declare const CONTENT_TYPE_TO_WIRE: Record<AttachmentContentType, WireAttachmentType>;
+export declare const ALLOWED_MIME_TYPES_BY_CONTENT_TYPE: Record<AttachmentContentType, readonly string[]>;
+export declare const MAX_FILE_SIZE_BY_CONTENT_TYPE: Record<AttachmentContentType, number>;
+export declare const AI_ATTACHMENT_PRESIGN_EXPIRES_IN_SECONDS: number;
+export declare const AI_ATTACHMENT_SELECT: {
+    readonly id: true;
+    readonly aiConversationId: true;
+    readonly aiConversationMessageId: true;
+    readonly fileName: true;
+    readonly mimeType: true;
+    readonly fileSize: true;
+    readonly s3Key: true;
+    readonly contentType: true;
+    readonly uploadStatus: true;
+    readonly createdAt: true;
+};
