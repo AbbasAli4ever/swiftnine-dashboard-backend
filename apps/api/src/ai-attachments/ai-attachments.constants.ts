@@ -106,6 +106,22 @@ export const MAX_FILE_SIZE_BY_CONTENT_TYPE: Record<AttachmentContentType, number
 
 export const AI_ATTACHMENT_PRESIGN_EXPIRES_IN_SECONDS = 60 * 15;
 
+export const AI_ATTACHMENT_MAX_EXTRACTED_TEXT_CHARS = 20_000;
+export const AI_ATTACHMENT_EXTRACTION_TIMEOUT_MS = 10_000;
+
+// Types with no text-extraction strategy — either genuinely non-textual
+// (images) or not yet supported (Excel/PPT), or the backend already
+// generated them (their content originated as structured input, not a file
+// to parse).
+export const NON_EXTRACTABLE_CONTENT_TYPES = new Set<AttachmentContentType>([
+  AttachmentContentType.IMAGE,
+  AttachmentContentType.EXCEL,
+  AttachmentContentType.PPT,
+  AttachmentContentType.GENERATED_IMAGE,
+  AttachmentContentType.GENERATED_PDF,
+  AttachmentContentType.GENERATED_PPT,
+]);
+
 export const AI_ATTACHMENT_SELECT = {
   id: true,
   aiConversationId: true,
@@ -116,5 +132,6 @@ export const AI_ATTACHMENT_SELECT = {
   s3Key: true,
   contentType: true,
   uploadStatus: true,
+  metadata: true,
   createdAt: true,
 } as const;

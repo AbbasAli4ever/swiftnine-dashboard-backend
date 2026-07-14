@@ -28,6 +28,12 @@ export class AiAttachmentResponseDto {
 
   @ApiProperty({ example: '2026-05-13T10:30:00.000Z', format: 'date-time' })
   createdAt!: Date;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Extracted plain text, for non-image documents' })
+  extractedText?: string | null;
+
+  @ApiPropertyOptional({ enum: ['ok', 'unsupported', 'failed'], nullable: true })
+  extractionStatus?: 'ok' | 'unsupported' | 'failed' | null;
 }
 
 export class AiAttachmentListResponseDto {

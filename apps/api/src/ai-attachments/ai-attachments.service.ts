@@ -10,6 +10,8 @@ import {
 } from '@app/database/generated/prisma/client';
 import { S3Service } from '@app/common';
 import { AiConversationsService } from '../ai-conversations/ai-conversations.service';
+import { AttachmentContentExtractionService } from './content-extraction/attachment-content-extraction.service';
+import type { ExtractedContent } from './content-extraction/content-extractor';
 import {
   AI_ATTACHMENT_KEY_PREFIX,
   AI_ATTACHMENT_NOT_FOUND,
@@ -37,8 +39,22 @@ type AttachmentRow = {
   s3Key: string | null;
   contentType: AttachmentContentType | null;
   uploadStatus: AttachmentUploadStatus;
+  metadata: Prisma.JsonValue | null;
   createdAt: Date;
 };
+
+interface AttachmentMetadata {
+  extractedText?: string;
+  extractionStatus?: 'ok' | 'unsupported' | 'failed';
+  [key: string]: unknown;
+}
+
+function readMetadata(value: Prisma.JsonValue | null | undefined): AttachmentMetadata {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as AttachmentMetadata;
+  }
+  return {};
+}
 
 export interface CreateGeneratedAttachmentInput {
   conversationId: string;
@@ -56,6 +72,7 @@ export class AiAttachmentsService {
     private readonly s3: S3Service,
     private readonly config: ConfigService,
     private readonly conversations: AiConversationsService,
+    private readonly contentExtraction: AttachmentContentExtractionService,
     @Inject(ATTACHMENT_SCANNER) private readonly scanner: AttachmentScanner,
   ) {}
 
@@ -139,6 +156,12 @@ export class AiAttachmentsService {
 
     await this.scanner.scan({ bucket: this.s3.bucket, key: attachment.s3Key });
 
+    const extraction = await this.contentExtraction.maybeExtract(
+      attachment.contentType,
+      metadata.mimeType,
+      attachment.s3Key,
+    );
+
     const linkedMessageId = dto.messageId
       ? await this.assertMessageOwnedOrThrow(attachment.aiConversationId, dto.messageId)
       : undefined;
@@ -151,12 +174,30 @@ export class AiAttachmentsService {
         mimeType: metadata.mimeType,
         fileSize: metadata.fileSize,
         aiConversationMessageId: linkedMessageId,
-        metadata: dto.metadata as Prisma.InputJsonValue | undefined,
+        metadata: this.mergeMetadata(dto.metadata, extraction),
       },
       select: AI_ATTACHMENT_SELECT,
     });
 
     return this.toResponse(updated);
+  }
+
+  private mergeMetadata(
+    clientMetadata: Record<string, unknown> | undefined,
+    extraction: ExtractedContent | null,
+  ): Prisma.InputJsonValue | undefined {
+    if (!clientMetadata && !extraction) return undefined;
+    return {
+      ...(clientMetadata ?? {}),
+      ...(extraction
+        ? {
+            extractedText: extraction.text,
+            extractionStatus: extraction.status,
+            extractedCharCount: extraction.charCount,
+            extractionTruncated: extraction.truncated,
+          }
+        : {}),
+    } as Prisma.InputJsonValue;
   }
 
   /**
@@ -326,6 +367,7 @@ export class AiAttachmentsService {
       attachment.s3Key && attachment.uploadStatus === AttachmentUploadStatus.CONFIRMED
         ? await this.s3.createPresignedGetUrl(attachment.s3Key)
         : null;
+    const metadata = readMetadata(attachment.metadata);
 
     return {
       id: attachment.id,
@@ -339,6 +381,8 @@ export class AiAttachmentsService {
         : 'document',
       url,
       createdAt: attachment.createdAt,
+      extractedText: metadata.extractedText ?? null,
+      extractionStatus: metadata.extractionStatus ?? null,
     };
   }
 

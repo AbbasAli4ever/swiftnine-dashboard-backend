@@ -36,6 +36,7 @@ describe('AiAttachmentsService', () => {
   };
   let config: { get: jest.Mock };
   let conversations: { assertOwned: jest.Mock };
+  let contentExtraction: { maybeExtract: jest.Mock };
   let scanner: { scan: jest.Mock };
 
   const WORKSPACE_ID = 'workspace-1';
@@ -67,6 +68,7 @@ describe('AiAttachmentsService', () => {
     };
     config = { get: jest.fn().mockReturnValue(undefined) };
     conversations = { assertOwned: jest.fn().mockResolvedValue(undefined) };
+    contentExtraction = { maybeExtract: jest.fn().mockResolvedValue(null) };
     scanner = { scan: jest.fn().mockResolvedValue({ clean: true }) };
 
     service = new AiAttachmentsService(
@@ -74,6 +76,7 @@ describe('AiAttachmentsService', () => {
       s3 as never,
       config as never,
       conversations as never,
+      contentExtraction as never,
       scanner as never,
     );
   });
@@ -177,6 +180,40 @@ describe('AiAttachmentsService', () => {
         }),
       );
       expect(result.url).toBe('https://signed.example.com/get');
+    });
+
+    it('runs content extraction and merges the result into metadata', async () => {
+      prisma.attachment.findFirst.mockResolvedValue(pendingRow());
+      s3.resolveUploadedFileMetadata.mockResolvedValue({
+        fileName: 'diagram.png',
+        mimeType: 'image/png',
+        fileSize: BigInt(2048),
+      });
+      contentExtraction.maybeExtract.mockResolvedValue({
+        text: 'extracted body text',
+        charCount: 20,
+        truncated: false,
+        status: 'ok',
+      });
+      prisma.attachment.update.mockResolvedValue(pendingRow());
+
+      await service.confirm(USER_ID, WORKSPACE_ID, 'attachment-1', {});
+
+      expect(contentExtraction.maybeExtract).toHaveBeenCalledWith(
+        pendingRow().contentType,
+        'image/png',
+        pendingRow().s3Key,
+      );
+      expect(prisma.attachment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              extractedText: 'extracted body text',
+              extractionStatus: 'ok',
+            }),
+          }),
+        }),
+      );
     });
 
     it('is idempotent when the attachment is already CONFIRMED', async () => {
