@@ -27,6 +27,7 @@ import { ProjectSecurityModule } from './project-security/project-security.modul
 import { AiConversationsModule } from './ai-conversations/ai-conversations.module';
 import { AiAttachmentsModule } from './ai-attachments/ai-attachments.module';
 import { DocumentGenerationModule } from './document-generation/document-generation.module';
+import { SsoModule } from './sso/sso.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { DocumentGenerationModule } from './document-generation/document-generat
     AiConversationsModule,
     AiAttachmentsModule,
     DocumentGenerationModule,
+    SsoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
