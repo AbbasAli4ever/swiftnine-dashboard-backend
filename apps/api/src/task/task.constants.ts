@@ -17,7 +17,7 @@ export const BOARD_REORDER_SUBTASK_FORBIDDEN = 'Board reorder supports top-level
 
 // ─── Shared inline selects ────────────────────────────────────────────────────
 
-const USER_BRIEF_SELECT = {
+export const USER_BRIEF_SELECT = {
   id: true,
   fullName: true,
   avatarUrl: true,

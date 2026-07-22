@@ -24,12 +24,13 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
-import { TaskService, type TaskDetailData, type TaskListItemData } from './task.service';
+import { TaskService, type TaskDetailData, type TaskListItemData, type TaskListItemWithCreator } from './task.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { AddAssigneesDto } from './dto/add-assignees.dto';
 import { AddTagToTaskDto } from './dto/add-tag-to-task.dto';
 import { ListTasksQueryDto, type ListTasksQuery } from './dto/list-tasks-query.dto';
+import { ListTaskIdsDto } from './dto/list-task-ids.dto';
 import { PaginatedTasksResponseDto } from './dto/task-list-item-response.dto';
 import { TaskSearchSwaggerQueries } from './task-search.swagger';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
@@ -68,6 +69,25 @@ export class TaskController {
       query as ListTasksQuery,
     );
     return paginated(result.items, result.total, result.page, result.limit);
+  }
+
+  @Get('batch')
+  @ApiOperation({
+    summary: 'Fetch multiple tasks by id in one request',
+    description:
+      'Bulk task lookup used to avoid N+1 fetches (e.g. resolving the tasks referenced by a batch of notifications). Ids not visible to the caller are omitted.',
+  })
+  @ApiOkResponse({ description: 'Task list items for the requested ids' })
+  async findManyByIds(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ListTaskIdsDto,
+  ): Promise<ApiRes<TaskListItemWithCreator[]>> {
+    const items = await this.taskService.findManyByIds(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      query.ids ?? [],
+    );
+    return ok(items);
   }
 
   @Get(':taskId')

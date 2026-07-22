@@ -22,6 +22,7 @@ import {
   TASK_LIST_ITEM_SELECT,
   TASK_LIST_NOT_FOUND,
   TASK_NOT_FOUND,
+  USER_BRIEF_SELECT,
   USER_NOT_MEMBER,
 } from './task.constants';
 import type { CreateTaskDto } from './dto/create-task.dto';
@@ -49,6 +50,13 @@ export type TaskDetailData = RawTaskDetail & {
   isFavorite: boolean;
 };
 export type TaskListItemData = RawTaskListItem & { taskId: string; isFavorite: boolean };
+export type UserBrief = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+};
+export type TaskListItemWithCreator = TaskListItemData & { creator: UserBrief };
 export type ProjectBoardColumnData = {
   status: {
     id: string;
@@ -332,6 +340,46 @@ export class TaskService {
     });
     if (!raw) throw new NotFoundException(TASK_NOT_FOUND);
     return this.toDetail(raw, await this.isTaskFavorite(userId, raw.id));
+  }
+
+  /**
+   * Fetch many tasks by id in a single query (used to avoid N+1 fetches, e.g.
+   * resolving the tasks referenced by a batch of notifications). Silently skips
+   * ids the user can't see (deleted/archived/locked project) rather than throwing.
+   */
+  async findManyByIds(
+    workspaceId: string,
+    userId: string,
+    ids: string[],
+  ): Promise<TaskListItemWithCreator[]> {
+    if (!ids.length) return [];
+
+    const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+      workspaceId,
+      userId,
+    );
+
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+        list: {
+          deletedAt: null,
+          isArchived: false,
+          project: {
+            workspaceId,
+            deletedAt: null,
+            isArchived: false,
+            OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+          },
+        },
+      },
+      select: { ...TASK_LIST_ITEM_SELECT, creator: { select: USER_BRIEF_SELECT } },
+    });
+
+    const items = await this.toListItems(userId, tasks);
+    // toListItems preserves input order, so items[i] corresponds to tasks[i].
+    return items.map((item, i) => ({ ...item, creator: tasks[i].creator }));
   }
 
   async update(
