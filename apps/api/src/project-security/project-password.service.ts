@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { EmailService } from '@app/common';
 import type { Prisma, Role } from '@app/database/generated/prisma/client';
@@ -292,19 +292,19 @@ export class ProjectPasswordService {
 
     if (!project.passwordHash) throw projectPasswordNotSetException();
 
-    const projectOwner = await this.prisma.user.findFirst({
-      where: { id: project.createdBy, deletedAt: null },
-      select: { email: true, fullName: true },
-    });
-
-    if (!projectOwner) return;
+    const resetEmail = process.env['PROJECT_PASSWORD_RESET_EMAIL'];
+    if (!resetEmail) {
+      throw new InternalServerErrorException(
+        'PROJECT_PASSWORD_RESET_EMAIL is not configured',
+      );
+    }
 
     const { otp, otpHash } = await this.resets.createResetOtp(project.id);
 
     try {
       await this.email.sendProjectPasswordResetOtpEmail(
-        projectOwner.email,
-        projectOwner.fullName,
+        resetEmail,
+        'Admin',
         project.name,
         otp,
       );

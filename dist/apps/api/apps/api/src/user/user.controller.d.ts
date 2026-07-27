@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import type { AuthUser } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
 import { UserService, type UserProfile } from './user.service';
+import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { SetStatusDto } from './dto/set-status.dto';
@@ -27,6 +28,9 @@ export declare class UserController {
         message: string;
     }>;
     changePassword(req: AuthenticatedRequest, dto: ChangePasswordDto): Promise<{
+        message: string;
+    }>;
+    adminSetPassword(req: WorkspaceRequest, id: string, dto: AdminSetPasswordDto): Promise<{
         message: string;
     }>;
     updateNotificationPreferences(req: AuthenticatedRequest, dto: UpdateNotificationPreferencesDto): Promise<NotificationPreferencesResponseDto>;

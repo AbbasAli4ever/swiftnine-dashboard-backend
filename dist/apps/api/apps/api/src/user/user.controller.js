@@ -19,6 +19,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const auth_service_1 = require("../auth/auth.service");
 const auth_cookies_1 = require("../auth/auth.cookies");
 const user_service_1 = require("./user.service");
+const admin_set_password_dto_1 = require("./dto/admin-set-password.dto");
 const change_password_dto_1 = require("./dto/change-password.dto");
 const change_password_response_dto_1 = require("./dto/change-password-response.dto");
 const create_profile_dto_1 = require("./dto/create-profile.dto");
@@ -65,6 +66,9 @@ let UserController = class UserController {
     }
     async changePassword(req, dto) {
         return this.userService.changePassword(req.user.id, dto);
+    }
+    async adminSetPassword(req, id, dto) {
+        return this.userService.adminSetPassword(req.workspaceContext.workspaceId, req.user.id, req.workspaceContext.role, id, dto);
     }
     async updateNotificationPreferences(req, dto) {
         return this.userService.updateNotificationPreferences(req.user.id, dto);
@@ -297,6 +301,52 @@ __decorate([
     __metadata("design:paramtypes", [Object, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "changePassword", null);
+__decorate([
+    (0, common_1.Patch)(':id/admin-set-password'),
+    (0, common_1.UseGuards)(workspace_guard_1.WorkspaceGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('OWNER'),
+    (0, swagger_1.ApiHeader)({
+        name: 'x-workspace-id',
+        required: true,
+        description: 'Active workspace ID. Caller must be the workspace owner.',
+    }),
+    (0, swagger_1.ApiOperation)({
+        summary: "Directly set a workspace member's password (workspace OWNER only, no email sent)",
+        description: 'Bypasses the normal forgot-password email/token flow. Hashes the new password with bcrypt, updates it immediately, and revokes all of the target user\'s refresh tokens (forces logout everywhere).',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'id',
+        description: 'Target user UUID',
+        example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+    }),
+    (0, swagger_1.ApiBody)({
+        type: admin_set_password_dto_1.AdminSetPasswordDto,
+        examples: {
+            default: {
+                summary: 'Admin set password request',
+                value: { newPassword: 'NewPass456!' },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Password reset successfully',
+        type: change_password_response_dto_1.ChangePasswordResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Validation failed' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Authentication required' }),
+    (0, swagger_1.ApiResponse)({
+        status: 403,
+        description: 'Only the workspace owner can perform this action, or the target is another owner / the caller themself',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found in this workspace' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id', new common_1.ParseUUIDPipe())),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, admin_set_password_dto_1.AdminSetPasswordDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "adminSetPassword", null);
 __decorate([
     (0, common_1.Patch)('notifications'),
     (0, swagger_1.ApiOperation)({ summary: 'Update current user notification preferences' }),

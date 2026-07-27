@@ -30,6 +30,7 @@ import type { AuthUser } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
 import { buildClearRefreshCookieOptions } from '../auth/auth.cookies';
 import { UserService, type UserProfile } from './user.service';
+import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
@@ -289,6 +290,61 @@ export class UserController {
     @Body() dto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     return this.userService.changePassword(req.user.id, dto);
+  }
+
+  @Patch(':id/admin-set-password')
+  @UseGuards(WorkspaceGuard, RolesGuard)
+  @Roles('OWNER')
+  @ApiHeader({
+    name: 'x-workspace-id',
+    required: true,
+    description: 'Active workspace ID. Caller must be the workspace owner.',
+  })
+  @ApiOperation({
+    summary:
+      "Directly set a workspace member's password (workspace OWNER only, no email sent)",
+    description:
+      'Bypasses the normal forgot-password email/token flow. Hashes the new password with bcrypt, updates it immediately, and revokes all of the target user\'s refresh tokens (forces logout everywhere).',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Target user UUID',
+    example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+  })
+  @ApiBody({
+    type: AdminSetPasswordDto,
+    examples: {
+      default: {
+        summary: 'Admin set password request',
+        value: { newPassword: 'NewPass456!' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+    type: ChangePasswordResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Only the workspace owner can perform this action, or the target is another owner / the caller themself',
+  })
+  @ApiResponse({ status: 404, description: 'User not found in this workspace' })
+  async adminSetPassword(
+    @Req() req: WorkspaceRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: AdminSetPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.userService.adminSetPassword(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      req.workspaceContext.role,
+      id,
+      dto,
+    );
   }
 
   @Patch('notifications')

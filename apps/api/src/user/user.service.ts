@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '@app/database';
 import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserPresenceStatus } from './dto/profile-status.enum';
@@ -290,6 +291,66 @@ export class UserService {
         },
       });
     });
+  }
+
+  async adminSetPassword(
+    workspaceId: string,
+    actorId: string,
+    actorRole: Role,
+    targetUserId: string,
+    dto: AdminSetPasswordDto,
+  ): Promise<{ message: string }> {
+    if (actorRole !== 'OWNER') {
+      throw new ForbiddenException(
+        'Only the workspace owner can reset a member password',
+      );
+    }
+
+    if (actorId === targetUserId) {
+      throw new BadRequestException(
+        'Use PATCH /user/change-password to change your own password',
+      );
+    }
+
+    const membership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId: targetUserId,
+        deletedAt: null,
+        user: { deletedAt: null },
+      },
+      select: { role: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('User not found in this workspace');
+    }
+
+    if (membership.role === 'OWNER') {
+      throw new ForbiddenException(
+        "Workspace owners cannot reset another owner's password",
+      );
+    }
+
+    const newPasswordHash = await bcrypt.hash(
+      dto.newPassword,
+      PASSWORD_SALT_ROUNDS,
+    );
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: targetUserId },
+        data: { passwordHash: newPasswordHash },
+      }),
+      this.prisma.refreshToken.deleteMany({
+        where: { userId: targetUserId },
+      }),
+    ]);
+
+    return {
+      message:
+        'Password reset successfully. The user has been logged out of all sessions.',
+    };
   }
 
   async changePassword(

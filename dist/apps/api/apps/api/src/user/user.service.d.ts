@@ -1,5 +1,6 @@
 import { PrismaService } from "../../../../libs/database/src";
 import type { Role } from "../../../../libs/database/src/generated/prisma/client";
+import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserPresenceStatus } from './dto/profile-status.enum';
@@ -38,6 +39,9 @@ export declare class UserService {
     }>;
     deleteProfile(userId: string): Promise<void>;
     deleteWorkspaceMemberUser(workspaceId: string, actorId: string, actorRole: Role, targetUserId: string): Promise<void>;
+    adminSetPassword(workspaceId: string, actorId: string, actorRole: Role, targetUserId: string, dto: AdminSetPasswordDto): Promise<{
+        message: string;
+    }>;
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;
