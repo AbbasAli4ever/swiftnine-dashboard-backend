@@ -4,6 +4,13 @@ import { z } from 'zod';
 // Must stay in sync with JWT_REFRESH_EXPIRES_IN env var
 export const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7d
 
+// Grace window during which a just-rotated (revoked) refresh token can still
+// be exchanged one more time. Absorbs benign races — e.g. multiple browser
+// tabs whose access tokens expire around the same moment and both present
+// the same refresh token cookie — without weakening single-use rotation
+// beyond this short window. Reuse after this window is treated as invalid.
+export const REFRESH_TOKEN_REUSE_GRACE_MS = 10 * 1000; // 10s
+
 export const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password';
 export const AUTHENTICATION_REQUIRED_MESSAGE =
   'Authentication token is required';

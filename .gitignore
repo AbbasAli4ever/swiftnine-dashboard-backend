@@ -31,3 +31,4 @@ libs/database/src/generated/
 Thumbs.db
 .vscode/
 .idea/
+dist/
