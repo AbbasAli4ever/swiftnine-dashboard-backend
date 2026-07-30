@@ -8,7 +8,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { EmailService } from '@app/common';
-import type { Prisma, Role, InviteStatus } from '@app/database/generated/prisma/client';
+import type {
+  Prisma,
+  Role,
+  InviteStatus,
+  AiModelTier,
+} from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -177,6 +182,7 @@ export class WorkspaceService {
       fullName: string;
       email: string;
       role: Role;
+      aiModelTier: AiModelTier;
       lastActive: Date | null;
       invitedBy: string | null;
       invitedOn: Date | null;
@@ -188,6 +194,7 @@ export class WorkspaceService {
         where: { workspaceId, deletedAt: null },
         select: {
           role: true,
+          aiModelTier: true,
           createdAt: true,
           user: { select: { id: true, fullName: true, email: true, lastSeenAt: true } },
         },
@@ -225,6 +232,7 @@ export class WorkspaceService {
         fullName: u.fullName,
         email: u.email,
         role: m.role,
+        aiModelTier: m.aiModelTier,
         lastActive: (u as any).lastSeenAt ?? null,
         invitedBy: inv?.sender?.fullName ?? null,
         invitedOn: inv?.createdAt ?? null,
@@ -244,6 +252,9 @@ export class WorkspaceService {
         fullName: invite.email,
         email: invite.email,
         role: invite.role,
+        // No membership row exists until the invite is accepted, so no tier
+        // has been assigned yet — report the default rather than implying one.
+        aiModelTier: 'STANDARD' as AiModelTier,
         lastActive: null,
         invitedBy: invite.sender?.fullName ?? null,
         invitedOn: invite.createdAt,

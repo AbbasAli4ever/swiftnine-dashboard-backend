@@ -23,6 +23,13 @@ enum Role {
   MEMBER
 }
 
+/// Which OpenAI model tier a workspace member is entitled to.
+/// Entitlement, not permission — deliberately separate from Role.
+enum AiModelTier {
+  PREMIUM
+  STANDARD
+}
+
 enum WorkspaceUse {
   WORK
   PERSONAL
@@ -160,6 +167,12 @@ model User {
   docCommentsAuthored        DocComment[]             @relation("DocCommentAuthor")
   docShareLinksCreated       DocShareLink[]           @relation("DocShareLinkCreator")
   aiConversations            AiConversation[]
+  tierChangeAttempt          TierChangeAttempt?
+  aiTierChangesReceived      AiTierChangeLog[]        @relation("AiTierChangeTarget")
+  aiTierChangesMade          AiTierChangeLog[]        @relation("AiTierChangeActor")
+  aiTokenAllowances          AiTokenAllowance[]
+  aiTokenAllowanceHistory    AiTokenAllowanceHistory[] @relation("AiTokenAllowanceSubject")
+  aiTokenAllowanceActions    AiTokenAllowanceHistory[] @relation("AiTokenAllowanceActor")
 
   @@map("users")
 }
@@ -238,19 +251,23 @@ model Workspace {
   taskFavorites    TaskFavorite[]
   notifications    Notification[]
   aiConversations  AiConversation[]
+  aiTierChangeLogs AiTierChangeLog[]
+  aiTokenAllowances       AiTokenAllowance[]
+  aiTokenAllowanceHistory AiTokenAllowanceHistory[]
 
   @@map("workspaces")
 }
 
 /// Junction: User <-> Workspace with role assignment
 model WorkspaceMember {
-  id          String    @id @default(uuid())
-  workspaceId String    @map("workspace_id")
-  userId      String    @map("user_id")
-  role        Role      @default(MEMBER)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
+  id          String      @id @default(uuid())
+  workspaceId String      @map("workspace_id")
+  userId      String      @map("user_id")
+  role        Role        @default(MEMBER)
+  aiModelTier AiModelTier @default(STANDARD) @map("ai_model_tier")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
 
   // Relations
   workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -661,7 +678,11 @@ model Attachment {
   title                   String?
   description             String?
   createdAt               DateTime               @default(now()) @map("created_at")
-  updatedAt               DateTime               @updatedAt @map("updated_at")
+  /// @default(now()) mirrors the DB default added in migration
+  /// 20260710124006 so existing rows could be backfilled. Without it declared
+  /// here, every `prisma migrate diff` reports drift and tries to DROP DEFAULT,
+  /// which would re-break that migration for anyone replaying the chain.
+  updatedAt               DateTime               @default(now()) @updatedAt @map("updated_at")
   deletedAt               DateTime?              @map("deleted_at")
 
   // Relations
@@ -889,6 +910,21 @@ enum AiMessageStatus {
   ABORTED
 }
 
+/// How a turn's token figures were obtained. Recorded so quota accounting is
+/// auditable and so estimated consumption can be treated differently from
+/// measured consumption when enforcing limits.
+enum TokenSource {
+  /// OpenAI's usage chunk arrived — authoritative.
+  MEASURED
+  /// Stream ended early (abort): prompt counted with the tokenizer, reply
+  /// counted from the text actually received.
+  TOKENIZED_PROMPT
+  /// Tokenizer unavailable; character-ratio fallback. Least accurate.
+  HEURISTIC
+  /// No figures available at all.
+  UNKNOWN
+}
+
 model AiConversation {
   id          String    @id @default(uuid())
   workspaceId String    @map("workspace_id")
@@ -913,6 +949,34 @@ model AiConversationMessage {
   role           AiMessageRole
   content        String
   status         AiMessageStatus @default(COMPLETE)
+  /// Model that produced this turn. Null for user turns and for
+  /// assistant rows written before per-message attribution existed.
+  model            String?  @map("model")
+  /// Measured token counts, straight from OpenAI's usage chunk. Null when the
+  /// stream ended before that chunk arrived — see estimated* below.
+  promptTokens     Int?     @map("prompt_tokens")
+  completionTokens Int?     @map("completion_tokens")
+  /// Subset of promptTokens OpenAI billed at the discounted cache-read rate
+  /// (prompt_tokens_details.cached_tokens). Null when not measured, same
+  /// convention as the other measured columns — 0 means "measured, no cache
+  /// hit", distinct from null meaning "we don't know".
+  cachedPromptTokens    Int? @map("cached_prompt_tokens")
+  /// Subset of promptTokens OpenAI billed at the (higher) cache-write rate
+  /// (prompt_tokens_details.cache_write_tokens). Only ever populated for
+  /// models whose usage response includes this field (the 5.6 family) —
+  /// gpt-4o-mini's response never has it, so this stays null there.
+  cacheWritePromptTokens Int? @map("cache_write_prompt_tokens")
+  /// Counted locally when the measured figures are unavailable (abort path).
+  /// Kept separate so the measured columns stay authoritative and the accuracy
+  /// of quota accounting stays queryable.
+  estimatedPromptTokens     Int? @map("estimated_prompt_tokens")
+  estimatedCompletionTokens Int? @map("estimated_completion_tokens")
+  tokenSource               TokenSource? @map("token_source")
+  /// Images are billed by dimensions, which a text tokenizer cannot see. Recorded
+  /// so the residual on aborted vision requests is measurable.
+  imageCount                Int? @map("image_count")
+  /// Null means "not measured" (unknown rate), distinct from 0.00 meaning "free".
+  estimatedCostUsd Decimal? @map("estimated_cost_usd") @db.Decimal(12, 6)
   createdAt      DateTime        @default(now()) @map("created_at")
 
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -1070,4 +1134,125 @@ model DocShareLink {
 
   @@index([docId])
   @@map("doc_share_links")
+}
+
+// ============================================================
+// AI MODEL TIER MANAGEMENT
+// ============================================================
+
+/// Shared secret gating AI tier changes. Hashed with bcrypt — never
+/// reversibly encrypted, since verification only needs a one-way compare.
+/// Rows are seeded out-of-band via scripts/set-tier-change-secret.ts.
+model TierChangeSecret {
+  id         String    @id @default(uuid())
+  /// Human-readable owner of this secret, e.g. "office-admin". Appears in audit rows.
+  label      String    @unique
+  secretHash String    @map("secret_hash")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([revokedAt])
+  @@map("tier_change_secrets")
+}
+
+/// Sliding-window failed-attempt tracking for the tier-change secret,
+/// keyed by the acting user. Mirrors ProjectUnlockAttempt.
+model TierChangeAttempt {
+  id          String    @id @default(uuid())
+  userId      String    @unique @map("user_id")
+  failedCount Int       @default(0) @map("failed_count")
+  lockedUntil DateTime? @map("locked_until")
+  lastFailAt  DateTime? @map("last_fail_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([lockedUntil])
+  @@map("tier_change_attempts")
+}
+
+/// Weekly token budget for a workspace member. One row per member per period —
+/// history is retained rather than overwritten, so past weeks stay queryable.
+///
+/// Scoped to (workspaceId, userId) to match how aiModelTier is scoped: a user in
+/// two workspaces must not share one budget across different tiers.
+model AiTokenAllowance {
+  id          String @id @default(uuid())
+  workspaceId String @map("workspace_id")
+  userId      String @map("user_id")
+  /// Start of this budget period (UTC Monday 00:00). Stored rather than computed
+  /// at read time — computed windows drift with timezone/DST and make historical
+  /// rows unqueryable.
+  periodStart DateTime @map("period_start")
+  tokenLimit  Int      @map("token_limit")
+  /// The single authoritative figure the quota check reads. Incremented inside
+  /// the same transaction that writes the message row, so the two cannot diverge.
+  consumedTokens Int @default(0) @map("consumed_tokens")
+  /// Subset of consumedTokens that came from local counting rather than OpenAI's
+  /// usage chunk. Used to avoid ever hard-blocking a user on estimates alone.
+  estimatedTokens Int @default(0) @map("estimated_tokens")
+  costUsdUsed     Decimal @default(0) @map("cost_usd_used") @db.Decimal(12, 6)
+  /// Set when the member accepts falling back to the standard model after
+  /// exhausting the budget. Cleared on reset.
+  fallbackOptIn Boolean  @default(false) @map("fallback_opt_in")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId, periodStart])
+  @@index([workspaceId, userId, periodStart(sort: Desc)])
+  @@map("ai_token_allowances")
+}
+
+enum AiTokenAllowanceEvent {
+  LIMIT_SET
+  MANUAL_RESET
+  PERIOD_ROLLOVER
+}
+
+/// Append-only log of allowance changes: limit edits, manual resets, and the
+/// closing snapshot of each period.
+model AiTokenAllowanceHistory {
+  id          String                @id @default(uuid())
+  workspaceId String                @map("workspace_id")
+  userId      String                @map("user_id")
+  event       AiTokenAllowanceEvent
+  periodStart DateTime              @map("period_start")
+  tokenLimit  Int                   @map("token_limit")
+  /// Consumption at the moment of the event — the closing figure for a rollover.
+  consumedTokens Int     @map("consumed_tokens")
+  costUsdUsed    Decimal @map("cost_usd_used") @db.Decimal(12, 6)
+  /// Null for automatic rollovers; set for admin-initiated changes.
+  actorUserId String?  @map("actor_user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation("AiTokenAllowanceSubject", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?     @relation("AiTokenAllowanceActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, userId, createdAt(sort: Desc)])
+  @@map("ai_token_allowance_history")
+}
+
+/// Append-only audit of every AI tier change. Records who acted, on whom,
+/// in which workspace, and which secret authorised it.
+model AiTierChangeLog {
+  id          String      @id @default(uuid())
+  workspaceId String      @map("workspace_id")
+  targetUserId String     @map("target_user_id")
+  actorUserId String      @map("actor_user_id")
+  fromTier    AiModelTier @map("from_tier")
+  toTier      AiModelTier @map("to_tier")
+  secretLabel String      @map("secret_label")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  targetUser User      @relation("AiTierChangeTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  actorUser  User      @relation("AiTierChangeActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([targetUserId])
+  @@map("ai_tier_change_logs")
 }

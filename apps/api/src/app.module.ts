@@ -27,6 +27,8 @@ import { ProjectSecurityModule } from './project-security/project-security.modul
 import { AiConversationsModule } from './ai-conversations/ai-conversations.module';
 import { AiAttachmentsModule } from './ai-attachments/ai-attachments.module';
 import { DocumentGenerationModule } from './document-generation/document-generation.module';
+import { AiTierModule } from './ai-tier/ai-tier.module';
+import { AiGenerationModule } from './ai-generation/ai-generation.module';
 import { SsoModule } from './sso/sso.module';
 
 @Module({
@@ -56,6 +58,8 @@ import { SsoModule } from './sso/sso.module';
     AiConversationsModule,
     AiAttachmentsModule,
     DocumentGenerationModule,
+    AiTierModule,
+    AiGenerationModule,
     SsoModule,
   ],
   controllers: [AppController],

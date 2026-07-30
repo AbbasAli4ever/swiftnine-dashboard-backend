@@ -1,7 +1,19 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx jest *)",
+      "Bash(npx next *)",
+      "Bash(echo \"--- exit=$? ---\")",
+      "Bash(python3 -)"
+    ],
     "additionalDirectories": [
-      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/app/(admin)/(others-pages)/projects/[id]/password/reset"
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/app/(admin)/(others-pages)/projects/[id]/password/reset",
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/services/ai",
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/app/api/chat",
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/components/chatbot",
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/services",
+      "/Users/swiftninedev/Desktop/NewProjects/swiftnine-dashboard-frontend/src/components/workspace"
     ]
   }
 }

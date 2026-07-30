@@ -180,6 +180,7 @@ describe('WorkspaceService', () => {
     prisma.workspaceMember.findMany = jest.fn().mockResolvedValue([
       {
         role: 'OWNER',
+        aiModelTier: 'PREMIUM',
         createdAt: new Date('2026-04-16T09:00:00.000Z'),
         user: {
           id: 'user-1',
@@ -208,6 +209,7 @@ describe('WorkspaceService', () => {
         fullName: 'Jane Owner',
         email: 'owner@example.com',
         role: 'OWNER',
+        aiModelTier: 'PREMIUM',
         lastActive: new Date('2026-04-16T10:00:00.000Z'),
         invitedBy: null,
         invitedOn: null,
@@ -218,6 +220,8 @@ describe('WorkspaceService', () => {
         fullName: 'pending@example.com',
         email: 'pending@example.com',
         role: 'MEMBER',
+        // No membership row exists until the invite is accepted.
+        aiModelTier: 'STANDARD',
         lastActive: null,
         invitedBy: 'Jane Owner',
         invitedOn: new Date('2026-04-16T11:00:00.000Z'),

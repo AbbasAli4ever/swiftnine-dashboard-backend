@@ -5,17 +5,25 @@
 
 */
 -- CreateEnum
-CREATE TYPE "AttachmentContentType" AS ENUM ('IMAGE', 'PDF', 'PPT', 'EXCEL', 'CSV', 'DOCUMENT', 'CODE', 'TEXT', 'GENERATED_IMAGE', 'GENERATED_PDF', 'GENERATED_PPT');
+-- Guarded: CREATE TYPE commits even when a later statement in this migration
+-- aborts, so a retry would otherwise fail with "type already exists".
+DO $$ BEGIN
+  CREATE TYPE "AttachmentContentType" AS ENUM ('IMAGE', 'PDF', 'PPT', 'EXCEL', 'CSV', 'DOCUMENT', 'CODE', 'TEXT', 'GENERATED_IMAGE', 'GENERATED_PDF', 'GENERATED_PPT');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateEnum
-CREATE TYPE "AttachmentUploadStatus" AS ENUM ('PENDING', 'CONFIRMED');
+DO $$ BEGIN
+  CREATE TYPE "AttachmentUploadStatus" AS ENUM ('PENDING', 'CONFIRMED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AlterTable
 ALTER TABLE "attachments" ADD COLUMN     "ai_conversation_id" TEXT,
 ADD COLUMN     "ai_conversation_message_id" TEXT,
 ADD COLUMN     "content_type" "AttachmentContentType",
 ADD COLUMN     "metadata" JSONB,
-ADD COLUMN     "updated_at" TIMESTAMP(3) NOT NULL,
+-- DEFAULT added so existing rows backfill; Prisma's @updatedAt sets this on
+-- every write, so the default only ever applies to pre-existing rows.
+ADD COLUMN     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN     "upload_status" "AttachmentUploadStatus" NOT NULL DEFAULT 'CONFIRMED';
 
 -- CreateIndex

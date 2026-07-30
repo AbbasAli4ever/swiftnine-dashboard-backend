@@ -13,6 +13,13 @@ export class MemberResponseDto {
   @ApiProperty({ example: 'MEMBER', enum: ['OWNER', 'ADMIN', 'MEMBER'] })
   role!: 'OWNER' | 'ADMIN' | 'MEMBER';
 
+  @ApiProperty({
+    example: 'STANDARD',
+    enum: ['PREMIUM', 'STANDARD'],
+    description: 'AI model entitlement in this workspace. Pending invites report STANDARD.',
+  })
+  aiModelTier!: 'PREMIUM' | 'STANDARD';
+
   @ApiProperty({ example: '2026-04-13T16:20:59.000Z', format: 'date-time', nullable: true })
   lastActive!: Date | null;
 
