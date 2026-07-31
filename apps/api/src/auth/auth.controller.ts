@@ -90,6 +90,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const { refreshToken, ...result } = await this.authService.login(req.user);
+    console.log("LOGGED IN USER ", result)
     this.setRefreshCookie(res, refreshToken);
     return result;
   }
@@ -110,10 +111,12 @@ export class AuthController {
     @Req() req: GoogleAuthenticatedRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const { refreshToken, accessToken } = await this.authService.handleGoogleAuth(req.user);
+    const result: any = await this.authService.handleGoogleAuth(req.user);
+    const { refreshToken, accessToken, role } = result;
     this.setRefreshCookie(res, refreshToken);
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+    const roleQuery = role ? `&role=${encodeURIComponent(role)}` : '';
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}${roleQuery}`);
   }
 
   @Post('refresh')

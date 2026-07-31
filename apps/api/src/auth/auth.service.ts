@@ -168,6 +168,7 @@ export class AuthService {
   }
 
   async login(user: AuthUser): Promise<TokenPair> {
+    console.log("USER TRYING TO LOGIN IS ", user);
     return this.issueTokens(user);
   }
 
@@ -213,6 +214,8 @@ export class AuthService {
         },
         select: AUTH_USER_SELECT,
       });
+
+      console.log("LINKED USER FROM GOOGLE AUTH IS ", linkedUser);
 
       return this.issueTokens(linkedUser);
     }
@@ -369,6 +372,7 @@ export class AuthService {
 
   async issueTokens(user: AuthUser): Promise<TokenPair> {
     const accessToken = await this.jwt.signAsync({ sub: user.id, email: user.email });
+    
 
     const rawRefreshToken = randomUUID();
     const tokenHash = this.hashToken(rawRefreshToken);
@@ -381,7 +385,7 @@ export class AuthService {
       },
     });
 
-    return { user, accessToken, refreshToken: rawRefreshToken };
+    return { user, accessToken, refreshToken: rawRefreshToken, ...(user.email === 'umair@swiftnine.com' ? {role:'CEO'} : user.email==='husnain@swiftnine.com'?{role:'ACCOUNTANT'} : {} ) };
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────────

@@ -55,6 +55,7 @@ export type UserProfile = {
   localTime: string | null;
   createdAt: Date;
   updatedAt: Date;
+  role?: string;
 };
 
 @Injectable()
@@ -496,6 +497,12 @@ export class UserService {
       localTime: this.computeLocalTime(user.timezone, showLocalTime),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      role:
+        user.email === 'umair@swiftnine.com'
+          ? 'CEO'
+          : user.email === 'husnain@swiftnine.com'
+            ? 'ACCOUNTANT'
+            : undefined,
     };
   }
 
