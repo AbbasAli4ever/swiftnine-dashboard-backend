@@ -11,6 +11,8 @@ import { TokenQuotaService } from '../ai-tier/token-quota.service';
 import {
   DOCUMENT_SYSTEM_PROMPT,
   MAX_DOCUMENT_SECTIONS,
+  MAX_DECK_SLIDES,
+  PRESENTATION_SYSTEM_PROMPT,
   invalidDraftJsonException,
   noDraftContentException,
   noImageReturnedException,
@@ -26,6 +28,19 @@ export interface DocumentSection {
 export interface DraftedDocument {
   title: string;
   sections: DocumentSection[];
+}
+
+export interface DraftedPresentationTheme {
+  accentColor: string;
+  headFont: string;
+  bodyFont: string;
+}
+
+export interface DraftedPresentation {
+  title: string;
+  subtitle?: string;
+  theme: DraftedPresentationTheme;
+  slides: Record<string, unknown>[];
 }
 
 export interface GeneratedImage {
@@ -58,12 +73,18 @@ export class AiGenerationService {
    * workspace tier, so premium members get the better model here too — which
    * means this call is metered exactly like a chat turn, on the same weekly
    * allowance, since it resolves to the same underlying model.
+   *
+   * `format` selects which system prompt and response shape to draft against —
+   * "pdf" (default) produces the flat {title, sections} shape both PDF and the
+   * old-style PPT render use, "ppt" produces the themed {theme, slides} shape
+   * the presentation renderer expects.
    */
   async draftDocument(
     workspaceId: string,
     userId: string,
     prompt: string,
-  ): Promise<DraftedDocument> {
+    format: 'pdf' | 'ppt' = 'pdf',
+  ): Promise<DraftedDocument | DraftedPresentation> {
     const tier = await this.tiers.getTier(workspaceId, userId);
 
     // Throws TOKEN_LIMIT_EXCEEDED for a premium member with no budget left who
@@ -87,7 +108,10 @@ export class AiGenerationService {
         model,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: DOCUMENT_SYSTEM_PROMPT },
+          {
+            role: 'system',
+            content: format === 'ppt' ? PRESENTATION_SYSTEM_PROMPT : DOCUMENT_SYSTEM_PROMPT,
+          },
           { role: 'user', content: prompt },
         ],
       });
@@ -139,12 +163,35 @@ export class AiGenerationService {
     }
 
     const record = parsed as Record<string, unknown>;
-    if (
-      typeof parsed !== 'object' ||
-      parsed === null ||
-      typeof record.title !== 'string' ||
-      !Array.isArray(record.sections)
-    ) {
+    if (typeof parsed !== 'object' || parsed === null || typeof record.title !== 'string') {
+      throw unexpectedDraftShapeException();
+    }
+
+    if (format === 'ppt') {
+      const theme = record.theme as Record<string, unknown> | undefined;
+      if (
+        !theme ||
+        typeof theme.accentColor !== 'string' ||
+        typeof theme.headFont !== 'string' ||
+        typeof theme.bodyFont !== 'string' ||
+        !Array.isArray(record.slides)
+      ) {
+        throw unexpectedDraftShapeException();
+      }
+
+      return {
+        title: record.title,
+        subtitle: typeof record.subtitle === 'string' ? record.subtitle : undefined,
+        theme: {
+          accentColor: theme.accentColor,
+          headFont: theme.headFont,
+          bodyFont: theme.bodyFont,
+        },
+        slides: (record.slides as Record<string, unknown>[]).slice(0, MAX_DECK_SLIDES),
+      };
+    }
+
+    if (!Array.isArray(record.sections)) {
       throw unexpectedDraftShapeException();
     }
 

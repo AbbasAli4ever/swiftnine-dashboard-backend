@@ -7,7 +7,12 @@ import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { AiAttachmentsService } from '../ai-attachments/ai-attachments.service';
 import { PdfGenerationService } from './pdf-generation.service';
 import { PptGenerationService } from './ppt-generation.service';
+import { PresentationOrchestratorService } from './presentation-orchestrator.service';
 import { GenerateDocumentDto, type GenerateDocumentInput } from './dto/generate-document.dto';
+import {
+  GeneratePresentationDto,
+  type GeneratePresentationInput,
+} from './dto/generate-presentation.dto';
 import { slugifyFileName } from './document-generation.utils';
 
 @ApiTags('document-generation')
@@ -19,6 +24,7 @@ export class DocumentGenerationController {
   constructor(
     private readonly pdf: PdfGenerationService,
     private readonly ppt: PptGenerationService,
+    private readonly presentationOrchestrator: PresentationOrchestratorService,
     private readonly attachments: AiAttachmentsService,
   ) {}
 
@@ -44,11 +50,19 @@ export class DocumentGenerationController {
 
   @Post('ppt')
   @ApiOperation({
-    summary: 'Render structured content into a PowerPoint and attach it to a SwiftBot conversation',
+    summary: 'Render a themed slide deck (with generated images/charts) and attach it to a SwiftBot conversation',
   })
-  async generatePpt(@Req() req: WorkspaceRequest, @Body() dto: GenerateDocumentDto): Promise<ApiRes<unknown>> {
-    const input = dto as GenerateDocumentInput;
-    const buffer = await this.ppt.render(input);
+  async generatePpt(
+    @Req() req: WorkspaceRequest,
+    @Body() dto: GeneratePresentationDto,
+  ): Promise<ApiRes<unknown>> {
+    const input = dto as GeneratePresentationInput;
+    const resolved = await this.presentationOrchestrator.resolveImages(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      input,
+    );
+    const buffer = await this.ppt.render(resolved);
     const result = await this.attachments.createGeneratedAttachment(
       req.user.id,
       req.workspaceContext.workspaceId,

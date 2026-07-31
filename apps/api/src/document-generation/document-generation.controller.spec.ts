@@ -4,6 +4,7 @@ describe('DocumentGenerationController', () => {
   let controller: DocumentGenerationController;
   let pdf: { render: jest.Mock };
   let ppt: { render: jest.Mock };
+  let presentationOrchestrator: { resolveImages: jest.Mock };
   let attachments: { createGeneratedAttachment: jest.Mock };
 
   const req = {
@@ -14,8 +15,16 @@ describe('DocumentGenerationController', () => {
   beforeEach(() => {
     pdf = { render: jest.fn().mockResolvedValue(Buffer.from('pdf-bytes')) };
     ppt = { render: jest.fn().mockResolvedValue(Buffer.from('ppt-bytes')) };
+    presentationOrchestrator = {
+      resolveImages: jest.fn().mockImplementation((_ws, _user, input) => Promise.resolve(input)),
+    };
     attachments = { createGeneratedAttachment: jest.fn().mockResolvedValue({ id: 'attachment-1' }) };
-    controller = new DocumentGenerationController(pdf as never, ppt as never, attachments as never);
+    controller = new DocumentGenerationController(
+      pdf as never,
+      ppt as never,
+      presentationOrchestrator as never,
+      attachments as never,
+    );
   });
 
   describe('generatePdf', () => {
@@ -60,15 +69,21 @@ describe('DocumentGenerationController', () => {
   });
 
   describe('generatePpt', () => {
-    it('renders then creates a generated attachment with the ppt mimetype', async () => {
+    it('resolves images then renders and creates a generated attachment with the ppt mimetype', async () => {
       const dto = {
         conversationId: 'conversation-1',
         title: 'Sales Deck',
-        sections: [{ bullets: ['Point one'] }],
+        theme: { accentColor: '2563EB', headFont: 'Arial', bodyFont: 'Arial' },
+        slides: [{ type: 'bullets', heading: 'Highlights', bullets: ['Point one'] }],
       } as never;
 
       const result = await controller.generatePpt(req, dto);
 
+      expect(presentationOrchestrator.resolveImages).toHaveBeenCalledWith(
+        'workspace-1',
+        'user-1',
+        dto,
+      );
       expect(ppt.render).toHaveBeenCalledWith(dto);
       expect(attachments.createGeneratedAttachment).toHaveBeenCalledWith(
         'user-1',

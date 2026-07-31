@@ -7,6 +7,7 @@ import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   AiGenerationService,
   type DraftedDocument,
+  type DraftedPresentation,
   type GeneratedImage,
 } from './ai-generation.service';
 import { GeneratePromptDto } from './dto/generate-prompt.dto';
@@ -31,11 +32,12 @@ export class AiGenerationController {
   async draftDocument(
     @Req() req: WorkspaceRequest,
     @Body() dto: GeneratePromptDto,
-  ): Promise<ApiRes<DraftedDocument>> {
+  ): Promise<ApiRes<DraftedDocument | DraftedPresentation>> {
     const draft = await this.service.draftDocument(
       req.workspaceContext.workspaceId,
       req.user.id,
       dto.prompt,
+      dto.format ?? 'pdf',
     );
     return ok(draft);
   }
