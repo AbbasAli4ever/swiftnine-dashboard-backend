@@ -76,7 +76,11 @@ export class AuthService {
       }
 
       // Unverified: resend OTP, don't create a new user
-      await this.sendVerificationOtp(existingUser.id, normalizedEmail, dto.fullName.trim());
+      await this.sendVerificationOtp(
+        existingUser.id,
+        normalizedEmail,
+        dto.fullName.trim(),
+      );
       return { message: EMAIL_ALREADY_REGISTERED_MESSAGE };
     }
 
@@ -94,7 +98,9 @@ export class AuthService {
 
     await this.sendVerificationOtp(user.id, normalizedEmail, user.fullName);
 
-    return { message: 'Account created. Check your email for the verification code.' };
+    return {
+      message: 'Account created. Check your email for the verification code.',
+    };
   }
 
   async verifyEmail(email: string, otp: string): Promise<TokenPair> {
@@ -155,7 +161,10 @@ export class AuthService {
     return authUser;
   }
 
-  async findActiveAuthUser(userId: string, email: string): Promise<AuthUser | null> {
+  async findActiveAuthUser(
+    userId: string,
+    email: string,
+  ): Promise<AuthUser | null> {
     return this.prisma.user.findFirst({
       where: {
         id: userId,
@@ -168,7 +177,7 @@ export class AuthService {
   }
 
   async login(user: AuthUser): Promise<TokenPair> {
-    console.log("USER TRYING TO LOGIN IS ", user);
+    console.log('USER TRYING TO LOGIN IS ', user);
     return this.issueTokens(user);
   }
 
@@ -185,7 +194,10 @@ export class AuthService {
     });
 
     if (existingGoogleUser) {
-      const syncedGoogleUser = await this.syncGoogleUser(existingGoogleUser, normalizedProfile);
+      const syncedGoogleUser = await this.syncGoogleUser(
+        existingGoogleUser,
+        normalizedProfile,
+      );
       return this.issueTokens(syncedGoogleUser);
     }
 
@@ -215,7 +227,7 @@ export class AuthService {
         select: AUTH_USER_SELECT,
       });
 
-      console.log("LINKED USER FROM GOOGLE AUTH IS ", linkedUser);
+      console.log('LINKED USER FROM GOOGLE AUTH IS ', linkedUser);
 
       return this.issueTokens(linkedUser);
     }
@@ -245,7 +257,13 @@ export class AuthService {
 
     const stored = await this.prisma.refreshToken.findFirst({
       where: { tokenHash },
-      select: { id: true, userId: true, isRevoked: true, revokedAt: true, expiresAt: true },
+      select: {
+        id: true,
+        userId: true,
+        isRevoked: true,
+        revokedAt: true,
+        expiresAt: true,
+      },
     });
 
     if (!stored || stored.expiresAt <= now) {
@@ -261,7 +279,8 @@ export class AuthService {
     if (stored.isRevoked) {
       const withinGraceWindow =
         stored.revokedAt !== null &&
-        now.getTime() - stored.revokedAt.getTime() <= REFRESH_TOKEN_REUSE_GRACE_MS;
+        now.getTime() - stored.revokedAt.getTime() <=
+          REFRESH_TOKEN_REUSE_GRACE_MS;
 
       if (!withinGraceWindow) {
         this.logger.warn(
@@ -324,7 +343,9 @@ export class AuthService {
     const rawToken = randomUUID();
     const tokenHash = this.hashToken(rawToken);
 
-    await this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
 
     await this.prisma.passwordResetToken.create({
       data: {
@@ -337,7 +358,11 @@ export class AuthService {
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
-    await this.email.sendPasswordResetEmail(normalizedEmail, user.fullName, resetUrl);
+    await this.email.sendPasswordResetEmail(
+      normalizedEmail,
+      user.fullName,
+      resetUrl,
+    );
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -356,7 +381,10 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_RESET_TOKEN_MESSAGE);
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS);
+    const newPasswordHash = await bcrypt.hash(
+      newPassword,
+      PASSWORD_SALT_ROUNDS,
+    );
 
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -371,8 +399,10 @@ export class AuthService {
   // ─── Shared ───────────────────────────────────────────────────────────────────
 
   async issueTokens(user: AuthUser): Promise<TokenPair> {
-    const accessToken = await this.jwt.signAsync({ sub: user.id, email: user.email });
-    
+    const accessToken = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+    });
 
     const rawRefreshToken = randomUUID();
     const tokenHash = this.hashToken(rawRefreshToken);
@@ -385,12 +415,24 @@ export class AuthService {
       },
     });
 
-    return { user, accessToken, refreshToken: rawRefreshToken, ...(user.email === 'umair@swiftnine.com' ? {role:'CEO'} : user.email==='husnain@swiftnine.com'?{role:'ACCOUNTANT'} : {} ) };
+    return {
+      user,
+      accessToken,
+      refreshToken: rawRefreshToken,
+      ...(user.email === 'umair@swiftnine.com'
+        ? { role: 'ACCOUNTANT' }
+        : user.email === 'husnain@swiftnine.com'
+          ? { role: 'ACCOUNTANT' }
+          : {}),
+    };
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────────
 
-  private async findActiveUserOrThrow(userId: string, tokenHash: string): Promise<AuthUser> {
+  private async findActiveUserOrThrow(
+    userId: string,
+    tokenHash: string,
+  ): Promise<AuthUser> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, deletedAt: null },
       select: AUTH_USER_SELECT,
@@ -410,7 +452,11 @@ export class AuthService {
     return user;
   }
 
-  private async sendVerificationOtp(userId: string, email: string, fullName: string): Promise<void> {
+  private async sendVerificationOtp(
+    userId: string,
+    email: string,
+    fullName: string,
+  ): Promise<void> {
     const otp = this.generateOtp();
     const otpHash = this.hashOtp(otp);
 
@@ -443,7 +489,9 @@ export class AuthService {
     return email.trim().toLowerCase();
   }
 
-  private normalizeGoogleProfile(profile: GoogleAuthProfile): GoogleAuthProfile {
+  private normalizeGoogleProfile(
+    profile: GoogleAuthProfile,
+  ): GoogleAuthProfile {
     const googleId = profile.googleId.trim();
     const email = this.normalizeEmail(profile.email);
     const fullName = profile.fullName?.trim() || null;
@@ -456,7 +504,9 @@ export class AuthService {
     return { googleId, email, fullName, avatarUrl };
   }
 
-  private async assertNoInactiveGoogleAccount(profile: GoogleAuthProfile): Promise<void> {
+  private async assertNoInactiveGoogleAccount(
+    profile: GoogleAuthProfile,
+  ): Promise<void> {
     const inactiveUser = await this.prisma.user.findFirst({
       where: {
         deletedAt: { not: null },
@@ -489,7 +539,11 @@ export class AuthService {
       updateData.email = profile.email;
     }
 
-    if (!user.avatarUrl && profile.avatarUrl && profile.avatarUrl !== user.avatarUrl) {
+    if (
+      !user.avatarUrl &&
+      profile.avatarUrl &&
+      profile.avatarUrl !== user.avatarUrl
+    ) {
       updateData.avatarUrl = profile.avatarUrl;
     }
 

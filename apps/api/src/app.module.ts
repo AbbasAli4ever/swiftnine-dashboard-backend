@@ -30,6 +30,9 @@ import { DocumentGenerationModule } from './document-generation/document-generat
 import { AiTierModule } from './ai-tier/ai-tier.module';
 import { AiGenerationModule } from './ai-generation/ai-generation.module';
 import { SsoModule } from './sso/sso.module';
+import { TransactionModule } from './transactions/transaction.module';
+import { ClientsModule } from './clients/clients.module';
+import { BankAccountModule } from './bank-accounts/bank-account.module';
 
 @Module({
   imports: [
@@ -61,6 +64,9 @@ import { SsoModule } from './sso/sso.module';
     AiTierModule,
     AiGenerationModule,
     SsoModule,
+    TransactionModule,
+    ClientsModule,
+    BankAccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],
