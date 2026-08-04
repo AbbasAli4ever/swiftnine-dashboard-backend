@@ -33,6 +33,7 @@ import { SsoModule } from './sso/sso.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { ClientsModule } from './clients/clients.module';
 import { BankAccountModule } from './bank-accounts/bank-account.module';
+import { AccountingDashboardModule } from './accounting-dashboard/accounting-dashboard.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { BankAccountModule } from './bank-accounts/bank-account.module';
     TransactionModule,
     ClientsModule,
     BankAccountModule,
+    AccountingDashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
