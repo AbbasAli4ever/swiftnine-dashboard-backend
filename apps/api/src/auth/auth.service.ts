@@ -419,11 +419,6 @@ export class AuthService {
       user,
       accessToken,
       refreshToken: rawRefreshToken,
-      ...(user.email === 'umair@swiftnine.com'
-        ? { role: 'ACCOUNTANT' }
-        : user.email === 'husnain@swiftnine.com'
-          ? { role: 'ACCOUNTANT' }
-          : {}),
     };
   }
 

@@ -24,6 +24,8 @@ export const CLIENT_TRANSACTION_SELECT = {
 export const CLIENTS_SELECT = {
   id: true,
   clientName: true,
+  totalRevenue: true,
+  currencyType: true,
   createdAt: true,
   updatedAt: true,
   _count: { select: { transactions: true } },
@@ -38,8 +40,15 @@ export const CLIENTS_SELECT = {
 export const CLIENTS_LIST_SELECT = {
   id: true,
   clientName: true,
+  totalRevenue: true,
+  currencyType: true,
   createdAt: true,
   updatedAt: true,
   _count: { select: { transactions: true } },
   transactions: { select: { saleAmount: true, currency: true } },
+} satisfies Prisma.ClientsSelect;
+
+export const CLIENT_SEARCH_SELECT = {
+  id: true,
+  clientName: true,
 } satisfies Prisma.ClientsSelect;

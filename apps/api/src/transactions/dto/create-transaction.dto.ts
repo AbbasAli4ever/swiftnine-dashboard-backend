@@ -7,7 +7,7 @@ import {
 } from '../transaction.constants';
 
 const CreateTransactionSchema = z.object({
-  clientName: z.string().trim().min(1, 'Client name is required').max(255),
+  clientId: z.string().uuid('Client id must be a valid UUID'),
   paymentPlatform: z.enum(PAYMENT_PLATFORM_VALUES).default('WHOP'),
   saleAmount: z.coerce
     .number()
@@ -23,11 +23,12 @@ export class CreateTransactionDto extends createZodDto(
 ) {
   @ApiProperty({
     type: String,
+    format: 'uuid',
     description:
-      'Client name for this transaction. Matched against existing clients by exact name; a new client is created automatically if none matches.',
-    example: 'Acme Corp',
+      'Id of the client this transaction belongs to. The client must already exist.',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
-  clientName: string = '';
+  clientId: string = '';
 
   @ApiPropertyOptional({
     enum: PAYMENT_PLATFORM_VALUES,

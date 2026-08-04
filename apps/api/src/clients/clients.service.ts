@@ -8,6 +8,7 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 import {
   CLIENT_HAS_TRANSACTIONS,
   CLIENT_NOT_FOUND,
+  CLIENT_SEARCH_SELECT,
   CLIENTS_LIST_SELECT,
   CLIENTS_SELECT,
 } from './clients.constants';
@@ -35,11 +36,12 @@ type RawClientData = Prisma.ClientsGetPayload<{
   select: typeof CLIENTS_SELECT;
 }>;
 
-export type ClientData = Omit<RawClientData, 'transactions'> & {
+export type ClientData = Omit<RawClientData, 'transactions' | 'totalRevenue'> & {
   transactions: (Omit<RawClientData['transactions'][number], 'saleAmount'> & {
     saleAmount: number;
   })[];
   totalSaleAmount: CurrencySaleTotal[];
+  totalRevenue: number;
 };
 
 function toClientData(row: RawClientData): ClientData {
@@ -52,6 +54,7 @@ function toClientData(row: RawClientData): ClientData {
     ...row,
     transactions,
     totalSaleAmount: sumByCurrency(row.transactions),
+    totalRevenue: Number(row.totalRevenue),
   };
 }
 
@@ -59,13 +62,21 @@ type RawClientListItem = Prisma.ClientsGetPayload<{
   select: typeof CLIENTS_LIST_SELECT;
 }>;
 
-export type ClientListItemData = Omit<RawClientListItem, 'transactions'> & {
+export type ClientListItemData = Omit<
+  RawClientListItem,
+  'transactions' | 'totalRevenue'
+> & {
   totalSaleAmount: CurrencySaleTotal[];
+  totalRevenue: number;
 };
 
 function toClientListItemData(row: RawClientListItem): ClientListItemData {
   const { transactions, ...rest } = row;
-  return { ...rest, totalSaleAmount: sumByCurrency(transactions) };
+  return {
+    ...rest,
+    totalSaleAmount: sumByCurrency(transactions),
+    totalRevenue: Number(row.totalRevenue),
+  };
 }
 
 export type ClientListResult = {
@@ -75,13 +86,21 @@ export type ClientListResult = {
   limit: number;
 };
 
+export type ClientSearchResult = Prisma.ClientsGetPayload<{
+  select: typeof CLIENT_SEARCH_SELECT;
+}>;
+
 @Injectable()
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateClientDto): Promise<ClientData> {
     const client = await this.prisma.clients.create({
-      data: { clientName: dto.clientName },
+      data: {
+        clientName: dto.clientName,
+        totalRevenue: dto.totalRevenue,
+        currencyType: dto.currencyType,
+      },
       select: CLIENTS_SELECT,
     });
     return toClientData(client);
@@ -113,6 +132,20 @@ export class ClientsService {
       page: query.page,
       limit: query.limit,
     };
+  }
+
+  async search(q: string): Promise<ClientSearchResult[]> {
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    return this.prisma.clients.findMany({
+      where: {
+        AND: tokens.map((token) => ({
+          clientName: { contains: token, mode: 'insensitive' as const },
+        })),
+      },
+      select: CLIENT_SEARCH_SELECT,
+      orderBy: { clientName: 'asc' },
+    });
   }
 
   async findOne(clientId: string): Promise<ClientData> {

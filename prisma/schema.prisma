@@ -23,6 +23,11 @@ enum Role {
   MEMBER
 }
 
+enum UserRole {
+  ACCOUNTANT
+  CEO
+}
+
 /// Which OpenAI model tier a workspace member is entitled to.
 /// Entitlement, not permission — deliberately separate from Role.
 enum AiModelTier {
@@ -133,6 +138,7 @@ model User {
   id                      String    @id @default(uuid())
   fullName                String    @map("full_name")
   email                   String    @unique
+  role                    UserRole?
   passwordHash            String?   @map("password_hash")
   googleId                String?   @unique @map("google_id")
   avatarUrl               String?   @map("avatar_url")
@@ -1279,10 +1285,12 @@ model AiTierChangeLog {
 }
 
 model Clients {
-  id         String   @id @default(uuid())
-  clientName String   @default("")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String    @id @default(uuid())
+  clientName   String    @default("")
+  totalRevenue Decimal   @default(0) @db.Decimal(12, 2)
+  currencyType Currency?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   transactions Transaction[]
 

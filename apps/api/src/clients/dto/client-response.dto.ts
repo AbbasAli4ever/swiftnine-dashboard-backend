@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CURRENCY_VALUES,
   PAYMENT_PLATFORM_VALUES,
@@ -53,6 +53,12 @@ export class ClientResponseDto {
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
 
+  @ApiProperty({ example: 25000 })
+  totalRevenue!: number;
+
+  @ApiPropertyOptional({ enum: CURRENCY_VALUES, nullable: true })
+  currencyType!: (typeof CURRENCY_VALUES)[number] | null;
+
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;
 
@@ -80,6 +86,12 @@ export class ClientListItemResponseDto {
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
 
+  @ApiProperty({ example: 25000 })
+  totalRevenue!: number;
+
+  @ApiPropertyOptional({ enum: CURRENCY_VALUES, nullable: true })
+  currencyType!: (typeof CURRENCY_VALUES)[number] | null;
+
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;
 
@@ -95,6 +107,14 @@ export class ClientListItemResponseDto {
       "Sum of saleAmount across this client's transactions, grouped by currency",
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
+}
+
+export class ClientSearchResultDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Acme Corp' })
+  clientName!: string;
 }
 
 class PaginationMetaDto {

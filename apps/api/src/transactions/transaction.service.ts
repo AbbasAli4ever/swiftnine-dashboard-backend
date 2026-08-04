@@ -49,13 +49,12 @@ export class TransactionService {
     });
     if (existing) throw new ConflictException(TRANSACTION_REF_ID_TAKEN);
 
-    const clientName = dto.clientName.trim();
-    const client = await this.findOrCreateClientByName(clientName);
+    const client = await this.findClientOrThrow(dto.clientId);
 
     const transaction = await this.prisma.transaction.create({
       data: {
         clientId: client.id,
-        clientName,
+        clientName: client.clientName,
         saleAmount: dto.saleAmount,
         paymentPlatform: dto.paymentPlatform,
         currency: dto.currency,
@@ -157,26 +156,32 @@ export class TransactionService {
     return toTransactionData(transaction);
   }
 
-  private async findClientOrThrow(clientId: string): Promise<void> {
+  private async findClientOrThrow(
+    clientId: string,
+  ): Promise<{ id: string; clientName: string }> {
     const client = await this.prisma.clients.findUnique({
       where: { id: clientId },
-      select: { id: true },
+      select: { id: true, clientName: true },
     });
     if (!client) throw new NotFoundException(CLIENT_NOT_FOUND);
+    return client;
   }
 
-  private async findOrCreateClientByName(
-    clientName: string,
-  ): Promise<{ id: string }> {
-    const existing = await this.prisma.clients.findFirst({
-      where: { clientName },
-      select: { id: true },
-    });
-    if (existing) return existing;
-
-    return this.prisma.clients.create({
-      data: { clientName },
-      select: { id: true },
-    });
-  }
+  // Client is now required to already exist (clientId comes straight from
+  // the payload) — auto-creating one by name is no longer used, kept here
+  // in case we need to bring it back.
+  // private async findOrCreateClientByName(
+  //   clientName: string,
+  // ): Promise<{ id: string }> {
+  //   const existing = await this.prisma.clients.findFirst({
+  //     where: { clientName },
+  //     select: { id: true },
+  //   });
+  //   if (existing) return existing;
+  //
+  //   return this.prisma.clients.create({
+  //     data: { clientName, totalRevenue: 0 },
+  //     select: { id: true },
+  //   });
+  // }
 }

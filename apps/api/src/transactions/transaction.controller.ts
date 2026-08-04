@@ -54,8 +54,7 @@ export class TransactionController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Record a new transaction',
-    description:
-      'Looks up an existing client by exact clientName match; creates a new client automatically if none matches.',
+    description: 'The client referenced by clientId must already exist.',
   })
   @ApiResponse({
     status: 201,
@@ -63,6 +62,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({
     status: 409,
     description: 'A transaction with this reference ID already exists',

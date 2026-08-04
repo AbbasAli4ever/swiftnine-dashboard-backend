@@ -32,6 +32,7 @@ import {
   ClientsService,
   type ClientData,
   type ClientListItemData,
+  type ClientSearchResult,
 } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -40,7 +41,12 @@ import {
   type ListClientsQuery,
 } from './dto/list-clients-query.dto';
 import {
+  SearchClientsQueryDto,
+  type SearchClientsQuery,
+} from './dto/search-clients-query.dto';
+import {
   ClientResponseDto,
+  ClientSearchResultDto,
   PaginatedClientsResponseDto,
 } from './dto/client-response.dto';
 
@@ -111,6 +117,33 @@ export class ClientsController {
   ): Promise<PaginatedApiResponse<ClientListItemData>> {
     const result = await this.clientsService.findAll(query as ListClientsQuery);
     return paginated(result.items, result.total, result.page, result.limit);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search clients by name, matching words in any order',
+    description:
+      'Splits the query into words and returns every client whose clientName contains all of them, in any order (e.g. "Corp Acme" matches "Acme Corp Inc").',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: 'Search text — one or more words, matched in any order',
+    example: 'Corp Acme',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Matching clients returned',
+    type: [ClientSearchResultDto],
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async search(
+    @Query() query: SearchClientsQueryDto,
+  ): Promise<ApiRes<ClientSearchResult[]>> {
+    const clients = await this.clientsService.search(
+      (query as SearchClientsQuery).q,
+    );
+    return ok(clients);
   }
 
   @Get(':clientId')

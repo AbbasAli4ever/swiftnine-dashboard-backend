@@ -47,7 +47,10 @@ export class AuthController {
       'Creates a new account and sends a 6-digit OTP to the email. Account is not active until the OTP is verified.',
   })
   @ApiResponse({ status: 201, description: 'OTP sent to email' })
-  @ApiResponse({ status: 409, description: 'Email already in use and verified' })
+  @ApiResponse({
+    status: 409,
+    description: 'Email already in use and verified',
+  })
   @ApiResponse({ status: 422, description: 'Validation failed' })
   async register(@Body() dto: RegisterDto): Promise<{ message: string }> {
     return this.authService.register(dto);
@@ -60,14 +63,21 @@ export class AuthController {
     description:
       'Validates the 6-digit OTP sent during registration. On success, marks the account as verified and issues tokens.',
   })
-  @ApiResponse({ status: 200, type: AuthResponseDto, description: 'Email verified, tokens issued' })
+  @ApiResponse({
+    status: 200,
+    type: AuthResponseDto,
+    description: 'Email verified, tokens issued',
+  })
   @ApiResponse({ status: 401, description: 'OTP is invalid or has expired' })
   @ApiResponse({ status: 422, description: 'Validation failed' })
   async verifyEmail(
     @Body() dto: VerifyEmailDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    const { refreshToken, ...result } = await this.authService.verifyEmail(dto.email, dto.otp);
+    const { refreshToken, ...result } = await this.authService.verifyEmail(
+      dto.email,
+      dto.otp,
+    );
     this.setRefreshCookie(res, refreshToken);
     return result;
   }
@@ -81,7 +91,11 @@ export class AuthController {
       'Validates credentials. Returns access token in body and sets refresh token as httpOnly cookie.',
   })
   @ApiBody({ type: LoginDto })
-  @ApiResponse({ status: 200, type: AuthResponseDto, description: 'Login successful, tokens issued' })
+  @ApiResponse({
+    status: 200,
+    type: AuthResponseDto,
+    description: 'Login successful, tokens issued',
+  })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @ApiResponse({ status: 403, description: 'Email not verified' })
   @ApiResponse({ status: 422, description: 'Validation failed' })
@@ -90,7 +104,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const { refreshToken, ...result } = await this.authService.login(req.user);
-    console.log("LOGGED IN USER ", result)
+    console.log('LOGGED IN USER ', result);
     this.setRefreshCookie(res, refreshToken);
     return result;
   }
@@ -98,25 +112,42 @@ export class AuthController {
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Start Google OAuth' })
-  @ApiResponse({ status: 302, description: 'Redirect to Google consent screen' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to Google consent screen',
+  })
   googleAuth(): void {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
-  @ApiResponse({ status: 200, type: AuthResponseDto, description: 'Google authentication successful' })
-  @ApiResponse({ status: 401, description: 'Google account could not be authenticated' })
-  @ApiResponse({ status: 409, description: 'Google account conflicts with an existing account' })
+  @ApiResponse({
+    status: 200,
+    type: AuthResponseDto,
+    description: 'Google authentication successful',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Google account could not be authenticated',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Google account conflicts with an existing account',
+  })
   async googleCallback(
     @Req() req: GoogleAuthenticatedRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const result: any = await this.authService.handleGoogleAuth(req.user);
-    const { refreshToken, accessToken, role } = result;
+    const result = await this.authService.handleGoogleAuth(req.user);
+    const { refreshToken, accessToken, user } = result;
     this.setRefreshCookie(res, refreshToken);
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
-    const roleQuery = role ? `&role=${encodeURIComponent(role)}` : '';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}${roleQuery}`);
+    const roleQuery = user?.role
+      ? `&role=${encodeURIComponent(user.role)}`
+      : '';
+    res.redirect(
+      `${frontendUrl}/auth/callback?token=${accessToken}${roleQuery}`,
+    );
   }
 
   @Post('refresh')
@@ -126,13 +157,21 @@ export class AuthController {
     description:
       'Reads the refresh_token httpOnly cookie, validates it, rotates it, and issues a new token pair.',
   })
-  @ApiResponse({ status: 200, type: AuthResponseDto, description: 'New token pair issued' })
-  @ApiResponse({ status: 401, description: 'Refresh token missing, invalid, or expired' })
+  @ApiResponse({
+    status: 200,
+    type: AuthResponseDto,
+    description: 'New token pair issued',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token missing, invalid, or expired',
+  })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    const cookieBag = (req as unknown as { cookies?: Record<string, string> }).cookies;
+    const cookieBag = (req as unknown as { cookies?: Record<string, string> })
+      .cookies;
     const rawToken = cookieBag?.['refresh_token'];
 
     if (!rawToken) {
@@ -148,7 +187,8 @@ export class AuthController {
       throw new UnauthorizedException(INVALID_REFRESH_TOKEN_MESSAGE);
     }
 
-    const { refreshToken, ...result } = await this.authService.refreshTokens(rawToken);
+    const { refreshToken, ...result } =
+      await this.authService.refreshTokens(rawToken);
     this.setRefreshCookie(res, refreshToken);
     return result;
   }
@@ -161,9 +201,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const rawToken = (
-      req as unknown as { cookies?: Record<string, string> }
-    ).cookies?.['refresh_token'];
+    const rawToken = (req as unknown as { cookies?: Record<string, string> })
+      .cookies?.['refresh_token'];
 
     if (rawToken) {
       await this.authService.logout(rawToken);
@@ -179,7 +218,10 @@ export class AuthController {
     description:
       'Sends a password reset link to the email if an account exists. Always returns 200 to prevent email enumeration.',
   })
-  @ApiResponse({ status: 200, description: 'Reset link sent (or silently ignored if email not found)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset link sent (or silently ignored if email not found)',
+  })
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
     await this.authService.forgotPassword(dto.email);
   }

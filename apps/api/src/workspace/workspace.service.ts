@@ -21,6 +21,7 @@ import {
   AuthService,
   type TokenPair,
 } from '../auth/auth.service';
+import { AUTH_USER_SELECT } from '../auth/auth.constants';
 import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
@@ -102,7 +103,10 @@ export class WorkspaceService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(userId: string, dto: CreateWorkspaceDto): Promise<WorkspaceData> {
+  async create(
+    userId: string,
+    dto: CreateWorkspaceDto,
+  ): Promise<WorkspaceData> {
     return this.prisma.$transaction(async (tx) => {
       const workspace = await tx.workspace.create({
         data: {
@@ -158,7 +162,10 @@ export class WorkspaceService {
     return memberships.map((m) => m.workspace);
   }
 
-  async findOne(workspaceId: string, userId: string): Promise<WorkspaceData & { memberCount: number }> {
+  async findOne(
+    workspaceId: string,
+    userId: string,
+  ): Promise<WorkspaceData & { memberCount: number }> {
     const [workspace, memberCount] = await Promise.all([
       this.prisma.workspace.findFirst({
         where: { id: workspaceId, deletedAt: null },
@@ -174,9 +181,7 @@ export class WorkspaceService {
     return { ...workspace, memberCount };
   }
 
-  async listMembers(
-    workspaceId: string,
-  ): Promise<
+  async listMembers(workspaceId: string): Promise<
     Array<{
       id: string;
       fullName: string;
@@ -196,7 +201,9 @@ export class WorkspaceService {
           role: true,
           aiModelTier: true,
           createdAt: true,
-          user: { select: { id: true, fullName: true, email: true, lastSeenAt: true } },
+          user: {
+            select: { id: true, fullName: true, email: true, lastSeenAt: true },
+          },
         },
         orderBy: { createdAt: 'asc' },
       }),
@@ -216,7 +223,12 @@ export class WorkspaceService {
 
     const inviteMap = new Map<
       string,
-      { email: string; createdAt: Date; status?: InviteStatus; sender?: { fullName: string } }
+      {
+        email: string;
+        createdAt: Date;
+        status?: InviteStatus;
+        sender?: { fullName: string };
+      }
     >();
     for (const inv of pendingInvites) {
       const key = inv.email.trim().toLowerCase();
@@ -244,7 +256,9 @@ export class WorkspaceService {
       .filter(
         (invite) =>
           !members.some(
-            (member) => member.user.email.trim().toLowerCase() === invite.email.trim().toLowerCase(),
+            (member) =>
+              member.user.email.trim().toLowerCase() ===
+              invite.email.trim().toLowerCase(),
           ),
       )
       .map((invite) => ({
@@ -348,7 +362,11 @@ export class WorkspaceService {
     const u = member.user;
     const invite = await this.prisma.workspaceInvite.findFirst({
       where: { workspaceId, email: u.email.trim().toLowerCase() },
-      select: { createdAt: true, status: true, sender: { select: { fullName: true } } },
+      select: {
+        createdAt: true,
+        status: true,
+        sender: { select: { fullName: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -389,19 +407,34 @@ export class WorkspaceService {
     if (!workspace) throw new NotFoundException(WORKSPACE_NOT_FOUND);
 
     const updateData: Prisma.WorkspaceUpdateInput = {};
-    const logEntries: Array<{ fieldName: string; oldValue: string | null; newValue: string | null }> = [];
+    const logEntries: Array<{
+      fieldName: string;
+      oldValue: string | null;
+      newValue: string | null;
+    }> = [];
 
     if (dto.name !== undefined && dto.name !== workspace.name) {
       updateData.name = dto.name.trim();
-      logEntries.push({ fieldName: 'name', oldValue: workspace.name, newValue: dto.name.trim() });
+      logEntries.push({
+        fieldName: 'name',
+        oldValue: workspace.name,
+        newValue: dto.name.trim(),
+      });
     }
 
     if (dto.logoUrl !== undefined && dto.logoUrl !== workspace.logoUrl) {
       updateData.logoUrl = dto.logoUrl;
-      logEntries.push({ fieldName: 'logoUrl', oldValue: workspace.logoUrl ?? null, newValue: dto.logoUrl ?? null });
+      logEntries.push({
+        fieldName: 'logoUrl',
+        oldValue: workspace.logoUrl ?? null,
+        newValue: dto.logoUrl ?? null,
+      });
     }
 
-    if (dto.workspaceUse !== undefined && dto.workspaceUse !== workspace.workspaceUse) {
+    if (
+      dto.workspaceUse !== undefined &&
+      dto.workspaceUse !== workspace.workspaceUse
+    ) {
       updateData.workspaceUse = dto.workspaceUse;
       logEntries.push({
         fieldName: 'workspaceUse',
@@ -484,11 +517,21 @@ export class WorkspaceService {
     role: Role,
     dto: InviteMemberDto,
   ): Promise<void> {
-    const inviteContext = await this.prepareInviteContext(workspaceId, inviterId, role);
-    const result = await this.sendInviteToEmail(inviteContext, dto.email, dto.role);
+    const inviteContext = await this.prepareInviteContext(
+      workspaceId,
+      inviterId,
+      role,
+    );
+    const result = await this.sendInviteToEmail(
+      inviteContext,
+      dto.email,
+      dto.role,
+    );
 
     if (result.status === 'failed') {
-      throw new InternalServerErrorException(result.message ?? 'Failed to send invite email');
+      throw new InternalServerErrorException(
+        result.message ?? 'Failed to send invite email',
+      );
     }
   }
 
@@ -498,12 +541,20 @@ export class WorkspaceService {
     role: Role,
     dto: BatchInviteMembersDto,
   ): Promise<BatchInviteResult> {
-    const inviteContext = await this.prepareInviteContext(workspaceId, inviterId, role);
-    const uniqueEmails = [...new Set(dto.emails.map((email) => email.trim().toLowerCase()))];
+    const inviteContext = await this.prepareInviteContext(
+      workspaceId,
+      inviterId,
+      role,
+    );
+    const uniqueEmails = [
+      ...new Set(dto.emails.map((email) => email.trim().toLowerCase())),
+    ];
     const results: BatchInviteMemberResult[] = [];
 
     for (const email of uniqueEmails) {
-      results.push(await this.sendInviteToEmail(inviteContext, email, dto.role));
+      results.push(
+        await this.sendInviteToEmail(inviteContext, email, dto.role),
+      );
     }
 
     return {
@@ -511,7 +562,9 @@ export class WorkspaceService {
       summary: {
         total: results.length,
         invited: results.filter((result) => result.status === 'invited').length,
-        alreadyMember: results.filter((result) => result.status === 'already_member').length,
+        alreadyMember: results.filter(
+          (result) => result.status === 'already_member',
+        ).length,
         failed: results.filter((result) => result.status === 'failed').length,
       },
     };
@@ -586,13 +639,7 @@ export class WorkspaceService {
             passwordHash,
             isEmailVerified: true,
           },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            avatarUrl: true,
-            avatarColor: true,
-          },
+          select: AUTH_USER_SELECT,
         });
 
         await tx.emailVerificationToken.deleteMany({
@@ -606,13 +653,7 @@ export class WorkspaceService {
             passwordHash,
             isEmailVerified: true,
           },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            avatarUrl: true,
-            avatarColor: true,
-          },
+          select: AUTH_USER_SELECT,
         });
       }
 
@@ -664,7 +705,9 @@ export class WorkspaceService {
     });
 
     if (invite.email !== userEmail.trim().toLowerCase()) {
-      throw new BadRequestException('This invite was sent to a different email address');
+      throw new BadRequestException(
+        'This invite was sent to a different email address',
+      );
     }
 
     // Idempotent: if already a member, just mark invite accepted
@@ -723,7 +766,9 @@ export class WorkspaceService {
     };
   }
 
-  private async findPendingInviteByToken<TSelect extends Prisma.WorkspaceInviteSelect>(
+  private async findPendingInviteByToken<
+    TSelect extends Prisma.WorkspaceInviteSelect,
+  >(
     token: string,
     select: TSelect,
   ): Promise<Prisma.WorkspaceInviteGetPayload<{ select: TSelect }>> {
@@ -835,7 +880,9 @@ export class WorkspaceService {
     }
 
     if (actor.role !== 'OWNER') {
-      throw new ForbiddenException('Only the workspace owner can perform this action');
+      throw new ForbiddenException(
+        'Only the workspace owner can perform this action',
+      );
     }
   }
 
@@ -856,7 +903,11 @@ export class WorkspaceService {
     if (!member) {
       member = await this.prisma.workspaceMember.findFirst({
         where: { userId: memberId, workspaceId, deletedAt: null },
-        select: { id: true, userId: true, user: { select: { fullName: true } } },
+        select: {
+          id: true,
+          userId: true,
+          user: { select: { fullName: true } },
+        },
       });
     }
 
@@ -894,14 +945,24 @@ export class WorkspaceService {
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
-      select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+        user: { select: { fullName: true } },
+      },
     });
 
     // Fallback: allow passing a userId in place of workspaceMember id
     if (!member) {
       member = await this.prisma.workspaceMember.findFirst({
         where: { userId: memberId, workspaceId, deletedAt: null },
-        select: { id: true, userId: true, role: true, user: { select: { fullName: true } } },
+        select: {
+          id: true,
+          userId: true,
+          role: true,
+          user: { select: { fullName: true } },
+        },
       });
     }
 
@@ -955,7 +1016,8 @@ export class WorkspaceService {
       select: { id: true },
     });
 
-    if (existing) throw new ConflictException('User is already a member of the workspace');
+    if (existing)
+      throw new ConflictException('User is already a member of the workspace');
 
     await this.prisma.$transaction([
       this.prisma.workspaceMember.create({
@@ -993,7 +1055,11 @@ export class WorkspaceService {
         });
 
         if (!user) {
-          results.push({ userId: uid, status: 'failed', message: 'User not found' });
+          results.push({
+            userId: uid,
+            status: 'failed',
+            message: 'User not found',
+          });
           continue;
         }
 
@@ -1003,12 +1069,18 @@ export class WorkspaceService {
         });
 
         if (existing) {
-          results.push({ userId: uid, status: 'already_member', message: null });
+          results.push({
+            userId: uid,
+            status: 'already_member',
+            message: null,
+          });
           continue;
         }
 
         await this.prisma.$transaction([
-          this.prisma.workspaceMember.create({ data: { workspaceId, userId: user.id, role } }),
+          this.prisma.workspaceMember.create({
+            data: { workspaceId, userId: user.id, role },
+          }),
           this.prisma.activityLog.create({
             data: {
               workspaceId,
@@ -1023,7 +1095,11 @@ export class WorkspaceService {
 
         results.push({ userId: uid, status: 'added', message: null });
       } catch (err: any) {
-        results.push({ userId: uid, status: 'failed', message: err?.message ?? 'Failed to add user' });
+        results.push({
+          userId: uid,
+          status: 'failed',
+          message: err?.message ?? 'Failed to add user',
+        });
       }
     }
 
@@ -1032,7 +1108,8 @@ export class WorkspaceService {
       summary: {
         total: results.length,
         added: results.filter((r) => r.status === 'added').length,
-        alreadyMember: results.filter((r) => r.status === 'already_member').length,
+        alreadyMember: results.filter((r) => r.status === 'already_member')
+          .length,
         failed: results.filter((r) => r.status === 'failed').length,
       },
     };
