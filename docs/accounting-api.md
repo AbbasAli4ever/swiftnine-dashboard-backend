@@ -1,7 +1,8 @@
 # Accounting API
 
 Summary
-- Three new modules were added: `transactions`, `clients`, and `bank-accounts`. None of these are workspace-scoped — they only require JWT auth (`Authorization: Bearer <token>`), no `x-workspace-id` header, since the underlying data has no `workspaceId` column.
+- Four new modules were added: `transactions`, `clients`, `bank-accounts`, and `accounting-dashboard`. None of these are workspace-scoped — they only require JWT auth (`Authorization: Bearer <token>`), no `x-workspace-id` header, since the underlying data has no `workspaceId` column.
+- `accounting-dashboard` is read-only — it aggregates data from the other three modules (`GET /accounting-dashboard/overview`) and doesn't own any table of its own. See section 4.
 - `Clients` and `Transaction` have a real one-to-many relation (`Clients.transactions[]` / `Transaction.clientId`). `BankAccount` is standalone — no relation to clients or transactions.
 - A `role` column (`UserRole`: `CEO` | `ACCOUNTANT`, nullable) was added to `User`, replacing a previous hardcoded-by-email-address check. Signing in as an `ACCOUNTANT` redirects the frontend to a dedicated `/accounting-dashboard` area (own layout, own sidebar) — see "Role / Auth Changes" below.
 - Standard response envelope for all three modules:
@@ -15,7 +16,7 @@ Summary
 
 ## Common Rules
 
-- Auth: `@UseGuards(JwtAuthGuard)` only on all three controllers (`clients`, `transactions`, `bank-accounts`). No `WorkspaceGuard`, no `x-workspace-id`.
+- Auth: `@UseGuards(JwtAuthGuard)` only on all four controllers (`clients`, `transactions`, `bank-accounts`, `accounting-dashboard`). No `WorkspaceGuard`, no `x-workspace-id`.
 - Money fields (`saleAmount`, `amount`, `totalRevenue`) are stored as Prisma `Decimal(12, 2)` but always converted to a plain JS `number` before being returned — Prisma's raw `Decimal` would otherwise serialize as a string over JSON, which every service in these modules explicitly guards against (`Number(row.field)` in a mapper function).
 - All list endpoints support `q` (search), `page`, `limit` (max 100), `sortBy`, `sortOrder`.
 - `Currency` enum (shared across all three modules): `USD`, `HKD`, `PKR`.
@@ -100,7 +101,24 @@ Standalone ledger — no relation to `Clients` or `Transaction`.
 - `PATCH /bank-accounts/:bankAccountId` — any field, at least one required.
 - `DELETE /bank-accounts/:bankAccountId`
 
-## 4. Role / Auth Changes
+## 4. Accounting Dashboard (`/accounting-dashboard`)
+
+Read-only aggregation module — no table of its own. Pulls from `Clients`, `Transaction`, and `BankAccount` to back the accounting overview screen.
+
+### Overview
+- `GET /accounting-dashboard/overview?period=daily`
+- `period` (optional, default `daily`): `daily` | `weekly` | `monthly` | `yearly` — controls only the granularity of `revenueOverview.points` (7 daily / 8 weekly / 12 monthly / 5 yearly buckets). Every other section of the response is independent of `period`.
+- Seven independent queries are run via `Promise.all` (one service method per stat) and assembled into a single response:
+  - **`balances`** — `BankAccount` grouped by `accountType` + `currencyType` (`byAccountType: [{ accountType, totals: [{currency, total}], accountCount }]`), plus `totalBalanceUsd` (every currency converted and summed) and the `exchangeRatesToUsd` table used to do it.
+  - **`revenueSummary`** — `today`, `thisMonth`, `thisYear` (each `{ totalUsd, changePercent }` vs. the prior comparable period — yesterday / last month / last year), and `totalSales` (`{ count, changePercent }`, transaction count this month vs. last month).
+  - **`revenueOverview`** — `{ period, points: [{ label, totalUsd }] }`, a time series bucketed in JS (not raw SQL) from all `Transaction` rows since the earliest bucket start. `label` is a date (`YYYY-MM-DD`) for daily/weekly buckets, `YYYY-MM` for monthly, or a bare year for yearly.
+  - **`revenueByPaymentPlatform`** — total `saleAmount` (converted to USD) grouped by `paymentPlatform`, summed across all currencies, sorted descending.
+  - **`revenueByCurrency`** — total `saleAmount` grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total.
+  - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 5 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`).
+  - **`topClients`** — top 5 `Clients` (`TOP_CLIENTS_LIMIT`) ordered by the stored `totalRevenue` field descending (not the computed `totalSaleAmount` from transactions — see Known Gaps).
+- All money values in the response are plain numbers (already converted from `Decimal`), and anything expressed "in USD" uses the fixed rate table in `accounting-dashboard.constants.ts`, not a live FX source (see Known Gaps).
+
+## 5. Role / Auth Changes
 
 - Added `User.role` — nullable `UserRole` enum (`CEO` | `ACCOUNTANT`), no default. Most users have `role = null`.
 - `AuthService.issueTokens()` (the single choke point behind `/auth/login`, `/auth/verify-email`, `/auth/refresh`, and Google OAuth) previously set role by comparing `user.email` against two hardcoded addresses. That block is now fully replaced — `role` is read straight from `user.role`.
@@ -110,21 +128,24 @@ Standalone ledger — no relation to `Clients` or `Transaction`.
   - The Google OAuth callback (`GET /auth/google/callback`) is a redirect, not a JSON body, so it still appends `role` as a flat query param on the redirect URL (`/auth/callback?token=...&role=...`) — derived from `user.role` at redirect time, not a separate stored value.
 - Frontend: `useAuthStore`'s `AuthUser` type now carries `role`; `login()` / `verifyEmail()` / session-restore read `data.user.role` instead of a top-level `data.role`.
 
-## 5. Known Gaps / Current Limitations
+## 6. Known Gaps / Current Limitations
 
 - `PATCH /clients/:clientId` cannot update `totalRevenue` or `currencyType` — only `clientName`. These fields are currently create-only.
-- `Clients.totalRevenue` (manually entered at creation) and `totalSaleAmount` (computed by summing `Transaction.saleAmount` per currency) are two independent "how much has this client generated" numbers. Nothing keeps them in sync — creating/updating transactions does not touch `totalRevenue`, and there's no reconciliation job.
-- `role` is informational only — there is no backend guard restricting `/clients`, `/transactions`, or `/bank-accounts` (or any endpoint) by role. Any authenticated user, regardless of `role`, can call all of them.
-- None of these three modules are workspace-scoped, unlike most of the rest of the API. They are effectively single global ledgers shared across the whole app, not per-workspace.
+- `Clients.totalRevenue` (manually entered at creation) and `totalSaleAmount` (computed by summing `Transaction.saleAmount` per currency) are two independent "how much has this client generated" numbers. Nothing keeps them in sync — creating/updating transactions does not touch `totalRevenue`, and there's no reconciliation job. This also means the dashboard's `topClients` (ranked by `totalRevenue`) can disagree with what `/clients` shows as `totalSaleAmount` for the same client.
+- `role` is informational only — there is no backend guard restricting `/clients`, `/transactions`, `/bank-accounts`, or `/accounting-dashboard` (or any endpoint) by role. Any authenticated user, regardless of `role`, can call all of them.
+- None of these four modules are workspace-scoped, unlike most of the rest of the API. They are effectively single global ledgers shared across the whole app, not per-workspace.
 - `findOrCreateClientByName` is dead code (commented out) in `transaction.service.ts`, kept intentionally for reference.
 - `BankAccount` has no relation to `Clients` or `Transaction` — it's a separate, unconnected ledger for now.
+- `EXCHANGE_RATES_TO_USD` (in `accounting-dashboard.constants.ts`) is a hardcoded, manually-maintained rate table — there's no live FX rate provider wired up. Every "in USD" figure in the dashboard overview is only as accurate as those fixed rates.
+- `revenueOverview`'s bucketing loads every matching `Transaction` row into memory and buckets it in JS rather than doing the grouping in SQL — fine at current data volumes, but worth revisiting (e.g. `groupBy` with a truncated date) if the table grows large.
 
-## 6. Suggested Frontend Data Flow
+## 7. Suggested Frontend Data Flow
 
 Accounting dashboard (`/accounting-dashboard/*`)
 1. On sign-in, if `user.role === "ACCOUNTANT"`, redirect to `/accounting-dashboard` (Overview).
 2. Overview / Transactions / Clients / Accounts & Balances / Reports are separate routes sharing one sidebar layout — currently static placeholders, not yet wired to these APIs.
 3. When wiring up real data:
+   - Overview screen → `GET /accounting-dashboard/overview?period=daily|weekly|monthly|yearly` — one call backs the whole screen (balances, revenue summary cards, revenue chart, platform/currency breakdowns, bank account lists, top clients).
    - Clients list/detail → `GET /clients` / `GET /clients/:clientId`.
    - Client picker (e.g. "assign transaction to client") → `GET /clients/search?q=`.
    - Transactions table → `GET /transactions`, filterable by `clientId`.
