@@ -16,7 +16,7 @@ Summary
 
 ## Common Rules
 
-- Auth: `@UseGuards(JwtAuthGuard, UserRoleGuard)` + `@RequireUserRole('CEO', 'ACCOUNTANT')` on all four controllers (`clients`, `transactions`, `bank-accounts`, `accounting-dashboard`). No `WorkspaceGuard`, no `x-workspace-id`. See "Role / Auth Changes" for what changed.
+- Auth: `@UseGuards(JwtAuthGuard, UserRoleGuard)` on all four controllers, class-level `@RequireUserRole('CEO', 'ACCOUNTANT')` (both roles can read), with every `POST`/`PATCH`/`DELETE` handler in `clients`, `transactions`, and `bank-accounts` overridden to `@RequireUserRole('ACCOUNTANT')` only — `CEO` is read-only across all three. `accounting-dashboard` has no write routes, so `CEO` and `ACCOUNTANT` both get its one `GET` unchanged. No `WorkspaceGuard`, no `x-workspace-id`. See "Role / Auth Changes" for what changed.
 - Money fields (`saleAmount`, `amount`, `totalRevenue`) are stored as Prisma `Decimal(12, 2)` but always converted to a plain JS `number` before being returned — Prisma's raw `Decimal` would otherwise serialize as a string over JSON, which every service in these modules explicitly guards against (`Number(row.field)` in a mapper function).
 - All list endpoints support `q` (search), `page`, `limit` (max 100), `sortBy`, `sortOrder`.
 - `Currency` enum (shared across all three modules): `USD`, `HKD`, `PKR`.
@@ -53,7 +53,7 @@ Summary
 
 ### Delete
 - `DELETE /clients/:clientId`
-- Blocked with `409` if the client still has any transactions (`_count.transactions > 0`), checked explicitly in the service before the delete. This mirrors `Transaction.client`'s `onDelete: Restrict` at the DB level, giving a clean error instead of a raw FK-violation.
+- Blocked with `409` if the client still has any transactions (`_count.transactions > 0`), checked explicitly in the service before the delete. **This check is the only thing preventing data loss** — `Transaction.client` is `onDelete: Cascade` at the DB level, not `Restrict`, so anything that deletes a `Clients` row outside this service method (a raw query, a future code path) would silently delete all of that client's transactions along with it, with no DB-level safety net.
 
 ## 2. Transactions (`/transactions`)
 
@@ -129,13 +129,13 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - `/auth/login`, `/auth/verify-email`, `/auth/refresh` return `role` **nested inside `user`** (`user.role`), not as a separate top-level key.
   - The Google OAuth callback (`GET /auth/google/callback`) is a redirect, not a JSON body, so it still appends `role` as a flat query param on the redirect URL (`/auth/callback?token=...&role=...`) — derived from `user.role` at redirect time, not a separate stored value.
 - Frontend: `useAuthStore`'s `AuthUser` type now carries `role`; `login()` / `verifyEmail()` / session-restore read `data.user.role` instead of a top-level `data.role`.
-- **Enforcement added:** `role` is no longer purely informational. A new `UserRoleGuard` (`apps/api/src/auth/guards/user-role.guard.ts`) reads `req.user.role` — already populated by `JwtAuthGuard` via `AUTH_USER_SELECT` — and a `@RequireUserRole(...roles)` decorator marks which roles a route allows. All four accounting controllers are gated with `@RequireUserRole('CEO', 'ACCOUNTANT')`; any other authenticated user (including `role: null`) now gets `403 Forbidden`. This is a separate, simpler guard from the pre-existing workspace-membership `RolesGuard`/`@Roles()` (`apps/api/src/roles/`), which checks a different `Role` enum (`OWNER`/`ADMIN`/`MEMBER`) via a DB lookup — `UserRoleGuard` needs no DB lookup since `role` is already on the JWT-authenticated user.
+- **Enforcement added:** `role` is no longer purely informational. A new `UserRoleGuard` (`apps/api/src/auth/guards/user-role.guard.ts`) reads `req.user.role` — already populated by `JwtAuthGuard` via `AUTH_USER_SELECT` — and a `@RequireUserRole(...roles)` decorator marks which roles a route allows. Any authenticated user whose role isn't in the allowed set (including `role: null`) gets `403 Forbidden`. This is a separate, simpler guard from the pre-existing workspace-membership `RolesGuard`/`@Roles()` (`apps/api/src/roles/`), which checks a different `Role` enum (`OWNER`/`ADMIN`/`MEMBER`) via a DB lookup — `UserRoleGuard` needs no DB lookup since `role` is already on the JWT-authenticated user.
+- **Read vs. write split:** all four controllers carry class-level `@RequireUserRole('CEO', 'ACCOUNTANT')`, so both roles can read (`GET`). Nest's `Reflector.getAllAndOverride` means a handler-level `@RequireUserRole(...)` fully replaces the class-level one for that handler (not merged) — every `POST`/`PATCH`/`DELETE` handler in `clients`, `transactions`, and `bank-accounts` is individually overridden to `@RequireUserRole('ACCOUNTANT')`, so `CEO` gets `403` on all of them. `CEO` is effectively read-only across the accounting feature; `ACCOUNTANT` has full read/write.
 
 ## 6. Known Gaps / Current Limitations
 
 - `PATCH /clients/:clientId` cannot update `totalRevenue` or `currencyType` — only `clientName`. These fields are currently create-only.
 - `Clients.totalRevenue` (manually entered at creation) and `totalSaleAmount` (computed by summing `Transaction.saleAmount` per currency) are two independent "how much has this client generated" numbers. Nothing keeps them in sync — creating/updating transactions does not touch `totalRevenue`, and there's no reconciliation job. This also means the dashboard's `topClients` (ranked by `totalRevenue`) can disagree with what `/clients` shows as `totalSaleAmount` for the same client.
-- Role enforcement is coarse: `CEO` and `ACCOUNTANT` both get identical, full access (read + write) to all four modules. There's no finer-grained split (e.g. `ACCOUNTANT` can enter data but only `CEO` can delete) — not built because nothing asked for it yet.
 - None of these four modules are workspace-scoped, unlike most of the rest of the API. They are effectively single global ledgers shared across the whole app, not per-workspace.
 - `findOrCreateClientByName` is dead code (commented out) in `transaction.service.ts`, kept intentionally for reference.
 - `BankAccount` has no relation to `Clients` or `Transaction` — it's a separate, unconnected ledger for now.
