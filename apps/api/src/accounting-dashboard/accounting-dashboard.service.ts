@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@app/database';
+import type { Prisma } from '@app/database/generated/prisma/client';
 import type {
   AccountType,
   Currency,
@@ -250,66 +251,106 @@ export class AccountingDashboardService {
     );
   }
 
+  // Buckets the revenue time series in Postgres via generate_series + a
+  // LEFT JOIN, instead of pulling every matching Transaction row into
+  // memory and bucketing in JS — only ~(bucket count * currency count)
+  // rows ever cross into Node. Currency->USD conversion stays here in JS
+  // so EXCHANGE_RATES_TO_USD isn't duplicated into the SQL string.
   private async getRevenueOverview(
     period: DashboardPeriod,
   ): Promise<RevenueOverviewPoint[]> {
-    const now = new Date();
-    const buckets = this.buildBuckets(period, now);
+    const { firstStart, lastStart, intervalSql } = this.getBucketConfig(
+      period,
+      new Date(),
+    );
 
-    const transactions = await this.prisma.transaction.findMany({
-      where: { saleDate: { gte: buckets[0].start } },
-      select: { saleAmount: true, currency: true, saleDate: true },
-    });
+    const rows = await this.prisma.$queryRaw<
+      {
+        bucketStart: Date;
+        currency: Currency | null;
+        total: Prisma.Decimal | null;
+      }[]
+    >`
+      SELECT gs.bucket_start AS "bucketStart", t.currency, SUM(t."saleAmount") AS total
+      FROM generate_series(
+        ${firstStart}::timestamp,
+        ${lastStart}::timestamp,
+        ${intervalSql}::interval
+      ) AS gs(bucket_start)
+      LEFT JOIN "Transaction" t
+        ON t."saleDate" >= gs.bucket_start
+        AND t."saleDate" < gs.bucket_start + ${intervalSql}::interval
+      GROUP BY gs.bucket_start, t.currency
+      ORDER BY gs.bucket_start
+    `;
 
-    return buckets.map(({ label, start, end }) => {
-      const totalUsd = transactions
-        .filter((t) => t.saleDate >= start && t.saleDate < end)
-        .reduce((sum, t) => sum + toUsd(Number(t.saleAmount), t.currency), 0);
-      return { label, totalUsd: round2(totalUsd) };
+    const totalsByBucket = new Map<number, number>();
+    for (const row of rows) {
+      if (!row.currency) continue;
+      const key = row.bucketStart.getTime();
+      const amountUsd = toUsd(Number(row.total ?? 0), row.currency);
+      totalsByBucket.set(key, (totalsByBucket.get(key) ?? 0) + amountUsd);
+    }
+
+    const bucketStarts = Array.from(
+      new Set(rows.map((row) => row.bucketStart.getTime())),
+    ).sort((a, b) => a - b);
+
+    return bucketStarts.map((time) => {
+      const start = new Date(time);
+      return {
+        label: this.formatBucketLabel(period, start),
+        totalUsd: round2(totalsByBucket.get(time) ?? 0),
+      };
     });
   }
 
-  private buildBuckets(
+  // Mirrors the boundaries the old JS-bucketing loop used to produce, so
+  // switching to SQL-side grouping doesn't change any bucket's meaning —
+  // including "weekly", which is a rolling 7-day window ending today, not
+  // a calendar week.
+  private getBucketConfig(
     period: DashboardPeriod,
     now: Date,
-  ): { label: string; start: Date; end: Date }[] {
+  ): { firstStart: Date; lastStart: Date; intervalSql: string } {
     const count = REVENUE_OVERVIEW_BUCKET_COUNT[period];
-    const buckets: { label: string; start: Date; end: Date }[] = [];
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
 
-    for (let i = count - 1; i >= 0; i--) {
-      if (period === 'daily') {
-        const start = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() - i,
-        );
-        const end = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() - i + 1,
-        );
-        buckets.push({ label: this.formatDay(start), start, end });
-      } else if (period === 'weekly') {
-        const end = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() - i * 7,
-        );
-        const start = new Date(end);
-        start.setDate(start.getDate() - 7);
-        buckets.push({ label: this.formatDay(start), start, end });
-      } else if (period === 'monthly') {
-        const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-        buckets.push({ label: this.formatMonth(start), start, end });
-      } else {
-        const start = new Date(now.getFullYear() - i, 0, 1);
-        const end = new Date(now.getFullYear() - i + 1, 0, 1);
-        buckets.push({ label: String(start.getFullYear()), start, end });
-      }
+    if (period === 'daily') {
+      const lastStart = todayStart;
+      const firstStart = new Date(lastStart);
+      firstStart.setDate(firstStart.getDate() - (count - 1));
+      return { firstStart, lastStart, intervalSql: '1 day' };
     }
+    if (period === 'weekly') {
+      const lastStart = new Date(todayStart);
+      lastStart.setDate(lastStart.getDate() - 7);
+      const firstStart = new Date(lastStart);
+      firstStart.setDate(firstStart.getDate() - (count - 1) * 7);
+      return { firstStart, lastStart, intervalSql: '7 days' };
+    }
+    if (period === 'monthly') {
+      const lastStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const firstStart = new Date(
+        now.getFullYear(),
+        now.getMonth() - (count - 1),
+        1,
+      );
+      return { firstStart, lastStart, intervalSql: '1 month' };
+    }
+    const lastStart = new Date(now.getFullYear(), 0, 1);
+    const firstStart = new Date(now.getFullYear() - (count - 1), 0, 1);
+    return { firstStart, lastStart, intervalSql: '1 year' };
+  }
 
-    return buckets;
+  private formatBucketLabel(period: DashboardPeriod, start: Date): string {
+    if (period === 'monthly') return this.formatMonth(start);
+    if (period === 'yearly') return String(start.getFullYear());
+    return this.formatDay(start);
   }
 
   private formatDay(date: Date): string {
