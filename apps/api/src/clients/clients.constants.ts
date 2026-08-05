@@ -15,6 +15,7 @@ export const CLIENT_TRANSACTION_SELECT = {
   saleAmount: true,
   paymentPlatform: true,
   currency: true,
+  saleDate: true,
   refId: true,
   description: true,
   createdAt: true,

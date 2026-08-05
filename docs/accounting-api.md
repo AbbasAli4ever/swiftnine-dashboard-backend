@@ -16,7 +16,7 @@ Summary
 
 ## Common Rules
 
-- Auth: `@UseGuards(JwtAuthGuard)` only on all four controllers (`clients`, `transactions`, `bank-accounts`, `accounting-dashboard`). No `WorkspaceGuard`, no `x-workspace-id`.
+- Auth: `@UseGuards(JwtAuthGuard, UserRoleGuard)` + `@RequireUserRole('CEO', 'ACCOUNTANT')` on all four controllers (`clients`, `transactions`, `bank-accounts`, `accounting-dashboard`). No `WorkspaceGuard`, no `x-workspace-id`. See "Role / Auth Changes" for what changed.
 - Money fields (`saleAmount`, `amount`, `totalRevenue`) are stored as Prisma `Decimal(12, 2)` but always converted to a plain JS `number` before being returned — Prisma's raw `Decimal` would otherwise serialize as a string over JSON, which every service in these modules explicitly guards against (`Number(row.field)` in a mapper function).
 - All list endpoints support `q` (search), `page`, `limit` (max 100), `sortBy`, `sortOrder`.
 - `Currency` enum (shared across all three modules): `USD`, `HKD`, `PKR`.
@@ -59,26 +59,28 @@ Summary
 
 ### Create
 - `POST /transactions`
-- Body: `clientId` (required UUID — **the client must already exist**), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `refId` (required, unique), `description` (optional).
+- Body: `clientId` (required UUID — **the client must already exist**), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique), `description` (optional).
 - `404 Client not found` if `clientId` doesn't resolve to an existing client.
 - `409` if `refId` is already used by another transaction.
 - `clientName` is **not** part of the payload anymore — it's snapshotted server-side from the resolved client at creation time and stored denormalized on the `Transaction` row (so the record shows the client's name as of that moment, even if the client is renamed later).
+- `saleDate` is the date the sale actually happened — separate from `createdAt` (when the row was inserted). Set it explicitly to backdate a sale entered late; omit it to default to now.
 
 > **Changed behavior:** transactions previously accepted a free-text `clientName`, looked up a client by exact name, and **auto-created one if no match was found**. That find-or-create logic (`findOrCreateClientByName` in `transaction.service.ts`) is now commented out, not deleted, in case it needs to come back. Client creation is now exclusively via `POST /clients`.
 
 ### List
-- `GET /transactions?q=&page=&limit=&clientId=&paymentPlatform=&currency=&sortBy=&sortOrder=`
+- `GET /transactions?q=&page=&limit=&clientId=&paymentPlatform=&currency=&dateFrom=&dateTo=&sortBy=&sortOrder=`
 - `q` searches the denormalized `clientName` and `refId` (contains, case-insensitive).
 - `clientId` filters to one client's transactions.
 - `paymentPlatform` / `currency` accept comma-separated values.
-- `sortBy`: `createdAt` (default) | `updatedAt` | `clientName` | `saleAmount`.
+- `dateFrom` / `dateTo` filter by `saleDate` (not `createdAt`). A bare `YYYY-MM-DD` is treated as the start/end of that UTC day respectively (mirrors `parseDateBoundary` in `task.service.ts`); a full ISO datetime is used as-is.
+- `sortBy`: `createdAt` (default) | `updatedAt` | `clientName` | `saleAmount` | `saleDate`.
 
 ### Get one
 - `GET /transactions/:transactionId` — includes nested `client: { id, clientName }` in addition to the flat `clientId`/`clientName` fields.
 
 ### Update
 - `PATCH /transactions/:transactionId`
-- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `paymentPlatform`, `saleAmount`, `currency`, `description`.
+- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `paymentPlatform`, `saleAmount`, `currency`, `saleDate`, `description`.
 - Note: reassigning `clientId` does **not** automatically refresh the denormalized `clientName` unless `clientName` is also sent in the same request.
 
 ### Delete
@@ -110,8 +112,8 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
 - `period` (optional, default `daily`): `daily` | `weekly` | `monthly` | `yearly` — controls only the granularity of `revenueOverview.points` (7 daily / 8 weekly / 12 monthly / 5 yearly buckets). Every other section of the response is independent of `period`.
 - Seven independent queries are run via `Promise.all` (one service method per stat) and assembled into a single response:
   - **`balances`** — `BankAccount` grouped by `accountType` + `currencyType` (`byAccountType: [{ accountType, totals: [{currency, total}], accountCount }]`), plus `totalBalanceUsd` (every currency converted and summed) and the `exchangeRatesToUsd` table used to do it.
-  - **`revenueSummary`** — `today`, `thisMonth`, `thisYear` (each `{ totalUsd, changePercent }` vs. the prior comparable period — yesterday / last month / last year), and `totalSales` (`{ count, changePercent }`, transaction count this month vs. last month).
-  - **`revenueOverview`** — `{ period, points: [{ label, totalUsd }] }`, a time series bucketed in JS (not raw SQL) from all `Transaction` rows since the earliest bucket start. `label` is a date (`YYYY-MM-DD`) for daily/weekly buckets, `YYYY-MM` for monthly, or a bare year for yearly.
+  - **`revenueSummary`** — `today`, `thisMonth`, `thisYear` (each `{ totalUsd, changePercent }` vs. the prior comparable period — yesterday / last month / last year), and `totalSales` (`{ count, changePercent }`, transaction count this month vs. last month). All date windows are evaluated against `Transaction.saleDate`, not `createdAt`.
+  - **`revenueOverview`** — `{ period, points: [{ label, totalUsd }] }`, a time series bucketed in JS (not raw SQL) from all `Transaction` rows since the earliest bucket start, keyed by `saleDate`. `label` is a date (`YYYY-MM-DD`) for daily/weekly buckets, `YYYY-MM` for monthly, or a bare year for yearly.
   - **`revenueByPaymentPlatform`** — total `saleAmount` (converted to USD) grouped by `paymentPlatform`, summed across all currencies, sorted descending.
   - **`revenueByCurrency`** — total `saleAmount` grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total.
   - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 5 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`).
@@ -127,17 +129,19 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - `/auth/login`, `/auth/verify-email`, `/auth/refresh` return `role` **nested inside `user`** (`user.role`), not as a separate top-level key.
   - The Google OAuth callback (`GET /auth/google/callback`) is a redirect, not a JSON body, so it still appends `role` as a flat query param on the redirect URL (`/auth/callback?token=...&role=...`) — derived from `user.role` at redirect time, not a separate stored value.
 - Frontend: `useAuthStore`'s `AuthUser` type now carries `role`; `login()` / `verifyEmail()` / session-restore read `data.user.role` instead of a top-level `data.role`.
+- **Enforcement added:** `role` is no longer purely informational. A new `UserRoleGuard` (`apps/api/src/auth/guards/user-role.guard.ts`) reads `req.user.role` — already populated by `JwtAuthGuard` via `AUTH_USER_SELECT` — and a `@RequireUserRole(...roles)` decorator marks which roles a route allows. All four accounting controllers are gated with `@RequireUserRole('CEO', 'ACCOUNTANT')`; any other authenticated user (including `role: null`) now gets `403 Forbidden`. This is a separate, simpler guard from the pre-existing workspace-membership `RolesGuard`/`@Roles()` (`apps/api/src/roles/`), which checks a different `Role` enum (`OWNER`/`ADMIN`/`MEMBER`) via a DB lookup — `UserRoleGuard` needs no DB lookup since `role` is already on the JWT-authenticated user.
 
 ## 6. Known Gaps / Current Limitations
 
 - `PATCH /clients/:clientId` cannot update `totalRevenue` or `currencyType` — only `clientName`. These fields are currently create-only.
 - `Clients.totalRevenue` (manually entered at creation) and `totalSaleAmount` (computed by summing `Transaction.saleAmount` per currency) are two independent "how much has this client generated" numbers. Nothing keeps them in sync — creating/updating transactions does not touch `totalRevenue`, and there's no reconciliation job. This also means the dashboard's `topClients` (ranked by `totalRevenue`) can disagree with what `/clients` shows as `totalSaleAmount` for the same client.
-- `role` is informational only — there is no backend guard restricting `/clients`, `/transactions`, `/bank-accounts`, or `/accounting-dashboard` (or any endpoint) by role. Any authenticated user, regardless of `role`, can call all of them.
+- Role enforcement is coarse: `CEO` and `ACCOUNTANT` both get identical, full access (read + write) to all four modules. There's no finer-grained split (e.g. `ACCOUNTANT` can enter data but only `CEO` can delete) — not built because nothing asked for it yet.
 - None of these four modules are workspace-scoped, unlike most of the rest of the API. They are effectively single global ledgers shared across the whole app, not per-workspace.
 - `findOrCreateClientByName` is dead code (commented out) in `transaction.service.ts`, kept intentionally for reference.
 - `BankAccount` has no relation to `Clients` or `Transaction` — it's a separate, unconnected ledger for now.
 - `EXCHANGE_RATES_TO_USD` (in `accounting-dashboard.constants.ts`) is a hardcoded, manually-maintained rate table — there's no live FX rate provider wired up. Every "in USD" figure in the dashboard overview is only as accurate as those fixed rates.
 - `revenueOverview`'s bucketing loads every matching `Transaction` row into memory and buckets it in JS rather than doing the grouping in SQL — fine at current data volumes, but worth revisiting (e.g. `groupBy` with a truncated date) if the table grows large.
+- **Migration note for `saleDate`:** the column was added as `DateTime @default(now())`, so `prisma db push` backfills existing rows with the timestamp of whenever the migration is run — not their true historical sale date. If preserving historical accuracy for rows that existed before this change matters, run `UPDATE "Transaction" SET "saleDate" = "createdAt";` once, by hand, right after applying the schema change (this wasn't run automatically — nothing here executes DB-writing commands on its own). Seeded/test data doesn't need this since re-running `npm run seed:accounting` populates `saleDate` correctly from scratch.
 
 ## 7. Suggested Frontend Data Flow
 

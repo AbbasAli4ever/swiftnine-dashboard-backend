@@ -123,7 +123,7 @@ async function main() {
     const dates = buildTransactionDates();
     console.log(`Seeding ${dates.length} transactions...`);
     let seq = 0;
-    for (const createdAt of dates) {
+    for (const saleDate of dates) {
       seq += 1;
       const clientIndex = Math.floor(Math.random() * CLIENTS.length);
       const clientId = clientIds[clientIndex];
@@ -133,10 +133,13 @@ async function main() {
       const saleAmount = randomAmount(50, 5000);
       const refId = `seed-${Date.now()}-${seq}`;
 
+      // saleDate carries the varied historical date (what the dashboard's
+      // revenue metrics key off); createdAt is just "now" — this is a
+      // freshly-inserted row regardless of when the sale itself happened.
       await client.query(
         `INSERT INTO "Transaction"
-           ("id", "clientId", "clientName", "saleAmount", "paymentPlatform", "currency", "refId", "description", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)`,
+           ("id", "clientId", "clientName", "saleAmount", "paymentPlatform", "currency", "saleDate", "refId", "description", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())`,
         [
           randomUUID(),
           clientId,
@@ -144,9 +147,9 @@ async function main() {
           saleAmount,
           paymentPlatform,
           currency,
+          saleDate,
           refId,
           'Seeded test transaction',
-          createdAt,
         ],
       );
     }

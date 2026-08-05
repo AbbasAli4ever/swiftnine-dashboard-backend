@@ -36,6 +36,9 @@ class ClientTransactionBriefDto {
   @ApiProperty({ example: 'whop_txn_12345' })
   refId!: string;
 
+  @ApiProperty({ example: '2026-07-15T00:00:00.000Z' })
+  saleDate!: Date;
+
   @ApiProperty({ example: 'Monthly subscription renewal', nullable: true })
   description!: string | null;
 

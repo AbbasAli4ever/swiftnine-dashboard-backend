@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   enumCsvOrArray,
+  optionalDate,
   optionalLimit,
   optionalPage,
 } from '../../common/query/query.schemas';
@@ -21,6 +22,8 @@ export const ListTransactionsQuerySchema = z.object({
     'Invalid payment platform',
   ),
   currency: enumCsvOrArray(CURRENCY_VALUES, 'Invalid currency'),
+  dateFrom: optionalDate,
+  dateTo: optionalDate,
   sortBy: z.enum(TRANSACTION_SORT_FIELDS).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });

@@ -14,6 +14,7 @@ const CreateTransactionSchema = z.object({
     .nonnegative('Sale amount cannot be negative')
     .default(0),
   currency: z.enum(CURRENCY_VALUES).default('USD'),
+  saleDate: z.string().datetime().optional(),
   refId: z.string().trim().min(1, 'Reference ID is required').max(255),
   description: z.string().trim().max(2000).optional(),
 });
@@ -51,6 +52,15 @@ export class CreateTransactionDto extends createZodDto(
     default: 'USD',
   })
   currency: (typeof CURRENCY_VALUES)[number] = 'USD';
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description:
+      'The date the sale actually happened. Defaults to now if omitted — set explicitly to backdate a late-entered sale.',
+    example: '2026-07-15T00:00:00.000Z',
+  })
+  saleDate?: string;
 
   @ApiProperty({
     type: String,

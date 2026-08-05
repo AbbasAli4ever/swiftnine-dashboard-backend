@@ -36,7 +36,10 @@ type RawClientData = Prisma.ClientsGetPayload<{
   select: typeof CLIENTS_SELECT;
 }>;
 
-export type ClientData = Omit<RawClientData, 'transactions' | 'totalRevenue'> & {
+export type ClientData = Omit<
+  RawClientData,
+  'transactions' | 'totalRevenue'
+> & {
   transactions: (Omit<RawClientData['transactions'][number], 'saleAmount'> & {
     saleAmount: number;
   })[];

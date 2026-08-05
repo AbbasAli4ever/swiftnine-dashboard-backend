@@ -21,6 +21,7 @@ const UpdateTransactionSchema = z
       .nonnegative('Sale amount cannot be negative')
       .optional(),
     currency: z.enum(CURRENCY_VALUES).optional(),
+    saleDate: z.string().datetime().optional(),
     description: z.string().trim().max(2000).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
@@ -62,6 +63,14 @@ export class UpdateTransactionDto extends createZodDto(
     description: 'Currency the transaction was settled in',
   })
   currency?: (typeof CURRENCY_VALUES)[number];
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description: 'Correct the date the sale actually happened',
+    example: '2026-07-15T00:00:00.000Z',
+  })
+  saleDate?: string;
 
   @ApiPropertyOptional({
     type: String,
