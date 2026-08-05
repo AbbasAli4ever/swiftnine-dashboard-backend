@@ -18,6 +18,7 @@ export const PAYMENT_PLATFORM_VALUES = [
 export const CURRENCY_VALUES = ['USD', 'HKD', 'PKR'] as const;
 
 export const TRANSACTION_SORT_FIELDS = [
+  'saleDate',
   'createdAt',
   'updatedAt',
   'clientName',
@@ -31,6 +32,7 @@ export const TRANSACTION_SELECT = {
   saleAmount: true,
   paymentPlatform: true,
   currency: true,
+  saleDate: true,
   refId: true,
   description: true,
   createdAt: true,

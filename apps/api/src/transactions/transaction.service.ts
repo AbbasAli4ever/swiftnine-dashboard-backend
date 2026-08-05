@@ -58,6 +58,7 @@ export class TransactionService {
         saleAmount: dto.saleAmount,
         paymentPlatform: dto.paymentPlatform,
         currency: dto.currency,
+        saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
         refId: dto.refId,
         description: dto.description,
       },
@@ -85,6 +86,16 @@ export class TransactionService {
     }
     if (query.currency?.length) {
       where.currency = { in: query.currency as Currency[] };
+    }
+    if (query.dateFrom || query.dateTo) {
+      where.saleDate = {
+        ...(query.dateFrom
+          ? { gte: this.parseDateBoundary(query.dateFrom, 'start') }
+          : {}),
+        ...(query.dateTo
+          ? { lte: this.parseDateBoundary(query.dateTo, 'end') }
+          : {}),
+      };
     }
 
     const skip = (query.page - 1) * query.limit;
@@ -128,6 +139,8 @@ export class TransactionService {
     if (dto.paymentPlatform !== undefined)
       updateData.paymentPlatform = dto.paymentPlatform;
     if (dto.currency !== undefined) updateData.currency = dto.currency;
+    if (dto.saleDate !== undefined)
+      updateData.saleDate = new Date(dto.saleDate);
     if (dto.description !== undefined) updateData.description = dto.description;
 
     if (Object.keys(updateData).length === 0) return transaction;
@@ -154,6 +167,19 @@ export class TransactionService {
     });
     if (!transaction) throw new NotFoundException(TRANSACTION_NOT_FOUND);
     return toTransactionData(transaction);
+  }
+
+  private parseDateBoundary(value: string, boundary: 'start' | 'end'): Date {
+    const parsed = new Date(value);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      parsed.setUTCHours(
+        boundary === 'start' ? 0 : 23,
+        boundary === 'start' ? 0 : 59,
+        boundary === 'start' ? 0 : 59,
+        boundary === 'start' ? 0 : 999,
+      );
+    }
+    return parsed;
   }
 
   private async findClientOrThrow(

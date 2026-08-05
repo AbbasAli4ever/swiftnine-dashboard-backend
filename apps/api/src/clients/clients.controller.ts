@@ -28,6 +28,7 @@ import {
   type PaginatedApiResponse,
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
 import {
   ClientsService,
   type ClientData,
@@ -53,7 +54,8 @@ import {
 @ApiTags('clients')
 @ApiBearerAuth()
 @Controller('clients')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, UserRoleGuard)
+@RequireUserRole('CEO', 'ACCOUNTANT')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
@@ -66,6 +68,7 @@ export class ClientsController {
     type: ClientResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async create(@Body() dto: CreateClientDto): Promise<ApiRes<ClientData>> {
     const client = await this.clientsService.create(dto);
     return ok(client, 'Client created successfully');
@@ -112,6 +115,7 @@ export class ClientsController {
     type: PaginatedClientsResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async findAll(
     @Query() query: ListClientsQueryDto,
   ): Promise<PaginatedApiResponse<ClientListItemData>> {
@@ -137,6 +141,7 @@ export class ClientsController {
     type: [ClientSearchResultDto],
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async search(
     @Query() query: SearchClientsQueryDto,
   ): Promise<ApiRes<ClientSearchResult[]>> {
@@ -155,6 +160,7 @@ export class ClientsController {
     type: ClientResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   async findOne(
     @Param('clientId', new ParseUUIDPipe()) clientId: string,
@@ -172,6 +178,7 @@ export class ClientsController {
     type: ClientResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   async update(
     @Param('clientId', new ParseUUIDPipe()) clientId: string,
@@ -187,6 +194,7 @@ export class ClientsController {
   @ApiParam({ name: 'clientId', description: 'Client UUID' })
   @ApiResponse({ status: 200, description: 'Client deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({
     status: 409,

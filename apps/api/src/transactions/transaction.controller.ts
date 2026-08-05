@@ -28,6 +28,7 @@ import {
   type PaginatedApiResponse,
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
 import {
   TransactionService,
   type TransactionData,
@@ -46,7 +47,8 @@ import {
 @ApiTags('transactions')
 @ApiBearerAuth()
 @Controller('transactions')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, UserRoleGuard)
+@RequireUserRole('CEO', 'ACCOUNTANT')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
@@ -54,7 +56,8 @@ export class TransactionController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Record a new transaction',
-    description: 'The client referenced by clientId must already exist.',
+    description:
+      'The client referenced by clientId must already exist. saleDate defaults to now if omitted — set it explicitly to backdate a late-entered sale.',
   })
   @ApiResponse({
     status: 201,
@@ -62,6 +65,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({
     status: 409,
@@ -113,6 +117,20 @@ export class TransactionController {
     example: 'USD,PKR',
   })
   @ApiQuery({
+    name: 'dateFrom',
+    required: false,
+    description:
+      'Filter to transactions with saleDate on or after this date (inclusive)',
+    example: '2026-07-01',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: false,
+    description:
+      'Filter to transactions with saleDate on or before this date (inclusive)',
+    example: '2026-07-31',
+  })
+  @ApiQuery({
     name: 'sortBy',
     required: false,
     description: 'Field to sort by. Defaults to createdAt.',
@@ -129,6 +147,7 @@ export class TransactionController {
     type: PaginatedTransactionsResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async findAll(
     @Query() query: ListTransactionsQueryDto,
   ): Promise<PaginatedApiResponse<TransactionData>> {
@@ -147,6 +166,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async findOne(
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
@@ -164,6 +184,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction or client not found' })
   async update(
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
@@ -182,6 +203,7 @@ export class TransactionController {
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({ status: 200, description: 'Transaction deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async remove(
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,

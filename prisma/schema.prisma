@@ -1305,12 +1305,16 @@ model Transaction {
   saleAmount      Decimal         @default(0.0) @db.Decimal(12, 2)
   paymentPlatform PaymentPlatform @default(WHOP)
   currency        Currency        @default(USD)
+  // The date the sale actually happened (backdateable). Separate from
+  // createdAt, which is just when the row was inserted.
+  saleDate        DateTime        @default(now())
   refId           String          @unique
   description     String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
   @@index([clientId])
+  @@index([saleDate])
 }
 
 model BankAccount {

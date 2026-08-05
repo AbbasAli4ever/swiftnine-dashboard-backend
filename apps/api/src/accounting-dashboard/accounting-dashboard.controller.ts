@@ -9,6 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
 import {
   AccountingDashboardService,
   type DashboardOverview,
@@ -22,7 +23,8 @@ import { DashboardOverviewResponseDto } from './dto/dashboard-overview-response.
 @ApiTags('accounting-dashboard')
 @ApiBearerAuth()
 @Controller('accounting-dashboard')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, UserRoleGuard)
+@RequireUserRole('CEO', 'ACCOUNTANT')
 export class AccountingDashboardController {
   constructor(private readonly dashboardService: AccountingDashboardService) {}
 
@@ -43,6 +45,7 @@ export class AccountingDashboardController {
     type: DashboardOverviewResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async getOverview(
     @Query() query: DashboardOverviewQueryDto,
   ): Promise<ApiRes<DashboardOverview>> {

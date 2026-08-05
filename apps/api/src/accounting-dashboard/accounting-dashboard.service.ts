@@ -140,11 +140,14 @@ export class AccountingDashboardService {
       _count: true,
     });
 
-    console.log("GROUPED ARE", await this.prisma.bankAccount.groupBy({
-      by: ['accountType', 'currencyType'],
-      _sum: { amount: true },
-      _count: true,
-    }))
+    console.log(
+      'GROUPED ARE',
+      await this.prisma.bankAccount.groupBy({
+        by: ['accountType', 'currencyType'],
+        _sum: { amount: true },
+        _count: true,
+      }),
+    );
 
     const byType = new Map<
       AccountType,
@@ -153,7 +156,7 @@ export class AccountingDashboardService {
     let totalBalanceUsd = 0;
 
     for (const row of grouped) {
-      console.log("SINGLE ROW IS ", row)
+      console.log('SINGLE ROW IS ', row);
       const amount = Number(row._sum.amount ?? 0);
       totalBalanceUsd += toUsd(amount, row.currencyType);
 
@@ -178,7 +181,11 @@ export class AccountingDashboardService {
 
   private async getRevenueSummary(): Promise<RevenueSummary> {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     const startOfYesterday = new Date(startOfToday);
     startOfYesterday.setDate(startOfYesterday.getDate() - 1);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -202,9 +209,11 @@ export class AccountingDashboardService {
       this.sumRevenueUsd({ gte: startOfLastMonth, lt: startOfMonth }),
       this.sumRevenueUsd({ gte: startOfYear }),
       this.sumRevenueUsd({ gte: startOfLastYear, lt: startOfYear }),
-      this.prisma.transaction.count({ where: { createdAt: { gte: startOfMonth } } }),
       this.prisma.transaction.count({
-        where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
+        where: { saleDate: { gte: startOfMonth } },
+      }),
+      this.prisma.transaction.count({
+        where: { saleDate: { gte: startOfLastMonth, lt: startOfMonth } },
       }),
     ]);
 
@@ -231,7 +240,7 @@ export class AccountingDashboardService {
   private async sumRevenueUsd(range: DateRange): Promise<number> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: { createdAt: range },
+      where: { saleDate: range },
       _sum: { saleAmount: true },
     });
 
@@ -248,13 +257,13 @@ export class AccountingDashboardService {
     const buckets = this.buildBuckets(period, now);
 
     const transactions = await this.prisma.transaction.findMany({
-      where: { createdAt: { gte: buckets[0].start } },
-      select: { saleAmount: true, currency: true, createdAt: true },
+      where: { saleDate: { gte: buckets[0].start } },
+      select: { saleAmount: true, currency: true, saleDate: true },
     });
 
     return buckets.map(({ label, start, end }) => {
       const totalUsd = transactions
-        .filter((t) => t.createdAt >= start && t.createdAt < end)
+        .filter((t) => t.saleDate >= start && t.saleDate < end)
         .reduce((sum, t) => sum + toUsd(Number(t.saleAmount), t.currency), 0);
       return { label, totalUsd: round2(totalUsd) };
     });
@@ -269,11 +278,23 @@ export class AccountingDashboardService {
 
     for (let i = count - 1; i >= 0; i--) {
       if (period === 'daily') {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i + 1);
+        const start = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - i,
+        );
+        const end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - i + 1,
+        );
         buckets.push({ label: this.formatDay(start), start, end });
       } else if (period === 'weekly') {
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i * 7);
+        const end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - i * 7,
+        );
         const start = new Date(end);
         start.setDate(start.getDate() - 7);
         buckets.push({ label: this.formatDay(start), start, end });
@@ -313,11 +334,14 @@ export class AccountingDashboardService {
         (totals.get(row.paymentPlatform) ?? 0) + amountUsd,
       );
     }
-    console.log("MPA IS ", totals)
-    console.log("MAP CONVERSION ", Array.from(totals, ([paymentPlatform, totalUsd]) => ({
-      paymentPlatform,
-      totalUsd: round2(totalUsd),
-    })).sort((a, b) => b.totalUsd - a.totalUsd))
+    console.log('MPA IS ', totals);
+    console.log(
+      'MAP CONVERSION ',
+      Array.from(totals, ([paymentPlatform, totalUsd]) => ({
+        paymentPlatform,
+        totalUsd: round2(totalUsd),
+      })).sort((a, b) => b.totalUsd - a.totalUsd),
+    );
     return Array.from(totals, ([paymentPlatform, totalUsd]) => ({
       paymentPlatform,
       totalUsd: round2(totalUsd),
@@ -332,7 +356,11 @@ export class AccountingDashboardService {
 
     const items = grouped.map((row) => {
       const total = Number(row._sum.saleAmount ?? 0);
-      return { currency: row.currency, total, totalUsd: toUsd(total, row.currency) };
+      return {
+        currency: row.currency,
+        total,
+        totalUsd: toUsd(total, row.currency),
+      };
     });
 
     const grandTotalUsd = items.reduce((sum, item) => sum + item.totalUsd, 0);
@@ -342,7 +370,8 @@ export class AccountingDashboardService {
         currency: item.currency,
         total: round2(item.total),
         totalUsd: round2(item.totalUsd),
-        percent: grandTotalUsd > 0 ? round2((item.totalUsd / grandTotalUsd) * 100) : 0,
+        percent:
+          grandTotalUsd > 0 ? round2((item.totalUsd / grandTotalUsd) * 100) : 0,
       }))
       .sort((a, b) => b.totalUsd - a.totalUsd);
   }
@@ -377,7 +406,10 @@ export class AccountingDashboardService {
       currencyType: row.currencyType,
     });
 
-    return { local: local.map(toItem), international: international.map(toItem) };
+    return {
+      local: local.map(toItem),
+      international: international.map(toItem),
+    };
   }
 
   private async getTopClients(): Promise<TopClientItem[]> {

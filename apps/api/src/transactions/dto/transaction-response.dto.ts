@@ -37,6 +37,12 @@ export class TransactionResponseDto {
   @ApiProperty({ example: 'whop_txn_12345' })
   refId!: string;
 
+  @ApiProperty({
+    example: '2026-07-15T00:00:00.000Z',
+    description: 'The date the sale actually happened',
+  })
+  saleDate!: Date;
+
   @ApiPropertyOptional({
     example: 'Monthly subscription renewal',
     nullable: true,

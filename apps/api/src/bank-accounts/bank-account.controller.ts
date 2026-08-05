@@ -28,6 +28,7 @@ import {
   type PaginatedApiResponse,
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
 import {
   BankAccountService,
   type BankAccountData,
@@ -46,7 +47,8 @@ import {
 @ApiTags('bank-accounts')
 @ApiBearerAuth()
 @Controller('bank-accounts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, UserRoleGuard)
+@RequireUserRole('CEO', 'ACCOUNTANT')
 export class BankAccountController {
   constructor(private readonly bankAccountService: BankAccountService) {}
 
@@ -59,6 +61,7 @@ export class BankAccountController {
     type: BankAccountResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async create(
     @Body() dto: CreateBankAccountDto,
   ): Promise<ApiRes<BankAccountData>> {
@@ -115,6 +118,7 @@ export class BankAccountController {
     type: PaginatedBankAccountsResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async findAll(
     @Query() query: ListBankAccountsQueryDto,
   ): Promise<PaginatedApiResponse<BankAccountData>> {
@@ -133,6 +137,7 @@ export class BankAccountController {
     type: BankAccountResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async findOne(
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
@@ -150,6 +155,7 @@ export class BankAccountController {
     type: BankAccountResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async update(
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
@@ -168,6 +174,7 @@ export class BankAccountController {
   @ApiParam({ name: 'bankAccountId', description: 'Bank account UUID' })
   @ApiResponse({ status: 200, description: 'Bank account deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async remove(
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
