@@ -23,6 +23,11 @@ enum Role {
   MEMBER
 }
 
+enum UserRole {
+  ACCOUNTANT
+  CEO
+}
+
 /// Which OpenAI model tier a workspace member is entitled to.
 /// Entitlement, not permission — deliberately separate from Role.
 enum AiModelTier {
@@ -103,6 +108,27 @@ enum AttachmentUploadStatus {
   CONFIRMED
 }
 
+enum PaymentPlatform {
+  WHOP
+  AIRWALLEX
+  SLASH
+  PAYONEER
+  WIO_BANK
+  MAMO
+  KRAKEN
+}
+
+enum Currency {
+  USD
+  HKD
+  PKR
+}
+
+enum AccountType {
+  LOCAL
+  INTERNATIONAL
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -112,6 +138,7 @@ model User {
   id                      String    @id @default(uuid())
   fullName                String    @map("full_name")
   email                   String    @unique
+  role                    UserRole?
   passwordHash            String?   @map("password_hash")
   googleId                String?   @unique @map("google_id")
   avatarUrl               String?   @map("avatar_url")
@@ -131,45 +158,45 @@ model User {
   refreshTokens              RefreshToken[]
   passwordResetTokens        PasswordResetToken[]
   emailVerificationTokens    EmailVerificationToken[]
-  workspacesCreated          Workspace[]              @relation("WorkspaceCreator")
+  workspacesCreated          Workspace[]               @relation("WorkspaceCreator")
   workspaceMembers           WorkspaceMember[]
   projectFavorites           ProjectFavorite[]
   taskFavorites              TaskFavorite[]
   projectUnlockSessions      ProjectUnlockSession[]
   projectUnlockAttempts      ProjectUnlockAttempt[]
   channelMembers             ChannelMember[]
-  channelMessagesSent        ChannelMessage[]         @relation("ChannelMessageSender")
-  channelMessagesPinned      ChannelMessage[]         @relation("ChannelMessagePinner")
+  channelMessagesSent        ChannelMessage[]          @relation("ChannelMessageSender")
+  channelMessagesPinned      ChannelMessage[]          @relation("ChannelMessagePinner")
   channelMessageMentions     ChannelMessageMention[]
   channelMessageReactions    ChannelMessageReaction[]
-  channelJoinRequestsMade    ChannelJoinRequest[]     @relation("JoinRequester")
-  channelJoinRequestsDecided ChannelJoinRequest[]     @relation("JoinRequestDecider")
-  workspaceInvitesSent       WorkspaceInvite[]        @relation("InviteSender")
-  projectsCreated            Project[]                @relation("ProjectCreator")
-  projectPasswordsSet        Project[]                @relation("ProjectPasswordSetter")
-  taskListsCreated           TaskList[]               @relation("TaskListCreator")
-  taskListsOwned             TaskList[]               @relation("TaskListOwner")
-  tasksCreated               Task[]                   @relation("TaskCreator")
-  taskAssignments            TaskAssignee[]           @relation("AssignedUser")
-  taskAssignmentsMade        TaskAssignee[]           @relation("AssignedByUser")
+  channelJoinRequestsMade    ChannelJoinRequest[]      @relation("JoinRequester")
+  channelJoinRequestsDecided ChannelJoinRequest[]      @relation("JoinRequestDecider")
+  workspaceInvitesSent       WorkspaceInvite[]         @relation("InviteSender")
+  projectsCreated            Project[]                 @relation("ProjectCreator")
+  projectPasswordsSet        Project[]                 @relation("ProjectPasswordSetter")
+  taskListsCreated           TaskList[]                @relation("TaskListCreator")
+  taskListsOwned             TaskList[]                @relation("TaskListOwner")
+  tasksCreated               Task[]                    @relation("TaskCreator")
+  taskAssignments            TaskAssignee[]            @relation("AssignedUser")
+  taskAssignmentsMade        TaskAssignee[]            @relation("AssignedByUser")
   comments                   Comment[]
   mentions                   Mention[]
-  notificationsReceived      Notification[]           @relation("NotificationRecipient")
-  notificationsTriggered     Notification[]           @relation("NotificationActor")
+  notificationsReceived      Notification[]            @relation("NotificationRecipient")
+  notificationsTriggered     Notification[]            @relation("NotificationActor")
   attachmentsUploaded        Attachment[]
   timeEntries                TimeEntry[]
   activityLogs               ActivityLog[]
-  docsOwned                  Doc[]                    @relation("DocOwner")
-  docVersionsCreated         DocVersion[]             @relation("DocVersionCreator")
-  docPermissionsGranted      DocPermission[]          @relation("DocPermissionGranter")
-  docPermissionsReceived     DocPermission[]          @relation("DocPermissionGrantee")
-  docThreadsCreated          DocCommentThread[]       @relation("DocThreadCreator")
-  docCommentsAuthored        DocComment[]             @relation("DocCommentAuthor")
-  docShareLinksCreated       DocShareLink[]           @relation("DocShareLinkCreator")
+  docsOwned                  Doc[]                     @relation("DocOwner")
+  docVersionsCreated         DocVersion[]              @relation("DocVersionCreator")
+  docPermissionsGranted      DocPermission[]           @relation("DocPermissionGranter")
+  docPermissionsReceived     DocPermission[]           @relation("DocPermissionGrantee")
+  docThreadsCreated          DocCommentThread[]        @relation("DocThreadCreator")
+  docCommentsAuthored        DocComment[]              @relation("DocCommentAuthor")
+  docShareLinksCreated       DocShareLink[]            @relation("DocShareLinkCreator")
   aiConversations            AiConversation[]
   tierChangeAttempt          TierChangeAttempt?
-  aiTierChangesReceived      AiTierChangeLog[]        @relation("AiTierChangeTarget")
-  aiTierChangesMade          AiTierChangeLog[]        @relation("AiTierChangeActor")
+  aiTierChangesReceived      AiTierChangeLog[]         @relation("AiTierChangeTarget")
+  aiTierChangesMade          AiTierChangeLog[]         @relation("AiTierChangeActor")
   aiTokenAllowances          AiTokenAllowance[]
   aiTokenAllowanceHistory    AiTokenAllowanceHistory[] @relation("AiTokenAllowanceSubject")
   aiTokenAllowanceActions    AiTokenAllowanceHistory[] @relation("AiTokenAllowanceActor")
@@ -239,19 +266,19 @@ model Workspace {
   deletedAt      DateTime?               @map("deleted_at")
 
   // Relations
-  creator          User              @relation("WorkspaceCreator", fields: [createdBy], references: [id])
-  members          WorkspaceMember[]
-  invites          WorkspaceInvite[]
-  projects         Project[]
-  channels         Channel[]
-  tags             Tag[]
-  activityLogs     ActivityLog[]
-  docs             Doc[]
-  projectFavorites ProjectFavorite[]
-  taskFavorites    TaskFavorite[]
-  notifications    Notification[]
-  aiConversations  AiConversation[]
-  aiTierChangeLogs AiTierChangeLog[]
+  creator                 User                      @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+  members                 WorkspaceMember[]
+  invites                 WorkspaceInvite[]
+  projects                Project[]
+  channels                Channel[]
+  tags                    Tag[]
+  activityLogs            ActivityLog[]
+  docs                    Doc[]
+  projectFavorites        ProjectFavorite[]
+  taskFavorites           TaskFavorite[]
+  notifications           Notification[]
+  aiConversations         AiConversation[]
+  aiTierChangeLogs        AiTierChangeLog[]
   aiTokenAllowances       AiTokenAllowance[]
   aiTokenAllowanceHistory AiTokenAllowanceHistory[]
 
@@ -944,40 +971,40 @@ model AiConversation {
 }
 
 model AiConversationMessage {
-  id             String          @id @default(uuid())
-  conversationId String          @map("conversation_id")
-  role           AiMessageRole
-  content        String
-  status         AiMessageStatus @default(COMPLETE)
+  id                        String          @id @default(uuid())
+  conversationId            String          @map("conversation_id")
+  role                      AiMessageRole
+  content                   String
+  status                    AiMessageStatus @default(COMPLETE)
   /// Model that produced this turn. Null for user turns and for
   /// assistant rows written before per-message attribution existed.
-  model            String?  @map("model")
+  model                     String?         @map("model")
   /// Measured token counts, straight from OpenAI's usage chunk. Null when the
   /// stream ended before that chunk arrived — see estimated* below.
-  promptTokens     Int?     @map("prompt_tokens")
-  completionTokens Int?     @map("completion_tokens")
+  promptTokens              Int?            @map("prompt_tokens")
+  completionTokens          Int?            @map("completion_tokens")
   /// Subset of promptTokens OpenAI billed at the discounted cache-read rate
   /// (prompt_tokens_details.cached_tokens). Null when not measured, same
   /// convention as the other measured columns — 0 means "measured, no cache
   /// hit", distinct from null meaning "we don't know".
-  cachedPromptTokens    Int? @map("cached_prompt_tokens")
+  cachedPromptTokens        Int?            @map("cached_prompt_tokens")
   /// Subset of promptTokens OpenAI billed at the (higher) cache-write rate
   /// (prompt_tokens_details.cache_write_tokens). Only ever populated for
   /// models whose usage response includes this field (the 5.6 family) —
   /// gpt-4o-mini's response never has it, so this stays null there.
-  cacheWritePromptTokens Int? @map("cache_write_prompt_tokens")
+  cacheWritePromptTokens    Int?            @map("cache_write_prompt_tokens")
   /// Counted locally when the measured figures are unavailable (abort path).
   /// Kept separate so the measured columns stay authoritative and the accuracy
   /// of quota accounting stays queryable.
-  estimatedPromptTokens     Int? @map("estimated_prompt_tokens")
-  estimatedCompletionTokens Int? @map("estimated_completion_tokens")
-  tokenSource               TokenSource? @map("token_source")
+  estimatedPromptTokens     Int?            @map("estimated_prompt_tokens")
+  estimatedCompletionTokens Int?            @map("estimated_completion_tokens")
+  tokenSource               TokenSource?    @map("token_source")
   /// Images are billed by dimensions, which a text tokenizer cannot see. Recorded
   /// so the residual on aborted vision requests is measurable.
-  imageCount                Int? @map("image_count")
+  imageCount                Int?            @map("image_count")
   /// Null means "not measured" (unknown rate), distinct from 0.00 meaning "free".
-  estimatedCostUsd Decimal? @map("estimated_cost_usd") @db.Decimal(12, 6)
-  createdAt      DateTime        @default(now()) @map("created_at")
+  estimatedCostUsd          Decimal?        @map("estimated_cost_usd") @db.Decimal(12, 6)
+  createdAt                 DateTime        @default(now()) @map("created_at")
 
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   attachments  Attachment[]
@@ -1177,26 +1204,26 @@ model TierChangeAttempt {
 /// Scoped to (workspaceId, userId) to match how aiModelTier is scoped: a user in
 /// two workspaces must not share one budget across different tiers.
 model AiTokenAllowance {
-  id          String @id @default(uuid())
-  workspaceId String @map("workspace_id")
-  userId      String @map("user_id")
+  id              String   @id @default(uuid())
+  workspaceId     String   @map("workspace_id")
+  userId          String   @map("user_id")
   /// Start of this budget period (UTC Monday 00:00). Stored rather than computed
   /// at read time — computed windows drift with timezone/DST and make historical
   /// rows unqueryable.
-  periodStart DateTime @map("period_start")
-  tokenLimit  Int      @map("token_limit")
+  periodStart     DateTime @map("period_start")
+  tokenLimit      Int      @map("token_limit")
   /// The single authoritative figure the quota check reads. Incremented inside
   /// the same transaction that writes the message row, so the two cannot diverge.
-  consumedTokens Int @default(0) @map("consumed_tokens")
+  consumedTokens  Int      @default(0) @map("consumed_tokens")
   /// Subset of consumedTokens that came from local counting rather than OpenAI's
   /// usage chunk. Used to avoid ever hard-blocking a user on estimates alone.
-  estimatedTokens Int @default(0) @map("estimated_tokens")
-  costUsdUsed     Decimal @default(0) @map("cost_usd_used") @db.Decimal(12, 6)
+  estimatedTokens Int      @default(0) @map("estimated_tokens")
+  costUsdUsed     Decimal  @default(0) @map("cost_usd_used") @db.Decimal(12, 6)
   /// Set when the member accepts falling back to the standard model after
   /// exhausting the budget. Cleared on reset.
-  fallbackOptIn Boolean  @default(false) @map("fallback_opt_in")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  fallbackOptIn   Boolean  @default(false) @map("fallback_opt_in")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1215,18 +1242,18 @@ enum AiTokenAllowanceEvent {
 /// Append-only log of allowance changes: limit edits, manual resets, and the
 /// closing snapshot of each period.
 model AiTokenAllowanceHistory {
-  id          String                @id @default(uuid())
-  workspaceId String                @map("workspace_id")
-  userId      String                @map("user_id")
-  event       AiTokenAllowanceEvent
-  periodStart DateTime              @map("period_start")
-  tokenLimit  Int                   @map("token_limit")
+  id             String                @id @default(uuid())
+  workspaceId    String                @map("workspace_id")
+  userId         String                @map("user_id")
+  event          AiTokenAllowanceEvent
+  periodStart    DateTime              @map("period_start")
+  tokenLimit     Int                   @map("token_limit")
   /// Consumption at the moment of the event — the closing figure for a rollover.
-  consumedTokens Int     @map("consumed_tokens")
-  costUsdUsed    Decimal @map("cost_usd_used") @db.Decimal(12, 6)
+  consumedTokens Int                   @map("consumed_tokens")
+  costUsdUsed    Decimal               @map("cost_usd_used") @db.Decimal(12, 6)
   /// Null for automatic rollovers; set for admin-initiated changes.
-  actorUserId String?  @map("actor_user_id")
-  createdAt   DateTime @default(now()) @map("created_at")
+  actorUserId    String?               @map("actor_user_id")
+  createdAt      DateTime              @default(now()) @map("created_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation("AiTokenAllowanceSubject", fields: [userId], references: [id], onDelete: Cascade)
@@ -1239,14 +1266,14 @@ model AiTokenAllowanceHistory {
 /// Append-only audit of every AI tier change. Records who acted, on whom,
 /// in which workspace, and which secret authorised it.
 model AiTierChangeLog {
-  id          String      @id @default(uuid())
-  workspaceId String      @map("workspace_id")
-  targetUserId String     @map("target_user_id")
-  actorUserId String      @map("actor_user_id")
-  fromTier    AiModelTier @map("from_tier")
-  toTier      AiModelTier @map("to_tier")
-  secretLabel String      @map("secret_label")
-  createdAt   DateTime    @default(now()) @map("created_at")
+  id           String      @id @default(uuid())
+  workspaceId  String      @map("workspace_id")
+  targetUserId String      @map("target_user_id")
+  actorUserId  String      @map("actor_user_id")
+  fromTier     AiModelTier @map("from_tier")
+  toTier       AiModelTier @map("to_tier")
+  secretLabel  String      @map("secret_label")
+  createdAt    DateTime    @default(now()) @map("created_at")
 
   workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   targetUser User      @relation("AiTierChangeTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
@@ -1255,4 +1282,44 @@ model AiTierChangeLog {
   @@index([workspaceId, createdAt])
   @@index([targetUserId])
   @@map("ai_tier_change_logs")
+}
+
+model Clients {
+  id           String    @id @default(uuid())
+  clientName   String    @default("")
+  totalRevenue Decimal   @default(0) @db.Decimal(12, 2)
+  currencyType Currency?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  transactions Transaction[]
+
+  @@index([clientName])
+}
+
+model Transaction {
+  id              String          @id @default(uuid())
+  clientId        String
+  client          Clients         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientName      String          @default("")
+  saleAmount      Decimal         @default(0.0) @db.Decimal(12, 2)
+  paymentPlatform PaymentPlatform @default(WHOP)
+  currency        Currency        @default(USD)
+  refId           String          @unique
+  description     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([clientId])
+}
+
+model BankAccount {
+  id           String      @id @default(uuid())
+  bankName     String      @default("")
+  accountType  AccountType @default(LOCAL)
+  currencyType Currency    @default(PKR)
+  amount       Decimal     @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

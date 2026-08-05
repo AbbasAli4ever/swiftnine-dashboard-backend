@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AuthUserDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
@@ -9,6 +9,9 @@ export class AuthUserDto {
 
   @ApiProperty({ example: 'john@swiftnine.com' })
   email!: string;
+
+  @ApiPropertyOptional({ enum: ['ACCOUNTANT', 'CEO'], nullable: true })
+  role?: string | null;
 
   @ApiProperty({ example: null, nullable: true })
   avatarUrl!: string | null;

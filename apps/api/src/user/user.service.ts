@@ -19,6 +19,7 @@ const USER_PROFILE_SELECT = {
   id: true,
   fullName: true,
   email: true,
+  role: true,
   avatarUrl: true,
   designation: true,
   bio: true,
@@ -55,6 +56,7 @@ export type UserProfile = {
   localTime: string | null;
   createdAt: Date;
   updatedAt: Date;
+  role?: string;
 };
 
 @Injectable()
@@ -201,7 +203,7 @@ export class UserService {
     const safePreferences: Prisma.JsonObject = this.isJsonObject(
       existingUser.notificationPreferences,
     )
-      ? { ...(existingUser.notificationPreferences as Prisma.JsonObject) }
+      ? { ...existingUser.notificationPreferences }
       : {};
 
     if (dto.inbox !== undefined) safePreferences['inbox'] = dto.inbox;
@@ -211,12 +213,14 @@ export class UserService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
-      data: { notificationPreferences: safePreferences as Prisma.InputJsonValue },
+      data: {
+        notificationPreferences: safePreferences as Prisma.InputJsonValue,
+      },
       select: USER_PROFILE_SELECT,
     });
 
     const prefs = this.isJsonObject(updatedUser.notificationPreferences)
-      ? (updatedUser.notificationPreferences as Prisma.JsonObject)
+      ? updatedUser.notificationPreferences
       : {};
 
     return {
@@ -230,7 +234,9 @@ export class UserService {
   async deleteProfile(userId: string): Promise<void> {
     await this.findActiveUserOrThrow(userId);
 
-    await this.prisma.$transaction((tx) => this.softDeleteUserInTransaction(userId, tx));
+    await this.prisma.$transaction((tx) =>
+      this.softDeleteUserInTransaction(userId, tx),
+    );
   }
 
   async deleteWorkspaceMemberUser(
@@ -272,7 +278,9 @@ export class UserService {
     }
 
     if (membership.role === 'OWNER') {
-      throw new ForbiddenException('Workspace owners cannot be deleted by another owner');
+      throw new ForbiddenException(
+        'Workspace owners cannot be deleted by another owner',
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -496,6 +504,7 @@ export class UserService {
       localTime: this.computeLocalTime(user.timezone, showLocalTime),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      role: user.role ?? undefined,
     };
   }
 
