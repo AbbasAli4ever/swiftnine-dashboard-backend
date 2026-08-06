@@ -92,7 +92,7 @@ Standalone ledger — no relation to `Clients` or `Transaction`.
 
 ### Create
 - `POST /bank-accounts`
-- Body: `bankName` (required), `accountType` (`LOCAL` | `INTERNATIONAL`, default `LOCAL`), `currencyType` (default `PKR`), `amount` (required, ≥ 0).
+- Body: `bankName` (required), `accountType` (`LOCAL` | `INTERNATIONAL`, default `LOCAL`), `currencyType` (default `PKR`), `amount` (required, ≥ 0), `logoUrl` (optional, must be a valid URL).
 
 ### List
 - `GET /bank-accounts?q=&page=&limit=&accountType=&currencyType=&sortBy=&sortOrder=`
@@ -100,8 +100,26 @@ Standalone ledger — no relation to `Clients` or `Transaction`.
 
 ### Get one / Update / Delete
 - `GET /bank-accounts/:bankAccountId`
-- `PATCH /bank-accounts/:bankAccountId` — any field, at least one required.
+- `PATCH /bank-accounts/:bankAccountId` — any field (including `logoUrl`), at least one required.
 - `DELETE /bank-accounts/:bankAccountId`
+
+### Logo upload
+- `POST /bank-accounts/logo-presign` — `ACCOUNTANT` only (same write restriction as create/update/delete). Declared before the `:bankAccountId` routes in the controller, though since it's a distinct static path it wouldn't actually collide even out of order.
+- Body: `multipart/form-data` with a single field named `file` — the actual image, not JSON metadata. `fileName`/`mimeType`/`fileSize` are extracted server-side from the uploaded file itself (via `FileInterceptor('file')`/`@UploadedFile()`), not trusted from client-supplied fields. Deliberate choice: the file is uploaded twice in this flow (once here just to determine metadata, again by the client straight to S3) — less efficient than a pure JSON-metadata presign request, but the metadata used to build the S3 key and validate mime/size is guaranteed accurate rather than client-claimed.
+- Validation: mime type must be one of `image/png` | `image/jpeg` | `image/svg+xml` | `image/webp`, size ≤ 2MB. `multer`'s `limits.fileSize` on `FileInterceptor` rejects an oversized file before it's fully buffered; the service also re-checks `file.size` and mime type explicitly, `400` either way.
+- Response: `{ uploadUrl, logoUrl, expiresIn }`. `uploadUrl` is a presigned S3 `PUT` URL (expires in `expiresIn` seconds, default 900) — the client uploads the same file's raw bytes there directly in a second request, not through this API. `logoUrl` is the resulting **permanent** public URL; once that upload succeeds, pass it as `logoUrl` on `POST`/`PATCH /bank-accounts`.
+- This uploads to a **separate S3 bucket** (`public-data-swiftnine`, `us-east-1`) via a new `PublicAssetsS3Service` (`libs/common/src/s3/public-assets-s3.service.ts`) — distinct bucket and credentials from the private attachments bucket `S3Service` already uses. Env vars: `PUBLIC_ASSETS_AWS_REGION`, `PUBLIC_ASSETS_AWS_S3_BUCKET`, `PUBLIC_ASSETS_AWS_S3_PREFIX` (default `accounts_dashboard_assets`), `PUBLIC_ASSETS_AWS_ACCESS_KEY_ID`, `PUBLIC_ASSETS_AWS_SECRET_ACCESS_KEY`.
+- Object keys: `accounts_dashboard_assets/bank-logos/<uuid>-<sanitized-file-name>`.
+- **No confirm step** — unlike the `ai-attachments`/`attachments` presign flows elsewhere in this API, there's no placeholder DB row and no `POST .../confirm` endpoint. The client presigns, uploads directly to S3, then just includes the already-known `logoUrl` in the create/update body. Nothing here verifies the second upload (to S3) actually happened before the URL gets saved.
+- **Depends on bucket-level public-read configuration.** `logoUrl` is computed as a plain `https://<bucket>.s3.<region>.amazonaws.com/<key>` URL, not a signed one — this only resolves for end users if the bucket policy grants public `s3:GetObject`. That's an AWS-console-side setting, not something this API configures.
+- This is the only endpoint in these four modules that accepts `multipart/form-data` — everywhere else is JSON. `multer` (via `@nestjs/platform-express`'s `FileInterceptor`) is used for exactly this one route; nothing else in the accounting feature needs it, since every other upload in this app is a pure presigned-URL flow with no file bytes touching the backend at all.
+
+#### End-to-end client flow
+1. `POST /bank-accounts/logo-presign` with the image as `multipart/form-data` (`file` field) → response gives `{ uploadUrl, logoUrl, expiresIn }`.
+2. `PUT` the same file's raw bytes to `uploadUrl` directly — not through this API. **Must explicitly set a `Content-Type` header matching the real file type** (e.g. `image/png`). `createPresignedPutUrl()` deliberately signs the `PutObjectCommand` without a `ContentType`, so nothing here enforces or defaults it — whatever the client's `PUT` request sends (or doesn't) becomes the object's stored content type. Skip this header and the upload still succeeds (`200`), but S3 stores it as `application/octet-stream`, so `logoUrl` downloads as a generic file instead of rendering inline in a browser. Postman specifically: its **binary** body mode does not auto-set `Content-Type` from the picked file (unlike `form-data` mode) — add it manually.
+3. Once the `PUT` returns `200`, `logoUrl` from step 1 is already live — pass it as `logoUrl` on `POST`/`PATCH /bank-accounts`. No confirm/finalize call.
+
+Verified manually end-to-end (2026-08-06): presign → `PUT` with `Content-Type: image/png` set → `curl -I <logoUrl>` returned `200`, `Content-Type: image/png`, `Content-Length` matching the uploaded file exactly, no auth required (confirms the bucket's public-read policy is correctly configured) → `POST /bank-accounts` with that `logoUrl` persisted successfully.
 
 ## 4. Accounting Dashboard (`/accounting-dashboard`)
 

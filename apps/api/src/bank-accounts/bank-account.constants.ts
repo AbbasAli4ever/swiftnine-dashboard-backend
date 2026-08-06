@@ -19,6 +19,20 @@ export const BANK_ACCOUNT_SELECT = {
   accountType: true,
   currencyType: true,
   amount: true,
+  logoUrl: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.BankAccountSelect;
+
+export const BANK_LOGO_KEY_PREFIX = 'accounts_dashboard_assets/bank-logos';
+
+export const BANK_LOGO_ALLOWED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/svg+xml',
+  'image/webp',
+] as const;
+
+export const BANK_LOGO_MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+
+export const BANK_LOGO_PRESIGN_EXPIRES_IN_SECONDS = 60 * 15;

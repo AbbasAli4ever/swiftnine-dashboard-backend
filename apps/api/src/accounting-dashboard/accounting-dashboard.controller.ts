@@ -54,4 +54,13 @@ export class AccountingDashboardController {
     );
     return ok(overview);
   }
+
+
+
+  // @Get('/search')
+  // async searchData(@Query query: string): <Promise>() {
+  //   return await this.dashboardService.searchQueryData(query)
+  // }
+
+
 }

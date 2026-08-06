@@ -472,4 +472,11 @@ export class AccountingDashboardService {
       currencyType: client.currencyType,
     }));
   }
+
+  // async searchQueryData(query: string) {
+  //   return await this.prisma.
+  // }
+
+
+
 }
