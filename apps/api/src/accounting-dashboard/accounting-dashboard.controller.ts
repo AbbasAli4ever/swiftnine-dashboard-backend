@@ -13,12 +13,18 @@ import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
 import {
   AccountingDashboardService,
   type DashboardOverview,
+  type DashboardSearchResult,
 } from './accounting-dashboard.service';
 import {
   DashboardOverviewQueryDto,
   type DashboardOverviewQuery,
 } from './dto/dashboard-overview-query.dto';
 import { DashboardOverviewResponseDto } from './dto/dashboard-overview-response.dto';
+import {
+  DashboardSearchQueryDto,
+  type DashboardSearchQuery,
+} from './dto/dashboard-search-query.dto';
+import { DashboardSearchResponseDto } from './dto/dashboard-search-response.dto';
 
 @ApiTags('accounting-dashboard')
 @ApiBearerAuth()
@@ -55,12 +61,30 @@ export class AccountingDashboardController {
     return ok(overview);
   }
 
-
-
-  // @Get('/search')
-  // async searchData(@Query query: string): <Promise>() {
-  //   return await this.dashboardService.searchQueryData(query)
-  // }
-
-
+  @Get('search')
+  @ApiOperation({
+    summary: 'Global search across clients and transactions',
+    description:
+      'Matches client name, and transaction reference ID/client name/description. Returns up to 5 of each — for the dashboard search bar, not paginated.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: 'Search text',
+    example: 'Acme',
+  })
+  @ApiOkResponse({
+    description: 'Matching clients and transactions returned',
+    type: DashboardSearchResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async search(
+    @Query() query: DashboardSearchQueryDto,
+  ): Promise<ApiRes<DashboardSearchResult>> {
+    const result = await this.dashboardService.search(
+      (query as DashboardSearchQuery).q,
+    );
+    return ok(result);
+  }
 }

@@ -18,6 +18,7 @@ export const EXCHANGE_RATES_TO_USD: Record<Currency, number> = {
 
 export const TOP_CLIENTS_LIMIT = 5;
 export const BANK_ACCOUNTS_PER_GROUP_LIMIT = 5;
+export const DASHBOARD_SEARCH_RESULT_LIMIT = 5;
 
 export const REVENUE_OVERVIEW_BUCKET_COUNT = {
   daily: 7,

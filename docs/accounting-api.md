@@ -2,7 +2,7 @@
 
 Summary
 - Four new modules were added: `transactions`, `clients`, `bank-accounts`, and `accounting-dashboard`. None of these are workspace-scoped — they only require JWT auth (`Authorization: Bearer <token>`), no `x-workspace-id` header, since the underlying data has no `workspaceId` column.
-- `accounting-dashboard` is read-only — it aggregates data from the other three modules (`GET /accounting-dashboard/overview`) and doesn't own any table of its own. See section 4.
+- `accounting-dashboard` is read-only — it aggregates data from the other three modules (`GET /accounting-dashboard/overview`, `GET /accounting-dashboard/search`) and doesn't own any table of its own. See section 4.
 - `Clients` and `Transaction` have a real one-to-many relation (`Clients.transactions[]` / `Transaction.clientId`). `BankAccount` is standalone — no relation to clients or transactions.
 - A `role` column (`UserRole`: `CEO` | `ACCOUNTANT`, nullable) was added to `User`, replacing a previous hardcoded-by-email-address check. Signing in as an `ACCOUNTANT` redirects the frontend to a dedicated `/accounting-dashboard` area (own layout, own sidebar) — see "Role / Auth Changes" below.
 - Standard response envelope for all three modules:
@@ -16,7 +16,7 @@ Summary
 
 ## Common Rules
 
-- Auth: `@UseGuards(JwtAuthGuard, UserRoleGuard)` on all four controllers, class-level `@RequireUserRole('CEO', 'ACCOUNTANT')` (both roles can read), with every `POST`/`PATCH`/`DELETE` handler in `clients`, `transactions`, and `bank-accounts` overridden to `@RequireUserRole('ACCOUNTANT')` only — `CEO` is read-only across all three. `accounting-dashboard` has no write routes, so `CEO` and `ACCOUNTANT` both get its one `GET` unchanged. No `WorkspaceGuard`, no `x-workspace-id`. See "Role / Auth Changes" for what changed.
+- Auth: `@UseGuards(JwtAuthGuard, UserRoleGuard)` on all four controllers, class-level `@RequireUserRole('CEO', 'ACCOUNTANT')` (both roles can read), with every `POST`/`PATCH`/`DELETE` handler in `clients`, `transactions`, and `bank-accounts` overridden to `@RequireUserRole('ACCOUNTANT')` only — `CEO` is read-only across all three. `accounting-dashboard` has no write routes, so `CEO` and `ACCOUNTANT` both get its `GET` routes unchanged. No `WorkspaceGuard`, no `x-workspace-id`. See "Role / Auth Changes" for what changed.
 - Money fields (`saleAmount`, `amount`, `totalRevenue`) are stored as Prisma `Decimal(12, 2)` but always converted to a plain JS `number` before being returned — Prisma's raw `Decimal` would otherwise serialize as a string over JSON, which every service in these modules explicitly guards against (`Number(row.field)` in a mapper function).
 - All list endpoints support `q` (search), `page`, `limit` (max 100), `sortBy`, `sortOrder`.
 - `Currency` enum (shared across all three modules): `USD`, `HKD`, `PKR`.
@@ -138,6 +138,13 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - **`topClients`** — top 5 `Clients` (`TOP_CLIENTS_LIMIT`) ordered by the stored `totalRevenue` field descending (not the computed `totalSaleAmount` from transactions — see Known Gaps).
 - All money values in the response are plain numbers (already converted from `Decimal`), and anything expressed "in USD" uses the fixed rate table in `accounting-dashboard.constants.ts`, not a live FX source (see Known Gaps).
 
+### Search
+- `GET /accounting-dashboard/search?q=Acme` — backs the dashboard's global search bar ("Search client, transaction, reference..."). `q` is required, 1-200 chars after trimming.
+- Not paginated — runs two independent queries via `Promise.all` and returns up to 5 of each (`DASHBOARD_SEARCH_RESULT_LIMIT`):
+  - **`clients`** — `{ id, clientName, totalRevenue, currencyType }`. `q` is split on whitespace and every token must match somewhere in `clientName` (case-insensitive, any order) — same multi-word logic as `GET /clients/search`.
+  - **`transactions`** — `{ id, refId, clientName, saleAmount, currency, saleDate, description }`, ordered by `saleDate` descending. Matches if `q` (as a whole string, not tokenized) is contained in `refId`, `clientName`, or `description` (case-insensitive) — same fields `GET /transactions?q=` already searches, plus `description`.
+- No filter on `Clients`/`Transaction` beyond the text match — no date range, no pagination. If a caller needs more than 5 results of either kind, use `GET /clients?q=` or `GET /transactions?q=` directly, which are paginated.
+
 ## 5. Role / Auth Changes
 
 - Added `User.role` — nullable `UserRole` enum (`CEO` | `ACCOUNTANT`), no default. Most users have `role = null`.
@@ -168,6 +175,7 @@ Accounting dashboard (`/accounting-dashboard/*`)
 2. Overview / Transactions / Clients / Accounts & Balances / Reports are separate routes sharing one sidebar layout — currently static placeholders, not yet wired to these APIs.
 3. When wiring up real data:
    - Overview screen → `GET /accounting-dashboard/overview?period=daily|weekly|monthly|yearly` — one call backs the whole screen (balances, revenue summary cards, revenue chart, platform/currency breakdowns, bank account lists, top clients).
+   - Dashboard search bar → `GET /accounting-dashboard/search?q=...` — debounce keystrokes client-side; each result item carries enough (`id` + type) to link straight to the matching client or transaction.
    - Clients list/detail → `GET /clients` / `GET /clients/:clientId`.
    - Client picker (e.g. "assign transaction to client") → `GET /clients/search?q=`.
    - Transactions table → `GET /transactions`, filterable by `clientId`.
