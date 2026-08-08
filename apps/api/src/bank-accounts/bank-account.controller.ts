@@ -61,7 +61,7 @@ export class BankAccountController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  // @RequireUserRole('ACCOUNTANT')
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Create a new bank account' })
   @ApiResponse({
     status: 201,
@@ -78,7 +78,7 @@ export class BankAccountController {
   }
 
   @Post('logo-presign')
-  // @RequireUserRole('ACCOUNTANT')
+  @RequireUserRole('ACCOUNTANT')
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: BANK_LOGO_MAX_FILE_SIZE_BYTES },
