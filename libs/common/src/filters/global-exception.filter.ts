@@ -31,14 +31,23 @@ function mapPrismaError(err: {
     case 'P2002': {
       const target = err.meta?.['target'];
       const field = Array.isArray(target) ? target.join(', ') : 'field';
-      return { statusCode: HttpStatus.CONFLICT, message: `${field} already exists` };
+      return {
+        statusCode: HttpStatus.CONFLICT,
+        message: `${field} already exists`,
+      };
     }
     case 'P2025':
       return { statusCode: HttpStatus.NOT_FOUND, message: 'Record not found' };
     case 'P2003':
-      return { statusCode: HttpStatus.BAD_REQUEST, message: 'Invalid reference: related record not found' };
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Invalid reference: related record not found',
+      };
     default:
-      return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Database error' };
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Database error',
+      };
   }
 }
 
@@ -57,7 +66,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // 1. Zod validation errors from nestjs-zod pipe → 422
     if (exception instanceof ZodValidationException) {
-      const zodError = exception.getZodError() as { issues: Array<{ path: (string | number)[]; message: string }> };
+      const zodError = exception.getZodError() as {
+        issues: Array<{ path: (string | number)[]; message: string }>;
+      };
       const errors = zodError.issues.map((e) => ({
         field: e.path.join('.') || 'value',
         message: e.message,
@@ -72,7 +83,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // 2. Raw ZodError (manual throws inside services) → 422
     if (exception instanceof ZodError) {
-      const errors = (exception.issues as Array<{ path: (string | number)[]; message: string }>).map((e) => ({
+      const errors = (
+        exception.issues as Array<{
+          path: (string | number)[];
+          message: string;
+        }>
+      ).map((e) => ({
         field: e.path.join('.') || 'value',
         message: e.message,
       }));
@@ -88,7 +104,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (isPrismaError(exception)) {
       const { statusCode, message } = mapPrismaError(exception);
       if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
-        this.logger.error(`Prisma error ${(exception as { code: string }).code}`, exception);
+        this.logger.error(
+          `Prisma error ${(exception as { code: string }).code}`,
+          exception,
+        );
       }
       res.status(statusCode).json({ statusCode, message });
       return;
@@ -101,7 +120,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const message =
         typeof body === 'string'
           ? body
-          : (body as Record<string, unknown>)['message'] ?? exception.message;
+          : ((body as Record<string, unknown>)['message'] ?? exception.message);
       res.status(statusCode).json({ statusCode, message });
       return;
     }

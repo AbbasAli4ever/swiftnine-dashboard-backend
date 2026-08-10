@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   DeleteObjectCommand,
@@ -42,12 +46,14 @@ export class S3Service {
 
   get bucket(): string {
     const bucket = this.config.get<string>('AWS_S3_BUCKET');
-    if (!bucket) throw new InternalServerErrorException('S3 bucket is not configured');
+    if (!bucket)
+      throw new InternalServerErrorException('S3 bucket is not configured');
     return bucket;
   }
 
   basePrefix(): string {
-    const raw = this.config.get<string>('AWS_S3_PREFIX') ?? 'swiftnine/docs/app';
+    const raw =
+      this.config.get<string>('AWS_S3_PREFIX') ?? 'swiftnine/docs/app';
     return raw.replace(/^\/+|\/+$/g, '');
   }
 
@@ -88,26 +94,42 @@ export class S3Service {
         metadata: result.Metadata,
       };
     } catch {
-      throw new InternalServerErrorException('Failed to fetch S3 object metadata');
+      throw new InternalServerErrorException(
+        'Failed to fetch S3 object metadata',
+      );
     }
   }
 
   async getObjectBody(key: string): Promise<Buffer> {
-    const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
-    if (!result.Body) throw new InternalServerErrorException('S3 object has no body');
+    const result = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    if (!result.Body)
+      throw new InternalServerErrorException('S3 object has no body');
     return Buffer.from(await result.Body.transformToByteArray());
   }
 
   async deleteObject(key: string): Promise<void> {
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+    await this.client.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
   }
 
   /** Direct upload for content the backend already holds in-process (e.g. a
    * rendered PDF/PPT buffer) — as opposed to the presigned-PUT methods above,
    * which are for a client to upload against. */
-  async putObject(key: string, body: Buffer, contentType: string): Promise<void> {
+  async putObject(
+    key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<void> {
     await this.client.send(
-      new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: contentType })
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+      }),
     );
   }
 
@@ -141,7 +163,9 @@ export class S3Service {
       ? expectedPrefix
       : `${expectedPrefix}/`;
     if (!key.startsWith(normalizedPrefix)) {
-      throw new BadRequestException('S3 key does not belong to the expected scope');
+      throw new BadRequestException(
+        'S3 key does not belong to the expected scope',
+      );
     }
   }
 
@@ -160,13 +184,17 @@ export class S3Service {
     } else {
       const head = await this.headObject(key);
       if (head.contentLength === undefined) {
-        throw new InternalServerErrorException('Unable to determine file size from S3 metadata');
+        throw new InternalServerErrorException(
+          'Unable to determine file size from S3 metadata',
+        );
       }
       resolvedFileSize = BigInt(head.contentLength);
       resolvedMimeType = head.contentType ?? resolvedMimeType;
       if (!fileName && head.metadata && Object.keys(head.metadata).length > 0) {
         const possibleName =
-          head.metadata['filename'] || head.metadata['file-name'] || head.metadata['originalname'];
+          head.metadata['filename'] ||
+          head.metadata['file-name'] ||
+          head.metadata['originalname'];
         if (possibleName) resolvedFileName = possibleName;
       }
     }

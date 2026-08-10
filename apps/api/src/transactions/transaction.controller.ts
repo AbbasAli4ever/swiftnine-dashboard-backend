@@ -54,6 +54,7 @@ export class TransactionController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({
     summary: 'Record a new transaction',
     description:
@@ -65,7 +66,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({
     status: 409,
@@ -176,6 +177,7 @@ export class TransactionController {
   }
 
   @Patch(':transactionId')
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Update transaction fields' })
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({
@@ -184,7 +186,7 @@ export class TransactionController {
     type: TransactionResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction or client not found' })
   async update(
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
@@ -199,11 +201,12 @@ export class TransactionController {
 
   @Delete(':transactionId')
   @HttpCode(HttpStatus.OK)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Delete a transaction' })
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({ status: 200, description: 'Transaction deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async remove(
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,

@@ -8,6 +8,7 @@ import type {
 } from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNTS_PER_GROUP_LIMIT,
+  DASHBOARD_SEARCH_RESULT_LIMIT,
   EXCHANGE_RATES_TO_USD,
   REVENUE_OVERVIEW_BUCKET_COUNT,
   TOP_CLIENTS_LIMIT,
@@ -73,6 +74,28 @@ export type TopClientItem = {
   clientName: string;
   totalRevenue: number;
   currencyType: Currency | null;
+};
+
+export type DashboardSearchClientItem = {
+  id: string;
+  clientName: string;
+  totalRevenue: number;
+  currencyType: Currency | null;
+};
+
+export type DashboardSearchTransactionItem = {
+  id: string;
+  refId: string;
+  clientName: string;
+  saleAmount: number;
+  currency: Currency;
+  saleDate: Date;
+  description: string | null;
+};
+
+export type DashboardSearchResult = {
+  clients: DashboardSearchClientItem[];
+  transactions: DashboardSearchTransactionItem[];
 };
 
 export type DashboardOverview = {
@@ -471,5 +494,61 @@ export class AccountingDashboardService {
       totalRevenue: Number(client.totalRevenue),
       currencyType: client.currencyType,
     }));
+  }
+
+  // Global search bar on the dashboard — matches client name, and
+  // transaction reference/client name/description, each capped and
+  // returned separately so the frontend can label and link them.
+  async search(q: string): Promise<DashboardSearchResult> {
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const [clients, transactions] = await Promise.all([
+      this.prisma.clients.findMany({
+        where: {
+          AND: tokens.map((token) => ({
+            clientName: { contains: token, mode: 'insensitive' as const },
+          })),
+        },
+        select: {
+          id: true,
+          clientName: true,
+          totalRevenue: true,
+          currencyType: true,
+        },
+        orderBy: { clientName: 'asc' },
+        take: DASHBOARD_SEARCH_RESULT_LIMIT,
+      }),
+      this.prisma.transaction.findMany({
+        where: {
+          OR: [
+            { refId: { contains: q, mode: 'insensitive' } },
+            { clientName: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        },
+        select: {
+          id: true,
+          refId: true,
+          clientName: true,
+          saleAmount: true,
+          currency: true,
+          saleDate: true,
+          description: true,
+        },
+        orderBy: { saleDate: 'desc' },
+        take: DASHBOARD_SEARCH_RESULT_LIMIT,
+      }),
+    ]);
+
+    return {
+      clients: clients.map((client) => ({
+        ...client,
+        totalRevenue: Number(client.totalRevenue),
+      })),
+      transactions: transactions.map((transaction) => ({
+        ...transaction,
+        saleAmount: Number(transaction.saleAmount),
+      })),
+    };
   }
 }
