@@ -1323,6 +1323,7 @@ model BankAccount {
   accountType  AccountType @default(LOCAL)
   currencyType Currency    @default(PKR)
   amount       Decimal     @db.Decimal(12, 2)
+  logoUrl      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

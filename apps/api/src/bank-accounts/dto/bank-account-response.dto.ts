@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
 import { ACCOUNT_TYPE_VALUES } from '../bank-account.constants';
 
@@ -17,6 +17,13 @@ export class BankAccountResponseDto {
 
   @ApiProperty({ example: 150000 })
   amount!: number;
+
+  @ApiPropertyOptional({
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/abc123-hbl.png',
+    nullable: true,
+  })
+  logoUrl!: string | null;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;

@@ -18,6 +18,7 @@ const UpdateBankAccountSchema = z
       .number()
       .nonnegative('Amount cannot be negative')
       .optional(),
+    logoUrl: z.string().trim().url('Logo URL must be a valid URL').optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
@@ -51,4 +52,13 @@ export class UpdateBankAccountDto extends createZodDto(
     example: 150000,
   })
   amount?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      'Logo URL — obtain via POST /bank-accounts/logo-presign, upload the file to the returned uploadUrl, then pass the returned logoUrl here.',
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/abc123-hbl.png',
+  })
+  logoUrl?: string;
 }

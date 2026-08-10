@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@app/database';
+import { PublicAssetsS3Service } from '@app/common';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import type {
   AccountType,
@@ -8,10 +14,15 @@ import type {
 import {
   BANK_ACCOUNT_NOT_FOUND,
   BANK_ACCOUNT_SELECT,
+  BANK_LOGO_ALLOWED_MIME_TYPES,
+  BANK_LOGO_KEY_PREFIX,
+  BANK_LOGO_MAX_FILE_SIZE_BYTES,
+  BANK_LOGO_PRESIGN_EXPIRES_IN_SECONDS,
 } from './bank-account.constants';
 import type { CreateBankAccountDto } from './dto/create-bank-account.dto';
 import type { UpdateBankAccountDto } from './dto/update-bank-account.dto';
 import type { ListBankAccountsQuery } from './dto/list-bank-accounts-query.dto';
+import type { LogoPresignResponseDto } from './dto/logo-presign-response.dto';
 
 type RawBankAccountData = Prisma.BankAccountGetPayload<{
   select: typeof BANK_ACCOUNT_SELECT;
@@ -34,7 +45,10 @@ export type BankAccountListResult = {
 
 @Injectable()
 export class BankAccountService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly publicAssetsS3: PublicAssetsS3Service,
+  ) {}
 
   async create(dto: CreateBankAccountDto): Promise<BankAccountData> {
     const bankAccount = await this.prisma.bankAccount.create({
@@ -43,10 +57,46 @@ export class BankAccountService {
         accountType: dto.accountType,
         currencyType: dto.currencyType,
         amount: dto.amount,
+        logoUrl: dto.logoUrl,
       },
       select: BANK_ACCOUNT_SELECT,
     });
     return toBankAccountData(bankAccount);
+  }
+
+  async createLogoUploadUrl(
+    file: Express.Multer.File,
+  ): Promise<LogoPresignResponseDto> {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    const allowedMimeTypes: readonly string[] = BANK_LOGO_ALLOWED_MIME_TYPES;
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(`Unsupported file type: ${file.mimetype}`);
+    }
+    if (file.size > BANK_LOGO_MAX_FILE_SIZE_BYTES) {
+      throw new BadRequestException(
+        `File is too large: ${file.size} bytes exceeds the ${BANK_LOGO_MAX_FILE_SIZE_BYTES} byte limit`,
+      );
+    }
+
+    const sanitizedFileName = file.originalname.replace(/\s+/g, '_');
+    const key = this.publicAssetsS3.buildKey(
+      BANK_LOGO_KEY_PREFIX,
+      `${randomUUID()}-${sanitizedFileName}`,
+    );
+
+    const uploadUrl = await this.publicAssetsS3.createPresignedPutUrl(
+      key,
+      BANK_LOGO_PRESIGN_EXPIRES_IN_SECONDS,
+    );
+
+    return {
+      uploadUrl,
+      logoUrl: this.publicAssetsS3.getPublicUrl(key),
+      expiresIn: BANK_LOGO_PRESIGN_EXPIRES_IN_SECONDS,
+    };
   }
 
   async findAll(query: ListBankAccountsQuery): Promise<BankAccountListResult> {
@@ -99,6 +149,7 @@ export class BankAccountService {
     if (dto.currencyType !== undefined)
       updateData.currencyType = dto.currencyType;
     if (dto.amount !== undefined) updateData.amount = dto.amount;
+    if (dto.logoUrl !== undefined) updateData.logoUrl = dto.logoUrl;
 
     if (Object.keys(updateData).length === 0) return bankAccount;
 

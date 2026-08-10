@@ -9,6 +9,7 @@ const CreateBankAccountSchema = z.object({
   accountType: z.enum(ACCOUNT_TYPE_VALUES).default('LOCAL'),
   currencyType: z.enum(CURRENCY_VALUES).default('PKR'),
   amount: z.coerce.number().nonnegative('Amount cannot be negative'),
+  logoUrl: z.string().trim().url('Logo URL must be a valid URL').optional(),
 });
 
 export class CreateBankAccountDto extends createZodDto(
@@ -37,4 +38,13 @@ export class CreateBankAccountDto extends createZodDto(
     example: 150000,
   })
   amount: number = 0;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      'Logo URL — obtain via POST /bank-accounts/logo-presign, upload the file to the returned uploadUrl, then pass the returned logoUrl here.',
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/abc123-hbl.png',
+  })
+  logoUrl?: string;
 }

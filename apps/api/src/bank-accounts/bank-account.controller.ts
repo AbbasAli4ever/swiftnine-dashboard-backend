@@ -10,10 +10,15 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -43,6 +48,8 @@ import {
   BankAccountResponseDto,
   PaginatedBankAccountsResponseDto,
 } from './dto/bank-account-response.dto';
+import { LogoPresignResponseDto } from './dto/logo-presign-response.dto';
+import { BANK_LOGO_MAX_FILE_SIZE_BYTES } from './bank-account.constants';
 
 @ApiTags('bank-accounts')
 @ApiBearerAuth()
@@ -54,6 +61,7 @@ export class BankAccountController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Create a new bank account' })
   @ApiResponse({
     status: 201,
@@ -61,12 +69,44 @@ export class BankAccountController {
     type: BankAccountResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   async create(
     @Body() dto: CreateBankAccountDto,
   ): Promise<ApiRes<BankAccountData>> {
     const bankAccount = await this.bankAccountService.create(dto);
     return ok(bankAccount, 'Bank account created successfully');
+  }
+
+  @Post('logo-presign')
+  @RequireUserRole('ACCOUNTANT')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: BANK_LOGO_MAX_FILE_SIZE_BYTES },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiOperation({
+    summary: 'Get a presigned URL to upload a bank logo',
+    description:
+      'Send the image file itself (multipart/form-data, field name "file"). The backend extracts fileName/mimeType/fileSize from it, returns a short-lived uploadUrl to PUT the same file to directly, and the permanent logoUrl to pass as logoUrl on POST/PATCH /bank-accounts once that upload completes.',
+  })
+  @ApiOkResponse({
+    description: 'Presigned URL generated',
+    type: LogoPresignResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
+  async createLogoUploadUrl(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<ApiRes<LogoPresignResponseDto>> {
+    const result = await this.bankAccountService.createLogoUploadUrl(file);
+    return ok(result, 'Presigned URL generated');
   }
 
   @Get()
@@ -147,6 +187,7 @@ export class BankAccountController {
   }
 
   @Patch(':bankAccountId')
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Update bank account fields' })
   @ApiParam({ name: 'bankAccountId', description: 'Bank account UUID' })
   @ApiResponse({
@@ -155,7 +196,7 @@ export class BankAccountController {
     type: BankAccountResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async update(
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
@@ -170,11 +211,12 @@ export class BankAccountController {
 
   @Delete(':bankAccountId')
   @HttpCode(HttpStatus.OK)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Delete a bank account' })
   @ApiParam({ name: 'bankAccountId', description: 'Bank account UUID' })
   @ApiResponse({ status: 200, description: 'Bank account deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async remove(
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,

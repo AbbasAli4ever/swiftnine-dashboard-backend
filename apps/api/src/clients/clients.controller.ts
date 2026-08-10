@@ -61,6 +61,7 @@ export class ClientsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Create a new client' })
   @ApiResponse({
     status: 201,
@@ -68,7 +69,7 @@ export class ClientsController {
     type: ClientResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   async create(@Body() dto: CreateClientDto): Promise<ApiRes<ClientData>> {
     const client = await this.clientsService.create(dto);
     return ok(client, 'Client created successfully');
@@ -170,6 +171,7 @@ export class ClientsController {
   }
 
   @Patch(':clientId')
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Rename a client' })
   @ApiParam({ name: 'clientId', description: 'Client UUID' })
   @ApiResponse({
@@ -178,7 +180,7 @@ export class ClientsController {
     type: ClientResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   async update(
     @Param('clientId', new ParseUUIDPipe()) clientId: string,
@@ -190,11 +192,12 @@ export class ClientsController {
 
   @Delete(':clientId')
   @HttpCode(HttpStatus.OK)
+  @RequireUserRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Delete a client' })
   @ApiParam({ name: 'clientId', description: 'Client UUID' })
   @ApiResponse({ status: 200, description: 'Client deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({
     status: 409,
