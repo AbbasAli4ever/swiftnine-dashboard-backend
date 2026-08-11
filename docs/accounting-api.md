@@ -60,7 +60,7 @@ Summary
 
 ### Create
 - `POST /transactions`
-- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `type` (`CREDIT` | `DEBIT`, default `CREDIT`), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
+- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `type` (**required**, `CREDIT` | `DEBIT` — no default; omitting it returns `422`), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
 - `404 Client not found` / `404 Bank account not found` if either id doesn't resolve within the current workspace.
 - `400` if `currency` doesn't exactly match the bank account's `currencyType` — there's no FX conversion, so this is a hard requirement, not a warning.
 - `409` if `refId` is already used by another transaction **in the same workspace**.

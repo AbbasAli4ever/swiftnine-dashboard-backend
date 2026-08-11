@@ -10,7 +10,7 @@ import {
 const CreateTransactionSchema = z.object({
   clientId: z.string().uuid('Client id must be a valid UUID'),
   bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
-  type: z.enum(TRANSACTION_TYPE_VALUES).default('CREDIT'),
+  type: z.enum(TRANSACTION_TYPE_VALUES),
   paymentPlatform: z.enum(PAYMENT_PLATFORM_VALUES).default('WHOP'),
   saleAmount: z.coerce
     .number()
@@ -43,11 +43,11 @@ export class CreateTransactionDto extends createZodDto(
   })
   bankAccountId: string = '';
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: TRANSACTION_TYPE_VALUES,
     description:
-      'CREDIT increases the bank account balance, DEBIT decreases it.',
-    default: 'CREDIT',
+      'Required. CREDIT increases the bank account balance, DEBIT decreases it.',
+    example: 'CREDIT',
   })
   type: (typeof TRANSACTION_TYPE_VALUES)[number] = 'CREDIT';
 
