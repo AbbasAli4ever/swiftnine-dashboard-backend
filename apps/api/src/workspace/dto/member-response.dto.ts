@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class MemberResponseDto {
   @ApiProperty({ example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
@@ -12,6 +12,15 @@ export class MemberResponseDto {
 
   @ApiProperty({ example: 'MEMBER', enum: ['OWNER', 'ADMIN', 'MEMBER'] })
   role!: 'OWNER' | 'ADMIN' | 'MEMBER';
+
+  @ApiPropertyOptional({
+    example: null,
+    enum: ['ACCOUNTANT', 'CEO'],
+    nullable: true,
+    description:
+      'Accounting feature access for this workspace, independent of role. Null means no accounting access.',
+  })
+  accountingRole!: 'ACCOUNTANT' | 'CEO' | null;
 
   @ApiProperty({
     example: 'STANDARD',

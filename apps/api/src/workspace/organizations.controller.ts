@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { RemoveMemberDto } from './dto/remove-member.dto';
 import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
+import { ChangeMemberAccountingRoleDto } from './dto/change-member-accounting-role.dto';
 import { ok } from '@app/common';
 import type { Request } from 'express';
 import type { AuthUser } from '../auth/auth.service';
@@ -83,5 +84,57 @@ export class OrganizationsController {
   ) {
     await this.workspaceService.changeMemberRole(dto.workspaceId, memberId, dto.role as any, req.user.id);
     return ok(null, 'Member role updated successfully');
+  }
+
+  @Put('members/:id/accounting-role')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  @ApiBearerAuth()
+  @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
+  @ApiParam({
+    name: 'id',
+    description: 'Workspace member id (membership record id)',
+    example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
+  })
+  @ApiOperation({
+    summary: "Change a member's accounting feature access (OWNER only)",
+    description:
+      'Independent of the workspace role (OWNER/ADMIN/MEMBER) — grants or revokes CEO/ACCOUNTANT access to the accounting feature for this workspace.',
+  })
+  @ApiBody({
+    type: ChangeMemberAccountingRoleDto,
+    description: 'Workspace id and new accounting role for the specified membership',
+    examples: {
+      makeAccountant: {
+        summary: 'Grant ACCOUNTANT access',
+        value: { workspaceId: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29', accountingRole: 'ACCOUNTANT' },
+      },
+      makeCeo: {
+        summary: 'Grant CEO access',
+        value: { workspaceId: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29', accountingRole: 'CEO' },
+      },
+      revoke: {
+        summary: 'Remove accounting access',
+        value: { workspaceId: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29', accountingRole: null },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Member accounting role updated successfully' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'Not a member or insufficient role' })
+  @ApiResponse({ status: 404, description: 'Member or workspace not found' })
+  async changeMemberAccountingRole(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') memberId: string,
+    @Body() dto: ChangeMemberAccountingRoleDto,
+  ) {
+    await this.workspaceService.changeMemberAccountingRole(
+      dto.workspaceId,
+      memberId,
+      dto.accountingRole as any,
+      req.user.id,
+    );
+    return ok(null, 'Member accounting role updated successfully');
   }
 }

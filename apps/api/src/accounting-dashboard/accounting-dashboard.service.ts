@@ -326,7 +326,7 @@ export class AccountingDashboardService {
       LEFT JOIN "Transaction" t
         ON t."saleDate" >= gs.bucket_start
         AND t."saleDate" < gs.bucket_start + ${intervalSql}::interval
-        AND t."workspaceId" = ${workspaceId}
+        AND t."workspace_id" = ${workspaceId}
       GROUP BY gs.bucket_start, t.currency
       ORDER BY gs.bucket_start
     `;

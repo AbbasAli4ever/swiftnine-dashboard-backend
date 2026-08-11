@@ -13,6 +13,7 @@ import type {
   Role,
   InviteStatus,
   AiModelTier,
+  UserRole,
 } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'node:crypto';
@@ -187,6 +188,7 @@ export class WorkspaceService {
       fullName: string;
       email: string;
       role: Role;
+      accountingRole: UserRole | null;
       aiModelTier: AiModelTier;
       lastActive: Date | null;
       invitedBy: string | null;
@@ -199,6 +201,7 @@ export class WorkspaceService {
         where: { workspaceId, deletedAt: null },
         select: {
           role: true,
+          accountingRole: true,
           aiModelTier: true,
           createdAt: true,
           user: {
@@ -244,6 +247,7 @@ export class WorkspaceService {
         fullName: u.fullName,
         email: u.email,
         role: m.role,
+        accountingRole: m.accountingRole,
         aiModelTier: m.aiModelTier,
         lastActive: (u as any).lastSeenAt ?? null,
         invitedBy: inv?.sender?.fullName ?? null,
@@ -266,6 +270,9 @@ export class WorkspaceService {
         fullName: invite.email,
         email: invite.email,
         role: invite.role,
+        // No membership row exists until the invite is accepted, so there's
+        // no accounting role to report yet, same reasoning as aiModelTier.
+        accountingRole: null,
         // No membership row exists until the invite is accepted, so no tier
         // has been assigned yet — report the default rather than implying one.
         aiModelTier: 'STANDARD' as AiModelTier,
@@ -287,6 +294,7 @@ export class WorkspaceService {
     fullName: string;
     email: string;
     role: Role;
+    accountingRole: UserRole | null;
     avatarUrl: string | null;
     avatarColor: string | null;
     designation: string | null;
@@ -306,6 +314,7 @@ export class WorkspaceService {
       select: {
         id: true,
         role: true,
+        accountingRole: true,
         createdAt: true,
         user: {
           select: {
@@ -333,6 +342,7 @@ export class WorkspaceService {
         select: {
           id: true,
           role: true,
+          accountingRole: true,
           createdAt: true,
           user: {
             select: {
@@ -376,6 +386,7 @@ export class WorkspaceService {
       fullName: u.fullName,
       email: u.email,
       role: member.role,
+      accountingRole: member.accountingRole,
       avatarUrl: u.avatarUrl ?? null,
       avatarColor: u.avatarColor ?? null,
       designation: u.designation ?? null,
@@ -987,6 +998,67 @@ export class WorkspaceService {
         fieldName: 'role',
         oldValue: oldRole,
         newValue: newRole,
+        metadata: {
+          memberId: member.userId,
+          memberName: member.user?.fullName ?? null,
+        },
+        performedBy: actorId,
+      },
+    });
+  }
+
+  async changeMemberAccountingRole(
+    workspaceId: string,
+    memberId: string,
+    newAccountingRole: UserRole | null,
+    actorId: string,
+  ): Promise<void> {
+    await this.assertActorIsOwner(workspaceId, actorId);
+
+    let member = await this.prisma.workspaceMember.findFirst({
+      where: { id: memberId, workspaceId, deletedAt: null },
+      select: {
+        id: true,
+        userId: true,
+        accountingRole: true,
+        user: { select: { fullName: true } },
+      },
+    });
+
+    // Fallback: allow passing a userId in place of workspaceMember id
+    if (!member) {
+      member = await this.prisma.workspaceMember.findFirst({
+        where: { userId: memberId, workspaceId, deletedAt: null },
+        select: {
+          id: true,
+          userId: true,
+          accountingRole: true,
+          user: { select: { fullName: true } },
+        },
+      });
+    }
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    const oldAccountingRole = member.accountingRole;
+    if (oldAccountingRole === newAccountingRole) return;
+
+    await this.prisma.workspaceMember.update({
+      where: { id: member.id },
+      data: { accountingRole: newAccountingRole },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        workspaceId,
+        entityType: 'workspace',
+        entityId: workspaceId,
+        action: 'member_accounting_role_changed',
+        fieldName: 'accountingRole',
+        oldValue: oldAccountingRole,
+        newValue: newAccountingRole,
         metadata: {
           memberId: member.userId,
           memberName: member.user?.fullName ?? null,

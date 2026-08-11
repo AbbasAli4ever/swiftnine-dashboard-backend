@@ -89,17 +89,33 @@ export class WorkspaceController {
   @Get(':workspaceId')
   @UseGuards(JwtAuthGuard, WorkspaceGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a single workspace' })
+  @ApiOperation({
+    summary: 'Get a single workspace',
+    description:
+      'Includes the caller\'s own role and accountingRole in this workspace — use this as the "who am I here" check (e.g. to decide whether to show the accounting area).',
+  })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace returned' })
   @ApiResponse({ status: 403, description: 'Not a member' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
-  async findOne(@Req() req: WorkspaceRequest): Promise<ApiRes<WorkspaceData & { memberCount: number }>> {
+  async findOne(@Req() req: WorkspaceRequest): Promise<
+    ApiRes<
+      WorkspaceData & {
+        memberCount: number;
+        role: WorkspaceRequest['workspaceContext']['role'];
+        accountingRole: WorkspaceRequest['workspaceContext']['accountingRole'];
+      }
+    >
+  > {
     const workspace = await this.workspaceService.findOne(
       req.workspaceContext.workspaceId,
       req.user.id,
     );
-    return ok(workspace);
+    return ok({
+      ...workspace,
+      role: req.workspaceContext.role,
+      accountingRole: req.workspaceContext.accountingRole,
+    });
   }
 
   @Get(':workspaceId/members')
