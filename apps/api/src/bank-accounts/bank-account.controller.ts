@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -19,6 +20,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -33,7 +35,12 @@ import {
   type PaginatedApiResponse,
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
+import {
+  AccountingRoleGuard,
+  RequireAccountingRole,
+} from '../auth/guards/accounting-role.guard';
+import { WorkspaceGuard } from '../workspace/workspace.guard';
+import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   BankAccountService,
   type BankAccountData,
@@ -54,14 +61,19 @@ import { BANK_LOGO_MAX_FILE_SIZE_BYTES } from './bank-account.constants';
 @ApiTags('bank-accounts')
 @ApiBearerAuth()
 @Controller('bank-accounts')
-@UseGuards(JwtAuthGuard, UserRoleGuard)
-@RequireUserRole('CEO', 'ACCOUNTANT')
+@UseGuards(JwtAuthGuard, WorkspaceGuard, AccountingRoleGuard)
+@RequireAccountingRole('CEO', 'ACCOUNTANT')
+@ApiHeader({
+  name: 'x-workspace-id',
+  required: true,
+  description: 'Active workspace ID',
+})
 export class BankAccountController {
   constructor(private readonly bankAccountService: BankAccountService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequireUserRole('ACCOUNTANT')
+  @RequireAccountingRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Create a new bank account' })
   @ApiResponse({
     status: 201,
@@ -71,14 +83,18 @@ export class BankAccountController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   async create(
+    @Req() req: WorkspaceRequest,
     @Body() dto: CreateBankAccountDto,
   ): Promise<ApiRes<BankAccountData>> {
-    const bankAccount = await this.bankAccountService.create(dto);
+    const bankAccount = await this.bankAccountService.create(
+      req.workspaceContext.workspaceId,
+      dto,
+    );
     return ok(bankAccount, 'Bank account created successfully');
   }
 
   @Post('logo-presign')
-  @RequireUserRole('ACCOUNTANT')
+  @RequireAccountingRole('ACCOUNTANT')
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: BANK_LOGO_MAX_FILE_SIZE_BYTES },
@@ -160,9 +176,11 @@ export class BankAccountController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async findAll(
+    @Req() req: WorkspaceRequest,
     @Query() query: ListBankAccountsQueryDto,
   ): Promise<PaginatedApiResponse<BankAccountData>> {
     const result = await this.bankAccountService.findAll(
+      req.workspaceContext.workspaceId,
       query as ListBankAccountsQuery,
     );
     return paginated(result.items, result.total, result.page, result.limit);
@@ -180,14 +198,18 @@ export class BankAccountController {
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async findOne(
+    @Req() req: WorkspaceRequest,
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
   ): Promise<ApiRes<BankAccountData>> {
-    const bankAccount = await this.bankAccountService.findOne(bankAccountId);
+    const bankAccount = await this.bankAccountService.findOne(
+      req.workspaceContext.workspaceId,
+      bankAccountId,
+    );
     return ok(bankAccount);
   }
 
   @Patch(':bankAccountId')
-  @RequireUserRole('ACCOUNTANT')
+  @RequireAccountingRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Update bank account fields' })
   @ApiParam({ name: 'bankAccountId', description: 'Bank account UUID' })
   @ApiResponse({
@@ -199,10 +221,12 @@ export class BankAccountController {
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
   async update(
+    @Req() req: WorkspaceRequest,
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
     @Body() dto: UpdateBankAccountDto,
   ): Promise<ApiRes<BankAccountData>> {
     const bankAccount = await this.bankAccountService.update(
+      req.workspaceContext.workspaceId,
       bankAccountId,
       dto,
     );
@@ -211,17 +235,25 @@ export class BankAccountController {
 
   @Delete(':bankAccountId')
   @HttpCode(HttpStatus.OK)
-  @RequireUserRole('ACCOUNTANT')
+  @RequireAccountingRole('ACCOUNTANT')
   @ApiOperation({ summary: 'Delete a bank account' })
   @ApiParam({ name: 'bankAccountId', description: 'Bank account UUID' })
   @ApiResponse({ status: 200, description: 'Bank account deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Bank account not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Bank account still has transactions linked to it',
+  })
   async remove(
+    @Req() req: WorkspaceRequest,
     @Param('bankAccountId', new ParseUUIDPipe()) bankAccountId: string,
   ): Promise<ApiRes<null>> {
-    await this.bankAccountService.remove(bankAccountId);
+    await this.bankAccountService.remove(
+      req.workspaceContext.workspaceId,
+      bankAccountId,
+    );
     return ok(null, 'Bank account deleted successfully');
   }
 }

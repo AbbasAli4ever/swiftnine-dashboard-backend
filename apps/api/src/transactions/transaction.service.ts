@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -10,7 +11,9 @@ import type {
   PaymentPlatform,
 } from '@app/database/generated/prisma/enums';
 import {
+  BANK_ACCOUNT_NOT_FOUND,
   CLIENT_NOT_FOUND,
+  TRANSACTION_CURRENCY_MISMATCH,
   TRANSACTION_NOT_FOUND,
   TRANSACTION_REF_ID_TAKEN,
   TRANSACTION_SELECT,
@@ -42,33 +45,57 @@ export type TransactionListResult = {
 export class TransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateTransactionDto): Promise<TransactionData> {
-    const existing = await this.prisma.transaction.findUnique({
-      where: { refId: dto.refId },
+  async create(
+    workspaceId: string,
+    dto: CreateTransactionDto,
+  ): Promise<TransactionData> {
+    const existing = await this.prisma.transaction.findFirst({
+      where: { workspaceId, refId: dto.refId },
       select: { id: true },
     });
     if (existing) throw new ConflictException(TRANSACTION_REF_ID_TAKEN);
 
-    const client = await this.findClientOrThrow(dto.clientId);
+    const client = await this.findClientOrThrow(workspaceId, dto.clientId);
+    const bankAccount = await this.findBankAccountOrThrow(
+      workspaceId,
+      dto.bankAccountId,
+    );
+    this.assertCurrencyMatches(dto.currency, bankAccount);
 
-    const transaction = await this.prisma.transaction.create({
-      data: {
-        clientId: client.id,
-        clientName: client.clientName,
-        saleAmount: dto.saleAmount,
-        paymentPlatform: dto.paymentPlatform,
-        currency: dto.currency,
-        saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
-        refId: dto.refId,
-        description: dto.description,
-      },
-      select: TRANSACTION_SELECT,
-    });
+    const [, transaction] = await this.prisma.$transaction([
+      this.prisma.bankAccount.update({
+        where: { id: dto.bankAccountId },
+        data: {
+          amount: {
+            increment: dto.type === 'CREDIT' ? dto.saleAmount : -dto.saleAmount,
+          },
+        },
+      }),
+      this.prisma.transaction.create({
+        data: {
+          workspaceId,
+          clientId: client.id,
+          clientName: client.clientName,
+          bankAccountId: dto.bankAccountId,
+          type: dto.type,
+          saleAmount: dto.saleAmount,
+          paymentPlatform: dto.paymentPlatform,
+          currency: dto.currency,
+          saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
+          refId: dto.refId,
+          description: dto.description,
+        },
+        select: TRANSACTION_SELECT,
+      }),
+    ]);
     return toTransactionData(transaction);
   }
 
-  async findAll(query: ListTransactionsQuery): Promise<TransactionListResult> {
-    const where: Prisma.TransactionWhereInput = {};
+  async findAll(
+    workspaceId: string,
+    query: ListTransactionsQuery,
+  ): Promise<TransactionListResult> {
+    const where: Prisma.TransactionWhereInput = { workspaceId };
 
     if (query.q) {
       where.OR = [
@@ -119,50 +146,120 @@ export class TransactionService {
     };
   }
 
-  async findOne(transactionId: string): Promise<TransactionData> {
-    return this.findTransactionOrThrow(transactionId);
+  async findOne(
+    workspaceId: string,
+    transactionId: string,
+  ): Promise<TransactionData> {
+    return this.findTransactionOrThrow(workspaceId, transactionId);
   }
 
   async update(
+    workspaceId: string,
     transactionId: string,
     dto: UpdateTransactionDto,
   ): Promise<TransactionData> {
-    const transaction = await this.findTransactionOrThrow(transactionId);
-    const updateData: Prisma.TransactionUpdateInput = {};
+    const transaction = await this.findTransactionOrThrow(
+      workspaceId,
+      transactionId,
+    );
 
+    const updateData: Prisma.TransactionUpdateInput = {};
     if (dto.clientId !== undefined) {
-      await this.findClientOrThrow(dto.clientId);
+      await this.findClientOrThrow(workspaceId, dto.clientId);
       updateData.client = { connect: { id: dto.clientId } };
     }
     if (dto.clientName !== undefined) updateData.clientName = dto.clientName;
-    if (dto.saleAmount !== undefined) updateData.saleAmount = dto.saleAmount;
     if (dto.paymentPlatform !== undefined)
       updateData.paymentPlatform = dto.paymentPlatform;
-    if (dto.currency !== undefined) updateData.currency = dto.currency;
     if (dto.saleDate !== undefined)
       updateData.saleDate = new Date(dto.saleDate);
     if (dto.description !== undefined) updateData.description = dto.description;
 
-    if (Object.keys(updateData).length === 0) return transaction;
+    const balanceFieldsChanged =
+      dto.bankAccountId !== undefined ||
+      dto.saleAmount !== undefined ||
+      dto.currency !== undefined ||
+      dto.type !== undefined;
 
-    const updated = await this.prisma.transaction.update({
-      where: { id: transactionId },
-      data: updateData,
-      select: TRANSACTION_SELECT,
-    });
+    if (!balanceFieldsChanged) {
+      if (Object.keys(updateData).length === 0) return transaction;
+      const updated = await this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: updateData,
+        select: TRANSACTION_SELECT,
+      });
+      return toTransactionData(updated);
+    }
+
+    const newBankAccountId = dto.bankAccountId ?? transaction.bankAccountId;
+    const newCurrency = dto.currency ?? transaction.currency;
+    const newType = dto.type ?? transaction.type;
+    const newAmount = dto.saleAmount ?? transaction.saleAmount;
+
+    const newBankAccount = await this.findBankAccountOrThrow(
+      workspaceId,
+      newBankAccountId,
+    );
+    this.assertCurrencyMatches(newCurrency, newBankAccount);
+
+    updateData.bankAccount = { connect: { id: newBankAccountId } };
+    updateData.type = newType;
+    updateData.saleAmount = newAmount;
+    updateData.currency = newCurrency;
+
+    // Reverse the old effect on the old bank account, then apply the new
+    // effect on the new (possibly same) one — both within one DB
+    // transaction, so a same-account move nets out correctly and a
+    // cross-account move never leaves one side updated without the other.
+    const oldReversal =
+      transaction.type === 'CREDIT'
+        ? -transaction.saleAmount
+        : transaction.saleAmount;
+    const newEffect = newType === 'CREDIT' ? newAmount : -newAmount;
+
+    const [, , updated] = await this.prisma.$transaction([
+      this.prisma.bankAccount.update({
+        where: { id: transaction.bankAccountId },
+        data: { amount: { increment: oldReversal } },
+      }),
+      this.prisma.bankAccount.update({
+        where: { id: newBankAccountId },
+        data: { amount: { increment: newEffect } },
+      }),
+      this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: updateData,
+        select: TRANSACTION_SELECT,
+      }),
+    ]);
     return toTransactionData(updated);
   }
 
-  async remove(transactionId: string): Promise<void> {
-    await this.findTransactionOrThrow(transactionId);
-    await this.prisma.transaction.delete({ where: { id: transactionId } });
+  async remove(workspaceId: string, transactionId: string): Promise<void> {
+    const transaction = await this.findTransactionOrThrow(
+      workspaceId,
+      transactionId,
+    );
+    const reversal =
+      transaction.type === 'CREDIT'
+        ? -transaction.saleAmount
+        : transaction.saleAmount;
+
+    await this.prisma.$transaction([
+      this.prisma.bankAccount.update({
+        where: { id: transaction.bankAccountId },
+        data: { amount: { increment: reversal } },
+      }),
+      this.prisma.transaction.delete({ where: { id: transactionId } }),
+    ]);
   }
 
   private async findTransactionOrThrow(
+    workspaceId: string,
     transactionId: string,
   ): Promise<TransactionData> {
-    const transaction = await this.prisma.transaction.findUnique({
-      where: { id: transactionId },
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id: transactionId, workspaceId },
       select: TRANSACTION_SELECT,
     });
     if (!transaction) throw new NotFoundException(TRANSACTION_NOT_FOUND);
@@ -183,14 +280,36 @@ export class TransactionService {
   }
 
   private async findClientOrThrow(
+    workspaceId: string,
     clientId: string,
   ): Promise<{ id: string; clientName: string }> {
-    const client = await this.prisma.clients.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.clients.findFirst({
+      where: { id: clientId, workspaceId },
       select: { id: true, clientName: true },
     });
     if (!client) throw new NotFoundException(CLIENT_NOT_FOUND);
     return client;
+  }
+
+  private async findBankAccountOrThrow(
+    workspaceId: string,
+    bankAccountId: string,
+  ): Promise<{ id: string; currencyType: Currency }> {
+    const bankAccount = await this.prisma.bankAccount.findFirst({
+      where: { id: bankAccountId, workspaceId },
+      select: { id: true, currencyType: true },
+    });
+    if (!bankAccount) throw new NotFoundException(BANK_ACCOUNT_NOT_FOUND);
+    return bankAccount;
+  }
+
+  private assertCurrencyMatches(
+    currency: Currency,
+    bankAccount: { currencyType: Currency },
+  ): void {
+    if (currency !== bankAccount.currencyType) {
+      throw new BadRequestException(TRANSACTION_CURRENCY_MISMATCH);
+    }
   }
 
   // Client is now required to already exist (clientId comes straight from

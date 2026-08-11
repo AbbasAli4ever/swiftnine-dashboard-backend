@@ -10,10 +10,12 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -28,7 +30,12 @@ import {
   type PaginatedApiResponse,
 } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
+import {
+  AccountingRoleGuard,
+  RequireAccountingRole,
+} from '../auth/guards/accounting-role.guard';
+import { WorkspaceGuard } from '../workspace/workspace.guard';
+import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   TransactionService,
   type TransactionData,
@@ -47,18 +54,23 @@ import {
 @ApiTags('transactions')
 @ApiBearerAuth()
 @Controller('transactions')
-@UseGuards(JwtAuthGuard, UserRoleGuard)
-@RequireUserRole('CEO', 'ACCOUNTANT')
+@UseGuards(JwtAuthGuard, WorkspaceGuard, AccountingRoleGuard)
+@RequireAccountingRole('CEO', 'ACCOUNTANT')
+@ApiHeader({
+  name: 'x-workspace-id',
+  required: true,
+  description: 'Active workspace ID',
+})
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequireUserRole('ACCOUNTANT')
+  @RequireAccountingRole('ACCOUNTANT')
   @ApiOperation({
     summary: 'Record a new transaction',
     description:
-      'The client referenced by clientId must already exist. saleDate defaults to now if omitted — set it explicitly to backdate a late-entered sale.',
+      "The client and bank account referenced must already exist, and the currency must match the bank account's currencyType. saleDate defaults to now if omitted — set it explicitly to backdate a late-entered sale.",
   })
   @ApiResponse({
     status: 201,
@@ -67,15 +79,24 @@ export class TransactionController {
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
-  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 404, description: 'Client or bank account not found' })
+  @ApiResponse({
+    status: 400,
+    description:
+      "Transaction currency doesn't match the bank account's currency",
+  })
   @ApiResponse({
     status: 409,
     description: 'A transaction with this reference ID already exists',
   })
   async create(
+    @Req() req: WorkspaceRequest,
     @Body() dto: CreateTransactionDto,
   ): Promise<ApiRes<TransactionData>> {
-    const transaction = await this.transactionService.create(dto);
+    const transaction = await this.transactionService.create(
+      req.workspaceContext.workspaceId,
+      dto,
+    );
     return ok(transaction, 'Transaction created successfully');
   }
 
@@ -150,9 +171,11 @@ export class TransactionController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async findAll(
+    @Req() req: WorkspaceRequest,
     @Query() query: ListTransactionsQueryDto,
   ): Promise<PaginatedApiResponse<TransactionData>> {
     const result = await this.transactionService.findAll(
+      req.workspaceContext.workspaceId,
       query as ListTransactionsQuery,
     );
     return paginated(result.items, result.total, result.page, result.limit);
@@ -170,15 +193,23 @@ export class TransactionController {
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async findOne(
+    @Req() req: WorkspaceRequest,
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
   ): Promise<ApiRes<TransactionData>> {
-    const transaction = await this.transactionService.findOne(transactionId);
+    const transaction = await this.transactionService.findOne(
+      req.workspaceContext.workspaceId,
+      transactionId,
+    );
     return ok(transaction);
   }
 
   @Patch(':transactionId')
-  @RequireUserRole('ACCOUNTANT')
-  @ApiOperation({ summary: 'Update transaction fields' })
+  @RequireAccountingRole('ACCOUNTANT')
+  @ApiOperation({
+    summary: 'Update transaction fields',
+    description:
+      "Changing bankAccountId, saleAmount, currency, or type reverses the transaction's prior effect on its old bank account and re-applies it to the new state.",
+  })
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({
     status: 200,
@@ -187,12 +218,22 @@ export class TransactionController {
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
-  @ApiResponse({ status: 404, description: 'Transaction or client not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Transaction, client, or bank account not found',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      "Transaction currency doesn't match the bank account's currency",
+  })
   async update(
+    @Req() req: WorkspaceRequest,
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
     @Body() dto: UpdateTransactionDto,
   ): Promise<ApiRes<TransactionData>> {
     const transaction = await this.transactionService.update(
+      req.workspaceContext.workspaceId,
       transactionId,
       dto,
     );
@@ -201,17 +242,25 @@ export class TransactionController {
 
   @Delete(':transactionId')
   @HttpCode(HttpStatus.OK)
-  @RequireUserRole('ACCOUNTANT')
-  @ApiOperation({ summary: 'Delete a transaction' })
+  @RequireAccountingRole('ACCOUNTANT')
+  @ApiOperation({
+    summary: 'Delete a transaction',
+    description:
+      "Reverses this transaction's effect on its linked bank account's balance before deleting it.",
+  })
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({ status: 200, description: 'Transaction deleted' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async remove(
+    @Req() req: WorkspaceRequest,
     @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
   ): Promise<ApiRes<null>> {
-    await this.transactionService.remove(transactionId);
+    await this.transactionService.remove(
+      req.workspaceContext.workspaceId,
+      transactionId,
+    );
     return ok(null, 'Transaction deleted successfully');
   }
 }

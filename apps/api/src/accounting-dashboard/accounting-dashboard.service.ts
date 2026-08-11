@@ -127,7 +127,10 @@ type DateRange = { gte: Date; lt?: Date };
 export class AccountingDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getOverview(period: DashboardPeriod): Promise<DashboardOverview> {
+  async getOverview(
+    workspaceId: string,
+    period: DashboardPeriod,
+  ): Promise<DashboardOverview> {
     const [
       balances,
       revenueSummary,
@@ -137,13 +140,13 @@ export class AccountingDashboardService {
       bankAccounts,
       topClients,
     ] = await Promise.all([
-      this.getBalances(),
-      this.getRevenueSummary(),
-      this.getRevenueOverview(period),
-      this.getRevenueByPaymentPlatform(),
-      this.getRevenueByCurrency(),
-      this.getBankAccountsByType(),
-      this.getTopClients(),
+      this.getBalances(workspaceId),
+      this.getRevenueSummary(workspaceId),
+      this.getRevenueOverview(workspaceId, period),
+      this.getRevenueByPaymentPlatform(workspaceId),
+      this.getRevenueByCurrency(workspaceId),
+      this.getBankAccountsByType(workspaceId),
+      this.getTopClients(workspaceId),
     ]);
 
     return {
@@ -157,9 +160,10 @@ export class AccountingDashboardService {
     };
   }
 
-  private async getBalances(): Promise<BalanceSummary> {
+  private async getBalances(workspaceId: string): Promise<BalanceSummary> {
     const grouped = await this.prisma.bankAccount.groupBy({
       by: ['accountType', 'currencyType'],
+      where: { workspaceId },
       _sum: { amount: true },
       _count: true,
     });
@@ -168,6 +172,7 @@ export class AccountingDashboardService {
       'GROUPED ARE',
       await this.prisma.bankAccount.groupBy({
         by: ['accountType', 'currencyType'],
+        where: { workspaceId },
         _sum: { amount: true },
         _count: true,
       }),
@@ -203,7 +208,9 @@ export class AccountingDashboardService {
     };
   }
 
-  private async getRevenueSummary(): Promise<RevenueSummary> {
+  private async getRevenueSummary(
+    workspaceId: string,
+  ): Promise<RevenueSummary> {
     const now = new Date();
     const startOfToday = new Date(
       now.getFullYear(),
@@ -227,17 +234,29 @@ export class AccountingDashboardService {
       salesThisMonth,
       salesLastMonth,
     ] = await Promise.all([
-      this.sumRevenueUsd({ gte: startOfToday }),
-      this.sumRevenueUsd({ gte: startOfYesterday, lt: startOfToday }),
-      this.sumRevenueUsd({ gte: startOfMonth }),
-      this.sumRevenueUsd({ gte: startOfLastMonth, lt: startOfMonth }),
-      this.sumRevenueUsd({ gte: startOfYear }),
-      this.sumRevenueUsd({ gte: startOfLastYear, lt: startOfYear }),
-      this.prisma.transaction.count({
-        where: { saleDate: { gte: startOfMonth } },
+      this.sumRevenueUsd(workspaceId, { gte: startOfToday }),
+      this.sumRevenueUsd(workspaceId, {
+        gte: startOfYesterday,
+        lt: startOfToday,
+      }),
+      this.sumRevenueUsd(workspaceId, { gte: startOfMonth }),
+      this.sumRevenueUsd(workspaceId, {
+        gte: startOfLastMonth,
+        lt: startOfMonth,
+      }),
+      this.sumRevenueUsd(workspaceId, { gte: startOfYear }),
+      this.sumRevenueUsd(workspaceId, {
+        gte: startOfLastYear,
+        lt: startOfYear,
       }),
       this.prisma.transaction.count({
-        where: { saleDate: { gte: startOfLastMonth, lt: startOfMonth } },
+        where: { workspaceId, saleDate: { gte: startOfMonth } },
+      }),
+      this.prisma.transaction.count({
+        where: {
+          workspaceId,
+          saleDate: { gte: startOfLastMonth, lt: startOfMonth },
+        },
       }),
     ]);
 
@@ -261,10 +280,13 @@ export class AccountingDashboardService {
     };
   }
 
-  private async sumRevenueUsd(range: DateRange): Promise<number> {
+  private async sumRevenueUsd(
+    workspaceId: string,
+    range: DateRange,
+  ): Promise<number> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: { saleDate: range },
+      where: { workspaceId, saleDate: range },
       _sum: { saleAmount: true },
     });
 
@@ -280,6 +302,7 @@ export class AccountingDashboardService {
   // rows ever cross into Node. Currency->USD conversion stays here in JS
   // so EXCHANGE_RATES_TO_USD isn't duplicated into the SQL string.
   private async getRevenueOverview(
+    workspaceId: string,
     period: DashboardPeriod,
   ): Promise<RevenueOverviewPoint[]> {
     const { firstStart, lastStart, intervalSql } = this.getBucketConfig(
@@ -303,6 +326,7 @@ export class AccountingDashboardService {
       LEFT JOIN "Transaction" t
         ON t."saleDate" >= gs.bucket_start
         AND t."saleDate" < gs.bucket_start + ${intervalSql}::interval
+        AND t."workspaceId" = ${workspaceId}
       GROUP BY gs.bucket_start, t.currency
       ORDER BY gs.bucket_start
     `;
@@ -384,9 +408,12 @@ export class AccountingDashboardService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private async getRevenueByPaymentPlatform(): Promise<PlatformRevenueItem[]> {
+  private async getRevenueByPaymentPlatform(
+    workspaceId: string,
+  ): Promise<PlatformRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['paymentPlatform', 'currency'],
+      where: { workspaceId },
       _sum: { saleAmount: true },
     });
 
@@ -412,9 +439,12 @@ export class AccountingDashboardService {
     })).sort((a, b) => b.totalUsd - a.totalUsd);
   }
 
-  private async getRevenueByCurrency(): Promise<CurrencyRevenueItem[]> {
+  private async getRevenueByCurrency(
+    workspaceId: string,
+  ): Promise<CurrencyRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
+      where: { workspaceId },
       _sum: { saleAmount: true },
     });
 
@@ -440,7 +470,9 @@ export class AccountingDashboardService {
       .sort((a, b) => b.totalUsd - a.totalUsd);
   }
 
-  private async getBankAccountsByType(): Promise<BankAccountsByType> {
+  private async getBankAccountsByType(
+    workspaceId: string,
+  ): Promise<BankAccountsByType> {
     const select = {
       id: true,
       bankName: true,
@@ -450,13 +482,13 @@ export class AccountingDashboardService {
 
     const [local, international] = await Promise.all([
       this.prisma.bankAccount.findMany({
-        where: { accountType: 'LOCAL' },
+        where: { workspaceId, accountType: 'LOCAL' },
         select,
         orderBy: { amount: 'desc' },
         take: BANK_ACCOUNTS_PER_GROUP_LIMIT,
       }),
       this.prisma.bankAccount.findMany({
-        where: { accountType: 'INTERNATIONAL' },
+        where: { workspaceId, accountType: 'INTERNATIONAL' },
         select,
         orderBy: { amount: 'desc' },
         take: BANK_ACCOUNTS_PER_GROUP_LIMIT,
@@ -476,8 +508,9 @@ export class AccountingDashboardService {
     };
   }
 
-  private async getTopClients(): Promise<TopClientItem[]> {
+  private async getTopClients(workspaceId: string): Promise<TopClientItem[]> {
     const clients = await this.prisma.clients.findMany({
+      where: { workspaceId },
       select: {
         id: true,
         clientName: true,
@@ -499,12 +532,13 @@ export class AccountingDashboardService {
   // Global search bar on the dashboard — matches client name, and
   // transaction reference/client name/description, each capped and
   // returned separately so the frontend can label and link them.
-  async search(q: string): Promise<DashboardSearchResult> {
+  async search(workspaceId: string, q: string): Promise<DashboardSearchResult> {
     const tokens = q.split(/\s+/).filter(Boolean);
 
     const [clients, transactions] = await Promise.all([
       this.prisma.clients.findMany({
         where: {
+          workspaceId,
           AND: tokens.map((token) => ({
             clientName: { contains: token, mode: 'insensitive' as const },
           })),
@@ -520,6 +554,7 @@ export class AccountingDashboardService {
       }),
       this.prisma.transaction.findMany({
         where: {
+          workspaceId,
           OR: [
             { refId: { contains: q, mode: 'insensitive' } },
             { clientName: { contains: q, mode: 'insensitive' } },

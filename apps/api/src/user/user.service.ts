@@ -19,7 +19,6 @@ const USER_PROFILE_SELECT = {
   id: true,
   fullName: true,
   email: true,
-  role: true,
   avatarUrl: true,
   designation: true,
   bio: true,
@@ -56,7 +55,6 @@ export type UserProfile = {
   localTime: string | null;
   createdAt: Date;
   updatedAt: Date;
-  role?: string;
 };
 
 @Injectable()
@@ -504,7 +502,6 @@ export class UserService {
       localTime: this.computeLocalTime(user.timezone, showLocalTime),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      role: user.role ?? undefined,
     };
   }
 

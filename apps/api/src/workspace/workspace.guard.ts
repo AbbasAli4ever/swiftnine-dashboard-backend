@@ -31,7 +31,7 @@ export class WorkspaceGuard implements CanActivate {
         userId: req.user.id,
         deletedAt: null,
       },
-      select: { role: true, workspaceId: true },
+      select: { role: true, accountingRole: true, workspaceId: true },
     });
 
     if (!member) {
@@ -41,6 +41,7 @@ export class WorkspaceGuard implements CanActivate {
     req.workspaceContext = {
       workspaceId: member.workspaceId,
       role: member.role,
+      accountingRole: member.accountingRole,
     };
     return true;
   }

@@ -97,9 +97,10 @@ export type ClientSearchResult = Prisma.ClientsGetPayload<{
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateClientDto): Promise<ClientData> {
+  async create(workspaceId: string, dto: CreateClientDto): Promise<ClientData> {
     const client = await this.prisma.clients.create({
       data: {
+        workspaceId,
         clientName: dto.clientName,
         totalRevenue: dto.totalRevenue,
         currencyType: dto.currencyType,
@@ -109,8 +110,11 @@ export class ClientsService {
     return toClientData(client);
   }
 
-  async findAll(query: ListClientsQuery): Promise<ClientListResult> {
-    const where: Prisma.ClientsWhereInput = {};
+  async findAll(
+    workspaceId: string,
+    query: ListClientsQuery,
+  ): Promise<ClientListResult> {
+    const where: Prisma.ClientsWhereInput = { workspaceId };
 
     if (query.q) {
       where.clientName = { contains: query.q, mode: 'insensitive' };
@@ -137,11 +141,12 @@ export class ClientsService {
     };
   }
 
-  async search(q: string): Promise<ClientSearchResult[]> {
+  async search(workspaceId: string, q: string): Promise<ClientSearchResult[]> {
     const tokens = q.split(/\s+/).filter(Boolean);
 
     return this.prisma.clients.findMany({
       where: {
+        workspaceId,
         AND: tokens.map((token) => ({
           clientName: { contains: token, mode: 'insensitive' as const },
         })),
@@ -151,12 +156,16 @@ export class ClientsService {
     });
   }
 
-  async findOne(clientId: string): Promise<ClientData> {
-    return this.findClientOrThrow(clientId);
+  async findOne(workspaceId: string, clientId: string): Promise<ClientData> {
+    return this.findClientOrThrow(workspaceId, clientId);
   }
 
-  async update(clientId: string, dto: UpdateClientDto): Promise<ClientData> {
-    await this.findClientOrThrow(clientId);
+  async update(
+    workspaceId: string,
+    clientId: string,
+    dto: UpdateClientDto,
+  ): Promise<ClientData> {
+    await this.findClientOrThrow(workspaceId, clientId);
 
     const client = await this.prisma.clients.update({
       where: { id: clientId },
@@ -166,8 +175,8 @@ export class ClientsService {
     return toClientData(client);
   }
 
-  async remove(clientId: string): Promise<void> {
-    const client = await this.findClientOrThrow(clientId);
+  async remove(workspaceId: string, clientId: string): Promise<void> {
+    const client = await this.findClientOrThrow(workspaceId, clientId);
     if (client._count.transactions > 0) {
       throw new ConflictException(CLIENT_HAS_TRANSACTIONS);
     }
@@ -175,9 +184,12 @@ export class ClientsService {
     await this.prisma.clients.delete({ where: { id: clientId } });
   }
 
-  private async findClientOrThrow(clientId: string): Promise<ClientData> {
-    const client = await this.prisma.clients.findUnique({
-      where: { id: clientId },
+  private async findClientOrThrow(
+    workspaceId: string,
+    clientId: string,
+  ): Promise<ClientData> {
+    const client = await this.prisma.clients.findFirst({
+      where: { id: clientId, workspaceId },
       select: CLIENTS_SELECT,
     });
     if (!client) throw new NotFoundException(CLIENT_NOT_FOUND);
