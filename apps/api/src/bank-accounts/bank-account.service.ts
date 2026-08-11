@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import type {
   Currency,
 } from '@app/database/generated/prisma/enums';
 import {
+  BANK_ACCOUNT_HAS_TRANSACTIONS,
   BANK_ACCOUNT_NOT_FOUND,
   BANK_ACCOUNT_SELECT,
   BANK_LOGO_ALLOWED_MIME_TYPES,
@@ -50,9 +52,13 @@ export class BankAccountService {
     private readonly publicAssetsS3: PublicAssetsS3Service,
   ) {}
 
-  async create(dto: CreateBankAccountDto): Promise<BankAccountData> {
+  async create(
+    workspaceId: string,
+    dto: CreateBankAccountDto,
+  ): Promise<BankAccountData> {
     const bankAccount = await this.prisma.bankAccount.create({
       data: {
+        workspaceId,
         bankName: dto.bankName,
         accountType: dto.accountType,
         currencyType: dto.currencyType,
@@ -99,8 +105,11 @@ export class BankAccountService {
     };
   }
 
-  async findAll(query: ListBankAccountsQuery): Promise<BankAccountListResult> {
-    const where: Prisma.BankAccountWhereInput = {};
+  async findAll(
+    workspaceId: string,
+    query: ListBankAccountsQuery,
+  ): Promise<BankAccountListResult> {
+    const where: Prisma.BankAccountWhereInput = { workspaceId };
 
     if (query.q) {
       where.bankName = { contains: query.q, mode: 'insensitive' };
@@ -133,15 +142,22 @@ export class BankAccountService {
     };
   }
 
-  async findOne(bankAccountId: string): Promise<BankAccountData> {
-    return this.findBankAccountOrThrow(bankAccountId);
+  async findOne(
+    workspaceId: string,
+    bankAccountId: string,
+  ): Promise<BankAccountData> {
+    return this.findBankAccountOrThrow(workspaceId, bankAccountId);
   }
 
   async update(
+    workspaceId: string,
     bankAccountId: string,
     dto: UpdateBankAccountDto,
   ): Promise<BankAccountData> {
-    const bankAccount = await this.findBankAccountOrThrow(bankAccountId);
+    const bankAccount = await this.findBankAccountOrThrow(
+      workspaceId,
+      bankAccountId,
+    );
     const updateData: Prisma.BankAccountUpdateInput = {};
 
     if (dto.bankName !== undefined) updateData.bankName = dto.bankName;
@@ -161,16 +177,25 @@ export class BankAccountService {
     return toBankAccountData(updated);
   }
 
-  async remove(bankAccountId: string): Promise<void> {
-    await this.findBankAccountOrThrow(bankAccountId);
+  async remove(workspaceId: string, bankAccountId: string): Promise<void> {
+    await this.findBankAccountOrThrow(workspaceId, bankAccountId);
+
+    const transactionCount = await this.prisma.transaction.count({
+      where: { bankAccountId },
+    });
+    if (transactionCount > 0) {
+      throw new ConflictException(BANK_ACCOUNT_HAS_TRANSACTIONS);
+    }
+
     await this.prisma.bankAccount.delete({ where: { id: bankAccountId } });
   }
 
   private async findBankAccountOrThrow(
+    workspaceId: string,
     bankAccountId: string,
   ): Promise<BankAccountData> {
-    const bankAccount = await this.prisma.bankAccount.findUnique({
-      where: { id: bankAccountId },
+    const bankAccount = await this.prisma.bankAccount.findFirst({
+      where: { id: bankAccountId, workspaceId },
       select: BANK_ACCOUNT_SELECT,
     });
     if (!bankAccount) throw new NotFoundException(BANK_ACCOUNT_NOT_FOUND);

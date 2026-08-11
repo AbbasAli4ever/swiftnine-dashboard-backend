@@ -42,7 +42,6 @@ export const AUTH_USER_SELECT = {
   email: true,
   avatarUrl: true,
   avatarColor: true,
-  role: true,
 } satisfies Prisma.UserSelect;
 
 export const ACCESS_TOKEN_PAYLOAD_SCHEMA = z.object({

@@ -1,6 +1,8 @@
 import type { Prisma } from '@app/database/generated/prisma/client';
 
 export const BANK_ACCOUNT_NOT_FOUND = 'Bank account not found';
+export const BANK_ACCOUNT_HAS_TRANSACTIONS =
+  'Cannot delete a bank account that still has transactions';
 
 export const ACCOUNT_TYPE_VALUES = ['LOCAL', 'INTERNATIONAL'] as const;
 

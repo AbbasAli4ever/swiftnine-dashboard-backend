@@ -9,14 +9,12 @@ import { PrismaService } from '@app/database';
 import type { Role } from '@app/database/generated/prisma/client';
 import type { Request } from 'express';
 import type { AuthUser } from '../auth/auth.service';
+import type { WorkspaceContext } from '../workspace/workspace.types';
 import { ROLES_KEY } from './roles.decorator';
 
 type RequestWithWorkspace = Request & {
   user: AuthUser;
-  workspaceContext?: {
-    workspaceId: string;
-    role: Role;
-  };
+  workspaceContext?: WorkspaceContext;
 };
 
 @Injectable()
@@ -50,14 +48,18 @@ export class RolesGuard implements CanActivate {
         userId: req.user.id,
         deletedAt: null,
       },
-      select: { role: true, workspaceId: true },
+      select: { role: true, accountingRole: true, workspaceId: true },
     });
 
     if (!member) {
       throw new ForbiddenException('You are not a member of this workspace');
     }
 
-    req.workspaceContext = { workspaceId: member.workspaceId, role: member.role };
+    req.workspaceContext = {
+      workspaceId: member.workspaceId,
+      role: member.role,
+      accountingRole: member.accountingRole,
+    };
 
     if (!requiredRoles.includes(member.role)) {
       throw new ForbiddenException('Only the workspace owner can perform this action');

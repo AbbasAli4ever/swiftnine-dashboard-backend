@@ -1,6 +1,7 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
@@ -9,7 +10,12 @@ import {
 } from '@nestjs/swagger';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequireUserRole, UserRoleGuard } from '../auth/guards/user-role.guard';
+import {
+  AccountingRoleGuard,
+  RequireAccountingRole,
+} from '../auth/guards/accounting-role.guard';
+import { WorkspaceGuard } from '../workspace/workspace.guard';
+import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   AccountingDashboardService,
   type DashboardOverview,
@@ -29,8 +35,13 @@ import { DashboardSearchResponseDto } from './dto/dashboard-search-response.dto'
 @ApiTags('accounting-dashboard')
 @ApiBearerAuth()
 @Controller('accounting-dashboard')
-@UseGuards(JwtAuthGuard, UserRoleGuard)
-@RequireUserRole('CEO', 'ACCOUNTANT')
+@UseGuards(JwtAuthGuard, WorkspaceGuard, AccountingRoleGuard)
+@RequireAccountingRole('CEO', 'ACCOUNTANT')
+@ApiHeader({
+  name: 'x-workspace-id',
+  required: true,
+  description: 'Active workspace ID',
+})
 export class AccountingDashboardController {
   constructor(private readonly dashboardService: AccountingDashboardService) {}
 
@@ -53,9 +64,11 @@ export class AccountingDashboardController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async getOverview(
+    @Req() req: WorkspaceRequest,
     @Query() query: DashboardOverviewQueryDto,
   ): Promise<ApiRes<DashboardOverview>> {
     const overview = await this.dashboardService.getOverview(
+      req.workspaceContext.workspaceId,
       (query as DashboardOverviewQuery).period,
     );
     return ok(overview);
@@ -80,9 +93,11 @@ export class AccountingDashboardController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async search(
+    @Req() req: WorkspaceRequest,
     @Query() query: DashboardSearchQueryDto,
   ): Promise<ApiRes<DashboardSearchResult>> {
     const result = await this.dashboardService.search(
+      req.workspaceContext.workspaceId,
       (query as DashboardSearchQuery).q,
     );
     return ok(result);

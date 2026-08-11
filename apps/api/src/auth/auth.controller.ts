@@ -139,15 +139,10 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<void> {
     const result = await this.authService.handleGoogleAuth(req.user);
-    const { refreshToken, accessToken, user } = result;
+    const { refreshToken, accessToken } = result;
     this.setRefreshCookie(res, refreshToken);
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
-    const roleQuery = user?.role
-      ? `&role=${encodeURIComponent(user.role)}`
-      : '';
-    res.redirect(
-      `${frontendUrl}/auth/callback?token=${accessToken}${roleQuery}`,
-    );
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
   }
 
   @Post('refresh')

@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CURRENCY_VALUES,
   PAYMENT_PLATFORM_VALUES,
+  TRANSACTION_TYPE_VALUES,
 } from '../transaction.constants';
 
 class TransactionClientBriefDto {
@@ -10,6 +11,14 @@ class TransactionClientBriefDto {
 
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
+}
+
+class TransactionBankAccountBriefDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'HBL' })
+  bankName!: string;
 }
 
 export class TransactionResponseDto {
@@ -24,6 +33,20 @@ export class TransactionResponseDto {
 
   @ApiProperty({ type: TransactionClientBriefDto })
   client!: TransactionClientBriefDto;
+
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  bankAccountId!: string;
+
+  @ApiProperty({ type: TransactionBankAccountBriefDto })
+  bankAccount!: TransactionBankAccountBriefDto;
+
+  @ApiProperty({
+    enum: TRANSACTION_TYPE_VALUES,
+    example: 'CREDIT',
+    description:
+      'CREDIT increases the bank account balance, DEBIT decreases it.',
+  })
+  type!: (typeof TRANSACTION_TYPE_VALUES)[number];
 
   @ApiProperty({ example: 199.99 })
   saleAmount!: number;
