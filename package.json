@@ -27,7 +27,8 @@
     "db:reset": "npx prisma migrate reset",
     "user:soft-delete": "node -r ts-node/register -r tsconfig-paths/register scripts/soft-delete-user.ts",
     "tier:secret": "node -r ts-node/register -r tsconfig-paths/register scripts/set-tier-change-secret.ts",
-    "seed:accounting": "node scripts/seed-accounting.js"
+    "seed:accounting": "node scripts/seed-accounting.js",
+    "assets:upload-bank-logos": "node -r ts-node/register -r tsconfig-paths/register scripts/upload-bank-logos.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
