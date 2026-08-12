@@ -132,19 +132,24 @@ export class WorkspaceController {
   }
 
   @Get(':workspaceId/members/:memberId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a single workspace member by id (protected by JWT)' })
+  @ApiHeader({ name: 'x-workspace-id', required: true })
+  @ApiOperation({ summary: 'Get a single workspace member by id' })
   @ApiParam({ name: 'workspaceId', description: 'Workspace UUID' })
   @ApiParam({ name: 'memberId', description: 'Workspace member id or user id' })
   @ApiResponse({ status: 200, description: 'Member returned', type: MemberDetailResponseDto })
   @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'Not a member of this workspace' })
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getMember(
-    @Param('workspaceId') workspaceId: string,
+    @Req() req: WorkspaceRequest,
     @Param('memberId') memberId: string,
   ): Promise<ApiRes<MemberDetailResponseDto>> {
-    const member = await this.workspaceService.getMember(workspaceId, memberId);
+    const member = await this.workspaceService.getMember(
+      req.workspaceContext.workspaceId,
+      memberId,
+    );
     return ok(member, 'Member returned successfully');
   }
 
