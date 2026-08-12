@@ -14,6 +14,10 @@ export const EXCHANGE_RATES_TO_USD: Record<Currency, number> = {
   USD: 1,
   PKR: 278,
   HKD: 7.8,
+  AED: 3.67,
+  EUR: 0.92,
+  GBP: 0.79,
+  CRYPTO: 1, // not one specific coin — 1:1 placeholder until that's decided
 };
 
 export const TOP_CLIENTS_LIMIT = 5;

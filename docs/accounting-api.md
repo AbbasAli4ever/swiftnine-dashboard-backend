@@ -151,6 +151,16 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - **`topClients`** — top 5 `Clients` (`TOP_CLIENTS_LIMIT`) ordered by the stored `totalRevenue` field descending (not the computed `totalSaleAmount` from transactions — see Known Gaps).
 - All money values in the response are plain numbers (already converted from `Decimal`), and anything expressed "in USD" uses the fixed rate table in `accounting-dashboard.constants.ts`, not a live FX source (see Known Gaps).
 
+### Daily Report
+- `GET /accounting-dashboard/daily-report?date=2026-07-28` — `date` is required, `YYYY-MM-DD`.
+- **Live-computed, not a frozen snapshot** — recalculated from `Transaction`/`BankAccount` on every call, the same way `/overview` is. There is no "submit" step and no persisted per-day record.
+- Response: `revenueUsd` (sum of that date's transactions, USD-converted), `salesCount` (count of that date's transactions), `balances` (same shape as `/overview`'s `balances` — **current** balances, not a historical balance-as-of-that-date, since no balance history is tracked), `clientPayments` (that date's transactions listed, each with `clientName`, `saleAmount`, `currency`, `paymentPlatform`).
+
+### Monthly Breakdown
+- `GET /accounting-dashboard/monthly-breakdown?year=2026` — `year` is required.
+- Returns exactly 12 points, January through December of that calendar year: `{ year, points: [{ label: 'YYYY-MM', totalUsd }] }`. This is **not** the same as `/overview?period=yearly`, which buckets by year (5 yearly totals) — this one is the Jan–Dec-of-one-specific-year monthly view. "Best revenue month" is just `max()` over `points` — not a separate field.
+- Reuses the same `generate_series` + `LEFT JOIN` bucketing technique as `revenueOverview` on `/overview`, just with fixed year bounds instead of "N buckets ending today."
+
 ### Search
 - `GET /accounting-dashboard/search?q=Acme` — backs the dashboard's global search bar ("Search client, transaction, reference..."). `q` is required, 1-200 chars after trimming.
 - Not paginated — runs two independent queries via `Promise.all`, both scoped to the current workspace, and returns up to 5 of each (`DASHBOARD_SEARCH_RESULT_LIMIT`):

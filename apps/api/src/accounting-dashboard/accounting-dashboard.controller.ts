@@ -18,8 +18,10 @@ import { WorkspaceGuard } from '../workspace/workspace.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   AccountingDashboardService,
+  type DailyReport,
   type DashboardOverview,
   type DashboardSearchResult,
+  type MonthlyBreakdown,
 } from './accounting-dashboard.service';
 import {
   DashboardOverviewQueryDto,
@@ -31,6 +33,16 @@ import {
   type DashboardSearchQuery,
 } from './dto/dashboard-search-query.dto';
 import { DashboardSearchResponseDto } from './dto/dashboard-search-response.dto';
+import {
+  DailyReportQueryDto,
+  type DailyReportQuery,
+} from './dto/daily-report-query.dto';
+import { DailyReportResponseDto } from './dto/daily-report-response.dto';
+import {
+  MonthlyBreakdownQueryDto,
+  type MonthlyBreakdownQuery,
+} from './dto/monthly-breakdown-query.dto';
+import { MonthlyBreakdownResponseDto } from './dto/monthly-breakdown-response.dto';
 
 @ApiTags('accounting-dashboard')
 @ApiBearerAuth()
@@ -72,6 +84,64 @@ export class AccountingDashboardController {
       (query as DashboardOverviewQuery).period,
     );
     return ok(overview);
+  }
+
+  @Get('daily-report')
+  @ApiOperation({
+    summary: 'Get a live-computed report for a single date',
+    description:
+      "Revenue and sales count for that date, current account balances, and that date's client payments. Not a frozen snapshot — recomputed live every time.",
+  })
+  @ApiQuery({
+    name: 'date',
+    required: true,
+    description: 'YYYY-MM-DD',
+    example: '2026-07-28',
+  })
+  @ApiOkResponse({
+    description: 'Daily report returned',
+    type: DailyReportResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async getDailyReport(
+    @Req() req: WorkspaceRequest,
+    @Query() query: DailyReportQueryDto,
+  ): Promise<ApiRes<DailyReport>> {
+    const report = await this.dashboardService.getDailyReport(
+      req.workspaceContext.workspaceId,
+      (query as DailyReportQuery).date,
+    );
+    return ok(report);
+  }
+
+  @Get('monthly-breakdown')
+  @ApiOperation({
+    summary: 'Get a month-by-month revenue breakdown for one calendar year',
+    description:
+      'Exactly 12 points, January through December of the given year — unlike /overview?period=yearly, which buckets by year, not by month.',
+  })
+  @ApiQuery({
+    name: 'year',
+    required: true,
+    description: 'Calendar year',
+    example: 2026,
+  })
+  @ApiOkResponse({
+    description: 'Monthly breakdown returned',
+    type: MonthlyBreakdownResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async getMonthlyBreakdown(
+    @Req() req: WorkspaceRequest,
+    @Query() query: MonthlyBreakdownQueryDto,
+  ): Promise<ApiRes<MonthlyBreakdown>> {
+    const breakdown = await this.dashboardService.getMonthlyBreakdownForYear(
+      req.workspaceContext.workspaceId,
+      (query as MonthlyBreakdownQuery).year,
+    );
+    return ok(breakdown);
   }
 
   @Get('search')
