@@ -316,16 +316,17 @@ model WorkspaceMember {
 
 /// Pending email invitations — token expires after 7 days
 model WorkspaceInvite {
-  id          String       @id @default(uuid())
-  workspaceId String       @map("workspace_id")
-  email       String
-  role        Role         @default(MEMBER)
-  inviteToken String       @unique @map("invite_token")
-  invitedBy   String       @map("invited_by")
-  status      InviteStatus @default(PENDING)
-  expiresAt   DateTime     @map("expires_at")
-  acceptedAt  DateTime?    @map("accepted_at")
-  createdAt   DateTime     @default(now()) @map("created_at")
+  id             String       @id @default(uuid())
+  workspaceId    String       @map("workspace_id")
+  email          String
+  role           Role         @default(MEMBER)
+  accountingRole UserRole?    @map("accounting_role")
+  inviteToken    String       @unique @map("invite_token")
+  invitedBy      String       @map("invited_by")
+  status         InviteStatus @default(PENDING)
+  expiresAt      DateTime     @map("expires_at")
+  acceptedAt     DateTime?    @map("accepted_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
 
   // Relations
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

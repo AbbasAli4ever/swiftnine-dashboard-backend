@@ -28,6 +28,7 @@ import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
 import type { ClaimInviteDto } from './dto/claim-invite.dto';
 import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
+import { DEFAULT_BANK_ACCOUNTS } from '../bank-accounts/default-bank-accounts.data';
 
 const WORKSPACE_NOT_FOUND = 'Workspace not found';
 const OWNER_ONLY = 'Only the workspace owner can perform this action';
@@ -537,6 +538,7 @@ export class WorkspaceService {
       inviteContext,
       dto.email,
       dto.role,
+      dto.accountingRole,
     );
 
     if (result.status === 'failed') {
@@ -564,7 +566,12 @@ export class WorkspaceService {
 
     for (const email of uniqueEmails) {
       results.push(
-        await this.sendInviteToEmail(inviteContext, email, dto.role),
+        await this.sendInviteToEmail(
+          inviteContext,
+          email,
+          dto.role,
+          dto.accountingRole,
+        ),
       );
     }
 
@@ -586,12 +593,14 @@ export class WorkspaceService {
     workspaceName: string;
     invitedEmail: string;
     role: Role;
+    accountingRole: UserRole | null;
     inviterName: string;
     nextStep: InviteNextStep;
   }> {
     const invite = await this.findPendingInviteByToken(token, {
       email: true,
       role: true,
+      accountingRole: true,
       workspace: { select: { id: true, name: true } },
       sender: { select: { fullName: true } },
     });
@@ -606,6 +615,7 @@ export class WorkspaceService {
       workspaceName: invite.workspace.name,
       invitedEmail: invite.email,
       role: invite.role,
+      accountingRole: invite.accountingRole,
       inviterName: invite.sender.fullName,
       nextStep: existingUser?.isEmailVerified ? 'login' : 'claim_account',
     };
@@ -617,6 +627,7 @@ export class WorkspaceService {
       workspaceId: true,
       email: true,
       role: true,
+      accountingRole: true,
     });
 
     const inviteEmail = invite.email.trim().toLowerCase();
@@ -688,9 +699,16 @@ export class WorkspaceService {
             workspaceId: invite.workspaceId,
             userId: authUser.id,
             role: invite.role,
+            accountingRole: invite.accountingRole,
           },
         });
       }
+
+      await this.provisionDefaultBankAccountsIfNeeded(
+        tx,
+        invite.workspaceId,
+        invite.accountingRole,
+      );
 
       return authUser;
     });
@@ -713,6 +731,7 @@ export class WorkspaceService {
       workspaceId: true,
       email: true,
       role: true,
+      accountingRole: true,
     });
 
     if (invite.email !== userEmail.trim().toLowerCase()) {
@@ -739,9 +758,16 @@ export class WorkspaceService {
             workspaceId: invite.workspaceId,
             userId,
             role: invite.role,
+            accountingRole: invite.accountingRole,
           },
         });
       }
+
+      await this.provisionDefaultBankAccountsIfNeeded(
+        tx,
+        invite.workspaceId,
+        invite.accountingRole,
+      );
     });
 
     return { workspaceId: invite.workspaceId };
@@ -749,6 +775,30 @@ export class WorkspaceService {
 
   private hashToken(rawToken: string): string {
     return createHash('sha256').update(rawToken).digest('hex');
+  }
+
+  private async provisionDefaultBankAccountsIfNeeded(
+    tx: Prisma.TransactionClient,
+    workspaceId: string,
+    accountingRole: UserRole | null,
+  ): Promise<void> {
+    if (!accountingRole) return;
+
+    const existingCount = await tx.bankAccount.count({
+      where: { workspaceId },
+    });
+    if (existingCount > 0) return;
+
+    await tx.bankAccount.createMany({
+      data: DEFAULT_BANK_ACCOUNTS.map((account) => ({
+        workspaceId,
+        bankName: account.bankName,
+        accountType: account.accountType,
+        currencyType: account.currencyType,
+        logoUrl: account.logoUrl,
+        amount: 0,
+      })),
+    });
   }
 
   private async prepareInviteContext(
@@ -803,6 +853,7 @@ export class WorkspaceService {
     inviteContext: InviteContext,
     email: string,
     inviteRole: Role,
+    accountingRole: UserRole | null,
   ): Promise<BatchInviteMemberResult> {
     const inviteeEmail = email.trim().toLowerCase();
 
@@ -839,6 +890,7 @@ export class WorkspaceService {
         workspaceId: inviteContext.workspaceId,
         email: inviteeEmail,
         role: inviteRole,
+        accountingRole,
         inviteToken: tokenHash,
         invitedBy: inviteContext.inviterId,
         status: 'PENDING',

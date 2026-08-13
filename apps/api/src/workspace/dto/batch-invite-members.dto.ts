@@ -8,6 +8,9 @@ const BatchInviteMembersSchema = z.object({
     .min(1, 'At least one email is required')
     .max(50, 'You can invite at most 50 emails per request'),
   role: z.enum(['OWNER', 'MEMBER']).default('MEMBER'),
+  // Independent of role — grants accounting feature access to every invite
+  // in this batch on acceptance. Omit or send null for no accounting access.
+  accountingRole: z.enum(['ACCOUNTANT', 'CEO']).nullable().default(null),
 });
 
 export class BatchInviteMembersDto extends createZodDto(BatchInviteMembersSchema) {}

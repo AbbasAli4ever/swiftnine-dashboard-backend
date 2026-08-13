@@ -309,6 +309,7 @@ export class WorkspaceController {
     workspaceName: string;
     invitedEmail: string;
     role: string;
+    accountingRole: string | null;
     inviterName: string;
     nextStep: InviteNextStep;
   }>> {
