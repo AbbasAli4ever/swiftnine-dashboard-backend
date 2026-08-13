@@ -14,13 +14,22 @@ export const PAYMENT_PLATFORM_VALUES = [
   'WHOP',
   'AIRWALLEX',
   'SLASH',
+  'SLASH_9FIGURES',
   'PAYONEER',
   'WIO_BANK',
   'MAMO',
   'KRAKEN',
 ] as const;
 
-export const CURRENCY_VALUES = ['USD', 'HKD', 'PKR'] as const;
+export const CURRENCY_VALUES = [
+  'USD',
+  'HKD',
+  'PKR',
+  'AED',
+  'EUR',
+  'GBP',
+  'CRYPTO',
+] as const;
 
 export const TRANSACTION_SORT_FIELDS = [
   'saleDate',
@@ -45,5 +54,5 @@ export const TRANSACTION_SELECT = {
   createdAt: true,
   updatedAt: true,
   client: { select: { id: true, clientName: true } },
-  bankAccount: { select: { id: true, bankName: true } },
+  bankAccount: { select: { id: true, bankName: true, logoUrl: true } },
 } satisfies Prisma.TransactionSelect;

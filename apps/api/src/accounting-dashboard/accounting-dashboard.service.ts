@@ -98,6 +98,27 @@ export type DashboardSearchResult = {
   transactions: DashboardSearchTransactionItem[];
 };
 
+export type DailyReportClientPayment = {
+  id: string;
+  clientName: string;
+  saleAmount: number;
+  currency: Currency;
+  paymentPlatform: PaymentPlatform;
+};
+
+export type DailyReport = {
+  date: string;
+  revenueUsd: number;
+  salesCount: number;
+  balances: BalanceSummary;
+  clientPayments: DailyReportClientPayment[];
+};
+
+export type MonthlyBreakdown = {
+  year: number;
+  points: RevenueOverviewPoint[];
+};
+
 export type DashboardOverview = {
   balances: BalanceSummary;
   revenueSummary: RevenueSummary;
@@ -158,6 +179,80 @@ export class AccountingDashboardService {
       bankAccounts,
       topClients,
     };
+  }
+
+  async getDailyReport(
+    workspaceId: string,
+    date: string,
+  ): Promise<DailyReport> {
+    const dayStart = new Date(`${date}T00:00:00.000Z`);
+    const nextDayStart = new Date(dayStart);
+    nextDayStart.setUTCDate(nextDayStart.getUTCDate() + 1);
+    const range = { gte: dayStart, lt: nextDayStart };
+
+    const [revenueUsd, salesCount, balances, transactions] = await Promise.all([
+      this.sumRevenueUsd(workspaceId, range),
+      this.prisma.transaction.count({
+        where: { workspaceId, saleDate: range },
+      }),
+      this.getBalances(workspaceId),
+      this.prisma.transaction.findMany({
+        where: { workspaceId, saleDate: range },
+        select: {
+          id: true,
+          clientName: true,
+          saleAmount: true,
+          currency: true,
+          paymentPlatform: true,
+        },
+        orderBy: { saleDate: 'desc' },
+      }),
+    ]);
+
+    return {
+      date,
+      revenueUsd: round2(revenueUsd),
+      salesCount,
+      balances,
+      clientPayments: transactions.map((t) => ({
+        id: t.id,
+        clientName: t.clientName,
+        saleAmount: Number(t.saleAmount),
+        currency: t.currency,
+        paymentPlatform: t.paymentPlatform,
+      })),
+    };
+  }
+
+  // period=yearly on /overview buckets by year (5 yearly totals) — this is
+  // the Jan-Dec-of-one-specific-year view instead, reusing the same
+  // generate_series technique as getRevenueOverview with fixed bounds.
+  //
+  // Boundaries are built with Date.UTC, not `new Date(year, month, day)`.
+  // The latter constructs local midnight, which on a UTC+5 host serializes
+  // to the *previous* day at 19:00 UTC once it crosses the query boundary —
+  // shifting every generate_series bucket by a day and drifting the month
+  // labels (confirmed live: Jan 1 local came out as Dec 31 19:00 UTC).
+  // Date.UTC pins the wall-clock digits sent to Postgres to exactly
+  // Jan 1/Dec 1, regardless of the host's timezone.
+  async getMonthlyBreakdownForYear(
+    workspaceId: string,
+    year: number,
+  ): Promise<MonthlyBreakdown> {
+    const firstStart = new Date(Date.UTC(year, 0, 1));
+    const lastStart = new Date(Date.UTC(year, 11, 1));
+
+    const rows = await this.queryBucketedRevenue(
+      workspaceId,
+      firstStart,
+      lastStart,
+      '1 month',
+    );
+    const points = this.aggregateBucketRows(rows, (start) =>
+      this.formatMonth(start),
+    );
+
+    return { year, points };
   }
 
   private async getBalances(workspaceId: string): Promise<BalanceSummary> {
@@ -309,8 +404,30 @@ export class AccountingDashboardService {
       period,
       new Date(),
     );
+    const rows = await this.queryBucketedRevenue(
+      workspaceId,
+      firstStart,
+      lastStart,
+      intervalSql,
+    );
+    return this.aggregateBucketRows(rows, (start) =>
+      this.formatBucketLabel(period, start),
+    );
+  }
 
-    const rows = await this.prisma.$queryRaw<
+  private async queryBucketedRevenue(
+    workspaceId: string,
+    firstStart: Date,
+    lastStart: Date,
+    intervalSql: string,
+  ): Promise<
+    {
+      bucketStart: Date;
+      currency: Currency | null;
+      total: Prisma.Decimal | null;
+    }[]
+  > {
+    return this.prisma.$queryRaw<
       {
         bucketStart: Date;
         currency: Currency | null;
@@ -330,7 +447,16 @@ export class AccountingDashboardService {
       GROUP BY gs.bucket_start, t.currency
       ORDER BY gs.bucket_start
     `;
+  }
 
+  private aggregateBucketRows(
+    rows: {
+      bucketStart: Date;
+      currency: Currency | null;
+      total: Prisma.Decimal | null;
+    }[],
+    labelFor: (start: Date) => string,
+  ): RevenueOverviewPoint[] {
     const totalsByBucket = new Map<number, number>();
     for (const row of rows) {
       if (!row.currency) continue;
@@ -346,7 +472,7 @@ export class AccountingDashboardService {
     return bucketStarts.map((time) => {
       const start = new Date(time);
       return {
-        label: this.formatBucketLabel(period, start),
+        label: labelFor(start),
         totalUsd: round2(totalsByBucket.get(time) ?? 0),
       };
     });

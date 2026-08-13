@@ -28,7 +28,7 @@ class BalanceByAccountTypeDto {
   accountCount!: number;
 }
 
-class BalanceSummaryDto {
+export class BalanceSummaryDto {
   @ApiProperty({ type: [BalanceByAccountTypeDto] })
   byAccountType!: BalanceByAccountTypeDto[];
 
@@ -76,7 +76,7 @@ class RevenueSummaryDto {
   totalSales!: TotalSalesMetricDto;
 }
 
-class RevenueOverviewPointDto {
+export class RevenueOverviewPointDto {
   @ApiProperty({
     example: '2026-07-27',
     description:

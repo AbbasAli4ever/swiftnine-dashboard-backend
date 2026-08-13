@@ -24,7 +24,19 @@ export const DEFAULT_BANK_ACCOUNTS: readonly DefaultBankAccount[] = [
     logoUrl: `${BANK_LOGOS_BASE_URL}/hbl.svg`,
   },
   {
+    bankName: 'HBL Trio Cafe',
+    accountType: 'LOCAL',
+    currencyType: 'PKR',
+    logoUrl: `${BANK_LOGOS_BASE_URL}/hbl.svg`,
+  },
+  {
     bankName: 'UBL',
+    accountType: 'LOCAL',
+    currencyType: 'PKR',
+    logoUrl: `${BANK_LOGOS_BASE_URL}/ubl.svg`,
+  },
+  {
+    bankName: 'UBL Trio Cafe',
     accountType: 'LOCAL',
     currencyType: 'PKR',
     logoUrl: `${BANK_LOGOS_BASE_URL}/ubl.svg`,
@@ -36,7 +48,19 @@ export const DEFAULT_BANK_ACCOUNTS: readonly DefaultBankAccount[] = [
     logoUrl: `${BANK_LOGOS_BASE_URL}/alfalah.svg`,
   },
   {
-    bankName: 'BOP',
+    bankName: 'Alfalah Trio Cafe',
+    accountType: 'LOCAL',
+    currencyType: 'PKR',
+    logoUrl: `${BANK_LOGOS_BASE_URL}/alfalah.svg`,
+  },
+  {
+    bankName: 'BOP SwiftNine',
+    accountType: 'LOCAL',
+    currencyType: 'PKR',
+    logoUrl: `${BANK_LOGOS_BASE_URL}/bop.svg`,
+  },
+  {
+    bankName: 'BOP Trio Bev',
     accountType: 'LOCAL',
     currencyType: 'PKR',
     logoUrl: `${BANK_LOGOS_BASE_URL}/bop.svg`,
@@ -52,6 +76,12 @@ export const DEFAULT_BANK_ACCOUNTS: readonly DefaultBankAccount[] = [
     accountType: 'INTERNATIONAL',
     currencyType: 'USD',
     logoUrl: `${BANK_LOGOS_BASE_URL}/whop.svg`,
+  },
+  {
+    bankName: 'Slash – 9Figures',
+    accountType: 'INTERNATIONAL',
+    currencyType: 'USD',
+    logoUrl: `${BANK_LOGOS_BASE_URL}/slash.svg`,
   },
   {
     bankName: 'Slash',

@@ -117,6 +117,7 @@ enum PaymentPlatform {
   WHOP
   AIRWALLEX
   SLASH
+  SLASH_9FIGURES
   PAYONEER
   WIO_BANK
   MAMO
@@ -125,8 +126,12 @@ enum PaymentPlatform {
 
 enum Currency {
   USD
+  AED
   HKD
   PKR
+  EUR
+  GBP
+  CRYPTO
 }
 
 enum AccountType {
