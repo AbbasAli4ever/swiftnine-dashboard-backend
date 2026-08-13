@@ -19,6 +19,13 @@ class TransactionBankAccountBriefDto {
 
   @ApiProperty({ example: 'HBL' })
   bankName!: string;
+
+  @ApiPropertyOptional({
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/hbl.svg',
+    nullable: true,
+  })
+  logoUrl!: string | null;
 }
 
 export class TransactionResponseDto {

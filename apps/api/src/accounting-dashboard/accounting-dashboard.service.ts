@@ -227,12 +227,20 @@ export class AccountingDashboardService {
   // period=yearly on /overview buckets by year (5 yearly totals) — this is
   // the Jan-Dec-of-one-specific-year view instead, reusing the same
   // generate_series technique as getRevenueOverview with fixed bounds.
+  //
+  // Boundaries are built with Date.UTC, not `new Date(year, month, day)`.
+  // The latter constructs local midnight, which on a UTC+5 host serializes
+  // to the *previous* day at 19:00 UTC once it crosses the query boundary —
+  // shifting every generate_series bucket by a day and drifting the month
+  // labels (confirmed live: Jan 1 local came out as Dec 31 19:00 UTC).
+  // Date.UTC pins the wall-clock digits sent to Postgres to exactly
+  // Jan 1/Dec 1, regardless of the host's timezone.
   async getMonthlyBreakdownForYear(
     workspaceId: string,
     year: number,
   ): Promise<MonthlyBreakdown> {
-    const firstStart = new Date(year, 0, 1);
-    const lastStart = new Date(year, 11, 1);
+    const firstStart = new Date(Date.UTC(year, 0, 1));
+    const lastStart = new Date(Date.UTC(year, 11, 1));
 
     const rows = await this.queryBucketedRevenue(
       workspaceId,

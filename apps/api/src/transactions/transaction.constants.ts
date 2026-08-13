@@ -54,5 +54,5 @@ export const TRANSACTION_SELECT = {
   createdAt: true,
   updatedAt: true,
   client: { select: { id: true, clientName: true } },
-  bankAccount: { select: { id: true, bankName: true } },
+  bankAccount: { select: { id: true, bankName: true, logoUrl: true } },
 } satisfies Prisma.TransactionSelect;
