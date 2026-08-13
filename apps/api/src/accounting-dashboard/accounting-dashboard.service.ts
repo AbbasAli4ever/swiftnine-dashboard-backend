@@ -45,12 +45,16 @@ export type RevenueOverview = {
   points: RevenueOverviewPoint[];
 };
 
-export type PlatformRevenueItem = {
-  paymentPlatform: PaymentPlatform;
-  totalUsd: number;
+export type AccountBalanceItem = {
+  id: string;
+  bankName: string;
+  accountType: AccountType;
+  currencyType: Currency;
+  amount: number;
+  amountUsd: number;
 };
 
-export type CurrencyRevenueItem = {
+export type CurrencyBalanceItem = {
   currency: Currency;
   total: number;
   totalUsd: number;
@@ -104,6 +108,7 @@ export type DailyReportClientPayment = {
   saleAmount: number;
   currency: Currency;
   paymentPlatform: PaymentPlatform;
+  bankAccount: { id: string; bankName: string; logoUrl: string | null };
 };
 
 export type DailyReport = {
@@ -123,8 +128,8 @@ export type DashboardOverview = {
   balances: BalanceSummary;
   revenueSummary: RevenueSummary;
   revenueOverview: RevenueOverview;
-  revenueByPaymentPlatform: PlatformRevenueItem[];
-  revenueByCurrency: CurrencyRevenueItem[];
+  accountBalances: AccountBalanceItem[];
+  balancesByCurrency: CurrencyBalanceItem[];
   bankAccounts: BankAccountsByType;
   topClients: TopClientItem[];
 };
@@ -156,16 +161,16 @@ export class AccountingDashboardService {
       balances,
       revenueSummary,
       revenueOverviewPoints,
-      revenueByPaymentPlatform,
-      revenueByCurrency,
+      accountBalances,
+      balancesByCurrency,
       bankAccounts,
       topClients,
     ] = await Promise.all([
       this.getBalances(workspaceId),
       this.getRevenueSummary(workspaceId),
       this.getRevenueOverview(workspaceId, period),
-      this.getRevenueByPaymentPlatform(workspaceId),
-      this.getRevenueByCurrency(workspaceId),
+      this.getAccountBalances(workspaceId),
+      this.getBalancesByCurrency(workspaceId),
       this.getBankAccountsByType(workspaceId),
       this.getTopClients(workspaceId),
     ]);
@@ -174,8 +179,8 @@ export class AccountingDashboardService {
       balances,
       revenueSummary,
       revenueOverview: { period, points: revenueOverviewPoints },
-      revenueByPaymentPlatform,
-      revenueByCurrency,
+      accountBalances,
+      balancesByCurrency,
       bankAccounts,
       topClients,
     };
@@ -204,6 +209,7 @@ export class AccountingDashboardService {
           saleAmount: true,
           currency: true,
           paymentPlatform: true,
+          bankAccount: { select: { id: true, bankName: true, logoUrl: true } },
         },
         orderBy: { saleDate: 'desc' },
       }),
@@ -220,6 +226,7 @@ export class AccountingDashboardService {
         saleAmount: Number(t.saleAmount),
         currency: t.currency,
         paymentPlatform: t.paymentPlatform,
+        bankAccount: t.bankAccount,
       })),
     };
   }
@@ -263,16 +270,6 @@ export class AccountingDashboardService {
       _count: true,
     });
 
-    console.log(
-      'GROUPED ARE',
-      await this.prisma.bankAccount.groupBy({
-        by: ['accountType', 'currencyType'],
-        where: { workspaceId },
-        _sum: { amount: true },
-        _count: true,
-      }),
-    );
-
     const byType = new Map<
       AccountType,
       { totals: CurrencyTotal[]; accountCount: number }
@@ -280,7 +277,6 @@ export class AccountingDashboardService {
     let totalBalanceUsd = 0;
 
     for (const row of grouped) {
-      console.log('SINGLE ROW IS ', row);
       const amount = Number(row._sum.amount ?? 0);
       totalBalanceUsd += toUsd(amount, row.currencyType);
 
@@ -534,52 +530,55 @@ export class AccountingDashboardService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private async getRevenueByPaymentPlatform(
+  // Every bank account, ranked by balance (USD-converted so accounts in
+  // different currencies are comparable on one list) — replaces the old
+  // revenue-by-payment-platform breakdown with a balance-by-account one.
+  private async getAccountBalances(
     workspaceId: string,
-  ): Promise<PlatformRevenueItem[]> {
-    const grouped = await this.prisma.transaction.groupBy({
-      by: ['paymentPlatform', 'currency'],
+  ): Promise<AccountBalanceItem[]> {
+    const accounts = await this.prisma.bankAccount.findMany({
       where: { workspaceId },
-      _sum: { saleAmount: true },
+      select: {
+        id: true,
+        bankName: true,
+        accountType: true,
+        currencyType: true,
+        amount: true,
+      },
     });
 
-    const totals = new Map<PaymentPlatform, number>();
-    for (const row of grouped) {
-      const amountUsd = toUsd(Number(row._sum.saleAmount ?? 0), row.currency);
-      totals.set(
-        row.paymentPlatform,
-        (totals.get(row.paymentPlatform) ?? 0) + amountUsd,
-      );
-    }
-    console.log('MPA IS ', totals);
-    console.log(
-      'MAP CONVERSION ',
-      Array.from(totals, ([paymentPlatform, totalUsd]) => ({
-        paymentPlatform,
-        totalUsd: round2(totalUsd),
-      })).sort((a, b) => b.totalUsd - a.totalUsd),
-    );
-    return Array.from(totals, ([paymentPlatform, totalUsd]) => ({
-      paymentPlatform,
-      totalUsd: round2(totalUsd),
-    })).sort((a, b) => b.totalUsd - a.totalUsd);
+    return accounts
+      .map((account) => {
+        const amount = Number(account.amount);
+        return {
+          id: account.id,
+          bankName: account.bankName,
+          accountType: account.accountType,
+          currencyType: account.currencyType,
+          amount: round2(amount),
+          amountUsd: round2(toUsd(amount, account.currencyType)),
+        };
+      })
+      .sort((a, b) => b.amountUsd - a.amountUsd);
   }
 
-  private async getRevenueByCurrency(
+  // Sum of every bank account's balance, grouped by currency — replaces the
+  // old revenue-by-currency breakdown with a balance-by-currency one.
+  private async getBalancesByCurrency(
     workspaceId: string,
-  ): Promise<CurrencyRevenueItem[]> {
-    const grouped = await this.prisma.transaction.groupBy({
-      by: ['currency'],
+  ): Promise<CurrencyBalanceItem[]> {
+    const grouped = await this.prisma.bankAccount.groupBy({
+      by: ['currencyType'],
       where: { workspaceId },
-      _sum: { saleAmount: true },
+      _sum: { amount: true },
     });
 
     const items = grouped.map((row) => {
-      const total = Number(row._sum.saleAmount ?? 0);
+      const total = Number(row._sum.amount ?? 0);
       return {
-        currency: row.currency,
+        currency: row.currencyType,
         total,
-        totalUsd: toUsd(total, row.currency),
+        totalUsd: toUsd(total, row.currencyType),
       };
     });
 

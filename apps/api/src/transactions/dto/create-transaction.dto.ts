@@ -4,13 +4,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CURRENCY_VALUES,
   PAYMENT_PLATFORM_VALUES,
-  TRANSACTION_TYPE_VALUES,
 } from '../transaction.constants';
 
 const CreateTransactionSchema = z.object({
   clientId: z.string().uuid('Client id must be a valid UUID'),
   bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
-  type: z.enum(TRANSACTION_TYPE_VALUES),
   paymentPlatform: z.enum(PAYMENT_PLATFORM_VALUES).default('WHOP'),
   saleAmount: z.coerce
     .number()
@@ -42,14 +40,6 @@ export class CreateTransactionDto extends createZodDto(
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
   bankAccountId: string = '';
-
-  @ApiProperty({
-    enum: TRANSACTION_TYPE_VALUES,
-    description:
-      'Required. CREDIT increases the bank account balance, DEBIT decreases it.',
-    example: 'CREDIT',
-  })
-  type: (typeof TRANSACTION_TYPE_VALUES)[number] = 'CREDIT';
 
   @ApiPropertyOptional({
     enum: PAYMENT_PLATFORM_VALUES,
