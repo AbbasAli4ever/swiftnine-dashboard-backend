@@ -3,7 +3,7 @@
 Summary
 - Four modules: `transactions`, `clients`, `bank-accounts`, and `accounting-dashboard`. All four are **workspace-scoped** — every request requires an `x-workspace-id` header (same convention as `/projects`, `/tasks`, etc.), and every `Clients`/`Transaction`/`BankAccount` row belongs to exactly one workspace.
 - `accounting-dashboard` is read-only — it aggregates data from the other three modules (`GET /accounting-dashboard/overview`, `GET /accounting-dashboard/search`) and doesn't own any table of its own. See section 4.
-- `Clients` and `Transaction` have a real one-to-many relation (`Clients.transactions[]` / `Transaction.clientId`). `Transaction` and `BankAccount` also have a one-to-many relation (`BankAccount.transactions[]` / `Transaction.bankAccountId`) — every transaction debits or credits exactly one bank account. See section 2.
+- `Clients` and `Transaction` have a real one-to-many relation (`Clients.transactions[]` / `Transaction.clientId`). `Transaction` and `BankAccount` also have a one-to-many relation (`BankAccount.transactions[]` / `Transaction.bankAccountId`) — every transaction credits exactly one bank account. See section 2.
 - An `accountingRole` column (`UserRole`: `CEO` | `ACCOUNTANT`, nullable) lives on `WorkspaceMember`, not `User` — accounting access is granted per-workspace, not app-wide. See "Role / Auth Changes" below.
 - Standard response envelope for all four modules:
 ```json
@@ -60,7 +60,7 @@ Summary
 
 ### Create
 - `POST /transactions`
-- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `type` (**required**, `CREDIT` | `DEBIT` — no default; omitting it returns `422`), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
+- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
 - `404 Client not found` / `404 Bank account not found` if either id doesn't resolve within the current workspace.
 - `400` if `currency` doesn't exactly match the bank account's `currencyType` — there's no FX conversion, so this is a hard requirement, not a warning.
 - `409` if `refId` is already used by another transaction **in the same workspace**.
@@ -69,11 +69,10 @@ Summary
 
 > **Changed behavior:** transactions previously accepted a free-text `clientName`, looked up a client by exact name, and **auto-created one if no match was found**. That find-or-create logic (`findOrCreateClientByName` in `transaction.service.ts`) is now commented out, not deleted, in case it needs to come back. Client creation is now exclusively via `POST /clients`.
 
-### Debit/credit bank-balance sync
-Every transaction debits or credits exactly one bank account's balance, in the same DB transaction as the write itself (`prisma.$transaction`) so the two never drift apart:
-- **`CREDIT`** increases the linked `BankAccount.amount` by `saleAmount` (everyday bank-statement meaning — money coming in). **`DEBIT`** decreases it.
-- **On create**: the bank account is credited/debited by `saleAmount` atomically alongside the transaction row being created.
-- **On update**: if `bankAccountId`, `saleAmount`, `currency`, or `type` change, the transaction's *prior* effect is reversed on its *old* bank account, then the *new* effect is applied to the new (possibly same) bank account — both inside one DB transaction, so a same-account edit nets out correctly and a cross-account move never leaves one side updated without the other. Changing only `clientId`/`clientName`/`description`/`saleDate` does **not** touch any balance.
+### Bank-balance sync
+Every transaction credits exactly one bank account's balance, in the same DB transaction as the write itself (`prisma.$transaction`) so the two never drift apart. There is no debit/credit choice and no inter-account transfers — a transaction is always a sale that adds to its bank account:
+- **On create**: the bank account's `amount` is incremented by `saleAmount` atomically alongside the transaction row being created.
+- **On update**: if `bankAccountId`, `saleAmount`, or `currency` change, the transaction's *prior* effect (its old `saleAmount`) is reversed on its *old* bank account, then the *new* `saleAmount` is applied to the new (possibly same) bank account — both inside one DB transaction, so a same-account edit nets out correctly and a cross-account move never leaves one side updated without the other. Changing only `clientId`/`clientName`/`description`/`saleDate` does **not** touch any balance.
 - **On delete**: the transaction's effect is reversed on its bank account before the row is removed.
 - **Currency is locked to the bank account's currency** — see the `400` above. Moving a transaction to a bank account in a different currency requires also changing `currency` to match in the same request.
 - `BankAccount.amount` is still directly editable via `PATCH /bank-accounts` (e.g. for an opening balance or manual correction) — nothing reconciles that against the sum of linked transactions. Same category of drift as `Clients.totalRevenue` vs. `totalSaleAmount` (see Known Gaps), just on a second field.
@@ -88,13 +87,13 @@ Every transaction debits or credits exactly one bank account's balance, in the s
 - `sortBy`: `createdAt` (default) | `updatedAt` | `clientName` | `saleAmount` | `saleDate`.
 
 ### Get one
-- `GET /transactions/:transactionId` — includes nested `client: { id, clientName }` and `bankAccount: { id, bankName }`, in addition to the flat `clientId`/`clientName`/`bankAccountId` fields.
+- `GET /transactions/:transactionId` — includes nested `client: { id, clientName }` and `bankAccount: { id, bankName, logoUrl }`, in addition to the flat `clientId`/`clientName`/`bankAccountId` fields.
 
 ### Update
 - `PATCH /transactions/:transactionId`
-- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `bankAccountId`, `type`, `paymentPlatform`, `saleAmount`, `currency`, `saleDate`, `description`.
+- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `bankAccountId`, `paymentPlatform`, `saleAmount`, `currency`, `saleDate`, `description`.
 - Note: reassigning `clientId` does **not** automatically refresh the denormalized `clientName` unless `clientName` is also sent in the same request.
-- See "Debit/credit bank-balance sync" above for what happens to bank balances when `bankAccountId`/`saleAmount`/`currency`/`type` change.
+- See "Bank-balance sync" above for what happens to bank balances when `bankAccountId`/`saleAmount`/`currency` change.
 
 ### Delete
 - `DELETE /transactions/:transactionId` — reverses the transaction's effect on its linked bank account's balance before deleting the row.
@@ -113,7 +112,7 @@ Now linked to `Transaction` (one bank account has many transactions) — no rela
 
 ### Get one / Update / Delete
 - `GET /bank-accounts/:bankAccountId`
-- `PATCH /bank-accounts/:bankAccountId` — any field (including `logoUrl`), at least one required. Directly editing `amount` here is independent of transaction-driven balance changes — see "Debit/credit bank-balance sync" in section 2.
+- `PATCH /bank-accounts/:bankAccountId` — any field (including `logoUrl`), at least one required. Directly editing `amount` here is independent of transaction-driven balance changes — see "Bank-balance sync" in section 2.
 - `DELETE /bank-accounts/:bankAccountId` — blocked with `409` if the bank account still has any transactions linked to it, checked explicitly in the service (mirrors the same check on `Clients` delete). Backed by a DB-level `ON DELETE RESTRICT` on `Transaction.bankAccountId` too, so even a raw query bypassing the service can't silently cascade-delete transaction history the way `Clients` deletion still can (see section 1's Delete note) — this one has both layers.
 
 ### Logo upload
@@ -145,16 +144,16 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - **`balances`** — `BankAccount` grouped by `accountType` + `currencyType` (`byAccountType: [{ accountType, totals: [{currency, total}], accountCount }]`), plus `totalBalanceUsd` (every currency converted and summed) and the `exchangeRatesToUsd` table used to do it.
   - **`revenueSummary`** — `today`, `thisMonth`, `thisYear` (each `{ totalUsd, changePercent }` vs. the prior comparable period — yesterday / last month / last year), and `totalSales` (`{ count, changePercent }`, transaction count this month vs. last month). All date windows are evaluated against `Transaction.saleDate`, not `createdAt`.
   - **`revenueOverview`** — `{ period, points: [{ label, totalUsd }] }`, a time series bucketed in Postgres via `generate_series` + a `LEFT JOIN` on `Transaction` (grouped by bucket + currency, filtered to the workspace inside the join condition), keyed by `saleDate` — only the aggregated rows (buckets × currencies present) cross into Node, not every matching transaction. `label` is a date (`YYYY-MM-DD`) for daily/weekly buckets, `YYYY-MM` for monthly, or a bare year for yearly. `weekly` is a rolling 7-day window ending today, not a calendar week — the query's bucket boundaries (`getBucketConfig()` in `accounting-dashboard.service.ts`) are computed in JS and passed in as parameters so this stays true for every period.
-  - **`revenueByPaymentPlatform`** — total `saleAmount` (converted to USD) grouped by `paymentPlatform`, summed across all currencies, sorted descending.
-  - **`revenueByCurrency`** — total `saleAmount` grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total.
-  - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 5 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`).
+  - **`accountBalances`** — **every** `BankAccount` in the workspace (both types together, uncapped), each `{ id, bankName, accountType, currencyType, amount, amountUsd }`, sorted by `amountUsd` descending. Balance-driven, not transaction-driven — this replaced the old revenue-by-payment-platform breakdown.
+  - **`balancesByCurrency`** — sum of every `BankAccount.amount` grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total. Also balance-driven now, not transaction-driven.
+  - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 4 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`). A different cut of the same data as `accountBalances` — that one's a single uncapped list across both types, this one's split by type and capped.
   - **`topClients`** — top 5 `Clients` (`TOP_CLIENTS_LIMIT`) ordered by the stored `totalRevenue` field descending (not the computed `totalSaleAmount` from transactions — see Known Gaps).
 - All money values in the response are plain numbers (already converted from `Decimal`), and anything expressed "in USD" uses the fixed rate table in `accounting-dashboard.constants.ts`, not a live FX source (see Known Gaps).
 
 ### Daily Report
 - `GET /accounting-dashboard/daily-report?date=2026-07-28` — `date` is required, `YYYY-MM-DD`.
 - **Live-computed, not a frozen snapshot** — recalculated from `Transaction`/`BankAccount` on every call, the same way `/overview` is. There is no "submit" step and no persisted per-day record.
-- Response: `revenueUsd` (sum of that date's transactions, USD-converted), `salesCount` (count of that date's transactions), `balances` (same shape as `/overview`'s `balances` — **current** balances, not a historical balance-as-of-that-date, since no balance history is tracked), `clientPayments` (that date's transactions listed, each with `clientName`, `saleAmount`, `currency`, `paymentPlatform`).
+- Response: `revenueUsd` (sum of that date's transactions, USD-converted), `salesCount` (count of that date's transactions), `balances` (same shape as `/overview`'s `balances` — **current** balances, not a historical balance-as-of-that-date, since no balance history is tracked), `clientPayments` (that date's transactions listed, each with `clientName`, `saleAmount`, `currency`, `paymentPlatform`, and `bankAccount: { id, bankName, logoUrl }`, matching the same nested bank-account shape `GET /transactions` returns).
 
 ### Monthly Breakdown
 - `GET /accounting-dashboard/monthly-breakdown?year=2026` — `year` is required.
@@ -183,7 +182,7 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
 
 - `PATCH /clients/:clientId` cannot update `totalRevenue` or `currencyType` — only `clientName`. These fields are currently create-only.
 - `Clients.totalRevenue` (manually entered at creation) and `totalSaleAmount` (computed by summing `Transaction.saleAmount` per currency) are two independent "how much has this client generated" numbers. Nothing keeps them in sync — creating/updating transactions does not touch `totalRevenue`, and there's no reconciliation job. This also means the dashboard's `topClients` (ranked by `totalRevenue`) can disagree with what `/clients` shows as `totalSaleAmount` for the same client.
-- `BankAccount.amount` has the same category of drift risk against the sum of its linked transactions — see "Debit/credit bank-balance sync" in section 2.
+- `BankAccount.amount` has the same category of drift risk against the sum of its linked transactions — see "Bank-balance sync" in section 2.
 - `findOrCreateClientByName` is dead code (commented out) in `transaction.service.ts`, kept intentionally for reference.
 - `EXCHANGE_RATES_TO_USD` (in `accounting-dashboard.constants.ts`) is a hardcoded, manually-maintained rate table — there's no live FX rate provider wired up. Every "in USD" figure in the dashboard overview is only as accurate as those fixed rates.
 - `revenueOverview` is the only place in these four modules using raw SQL (`this.prisma.$queryRaw`) — everywhere else is plain Prisma (`groupBy`/`findMany`). Needed because Prisma's `groupBy` can't group by a computed expression like a date bucket, only by real columns. Kept minimal: the query only does bucket/currency aggregation; USD conversion and everything else stays in TypeScript.

@@ -8,8 +8,6 @@ export const BANK_ACCOUNT_NOT_FOUND = 'Bank account not found';
 export const TRANSACTION_CURRENCY_MISMATCH =
   "Transaction currency must match the bank account's currency";
 
-export const TRANSACTION_TYPE_VALUES = ['CREDIT', 'DEBIT'] as const;
-
 export const PAYMENT_PLATFORM_VALUES = [
   'WHOP',
   'AIRWALLEX',
@@ -44,7 +42,6 @@ export const TRANSACTION_SELECT = {
   clientId: true,
   clientName: true,
   bankAccountId: true,
-  type: true,
   saleAmount: true,
   paymentPlatform: true,
   currency: true,

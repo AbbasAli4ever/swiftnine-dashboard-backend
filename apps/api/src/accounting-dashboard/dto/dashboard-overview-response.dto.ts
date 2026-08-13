@@ -1,8 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  CURRENCY_VALUES,
-  PAYMENT_PLATFORM_VALUES,
-} from '../../transactions/transaction.constants';
+import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
 import { ACCOUNT_TYPE_VALUES } from '../../bank-accounts/bank-account.constants';
 import { DASHBOARD_PERIOD_VALUES } from '../accounting-dashboard.constants';
 
@@ -96,21 +93,36 @@ class RevenueOverviewDto {
   points!: RevenueOverviewPointDto[];
 }
 
-class PlatformRevenueItemDto {
-  @ApiProperty({ enum: PAYMENT_PLATFORM_VALUES, example: 'WHOP' })
-  paymentPlatform!: (typeof PAYMENT_PLATFORM_VALUES)[number];
+class AccountBalanceItemDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
 
-  @ApiProperty({ example: 28400 })
-  totalUsd!: number;
+  @ApiProperty({ example: 'HBL' })
+  bankName!: string;
+
+  @ApiProperty({ enum: ACCOUNT_TYPE_VALUES, example: 'LOCAL' })
+  accountType!: (typeof ACCOUNT_TYPE_VALUES)[number];
+
+  @ApiProperty({ enum: CURRENCY_VALUES, example: 'PKR' })
+  currencyType!: (typeof CURRENCY_VALUES)[number];
+
+  @ApiProperty({
+    example: 1250000,
+    description: "Balance in the account's own currency",
+  })
+  amount!: number;
+
+  @ApiProperty({ example: 4496.4 })
+  amountUsd!: number;
 }
 
-class CurrencyRevenueItemDto {
+class CurrencyBalanceItemDto {
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];
 
   @ApiProperty({
     example: 152400,
-    description: "Total in the currency's own units (not converted)",
+    description: "Total balance in the currency's own units (not converted)",
   })
   total!: number;
 
@@ -119,7 +131,7 @@ class CurrencyRevenueItemDto {
 
   @ApiProperty({
     example: 42,
-    description: 'Share of total revenue (by USD value)',
+    description: 'Share of total balance (by USD value)',
   })
   percent!: number;
 }
@@ -174,11 +186,11 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({ type: RevenueOverviewDto })
   revenueOverview!: RevenueOverviewDto;
 
-  @ApiProperty({ type: [PlatformRevenueItemDto] })
-  revenueByPaymentPlatform!: PlatformRevenueItemDto[];
+  @ApiProperty({ type: [AccountBalanceItemDto] })
+  accountBalances!: AccountBalanceItemDto[];
 
-  @ApiProperty({ type: [CurrencyRevenueItemDto] })
-  revenueByCurrency!: CurrencyRevenueItemDto[];
+  @ApiProperty({ type: [CurrencyBalanceItemDto] })
+  balancesByCurrency!: CurrencyBalanceItemDto[];
 
   @ApiProperty({ type: BankAccountsByTypeDto })
   bankAccounts!: BankAccountsByTypeDto;

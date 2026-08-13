@@ -1,9 +1,24 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CURRENCY_VALUES,
   PAYMENT_PLATFORM_VALUES,
 } from '../../transactions/transaction.constants';
 import { BalanceSummaryDto } from './dashboard-overview-response.dto';
+
+class DailyReportBankAccountBriefDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'HBL' })
+  bankName!: string;
+
+  @ApiPropertyOptional({
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/hbl.svg',
+    nullable: true,
+  })
+  logoUrl!: string | null;
+}
 
 class DailyReportClientPaymentDto {
   @ApiProperty({ example: 'a843cde2-f8c4-49a1-916b-308941b56f34' })
@@ -20,6 +35,9 @@ class DailyReportClientPaymentDto {
 
   @ApiProperty({ enum: PAYMENT_PLATFORM_VALUES, example: 'WHOP' })
   paymentPlatform!: (typeof PAYMENT_PLATFORM_VALUES)[number];
+
+  @ApiProperty({ type: DailyReportBankAccountBriefDto })
+  bankAccount!: DailyReportBankAccountBriefDto;
 }
 
 export class DailyReportResponseDto {

@@ -28,11 +28,6 @@ enum UserRole {
   CEO
 }
 
-enum TransactionType {
-  CREDIT
-  DEBIT
-}
-
 /// Which OpenAI model tier a workspace member is entitled to.
 /// Entitlement, not permission — deliberately separate from Role.
 enum AiModelTier {
@@ -1322,7 +1317,6 @@ model Transaction {
   clientName      String          @default("")
   bankAccountId   String          @map("bank_account_id")
   bankAccount     BankAccount     @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
-  type            TransactionType @default(CREDIT)
   saleAmount      Decimal         @default(0.0) @db.Decimal(12, 2)
   paymentPlatform PaymentPlatform @default(WHOP)
   currency        Currency        @default(USD)

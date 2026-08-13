@@ -66,9 +66,7 @@ export class TransactionService {
       this.prisma.bankAccount.update({
         where: { id: dto.bankAccountId },
         data: {
-          amount: {
-            increment: dto.type === 'CREDIT' ? dto.saleAmount : -dto.saleAmount,
-          },
+          amount: { increment: dto.saleAmount },
         },
       }),
       this.prisma.transaction.create({
@@ -77,7 +75,6 @@ export class TransactionService {
           clientId: client.id,
           clientName: client.clientName,
           bankAccountId: dto.bankAccountId,
-          type: dto.type,
           saleAmount: dto.saleAmount,
           paymentPlatform: dto.paymentPlatform,
           currency: dto.currency,
@@ -178,8 +175,7 @@ export class TransactionService {
     const balanceFieldsChanged =
       dto.bankAccountId !== undefined ||
       dto.saleAmount !== undefined ||
-      dto.currency !== undefined ||
-      dto.type !== undefined;
+      dto.currency !== undefined;
 
     if (!balanceFieldsChanged) {
       if (Object.keys(updateData).length === 0) return transaction;
@@ -193,7 +189,6 @@ export class TransactionService {
 
     const newBankAccountId = dto.bankAccountId ?? transaction.bankAccountId;
     const newCurrency = dto.currency ?? transaction.currency;
-    const newType = dto.type ?? transaction.type;
     const newAmount = dto.saleAmount ?? transaction.saleAmount;
 
     const newBankAccount = await this.findBankAccountOrThrow(
@@ -203,7 +198,6 @@ export class TransactionService {
     this.assertCurrencyMatches(newCurrency, newBankAccount);
 
     updateData.bankAccount = { connect: { id: newBankAccountId } };
-    updateData.type = newType;
     updateData.saleAmount = newAmount;
     updateData.currency = newCurrency;
 
@@ -211,11 +205,8 @@ export class TransactionService {
     // effect on the new (possibly same) one — both within one DB
     // transaction, so a same-account move nets out correctly and a
     // cross-account move never leaves one side updated without the other.
-    const oldReversal =
-      transaction.type === 'CREDIT'
-        ? -transaction.saleAmount
-        : transaction.saleAmount;
-    const newEffect = newType === 'CREDIT' ? newAmount : -newAmount;
+    const oldReversal = -transaction.saleAmount;
+    const newEffect = newAmount;
 
     const [, , updated] = await this.prisma.$transaction([
       this.prisma.bankAccount.update({
@@ -240,10 +231,7 @@ export class TransactionService {
       workspaceId,
       transactionId,
     );
-    const reversal =
-      transaction.type === 'CREDIT'
-        ? -transaction.saleAmount
-        : transaction.saleAmount;
+    const reversal = -transaction.saleAmount;
 
     await this.prisma.$transaction([
       this.prisma.bankAccount.update({
