@@ -8,7 +8,6 @@ import {
 } from '../../common/query/query.schemas';
 import {
   CURRENCY_VALUES,
-  PAYMENT_PLATFORM_VALUES,
   TRANSACTION_SORT_FIELDS,
 } from '../transaction.constants';
 
@@ -17,10 +16,6 @@ export const ListTransactionsQuerySchema = z.object({
   page: optionalPage,
   limit: optionalLimit,
   clientId: z.string().uuid('Invalid client id').optional(),
-  paymentPlatform: enumCsvOrArray(
-    PAYMENT_PLATFORM_VALUES,
-    'Invalid payment platform',
-  ),
   currency: enumCsvOrArray(CURRENCY_VALUES, 'Invalid currency'),
   dateFrom: optionalDate,
   dateTo: optionalDate,

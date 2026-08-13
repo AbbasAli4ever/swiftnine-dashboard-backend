@@ -97,22 +97,22 @@ class AccountBalanceItemDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
-  @ApiProperty({ example: 'HBL' })
+  @ApiProperty({ example: 'Whop' })
   bankName!: string;
 
-  @ApiProperty({ enum: ACCOUNT_TYPE_VALUES, example: 'LOCAL' })
+  @ApiProperty({ enum: ACCOUNT_TYPE_VALUES, example: 'INTERNATIONAL' })
   accountType!: (typeof ACCOUNT_TYPE_VALUES)[number];
 
-  @ApiProperty({ enum: CURRENCY_VALUES, example: 'PKR' })
+  @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currencyType!: (typeof CURRENCY_VALUES)[number];
 
   @ApiProperty({
-    example: 1250000,
+    example: 28400,
     description: "Balance in the account's own currency",
   })
   amount!: number;
 
-  @ApiProperty({ example: 4496.4 })
+  @ApiProperty({ example: 28400 })
   amountUsd!: number;
 }
 
@@ -186,7 +186,11 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({ type: RevenueOverviewDto })
   revenueOverview!: RevenueOverviewDto;
 
-  @ApiProperty({ type: [AccountBalanceItemDto] })
+  @ApiProperty({
+    type: [AccountBalanceItemDto],
+    description:
+      'INTERNATIONAL bank accounts only, uncapped, sorted by amountUsd descending — the direct replacement for the old revenue-by-payment-platform breakdown (each international account is what used to be a "platform"). LOCAL accounts are not included here; see bankAccounts.local for those.',
+  })
   accountBalances!: AccountBalanceItemDto[];
 
   @ApiProperty({ type: [CurrencyBalanceItemDto] })

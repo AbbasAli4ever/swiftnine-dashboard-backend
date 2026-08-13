@@ -1,8 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  CURRENCY_VALUES,
-  PAYMENT_PLATFORM_VALUES,
-} from '../transaction.constants';
+import { CURRENCY_VALUES } from '../transaction.constants';
 
 class TransactionClientBriefDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
@@ -48,9 +45,6 @@ export class TransactionResponseDto {
 
   @ApiProperty({ example: 199.99 })
   saleAmount!: number;
-
-  @ApiProperty({ enum: PAYMENT_PLATFORM_VALUES, example: 'WHOP' })
-  paymentPlatform!: (typeof PAYMENT_PLATFORM_VALUES)[number];
 
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];

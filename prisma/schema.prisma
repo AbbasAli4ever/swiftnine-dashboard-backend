@@ -108,17 +108,6 @@ enum AttachmentUploadStatus {
   CONFIRMED
 }
 
-enum PaymentPlatform {
-  WHOP
-  AIRWALLEX
-  SLASH
-  SLASH_9FIGURES
-  PAYONEER
-  WIO_BANK
-  MAMO
-  KRAKEN
-}
-
 enum Currency {
   USD
   AED
@@ -1310,23 +1299,22 @@ model Clients {
 }
 
 model Transaction {
-  id              String          @id @default(uuid())
-  workspaceId     String          @map("workspace_id")
-  clientId        String
-  client          Clients         @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientName      String          @default("")
-  bankAccountId   String          @map("bank_account_id")
-  bankAccount     BankAccount     @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
-  saleAmount      Decimal         @default(0.0) @db.Decimal(12, 2)
-  paymentPlatform PaymentPlatform @default(WHOP)
-  currency        Currency        @default(USD)
+  id            String      @id @default(uuid())
+  workspaceId   String      @map("workspace_id")
+  clientId      String
+  client        Clients     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientName    String      @default("")
+  bankAccountId String      @map("bank_account_id")
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  saleAmount    Decimal     @default(0.0) @db.Decimal(12, 2)
+  currency      Currency    @default(USD)
   // The date the sale actually happened (backdateable). Separate from
   // createdAt, which is just when the row was inserted.
-  saleDate        DateTime        @default(now())
-  refId           String
-  description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  saleDate      DateTime    @default(now())
+  refId         String
+  description   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
