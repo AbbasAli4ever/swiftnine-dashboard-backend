@@ -44,16 +44,17 @@ export type RevenueOverview = {
   points: RevenueOverviewPoint[];
 };
 
-export type AccountBalanceItem = {
+export type BankAccountRevenueItem = {
   id: string;
   bankName: string;
   accountType: AccountType;
   currencyType: Currency;
-  amount: number;
-  amountUsd: number;
+  totalRevenue: number | null;
+  totalRevenueUsd: number;
+  salesCount: number;
 };
 
-export type CurrencyBalanceItem = {
+export type CurrencyRevenueItem = {
   currency: Currency;
   total: number;
   totalUsd: number;
@@ -126,8 +127,8 @@ export type DashboardOverview = {
   balances: BalanceSummary;
   revenueSummary: RevenueSummary;
   revenueOverview: RevenueOverview;
-  accountBalances: AccountBalanceItem[];
-  balancesByCurrency: CurrencyBalanceItem[];
+  revenueByBankAccount: BankAccountRevenueItem[];
+  revenueByCurrency: CurrencyRevenueItem[];
   bankAccounts: BankAccountsByType;
   topClients: TopClientItem[];
 };
@@ -159,16 +160,16 @@ export class AccountingDashboardService {
       balances,
       revenueSummary,
       revenueOverviewPoints,
-      accountBalances,
-      balancesByCurrency,
+      revenueByBankAccount,
+      revenueByCurrency,
       bankAccounts,
       topClients,
     ] = await Promise.all([
       this.getBalances(workspaceId),
       this.getRevenueSummary(workspaceId),
       this.getRevenueOverview(workspaceId, period),
-      this.getAccountBalances(workspaceId),
-      this.getBalancesByCurrency(workspaceId),
+      this.getRevenueByBankAccount(workspaceId),
+      this.getRevenueByCurrency(workspaceId),
       this.getBankAccountsByType(workspaceId),
       this.getTopClients(workspaceId),
     ]);
@@ -177,8 +178,8 @@ export class AccountingDashboardService {
       balances,
       revenueSummary,
       revenueOverview: { period, points: revenueOverviewPoints },
-      accountBalances,
-      balancesByCurrency,
+      revenueByBankAccount,
+      revenueByCurrency,
       bankAccounts,
       topClients,
     };
@@ -532,52 +533,105 @@ export class AccountingDashboardService {
   // breakdown, since each international account already IS what used to
   // be a "platform" (a Whop account, a Slash account, ...). Local accounts
   // have their own panel (`bankAccounts.local`) and aren't part of this list.
-  private async getAccountBalances(
+  // All-time revenue (no saleDate filter) per bank account, across LOCAL and
+  // INTERNATIONAL alike. Distinct from the account's balance: balance is
+  // BankAccount.amount, which transactions increment but which also carries
+  // any starting balance and keeps only the net of edited sales.
+  //
+  // Grouped by [bankAccountId, currency] rather than bankAccountId alone
+  // because Transaction.currency is its own column. TransactionService's
+  // assertCurrencyMatches currently forces it to equal the account's
+  // currencyType, so in practice there's one group per account — but the
+  // schema doesn't guarantee that, and grouping this way stays correct if
+  // that rule is ever relaxed (each group converts at its own rate).
+  //
+  // Accounts with no transactions are included at 0 so the panel lists every
+  // account, matching how it renders today.
+  private async getRevenueByBankAccount(
     workspaceId: string,
-  ): Promise<AccountBalanceItem[]> {
-    const accounts = await this.prisma.bankAccount.findMany({
-      where: { workspaceId, accountType: 'INTERNATIONAL' },
-      select: {
-        id: true,
-        bankName: true,
-        accountType: true,
-        currencyType: true,
-        amount: true,
-      },
-    });
+  ): Promise<BankAccountRevenueItem[]> {
+    const [accounts, grouped] = await Promise.all([
+      this.prisma.bankAccount.findMany({
+        where: { workspaceId },
+        select: {
+          id: true,
+          bankName: true,
+          accountType: true,
+          currencyType: true,
+        },
+      }),
+      this.prisma.transaction.groupBy({
+        by: ['bankAccountId', 'currency'],
+        where: { workspaceId },
+        _sum: { saleAmount: true },
+        _count: true,
+      }),
+    ]);
+
+    const totals = new Map<
+      string,
+      { totalUsd: number; salesCount: number; native: Map<Currency, number> }
+    >();
+    for (const row of grouped) {
+      const bucket = totals.get(row.bankAccountId) ?? {
+        totalUsd: 0,
+        salesCount: 0,
+        native: new Map<Currency, number>(),
+      };
+      const amount = Number(row._sum.saleAmount ?? 0);
+      bucket.totalUsd += toUsd(amount, row.currency);
+      bucket.salesCount += row._count;
+      bucket.native.set(
+        row.currency,
+        (bucket.native.get(row.currency) ?? 0) + amount,
+      );
+      totals.set(row.bankAccountId, bucket);
+    }
 
     return accounts
       .map((account) => {
-        const amount = Number(account.amount);
+        const bucket = totals.get(account.id);
+        // Native total is only meaningful while every sale on the account
+        // shares one currency (the invariant assertCurrencyMatches enforces).
+        // If that ever stops holding, send null rather than a figure that
+        // silently adds unlike currencies together.
+        const nativeTotal =
+          !bucket || bucket.native.size === 0
+            ? 0
+            : bucket.native.size === 1
+              ? (bucket.native.get(account.currencyType) ?? null)
+              : null;
+
         return {
           id: account.id,
           bankName: account.bankName,
           accountType: account.accountType,
           currencyType: account.currencyType,
-          amount: round2(amount),
-          amountUsd: round2(toUsd(amount, account.currencyType)),
+          totalRevenue: nativeTotal === null ? null : round2(nativeTotal),
+          totalRevenueUsd: round2(bucket?.totalUsd ?? 0),
+          salesCount: bucket?.salesCount ?? 0,
         };
       })
-      .sort((a, b) => b.amountUsd - a.amountUsd);
+      .sort((a, b) => b.totalRevenueUsd - a.totalRevenueUsd);
   }
 
-  // Sum of every bank account's balance, grouped by currency — replaces the
-  // old revenue-by-currency breakdown with a balance-by-currency one.
-  private async getBalancesByCurrency(
+  // All-time revenue grouped by the transaction's own currency. `total` is the
+  // native sum in that currency; `percent` is its share of the USD grand total.
+  private async getRevenueByCurrency(
     workspaceId: string,
-  ): Promise<CurrencyBalanceItem[]> {
-    const grouped = await this.prisma.bankAccount.groupBy({
-      by: ['currencyType'],
+  ): Promise<CurrencyRevenueItem[]> {
+    const grouped = await this.prisma.transaction.groupBy({
+      by: ['currency'],
       where: { workspaceId },
-      _sum: { amount: true },
+      _sum: { saleAmount: true },
     });
 
     const items = grouped.map((row) => {
-      const total = Number(row._sum.amount ?? 0);
+      const total = Number(row._sum.saleAmount ?? 0);
       return {
-        currency: row.currencyType,
+        currency: row.currency,
         total,
-        totalUsd: toUsd(total, row.currencyType),
+        totalUsd: toUsd(total, row.currency),
       };
     });
 

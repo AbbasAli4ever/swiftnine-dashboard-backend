@@ -93,7 +93,7 @@ class RevenueOverviewDto {
   points!: RevenueOverviewPointDto[];
 }
 
-class AccountBalanceItemDto {
+class BankAccountRevenueItemDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
@@ -103,26 +103,41 @@ class AccountBalanceItemDto {
   @ApiProperty({ enum: ACCOUNT_TYPE_VALUES, example: 'INTERNATIONAL' })
   accountType!: (typeof ACCOUNT_TYPE_VALUES)[number];
 
-  @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
+  @ApiProperty({
+    enum: CURRENCY_VALUES,
+    example: 'USD',
+    description: "The account's own currency — the unit of totalRevenue",
+  })
   currencyType!: (typeof CURRENCY_VALUES)[number];
+
+  @ApiPropertyOptional({
+    example: 28400,
+    nullable: true,
+    description:
+      "All-time revenue in the account's own currency. Null in the edge case where the account has sales in more than one currency, since summing those natively would be meaningless — use totalRevenueUsd then.",
+  })
+  totalRevenue!: number | null;
 
   @ApiProperty({
     example: 28400,
-    description: "Balance in the account's own currency",
+    description: 'All-time revenue routed through this account, in USD',
   })
-  amount!: number;
+  totalRevenueUsd!: number;
 
-  @ApiProperty({ example: 28400 })
-  amountUsd!: number;
+  @ApiProperty({
+    example: 34,
+    description: 'All-time number of sales booked against this account',
+  })
+  salesCount!: number;
 }
 
-class CurrencyBalanceItemDto {
+class CurrencyRevenueItemDto {
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];
 
   @ApiProperty({
     example: 152400,
-    description: "Total balance in the currency's own units (not converted)",
+    description: "All-time revenue in the currency's own units (not converted)",
   })
   total!: number;
 
@@ -131,7 +146,7 @@ class CurrencyBalanceItemDto {
 
   @ApiProperty({
     example: 42,
-    description: 'Share of total balance (by USD value)',
+    description: 'Share of all-time revenue (by USD value)',
   })
   percent!: number;
 }
@@ -187,14 +202,18 @@ export class DashboardOverviewResponseDto {
   revenueOverview!: RevenueOverviewDto;
 
   @ApiProperty({
-    type: [AccountBalanceItemDto],
+    type: [BankAccountRevenueItemDto],
     description:
-      'INTERNATIONAL bank accounts only, uncapped, sorted by amountUsd descending — the direct replacement for the old revenue-by-payment-platform breakdown (each international account is what used to be a "platform"). LOCAL accounts are not included here; see bankAccounts.local for those.',
+      'All-time revenue per bank account — every account in the workspace (LOCAL and INTERNATIONAL), uncapped, sorted by totalRevenueUsd descending. Accounts with no sales appear with 0. Transaction-driven, not balance-driven: for current balances see bankAccounts.',
   })
-  accountBalances!: AccountBalanceItemDto[];
+  revenueByBankAccount!: BankAccountRevenueItemDto[];
 
-  @ApiProperty({ type: [CurrencyBalanceItemDto] })
-  balancesByCurrency!: CurrencyBalanceItemDto[];
+  @ApiProperty({
+    type: [CurrencyRevenueItemDto],
+    description:
+      'All-time revenue grouped by the transaction currency, sorted by totalUsd descending.',
+  })
+  revenueByCurrency!: CurrencyRevenueItemDto[];
 
   @ApiProperty({ type: BankAccountsByTypeDto })
   bankAccounts!: BankAccountsByTypeDto;
