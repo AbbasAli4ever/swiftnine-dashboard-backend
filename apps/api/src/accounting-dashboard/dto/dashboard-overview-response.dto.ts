@@ -93,7 +93,7 @@ class RevenueOverviewDto {
   points!: RevenueOverviewPointDto[];
 }
 
-class BankAccountRevenueItemDto {
+export class BankAccountRevenueItemDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
@@ -131,7 +131,7 @@ class BankAccountRevenueItemDto {
   salesCount!: number;
 }
 
-class CurrencyRevenueItemDto {
+export class CurrencyRevenueItemDto {
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];
 
@@ -182,6 +182,38 @@ class TopClientItemDto {
 
   @ApiProperty({ example: 32400 })
   totalRevenue!: number;
+
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    nullable: true,
+    example: 'USD',
+  })
+  currencyType!: (typeof CURRENCY_VALUES)[number] | null;
+}
+
+export class TopClientRevenueItemDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Victoria Partners' })
+  clientName!: string;
+
+  @ApiPropertyOptional({
+    example: 32400,
+    nullable: true,
+    description:
+      "Revenue in the client's own currency for the requested period. Null when the client's sales in that period span more than one currency.",
+  })
+  totalRevenue!: number | null;
+
+  @ApiProperty({
+    example: 32400,
+    description: 'Revenue for the requested period, in USD',
+  })
+  totalRevenueUsd!: number;
+
+  @ApiProperty({ example: 4 })
+  salesCount!: number;
 
   @ApiPropertyOptional({
     enum: CURRENCY_VALUES,

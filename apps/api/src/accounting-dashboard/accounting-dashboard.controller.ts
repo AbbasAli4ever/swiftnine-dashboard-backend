@@ -1,9 +1,17 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  StreamableFile,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -22,7 +30,9 @@ import {
   type DashboardOverview,
   type DashboardSearchResult,
   type MonthlyBreakdown,
+  type ReportsBreakdown,
 } from './accounting-dashboard.service';
+import { ReportExportService } from './report-export.service';
 import {
   DashboardOverviewQueryDto,
   type DashboardOverviewQuery,
@@ -43,6 +53,15 @@ import {
   type MonthlyBreakdownQuery,
 } from './dto/monthly-breakdown-query.dto';
 import { MonthlyBreakdownResponseDto } from './dto/monthly-breakdown-response.dto';
+import {
+  ReportsBreakdownQueryDto,
+  type ReportsBreakdownQuery,
+} from './dto/reports-breakdown-query.dto';
+import { ReportsBreakdownResponseDto } from './dto/reports-breakdown-response.dto';
+import {
+  ExportReportQueryDto,
+  type ExportReportQuery,
+} from './dto/export-report-query.dto';
 
 @ApiTags('accounting-dashboard')
 @ApiBearerAuth()
@@ -55,7 +74,10 @@ import { MonthlyBreakdownResponseDto } from './dto/monthly-breakdown-response.dt
   description: 'Active workspace ID',
 })
 export class AccountingDashboardController {
-  constructor(private readonly dashboardService: AccountingDashboardService) {}
+  constructor(
+    private readonly dashboardService: AccountingDashboardService,
+    private readonly reportExport: ReportExportService,
+  ) {}
 
   @Get('overview')
   @ApiOperation({
@@ -142,6 +164,78 @@ export class AccountingDashboardController {
       (query as MonthlyBreakdownQuery).year,
     );
     return ok(breakdown);
+  }
+
+  @Get('reports/breakdown')
+  @ApiOperation({
+    summary: 'Get revenue breakdowns scoped to a date range',
+    description:
+      'Revenue by bank account, by currency, and top clients — all scoped to [dateFrom, dateTo] instead of all-time. Pass the same date for both to get a single day; a full month or year covers Monthly/Yearly Reports.',
+  })
+  @ApiQuery({
+    name: 'dateFrom',
+    required: true,
+    description: 'YYYY-MM-DD',
+    example: '2026-07-01',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: true,
+    description: 'YYYY-MM-DD',
+    example: '2026-07-31',
+  })
+  @ApiOkResponse({
+    description: 'Reports breakdown returned',
+    type: ReportsBreakdownResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async getReportsBreakdown(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ReportsBreakdownQueryDto,
+  ): Promise<ApiRes<ReportsBreakdown>> {
+    const { dateFrom, dateTo } = query as ReportsBreakdownQuery;
+    const breakdown = await this.dashboardService.getReportsBreakdown(
+      req.workspaceContext.workspaceId,
+      dateFrom,
+      dateTo,
+    );
+    return ok(breakdown);
+  }
+
+  @Get('reports/export')
+  @ApiOperation({
+    summary: "Export a single date's accounting report as an .xlsx workbook",
+    description:
+      'Four sheets: Transactions, Sales Summary, Balances by Account (current, not as of the date), and Revenue Breakdown by currency and bank account.',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description: 'YYYY-MM-DD, defaults to today (UTC)',
+    example: '2026-07-28',
+  })
+  @ApiProduces(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async exportDailyReport(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ExportReportQueryDto,
+  ): Promise<StreamableFile> {
+    const date =
+      (query as ExportReportQuery).date ??
+      new Date().toISOString().slice(0, 10);
+    const data = await this.dashboardService.getDailyExportData(
+      req.workspaceContext.workspaceId,
+      date,
+    );
+    const buffer = await this.reportExport.buildDailyReportWorkbook(data);
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: `attachment; filename="accounting-report-${date}.xlsx"`,
+    });
   }
 
   @Get('search')

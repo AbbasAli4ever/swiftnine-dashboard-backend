@@ -13,6 +13,8 @@ import {
   TOP_CLIENTS_LIMIT,
 } from './accounting-dashboard.constants';
 import type { DashboardPeriod } from './dto/dashboard-overview-query.dto';
+import { BANK_ACCOUNT_SELECT } from '../bank-accounts/bank-account.constants';
+import { TRANSACTION_SELECT } from '../transactions/transaction.constants';
 
 export type CurrencyTotal = { currency: Currency; total: number };
 
@@ -80,6 +82,15 @@ export type TopClientItem = {
   currencyType: Currency | null;
 };
 
+export type TopClientRevenueItem = {
+  id: string;
+  clientName: string;
+  totalRevenue: number | null;
+  totalRevenueUsd: number;
+  salesCount: number;
+  currencyType: Currency | null;
+};
+
 export type DashboardSearchClientItem = {
   id: string;
   clientName: string;
@@ -131,6 +142,43 @@ export type DashboardOverview = {
   revenueByCurrency: CurrencyRevenueItem[];
   bankAccounts: BankAccountsByType;
   topClients: TopClientItem[];
+};
+
+export type ReportsBreakdown = {
+  dateFrom: string;
+  dateTo: string;
+  revenueByBankAccount: BankAccountRevenueItem[];
+  revenueByCurrency: CurrencyRevenueItem[];
+  topClients: TopClientRevenueItem[];
+};
+
+export type BankAccountBalanceItem = {
+  id: string;
+  bankName: string;
+  accountType: AccountType;
+  currencyType: Currency;
+  amount: number;
+  amountUsd: number;
+};
+
+export type TransactionExportRow = {
+  id: string;
+  refId: string;
+  saleDate: Date;
+  clientName: string;
+  bankAccount: { id: string; bankName: string; logoUrl: string | null };
+  currency: Currency;
+  saleAmount: number;
+  description: string | null;
+};
+
+export type DailyExportData = {
+  date: string;
+  salesSummary: { revenueUsd: number; salesCount: number; avgSaleUsd: number };
+  balancesByAccount: BankAccountBalanceItem[];
+  revenueByCurrency: CurrencyRevenueItem[];
+  revenueByBankAccount: BankAccountRevenueItem[];
+  transactions: TransactionExportRow[];
 };
 
 function toUsd(amount: number, currency: Currency): number {
@@ -257,6 +305,136 @@ export class AccountingDashboardService {
     );
 
     return { year, points };
+  }
+
+  // Reports (not Overview) entry point: every breakdown below scoped to a
+  // caller-supplied [dateFrom, dateTo] instead of all-time. dateFrom/dateTo
+  // may be the same day (a daily report), a full month, or a full year —
+  // one generic range covers all three Reports screens.
+  async getReportsBreakdown(
+    workspaceId: string,
+    dateFrom: string,
+    dateTo: string,
+  ): Promise<ReportsBreakdown> {
+    const range = this.utcDayRange(dateFrom, dateTo);
+    const [revenueByBankAccount, revenueByCurrency, topClients] =
+      await Promise.all([
+        this.getRevenueByBankAccount(workspaceId, range),
+        this.getRevenueByCurrency(workspaceId, range),
+        this.getTopClientsByRevenue(workspaceId, range),
+      ]);
+
+    return {
+      dateFrom,
+      dateTo,
+      revenueByBankAccount,
+      revenueByCurrency,
+      topClients,
+    };
+  }
+
+  // Gathers everything the Excel export workbook needs for one date, reusing
+  // the same range-aware breakdowns getReportsBreakdown uses rather than
+  // re-querying. Balances are current-only (same caveat getDailyReport
+  // already carries) — no snapshot table exists to answer "as of `date`".
+  async getDailyExportData(
+    workspaceId: string,
+    date: string,
+  ): Promise<DailyExportData> {
+    const range = this.utcDayRange(date, date);
+    const [
+      revenueUsd,
+      salesCount,
+      balancesByAccount,
+      revenueByCurrency,
+      revenueByBankAccount,
+      transactions,
+    ] = await Promise.all([
+      this.sumRevenueUsd(workspaceId, range),
+      this.prisma.transaction.count({
+        where: { workspaceId, saleDate: range },
+      }),
+      this.getAllBankAccountBalances(workspaceId),
+      this.getRevenueByCurrency(workspaceId, range),
+      this.getRevenueByBankAccount(workspaceId, range),
+      this.getTransactionsForRange(workspaceId, range),
+    ]);
+
+    const roundedRevenueUsd = round2(revenueUsd);
+    const avgSaleUsd =
+      salesCount > 0 ? round2(roundedRevenueUsd / salesCount) : 0;
+
+    return {
+      date,
+      salesSummary: {
+        revenueUsd: roundedRevenueUsd,
+        salesCount,
+        avgSaleUsd,
+      },
+      balancesByAccount,
+      revenueByCurrency,
+      revenueByBankAccount,
+      transactions,
+    };
+  }
+
+  // Every bank account's current balance, uncapped — unlike
+  // getBankAccountsByType, which caps at BANK_ACCOUNTS_PER_GROUP_LIMIT per
+  // type for the Overview UI panel. An export must list every account.
+  private async getAllBankAccountBalances(
+    workspaceId: string,
+  ): Promise<BankAccountBalanceItem[]> {
+    const accounts = await this.prisma.bankAccount.findMany({
+      where: { workspaceId },
+      select: BANK_ACCOUNT_SELECT,
+      orderBy: [{ accountType: 'asc' }, { amount: 'desc' }],
+    });
+
+    return accounts.map((account) => {
+      const amount = Number(account.amount);
+      return {
+        id: account.id,
+        bankName: account.bankName,
+        accountType: account.accountType,
+        currencyType: account.currencyType,
+        amount: round2(amount),
+        amountUsd: round2(toUsd(amount, account.currencyType)),
+      };
+    });
+  }
+
+  // Per-transaction detail for the export's Transactions sheet. Distinct
+  // from getDailyReport's clientPayments, which omits refId/description —
+  // fine for the dashboard UI, not enough for an accounting export.
+  private async getTransactionsForRange(
+    workspaceId: string,
+    range: DateRange,
+  ): Promise<TransactionExportRow[]> {
+    const rows = await this.prisma.transaction.findMany({
+      where: { workspaceId, saleDate: range },
+      select: TRANSACTION_SELECT,
+      orderBy: { saleDate: 'asc' },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      refId: row.refId,
+      saleDate: row.saleDate,
+      clientName: row.clientName,
+      bankAccount: row.bankAccount,
+      currency: row.currency,
+      saleAmount: Number(row.saleAmount),
+      description: row.description,
+    }));
+  }
+
+  // UTC day-boundary range covering every day from dateFrom through dateTo
+  // inclusive — matches getDailyReport's and getMonthlyBreakdownForYear's
+  // UTC convention, not getRevenueSummary's legacy local-time one.
+  private utcDayRange(dateFrom: string, dateTo: string): DateRange {
+    const lt = new Date(`${dateTo}T00:00:00.000Z`);
+    lt.setUTCDate(lt.getUTCDate() + 1);
+    return { gte: new Date(`${dateFrom}T00:00:00.000Z`), lt };
   }
 
   private async getBalances(workspaceId: string): Promise<BalanceSummary> {
@@ -549,6 +727,7 @@ export class AccountingDashboardService {
   // account, matching how it renders today.
   private async getRevenueByBankAccount(
     workspaceId: string,
+    range?: DateRange,
   ): Promise<BankAccountRevenueItem[]> {
     const [accounts, grouped] = await Promise.all([
       this.prisma.bankAccount.findMany({
@@ -562,7 +741,7 @@ export class AccountingDashboardService {
       }),
       this.prisma.transaction.groupBy({
         by: ['bankAccountId', 'currency'],
-        where: { workspaceId },
+        where: { workspaceId, ...(range && { saleDate: range }) },
         _sum: { saleAmount: true },
         _count: true,
       }),
@@ -619,10 +798,11 @@ export class AccountingDashboardService {
   // native sum in that currency; `percent` is its share of the USD grand total.
   private async getRevenueByCurrency(
     workspaceId: string,
+    range?: DateRange,
   ): Promise<CurrencyRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: { workspaceId },
+      where: { workspaceId, ...(range && { saleDate: range }) },
       _sum: { saleAmount: true },
     });
 
@@ -705,6 +885,73 @@ export class AccountingDashboardService {
       totalRevenue: Number(client.totalRevenue),
       currencyType: client.currencyType,
     }));
+  }
+
+  // Reports-only ranking by summed Transaction.saleAmount, scoped to `range`
+  // — distinct from getTopClients (Overview), which ranks by the hand-entered
+  // Clients.totalRevenue field and has no date column to range against.
+  // Unlike getRevenueByBankAccount's fixed, zero-filled account list,
+  // clients with no sales in range are simply absent rather than zero-filled
+  // — a "top N" list padded with zero-revenue clients isn't meaningful the
+  // same way a fixed account list is.
+  private async getTopClientsByRevenue(
+    workspaceId: string,
+    range?: DateRange,
+  ): Promise<TopClientRevenueItem[]> {
+    const grouped = await this.prisma.transaction.groupBy({
+      by: ['clientId', 'currency'],
+      where: { workspaceId, ...(range && { saleDate: range }) },
+      _sum: { saleAmount: true },
+      _count: true,
+    });
+    if (grouped.length === 0) return [];
+
+    const clientIds = [...new Set(grouped.map((row) => row.clientId))];
+    const clients = await this.prisma.clients.findMany({
+      where: { id: { in: clientIds } },
+      select: { id: true, clientName: true },
+    });
+    const nameById = new Map(clients.map((c) => [c.id, c.clientName]));
+
+    const totals = new Map<
+      string,
+      { totalUsd: number; salesCount: number; native: Map<Currency, number> }
+    >();
+    for (const row of grouped) {
+      const bucket = totals.get(row.clientId) ?? {
+        totalUsd: 0,
+        salesCount: 0,
+        native: new Map<Currency, number>(),
+      };
+      const amount = Number(row._sum.saleAmount ?? 0);
+      bucket.totalUsd += toUsd(amount, row.currency);
+      bucket.salesCount += row._count;
+      bucket.native.set(
+        row.currency,
+        (bucket.native.get(row.currency) ?? 0) + amount,
+      );
+      totals.set(row.clientId, bucket);
+    }
+
+    return Array.from(totals, ([clientId, bucket]) => {
+      const nativeCurrencies = [...bucket.native.keys()];
+      const nativeTotal =
+        nativeCurrencies.length === 1
+          ? (bucket.native.get(nativeCurrencies[0]) ?? null)
+          : null;
+
+      return {
+        id: clientId,
+        clientName: nameById.get(clientId) ?? '',
+        totalRevenue: nativeTotal === null ? null : round2(nativeTotal),
+        totalRevenueUsd: round2(bucket.totalUsd),
+        salesCount: bucket.salesCount,
+        currencyType:
+          nativeCurrencies.length === 1 ? nativeCurrencies[0] : null,
+      };
+    })
+      .sort((a, b) => b.totalRevenueUsd - a.totalRevenueUsd)
+      .slice(0, TOP_CLIENTS_LIMIT);
   }
 
   // Global search bar on the dashboard — matches client name, and
