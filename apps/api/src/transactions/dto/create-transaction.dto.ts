@@ -1,15 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  CURRENCY_VALUES,
-  PAYMENT_PLATFORM_VALUES,
-} from '../transaction.constants';
+import { CURRENCY_VALUES } from '../transaction.constants';
 
 const CreateTransactionSchema = z.object({
   clientId: z.string().uuid('Client id must be a valid UUID'),
   bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
-  paymentPlatform: z.enum(PAYMENT_PLATFORM_VALUES).default('WHOP'),
   saleAmount: z.coerce
     .number()
     .nonnegative('Sale amount cannot be negative')
@@ -40,13 +36,6 @@ export class CreateTransactionDto extends createZodDto(
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
   bankAccountId: string = '';
-
-  @ApiPropertyOptional({
-    enum: PAYMENT_PLATFORM_VALUES,
-    description: 'Payment platform the transaction was processed on',
-    default: 'WHOP',
-  })
-  paymentPlatform: (typeof PAYMENT_PLATFORM_VALUES)[number] = 'WHOP';
 
   @ApiPropertyOptional({
     type: Number,

@@ -1,8 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  CURRENCY_VALUES,
-  PAYMENT_PLATFORM_VALUES,
-} from '../../transactions/transaction.constants';
+import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
 import { BalanceSummaryDto } from './dashboard-overview-response.dto';
 
 class DailyReportBankAccountBriefDto {
@@ -32,9 +29,6 @@ class DailyReportClientPaymentDto {
 
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];
-
-  @ApiProperty({ enum: PAYMENT_PLATFORM_VALUES, example: 'WHOP' })
-  paymentPlatform!: (typeof PAYMENT_PLATFORM_VALUES)[number];
 
   @ApiProperty({ type: DailyReportBankAccountBriefDto })
   bankAccount!: DailyReportBankAccountBriefDto;

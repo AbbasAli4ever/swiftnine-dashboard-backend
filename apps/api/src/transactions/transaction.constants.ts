@@ -8,17 +8,6 @@ export const BANK_ACCOUNT_NOT_FOUND = 'Bank account not found';
 export const TRANSACTION_CURRENCY_MISMATCH =
   "Transaction currency must match the bank account's currency";
 
-export const PAYMENT_PLATFORM_VALUES = [
-  'WHOP',
-  'AIRWALLEX',
-  'SLASH',
-  'SLASH_9FIGURES',
-  'PAYONEER',
-  'WIO_BANK',
-  'MAMO',
-  'KRAKEN',
-] as const;
-
 export const CURRENCY_VALUES = [
   'USD',
   'HKD',
@@ -43,7 +32,6 @@ export const TRANSACTION_SELECT = {
   clientName: true,
   bankAccountId: true,
   saleAmount: true,
-  paymentPlatform: true,
   currency: true,
   saleDate: true,
   refId: true,

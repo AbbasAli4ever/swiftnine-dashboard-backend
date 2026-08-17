@@ -46,7 +46,7 @@ Summary
 
 ### Get one
 - `GET /clients/:clientId`
-- Same shape as list rows, plus the full `transactions[]` array (newest first), each with `id, saleAmount, paymentPlatform, currency, refId, description, createdAt, updatedAt`.
+- Same shape as list rows, plus the full `transactions[]` array (newest first), each with `id, saleAmount, currency, refId, description, createdAt, updatedAt`.
 
 ### Update
 - `PATCH /clients/:clientId`
@@ -60,7 +60,7 @@ Summary
 
 ### Create
 - `POST /transactions`
-- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `paymentPlatform` (default `WHOP`), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
+- Body: `clientId` (required UUID — **the client must already exist**), `bankAccountId` (required UUID — **the bank account must already exist**), `currency` (default `USD`), `saleAmount` (default `0`, ≥ 0), `saleDate` (optional ISO datetime — defaults to now if omitted), `refId` (required, unique **per workspace**, not globally), `description` (optional).
 - `404 Client not found` / `404 Bank account not found` if either id doesn't resolve within the current workspace.
 - `400` if `currency` doesn't exactly match the bank account's `currencyType` — there's no FX conversion, so this is a hard requirement, not a warning.
 - `409` if `refId` is already used by another transaction **in the same workspace**.
@@ -79,10 +79,10 @@ Every transaction credits exactly one bank account's balance, in the same DB tra
 - A bank account can't be deleted while it still has transactions — see section 3.
 
 ### List
-- `GET /transactions?q=&page=&limit=&clientId=&paymentPlatform=&currency=&dateFrom=&dateTo=&sortBy=&sortOrder=`
+- `GET /transactions?q=&page=&limit=&clientId=&currency=&dateFrom=&dateTo=&sortBy=&sortOrder=`
 - `q` searches the denormalized `clientName` and `refId` (contains, case-insensitive).
 - `clientId` filters to one client's transactions.
-- `paymentPlatform` / `currency` accept comma-separated values.
+- `currency` accepts comma-separated values.
 - `dateFrom` / `dateTo` filter by `saleDate` (not `createdAt`). A bare `YYYY-MM-DD` is treated as the start/end of that UTC day respectively (mirrors `parseDateBoundary` in `task.service.ts`); a full ISO datetime is used as-is.
 - `sortBy`: `createdAt` (default) | `updatedAt` | `clientName` | `saleAmount` | `saleDate`.
 
@@ -91,7 +91,7 @@ Every transaction credits exactly one bank account's balance, in the same DB tra
 
 ### Update
 - `PATCH /transactions/:transactionId`
-- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `bankAccountId`, `paymentPlatform`, `saleAmount`, `currency`, `saleDate`, `description`.
+- Body (all optional, at least one required): `clientId` (reassign — must exist, `404` otherwise), `clientName`, `bankAccountId`, `saleAmount`, `currency`, `saleDate`, `description`.
 - Note: reassigning `clientId` does **not** automatically refresh the denormalized `clientName` unless `clientName` is also sent in the same request.
 - See "Bank-balance sync" above for what happens to bank balances when `bankAccountId`/`saleAmount`/`currency` change.
 
@@ -144,16 +144,16 @@ Read-only aggregation module — no table of its own. Pulls from `Clients`, `Tra
   - **`balances`** — `BankAccount` grouped by `accountType` + `currencyType` (`byAccountType: [{ accountType, totals: [{currency, total}], accountCount }]`), plus `totalBalanceUsd` (every currency converted and summed) and the `exchangeRatesToUsd` table used to do it.
   - **`revenueSummary`** — `today`, `thisMonth`, `thisYear` (each `{ totalUsd, changePercent }` vs. the prior comparable period — yesterday / last month / last year), and `totalSales` (`{ count, changePercent }`, transaction count this month vs. last month). All date windows are evaluated against `Transaction.saleDate`, not `createdAt`.
   - **`revenueOverview`** — `{ period, points: [{ label, totalUsd }] }`, a time series bucketed in Postgres via `generate_series` + a `LEFT JOIN` on `Transaction` (grouped by bucket + currency, filtered to the workspace inside the join condition), keyed by `saleDate` — only the aggregated rows (buckets × currencies present) cross into Node, not every matching transaction. `label` is a date (`YYYY-MM-DD`) for daily/weekly buckets, `YYYY-MM` for monthly, or a bare year for yearly. `weekly` is a rolling 7-day window ending today, not a calendar week — the query's bucket boundaries (`getBucketConfig()` in `accounting-dashboard.service.ts`) are computed in JS and passed in as parameters so this stays true for every period.
-  - **`accountBalances`** — **every** `BankAccount` in the workspace (both types together, uncapped), each `{ id, bankName, accountType, currencyType, amount, amountUsd }`, sorted by `amountUsd` descending. Balance-driven, not transaction-driven — this replaced the old revenue-by-payment-platform breakdown.
-  - **`balancesByCurrency`** — sum of every `BankAccount.amount` grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total. Also balance-driven now, not transaction-driven.
-  - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 4 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`). A different cut of the same data as `accountBalances` — that one's a single uncapped list across both types, this one's split by type and capped.
+  - **`accountBalances`** — **`INTERNATIONAL`-only** `BankAccount`s (uncapped), each `{ id, bankName, accountType, currencyType, amount, amountUsd }`, sorted by `amountUsd` descending. This is the direct replacement for the old revenue-by-payment-platform breakdown — each international account already is what used to be a "platform" (a Whop account, a Slash account, ...). `LOCAL` accounts are not included here; see `bankAccounts.local`.
+  - **`balancesByCurrency`** — sum of every `BankAccount.amount` (both types) grouped by `currency`: native `total`, converted `totalUsd`, and `percent` share of the USD grand total. Balance-driven, not transaction-driven.
+  - **`bankAccounts`** — top `{ local, international }` bank accounts by `amount` descending, capped at 4 per group (`BANK_ACCOUNTS_PER_GROUP_LIMIT`). A different cut from `accountBalances` — that one's a single uncapped, international-only list, this one's split by type and capped at 4 each (both types).
   - **`topClients`** — top 5 `Clients` (`TOP_CLIENTS_LIMIT`) ordered by the stored `totalRevenue` field descending (not the computed `totalSaleAmount` from transactions — see Known Gaps).
 - All money values in the response are plain numbers (already converted from `Decimal`), and anything expressed "in USD" uses the fixed rate table in `accounting-dashboard.constants.ts`, not a live FX source (see Known Gaps).
 
 ### Daily Report
 - `GET /accounting-dashboard/daily-report?date=2026-07-28` — `date` is required, `YYYY-MM-DD`.
 - **Live-computed, not a frozen snapshot** — recalculated from `Transaction`/`BankAccount` on every call, the same way `/overview` is. There is no "submit" step and no persisted per-day record.
-- Response: `revenueUsd` (sum of that date's transactions, USD-converted), `salesCount` (count of that date's transactions), `balances` (same shape as `/overview`'s `balances` — **current** balances, not a historical balance-as-of-that-date, since no balance history is tracked), `clientPayments` (that date's transactions listed, each with `clientName`, `saleAmount`, `currency`, `paymentPlatform`, and `bankAccount: { id, bankName, logoUrl }`, matching the same nested bank-account shape `GET /transactions` returns).
+- Response: `revenueUsd` (sum of that date's transactions, USD-converted), `salesCount` (count of that date's transactions), `balances` (same shape as `/overview`'s `balances` — **current** balances, not a historical balance-as-of-that-date, since no balance history is tracked), `clientPayments` (that date's transactions listed, each with `clientName`, `saleAmount`, `currency`, and `bankAccount: { id, bankName, logoUrl }`, matching the same nested bank-account shape `GET /transactions` returns).
 
 ### Monthly Breakdown
 - `GET /accounting-dashboard/monthly-breakdown?year=2026` — `year` is required.

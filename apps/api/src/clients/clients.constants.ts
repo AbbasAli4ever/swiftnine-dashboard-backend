@@ -13,7 +13,6 @@ export const CLIENTS_SORT_FIELDS = [
 export const CLIENT_TRANSACTION_SELECT = {
   id: true,
   saleAmount: true,
-  paymentPlatform: true,
   currency: true,
   saleDate: true,
   refId: true,

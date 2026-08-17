@@ -127,12 +127,6 @@ export class TransactionController {
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
   @ApiQuery({
-    name: 'paymentPlatform',
-    required: false,
-    description: 'Comma-separated payment platforms to filter by',
-    example: 'WHOP,AIRWALLEX',
-  })
-  @ApiQuery({
     name: 'currency',
     required: false,
     description: 'Comma-separated currencies to filter by',

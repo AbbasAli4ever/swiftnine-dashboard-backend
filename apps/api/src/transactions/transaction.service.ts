@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
-import type {
-  Currency,
-  PaymentPlatform,
-} from '@app/database/generated/prisma/enums';
+import type { Currency } from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNT_NOT_FOUND,
   CLIENT_NOT_FOUND,
@@ -76,7 +73,6 @@ export class TransactionService {
           clientName: client.clientName,
           bankAccountId: dto.bankAccountId,
           saleAmount: dto.saleAmount,
-          paymentPlatform: dto.paymentPlatform,
           currency: dto.currency,
           saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
           refId: dto.refId,
@@ -102,11 +98,6 @@ export class TransactionService {
     }
     if (query.clientId) {
       where.clientId = query.clientId;
-    }
-    if (query.paymentPlatform?.length) {
-      where.paymentPlatform = {
-        in: query.paymentPlatform as PaymentPlatform[],
-      };
     }
     if (query.currency?.length) {
       where.currency = { in: query.currency as Currency[] };
@@ -166,8 +157,6 @@ export class TransactionService {
       updateData.client = { connect: { id: dto.clientId } };
     }
     if (dto.clientName !== undefined) updateData.clientName = dto.clientName;
-    if (dto.paymentPlatform !== undefined)
-      updateData.paymentPlatform = dto.paymentPlatform;
     if (dto.saleDate !== undefined)
       updateData.saleDate = new Date(dto.saleDate);
     if (dto.description !== undefined) updateData.description = dto.description;

@@ -61,7 +61,7 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Get the accounting dashboard overview',
     description:
-      'Balances by account type, revenue summary (today/month/year), a revenue time series, account balances ranked descending and balances by currency, top bank accounts by type, and top clients by revenue.',
+      'Balances by account type, revenue summary (today/month/year), a revenue time series, international account balances ranked descending, balances by currency, top bank accounts by type, and top clients by revenue.',
   })
   @ApiQuery({
     name: 'period',

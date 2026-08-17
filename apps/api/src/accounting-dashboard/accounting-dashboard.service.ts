@@ -4,7 +4,6 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 import type {
   AccountType,
   Currency,
-  PaymentPlatform,
 } from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNTS_PER_GROUP_LIMIT,
@@ -107,7 +106,6 @@ export type DailyReportClientPayment = {
   clientName: string;
   saleAmount: number;
   currency: Currency;
-  paymentPlatform: PaymentPlatform;
   bankAccount: { id: string; bankName: string; logoUrl: string | null };
 };
 
@@ -208,7 +206,6 @@ export class AccountingDashboardService {
           clientName: true,
           saleAmount: true,
           currency: true,
-          paymentPlatform: true,
           bankAccount: { select: { id: true, bankName: true, logoUrl: true } },
         },
         orderBy: { saleDate: 'desc' },
@@ -225,7 +222,6 @@ export class AccountingDashboardService {
         clientName: t.clientName,
         saleAmount: Number(t.saleAmount),
         currency: t.currency,
-        paymentPlatform: t.paymentPlatform,
         bankAccount: t.bankAccount,
       })),
     };
@@ -530,14 +526,17 @@ export class AccountingDashboardService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  // Every bank account, ranked by balance (USD-converted so accounts in
-  // different currencies are comparable on one list) — replaces the old
-  // revenue-by-payment-platform breakdown with a balance-by-account one.
+  // International bank accounts only, ranked by balance (USD-converted so
+  // accounts in different currencies are comparable on one list) — this is
+  // the direct replacement for the old revenue-by-payment-platform
+  // breakdown, since each international account already IS what used to
+  // be a "platform" (a Whop account, a Slash account, ...). Local accounts
+  // have their own panel (`bankAccounts.local`) and aren't part of this list.
   private async getAccountBalances(
     workspaceId: string,
   ): Promise<AccountBalanceItem[]> {
     const accounts = await this.prisma.bankAccount.findMany({
-      where: { workspaceId },
+      where: { workspaceId, accountType: 'INTERNATIONAL' },
       select: {
         id: true,
         bankName: true,
