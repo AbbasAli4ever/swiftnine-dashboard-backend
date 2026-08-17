@@ -219,3 +219,29 @@ This partly reverts the direction of the original migration, which had converted
   - 10 zero-sale accounts still listed at `0`, as intended.
 - **The revenue/balance divergence was demonstrated, not just argued.** With `PATCH /bank-accounts` setting Kraken's balance to 5000 while it had zero sales, one response held `totalBalanceUsd: 6100` against a revenue total of `1100`. Also confirmed `PATCH /transactions/:id` (600→500) correctly reverses and re-applies the balance delta, so balance follows edits while revenue reflects the current row.
 - `revenueByCurrency` returns **`[]`** on a workspace with no transactions, where the old balance-driven `balancesByCurrency` always returned one row per currency present. Frontend must handle the empty array rather than assuming a row per currency.
+
+## Audit: Reports module vs. the UI/UX brief (no code changes)
+
+Compared the implemented Reports endpoints against `Accounting_Revenue_Management_UIUX_Flow.pdf` §13–§17. **This was an audit only — nothing was changed.** Recorded here so the gaps aren't rediscovered from scratch.
+
+Implemented today: `GET /accounting-dashboard/daily-report?date=`, `GET .../monthly-breakdown?year=`, and `GET .../overview?period=`.
+
+| Brief section | Status |
+|---|---|
+| §13 Daily Report Preview | Mostly covered — two gaps below |
+| §14 Daily Reports (multi-date table) | **Missing entirely** |
+| §15 Monthly Reports | Partial — KPI cards yes, per-month charts no |
+| §16 Yearly Reports | Partial — Jan–Dec chart yes, per-year breakdowns no |
+| §17 Analytics | **Missing entirely** |
+
+**§13 Daily Report Preview** — `daily-report` covers Total Income (`revenueUsd`), Sales count, Pakistan/International balances, and Client Payments (with bank + logo). Gaps: (1) the brief's primary CTA "Submit Daily Report" has no backend — deliberate, reports are live-computed with no frozen snapshot (see the Reports follow-up above), but the brief names it the primary action, so it's an open product decision rather than a settled one; (2) the Income row's per-currency split isn't in this response — only a single USD total. `revenueByCurrency` on `/overview` is all-time, not per-day.
+
+**§14 Daily Reports** — the clearest gap. The brief wants a table of *dates* (28 Jul / 27 Jul / 26 Jul …) with Revenue, Sales, PKR Balance, USD Balance per row plus View·Edit·Export. No endpoint returns a range of days; `daily-report` takes exactly one `date`, so a frontend would have to fire N calls. Worse, each call returns **current** balances, not that date's — so the PKR/USD Balance columns would render identically on every row. Those two columns are not truthfully implementable without persisted balance history.
+
+**§15 / §16 / §17 share one root cause.** Every breakdown (`revenueByBankAccount`, `revenueByCurrency`, `topClients`) is **all-time only** — none accepts a date range. §15 wants Revenue by Platform/Currency/Client scoped to a month, §16 the same scoped to a year, §17 wants them under arbitrary filters (Today/Week/Month/Year/Custom). Adding a date-range parameter to those three methods is a single change that unblocks all three sections; building each screen's aggregation separately would triplicate the work.
+
+**Also noted:** `topClients` ranks by the stored `Clients.totalRevenue` column, which nothing syncs from `Transaction` (long-standing known drift, see Known follow-ups). So the brief's "Revenue by Client" is currently a hand-entered number, not computed revenue — worth deciding before any §15/§16 client chart is built on top of it.
+
+**Open product decision, flagged not resolved:** §13's "Submit Daily Report" CTA and §14's per-date balance columns both imply **frozen per-day snapshots** (a `DailyReport` table + a submit endpoint), which the current design deliberately avoids in favour of live computation. Keeping it live means past reports shift when a transaction is edited and §14's balance columns can only ever show current balances. Deferred to the team — no schema change made.
+
+**Written up in full as `docs/accounting-reports-spec.md`** — a build-ready spec for whoever implements the Reports backend: the Overview-vs-Reports distinction, a feature-by-feature §13–§17 table of what's built vs. missing, the three root causes (all-time-only breakdowns, the unsynced `topClients` field, inconsistent timezone conventions), a suggested build order, and the conventions any new Reports endpoint must follow. Second deviation from the "only this changelog" convention at the top of this doc, same reasoning as the `accounting-api.md` note above and again on the user's instruction — a spec aimed at a developer building a feature doesn't fit a chronological changelog. Pointed at from here so the two don't drift.
