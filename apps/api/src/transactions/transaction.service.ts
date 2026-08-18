@@ -59,28 +59,20 @@ export class TransactionService {
     );
     this.assertCurrencyMatches(dto.currency, bankAccount);
 
-    const [, transaction] = await this.prisma.$transaction([
-      this.prisma.bankAccount.update({
-        where: { id: dto.bankAccountId },
-        data: {
-          amount: { increment: dto.saleAmount },
-        },
-      }),
-      this.prisma.transaction.create({
-        data: {
-          workspaceId,
-          clientId: client.id,
-          clientName: client.clientName,
-          bankAccountId: dto.bankAccountId,
-          saleAmount: dto.saleAmount,
-          currency: dto.currency,
-          saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
-          refId: dto.refId,
-          description: dto.description,
-        },
-        select: TRANSACTION_SELECT,
-      }),
-    ]);
+    const transaction = await this.prisma.transaction.create({
+      data: {
+        workspaceId,
+        clientId: client.id,
+        clientName: client.clientName,
+        bankAccountId: dto.bankAccountId,
+        saleAmount: dto.saleAmount,
+        currency: dto.currency,
+        saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
+        refId: dto.refId,
+        description: dto.description,
+      },
+      select: TRANSACTION_SELECT,
+    });
     return toTransactionData(transaction);
   }
 
@@ -166,69 +158,39 @@ export class TransactionService {
       dto.saleAmount !== undefined ||
       dto.currency !== undefined;
 
-    if (!balanceFieldsChanged) {
-      if (Object.keys(updateData).length === 0) return transaction;
-      const updated = await this.prisma.transaction.update({
-        where: { id: transactionId },
-        data: updateData,
-        select: TRANSACTION_SELECT,
-      });
-      return toTransactionData(updated);
+    if (balanceFieldsChanged) {
+      const newBankAccountId = dto.bankAccountId ?? transaction.bankAccountId;
+      const newCurrency = dto.currency ?? transaction.currency;
+      const newAmount = dto.saleAmount ?? transaction.saleAmount;
+
+      const newBankAccount = await this.findBankAccountOrThrow(
+        workspaceId,
+        newBankAccountId,
+      );
+      this.assertCurrencyMatches(newCurrency, newBankAccount);
+
+      updateData.bankAccount = { connect: { id: newBankAccountId } };
+      updateData.saleAmount = newAmount;
+      updateData.currency = newCurrency;
     }
 
-    const newBankAccountId = dto.bankAccountId ?? transaction.bankAccountId;
-    const newCurrency = dto.currency ?? transaction.currency;
-    const newAmount = dto.saleAmount ?? transaction.saleAmount;
+    if (Object.keys(updateData).length === 0) return transaction;
 
-    const newBankAccount = await this.findBankAccountOrThrow(
-      workspaceId,
-      newBankAccountId,
-    );
-    this.assertCurrencyMatches(newCurrency, newBankAccount);
-
-    updateData.bankAccount = { connect: { id: newBankAccountId } };
-    updateData.saleAmount = newAmount;
-    updateData.currency = newCurrency;
-
-    // Reverse the old effect on the old bank account, then apply the new
-    // effect on the new (possibly same) one — both within one DB
-    // transaction, so a same-account move nets out correctly and a
-    // cross-account move never leaves one side updated without the other.
-    const oldReversal = -transaction.saleAmount;
-    const newEffect = newAmount;
-
-    const [, , updated] = await this.prisma.$transaction([
-      this.prisma.bankAccount.update({
-        where: { id: transaction.bankAccountId },
-        data: { amount: { increment: oldReversal } },
-      }),
-      this.prisma.bankAccount.update({
-        where: { id: newBankAccountId },
-        data: { amount: { increment: newEffect } },
-      }),
-      this.prisma.transaction.update({
-        where: { id: transactionId },
-        data: updateData,
-        select: TRANSACTION_SELECT,
-      }),
-    ]);
+    const updated = await this.prisma.transaction.update({
+      where: { id: transactionId },
+      data: updateData,
+      select: TRANSACTION_SELECT,
+    });
     return toTransactionData(updated);
   }
 
   async remove(workspaceId: string, transactionId: string): Promise<void> {
-    const transaction = await this.findTransactionOrThrow(
-      workspaceId,
-      transactionId,
-    );
-    const reversal = -transaction.saleAmount;
-
-    await this.prisma.$transaction([
-      this.prisma.bankAccount.update({
-        where: { id: transaction.bankAccountId },
-        data: { amount: { increment: reversal } },
-      }),
-      this.prisma.transaction.delete({ where: { id: transactionId } }),
-    ]);
+    // Looked up (and discarded) purely to scope the delete to this
+    // workspace — `transaction.delete` can only filter by `id`, so skipping
+    // this check would let a caller delete another workspace's row by
+    // guessing its id.
+    await this.findTransactionOrThrow(workspaceId, transactionId);
+    await this.prisma.transaction.delete({ where: { id: transactionId } });
   }
 
   private async findTransactionOrThrow(

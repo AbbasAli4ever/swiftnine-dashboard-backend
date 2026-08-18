@@ -24,6 +24,12 @@ export const TOP_CLIENTS_LIMIT = 5;
 export const BANK_ACCOUNTS_PER_GROUP_LIMIT = 4;
 export const DASHBOARD_SEARCH_RESULT_LIMIT = 5;
 
+// Caps /reports/breakdown's dateFrom..dateTo span so it can't be used to
+// scan a workspace's entire history in one call. Wide enough to cover a
+// full calendar year (365/366 days) plus slack for a "trailing 12 months"
+// query that crosses a year boundary.
+export const REPORTS_BREAKDOWN_MAX_RANGE_DAYS = 400;
+
 export const REVENUE_OVERVIEW_BUCKET_COUNT = {
   daily: 7,
   weekly: 8,
