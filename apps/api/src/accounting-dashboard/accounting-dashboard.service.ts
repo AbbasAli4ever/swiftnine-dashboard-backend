@@ -216,7 +216,10 @@ export class AccountingDashboardService {
       this.getBalances(workspaceId),
       this.getRevenueSummary(workspaceId),
       this.getRevenueOverview(workspaceId, period),
-      this.getRevenueByBankAccount(workspaceId),
+      this.getRevenueByBankAccount(
+        workspaceId,
+        this.getCurrentPeriodRange(period, new Date()),
+      ),
       this.getRevenueByCurrency(workspaceId),
       this.getBankAccountsByType(workspaceId),
       this.getTopClients(workspaceId),
@@ -468,6 +471,40 @@ export class AccountingDashboardService {
     const lt = new Date(`${dateTo}T00:00:00.000Z`);
     lt.setUTCDate(lt.getUTCDate() + 1);
     return { gte: new Date(`${dateFrom}T00:00:00.000Z`), lt };
+  }
+
+  // The "current" window for `period`, used to scope Overview's
+  // revenueByBankAccount panel — distinct from getBucketConfig's N-bucket
+  // trailing window, which drives the revenueOverview chart instead.
+  // "weekly" is a rolling 7-day window ending today, matching
+  // getBucketConfig's own documented definition of "weekly" — not a
+  // calendar week, which would need a start-of-week decision this codebase
+  // doesn't otherwise make. "monthly"/"yearly" are calendar month-to-date /
+  // year-to-date, matching getRevenueSummary's existing thisMonth/thisYear
+  // concept. All boundaries are UTC, matching this file's newer methods.
+  private getCurrentPeriodRange(period: DashboardPeriod, now: Date): DateRange {
+    const todayStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
+
+    if (period === 'daily') {
+      return { gte: todayStart, lt: tomorrowStart };
+    }
+    if (period === 'weekly') {
+      const weekStart = new Date(todayStart);
+      weekStart.setUTCDate(weekStart.getUTCDate() - 6);
+      return { gte: weekStart, lt: tomorrowStart };
+    }
+    if (period === 'monthly') {
+      const monthStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+      );
+      return { gte: monthStart, lt: tomorrowStart };
+    }
+    const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+    return { gte: yearStart, lt: tomorrowStart };
   }
 
   private async getBalances(workspaceId: string): Promise<BalanceSummary> {
@@ -738,16 +775,20 @@ export class AccountingDashboardService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  // International bank accounts only, ranked by balance (USD-converted so
-  // accounts in different currencies are comparable on one list) — this is
+  // Revenue per bank account, across LOCAL and INTERNATIONAL alike — this is
   // the direct replacement for the old revenue-by-payment-platform
   // breakdown, since each international account already IS what used to
   // be a "platform" (a Whop account, a Slash account, ...). Local accounts
-  // have their own panel (`bankAccounts.local`) and aren't part of this list.
-  // All-time revenue (no saleDate filter) per bank account, across LOCAL and
-  // INTERNATIONAL alike. Distinct from the account's balance: balance is
-  // BankAccount.amount, which transactions increment but which also carries
-  // any starting balance and keeps only the net of edited sales.
+  // also have their own current-balance panel (`bankAccounts.local`),
+  // separate from this revenue view.
+  //
+  // Scope depends on the caller: `/overview` passes getCurrentPeriodRange's
+  // window (today/trailing-7-days/month-to-date/year-to-date, driven by its
+  // `period` query param) — no longer all-time. `/reports/breakdown` and the
+  // Excel export pass an explicit dateFrom/dateTo instead. Distinct from the
+  // account's balance either way: balance is BankAccount.amount, which
+  // transactions no longer touch at all (see the balance-decoupling
+  // follow-up) and which only ever changes via a manual PATCH.
   //
   // Grouped by [bankAccountId, currency] rather than bankAccountId alone
   // because Transaction.currency is its own column. TransactionService's

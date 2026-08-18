@@ -17,6 +17,20 @@ class ClientCurrencyTotalDto {
   total!: number;
 }
 
+class ClientTransactionBankAccountDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Whop' })
+  bankName!: string;
+
+  @ApiPropertyOptional({
+    example: 'https://cdn.swiftnine.com/logos/whop.png',
+    nullable: true,
+  })
+  logoUrl!: string | null;
+}
+
 class ClientTransactionBriefDto {
   @ApiProperty({ example: 'a843cde2-f8c4-49a1-916b-308941b56f34' })
   id!: string;
@@ -41,6 +55,13 @@ class ClientTransactionBriefDto {
 
   @ApiProperty({ example: '2026-04-23T11:30:00.000Z' })
   updatedAt!: Date;
+
+  @ApiProperty({
+    type: ClientTransactionBankAccountDto,
+    description:
+      'The account this payment came in through — the closest thing to a "payment method" available today.',
+  })
+  bankAccount!: ClientTransactionBankAccountDto;
 }
 
 export class ClientResponseDto {
@@ -104,6 +125,9 @@ export class ClientListItemResponseDto {
       "Sum of saleAmount across this client's transactions, grouped by currency",
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
+
+  @ApiProperty({ type: [ClientTransactionBriefDto] })
+  transactions!: ClientTransactionBriefDto[];
 }
 
 export class ClientSearchResultDto {

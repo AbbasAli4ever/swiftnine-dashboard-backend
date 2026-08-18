@@ -83,12 +83,13 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Get the accounting dashboard overview',
     description:
-      'Balances by account type, revenue summary (today/month/year), a revenue time series, international account balances ranked descending, balances by currency, top bank accounts by type, and top clients by revenue.',
+      'Balances by account type, revenue summary (today/month/year), a revenue time series, revenue by bank account (scoped to `period` — see below), all-time revenue by currency, current balances by account, and top clients by all-time revenue.',
   })
   @ApiQuery({
     name: 'period',
     required: false,
-    description: 'Granularity for the revenue time series. Defaults to daily.',
+    description:
+      'Controls two things: the bucket granularity of the revenue time series, and the window revenueByBankAccount is scoped to — today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly). Defaults to daily.',
     example: 'daily',
   })
   @ApiOkResponse({
