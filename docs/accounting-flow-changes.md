@@ -99,6 +99,17 @@ Known tradeoff, not addressed: this embeds every transaction, unpaginated, on ev
 
 `revenueByCurrency` and `topClients` were deliberately left untouched — still all-time on `/overview` no matter what `period` you pass.
 
+### 3.6 Bug fix — the monthly chart's buckets were drifting
+
+`/overview?period=monthly` was returning a broken chart: duplicated month labels, missing months, the current month absent entirely, and wrong values. Two compounding causes, both only reproducible on a host whose timezone isn't UTC (the dev host is UTC+5):
+
+1. Bucket boundaries were built with local-time constructors, so "start of this month" actually serialised to the *previous* month's last day at 19:00Z.
+2. Anchored on a day-31 timestamp, Postgres's `+ 1 month` clamping walked the buckets progressively out of alignment (`31 → 30 → 30 → … → 28`), so each bucket straddled two real months — which is why the sums were wrong and not just the labels.
+
+Fixed by anchoring every boundary to a true UTC month start (day 1 never clamps) and reading labels with UTC getters. The same formatter fix also cleared a latent bug in the monthly-breakdown endpoint that would have shifted every label back a month on a negative-offset host.
+
+**Still open:** `revenueSummary` (the today/this-month/this-year KPI cards) is now the only place still using local-time boundaries, sitting 5h off the chart's on this host. It returns correct numbers today, but a sale recorded between midnight and 5am local would land in the "today" KPI while plotting on yesterday's chart bar. Left alone deliberately — it changes user-visible KPI figures and deserves its own decision rather than being folded into a chart fix.
+
 ---
 
 ## 4. Verification
@@ -181,3 +192,4 @@ All endpoints stay behind the same guard chain as the rest of this module: `JwtA
 - **No "submit a report" workflow.** Reports are computed live on every request, same as before.
 - **`revenueByCurrency` and `topClients` on `/overview` are still all-time**, unlike `revenueByBankAccount` — not extended to respect `period`, since it wasn't asked for.
 - **Clients/bank-accounts transaction lists are unpaginated** — see 3.4.
+- **`revenueSummary` still uses local-time boundaries** while everything else in that file is now UTC — see 3.6. Correct for current data, but a latent 5h disagreement with the chart on any non-UTC host.

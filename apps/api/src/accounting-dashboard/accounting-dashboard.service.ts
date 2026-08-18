@@ -778,51 +778,75 @@ export class AccountingDashboardService {
     });
   }
 
-  // Mirrors the boundaries the old JS-bucketing loop used to produce, so
-  // switching to SQL-side grouping doesn't change any bucket's meaning —
-  // including "weekly", which is a rolling 7-day window ending today, not
-  // a calendar week.
+  // Bucket boundaries for the revenue time series. "weekly" is a rolling
+  // 7-day window, not a calendar week — preserved from the original
+  // JS-bucketing implementation this replaced.
+  //
+  // Every boundary is built with Date.UTC, never `new Date(y, m, d)`. Two
+  // bugs came from the local-time version, and both only reproduce on a
+  // host whose offset isn't UTC (found live on UTC+5):
+  //
+  //   1. `new Date(2026, 7, 1)` is local midnight, which serializes to
+  //      2026-07-31T19:00:00Z — the *previous* month's last day. So the
+  //      generate_series anchor wasn't a month start at all.
+  //   2. Postgres clamps `+ 1 month` to the shorter month's last day, and
+  //      keeps clamping from there. Anchored on a day-31 timestamp, the
+  //      steps drifted 31 -> 30 -> 30 -> ... -> 28 -> 28, so buckets stopped
+  //      lining up with months entirely: labels came out duplicated
+  //      (2025-10 twice), months went missing (2025-11, 2026-02), the
+  //      current month never appeared, and each bucket's window straddled
+  //      two real months so the sums were wrong too.
+  //
+  // Anchoring on day 1 in UTC fixes both: day 1 exists in every month, so
+  // Postgres never clamps, and the anchor is a true month start.
   private getBucketConfig(
     period: DashboardPeriod,
     now: Date,
   ): { firstStart: Date; lastStart: Date; intervalSql: string } {
     const count = REVENUE_OVERVIEW_BUCKET_COUNT[period];
     const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
     );
 
     if (period === 'daily') {
       const lastStart = todayStart;
       const firstStart = new Date(lastStart);
-      firstStart.setDate(firstStart.getDate() - (count - 1));
+      firstStart.setUTCDate(firstStart.getUTCDate() - (count - 1));
       return { firstStart, lastStart, intervalSql: '1 day' };
     }
     if (period === 'weekly') {
       const lastStart = new Date(todayStart);
-      lastStart.setDate(lastStart.getDate() - 7);
+      lastStart.setUTCDate(lastStart.getUTCDate() - 7);
       const firstStart = new Date(lastStart);
-      firstStart.setDate(firstStart.getDate() - (count - 1) * 7);
+      firstStart.setUTCDate(firstStart.getUTCDate() - (count - 1) * 7);
       return { firstStart, lastStart, intervalSql: '7 days' };
     }
     if (period === 'monthly') {
-      const lastStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+      );
+      // Date.UTC normalises a negative month index, so a 12-bucket window
+      // in January correctly rolls back into the previous year.
       const firstStart = new Date(
-        now.getFullYear(),
-        now.getMonth() - (count - 1),
-        1,
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (count - 1), 1),
       );
       return { firstStart, lastStart, intervalSql: '1 month' };
     }
-    const lastStart = new Date(now.getFullYear(), 0, 1);
-    const firstStart = new Date(now.getFullYear() - (count - 1), 0, 1);
+    const lastStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+    const firstStart = new Date(
+      Date.UTC(now.getUTCFullYear() - (count - 1), 0, 1),
+    );
     return { firstStart, lastStart, intervalSql: '1 year' };
   }
 
+  // Labels read the bucket start in UTC, matching how the boundaries above
+  // (and getMonthlyBreakdownForYear's) are constructed. Using local getters
+  // here re-introduces the same class of drift on any non-UTC host — and on
+  // a negative-offset host it would shift every label back a month even
+  // when the boundaries themselves are correct.
   private formatBucketLabel(period: DashboardPeriod, start: Date): string {
     if (period === 'monthly') return this.formatMonth(start);
-    if (period === 'yearly') return String(start.getFullYear());
+    if (period === 'yearly') return String(start.getUTCFullYear());
     return this.formatDay(start);
   }
 
@@ -831,7 +855,7 @@ export class AccountingDashboardService {
   }
 
   private formatMonth(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
   }
 
   // Revenue per bank account, across LOCAL and INTERNATIONAL alike — this is

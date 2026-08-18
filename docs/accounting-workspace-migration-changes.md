@@ -340,3 +340,35 @@ Both `GET /clients` and `GET /bank-accounts` return every linked transaction per
 - Verified live against the demo workspace: `?date=2026-08-18` (unchanged path) still produces an identical single-row Sales Summary sheet titled "Report date: 2026-08-18".
 - `?dateFrom=2026-08-01&dateTo=2026-08-18` produces an 18-row Sales Summary (one per day, zero-filled on quiet days) plus a Total row reading **12,231.65 / 9 sales / 1,359.07 avg** — cross-checked against the independently-computed `/overview?period=monthly` result from the previous follow-up (6,250 + 5,550 + 431.65 = 12,231.65, 4 + 3 + 2 = 9 sales) — exact match. All four sheets titled "Report period: 2026-08-01 to 2026-08-18".
 - Validation confirmed live, all returning `422`: `date` + `dateFrom` together; `dateFrom` without `dateTo`; `dateFrom` after `dateTo`; a >400-day span.
+
+## Follow-up: [2026-08-18] Bug fix — `/overview?period=monthly` chart produced duplicate, missing and misaligned month buckets
+
+**Reported symptom:** the monthly filter on the Overview API "not working properly." Reproduced immediately on the dev host (UTC+5) — `revenueOverview.points` came back as:
+
+```
+2025-09, 2025-10, 2025-10, 2025-12, 2025-12, 2026-01, 2026-03, 2026-03, 2026-04, 2026-05, 2026-06, 2026-07
+```
+
+Three labels duplicated (`2025-10`, `2025-12`, `2026-03`), three months missing (`2025-11`, `2026-02`, and **the current month `2026-08` entirely**), and the two non-zero values wrong: `2026-06: 7669.42` / `2026-07: 12433.09` against true monthly totals of `2026-07: 7870.86` / `2026-08: 12231.65`.
+
+### Root cause — two compounding bugs in `getBucketConfig`
+
+1. **Local-time boundary construction.** `new Date(now.getFullYear(), now.getMonth(), 1)` builds *local* midnight. On UTC+5 that serialises to `2026-07-31T19:00:00Z` — the **previous month's last day**, not a month start. This is the identical bug the changelog records as "deliberately fixed" in `getMonthlyBreakdownForYear` via `Date.UTC`; `getBucketConfig` was simply never given the same treatment.
+2. **Postgres month-arithmetic clamping, amplified by (1).** `generate_series(..., '1 month')` anchored on a day-31 timestamp clamps to the shorter month's last day and then keeps clamping from the clamped value. Confirmed by querying Postgres directly with the buggy anchor: the steps walked `08-31 → 09-30 → 10-30 → 11-30 → 12-30 → 01-30 → 02-28 → 03-28 → 04-28 → 05-28 → 06-28 → 07-28`. Buckets therefore stopped lining up with months at all — each window straddled two real months (which is why the sums were wrong, not just the labels), and once combined with local-time label formatting, two adjacent drifted starts could format to the same month string while another month never appeared.
+
+Both were verified as the cause arithmetically, not inferred: the observed `2026-06: 7669.42` is exactly the sum of the five transactions falling in `[2026-06-28T19:00Z, 2026-07-28T19:00Z)`, and `2026-07: 12433.09` exactly the eight in `[2026-07-28T19:00Z, 2026-08-28T19:00Z)`.
+
+### Fix
+
+- **`getBucketConfig` now builds every boundary with `Date.UTC`** (and `setUTCDate` for the day/week steppers) instead of local-time constructors — for all four periods, not just `monthly`. Anchoring on **day 1** is what defeats bug (2): day 1 exists in every month, so Postgres never clamps. Verified directly against Postgres — a day-1 UTC anchor steps cleanly `2025-09-01 … 2026-08-01`.
+- **`formatMonth` and `formatBucketLabel` now read the bucket start with UTC getters** (`getUTCFullYear`/`getUTCMonth`) to match how the boundaries are constructed. `formatDay` already used `toISOString()` and needed no change.
+  - This also fixes a **latent bug in `getMonthlyBreakdownForYear`**, which shares `formatMonth`. Its boundaries were already correctly UTC, but the local-time formatter happened to produce right answers only on a *positive*-offset host; on a negative-offset host (e.g. UTC−5) `2026-01-01T00:00Z` would have formatted as `2025-12`, shifting every label back a month. Not the reported bug, but the same defect one layer over.
+- `getCurrentPeriodRange` (added in the `period`-scoping follow-up above) was already UTC and needed no change.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **`period=monthly` after the fix**: `2025-09 … 2026-08` — 12 sequential labels, no duplicates, no gaps, current month present as the final bucket. `2026-07: 7870.86`, `2026-08: 12231.65`.
+- **Cross-validated two independent ways.** `2026-08: 12231.65` matches `revenueSummary.thisMonth.totalUsd` (computed by a completely separate code path) exactly. And `/monthly-breakdown?year=2026` — a different method, different SQL bounds — independently returns `2026-07: 7870.86` / `2026-08: 12231.65`, agreeing with the chart to the cent where previously the two disagreed.
+- **No regression on the other three periods**, each checked for duplicate labels (none) and correct values: `daily` 7 buckets (`2026-08-13: 1600`, `2026-08-15: 2400`, `2026-08-18: 2201.08` — all matching seeded data); `weekly` 8 buckets at clean 7-day steps; `yearly` 5 buckets, `2026: 20102.52` = the sum of both non-zero months (12,231.65 + 7,870.86). `/monthly-breakdown` re-checked for the shared-`formatMonth` change: `2026-01 … 2026-12`, no duplicates.
+- **Calendar edge cases checked** (not just the current date): a 12-bucket monthly window computed in January correctly rolls back into the prior year (`2025-02 … 2026-01`), since `Date.UTC` normalises a negative month index; February and December windows likewise correct.
+
