@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Workbook, type Row, type Worksheet } from 'exceljs';
-import type { DailyExportData } from './accounting-dashboard.service';
+import type { AccountingExportData } from './accounting-dashboard.service';
 
 const CURRENCY_FORMAT = '#,##0.00';
 
 // Pure rendering — no Prisma/DB dependency, takes plain data in, returns a
 // Buffer, mirroring PdfGenerationService/PptGenerationService's render-only
-// shape. Callers gather data (AccountingDashboardService.getDailyExportData)
-// and stream the result back over HTTP; this service only builds the file.
+// shape. Callers gather data (AccountingDashboardService.getExportData) and
+// stream the result back over HTTP; this service only builds the file.
 @Injectable()
 export class ReportExportService {
-  async buildDailyReportWorkbook(data: DailyExportData): Promise<Buffer> {
+  async buildReportWorkbook(data: AccountingExportData): Promise<Buffer> {
     const workbook = new Workbook();
     workbook.creator = 'SwiftNine Accounting';
     workbook.created = new Date();
@@ -29,11 +29,11 @@ export class ReportExportService {
 
   private addTransactionsSheet(
     workbook: Workbook,
-    data: DailyExportData,
+    data: AccountingExportData,
   ): void {
     const sheet = workbook.addWorksheet('Transactions');
     this.setColumnWidths(sheet, [22, 14, 24, 20, 10, 16, 32]);
-    this.addTitleRow(sheet, data.date, 7);
+    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 7);
     this.boldRow(
       sheet.addRow([
         'Ref ID',
@@ -60,13 +60,16 @@ export class ReportExportService {
     }
   }
 
+  // One row per day in range (zero-filled), plus a bold Total row once the
+  // range spans more than one day — for a single date that row would just
+  // repeat the one data row above it, so it's skipped.
   private addSalesSummarySheet(
     workbook: Workbook,
-    data: DailyExportData,
+    data: AccountingExportData,
   ): void {
     const sheet = workbook.addWorksheet('Sales Summary');
     this.setColumnWidths(sheet, [14, 20, 14, 20]);
-    this.addTitleRow(sheet, data.date, 4);
+    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 4);
     this.boldRow(
       sheet.addRow([
         'Date',
@@ -76,24 +79,42 @@ export class ReportExportService {
       ]),
     );
 
-    const row = sheet.addRow([
-      data.date,
-      data.salesSummary.revenueUsd,
-      data.salesSummary.salesCount,
-      data.salesSummary.avgSaleUsd,
-    ]);
-    row.getCell(2).numFmt = CURRENCY_FORMAT;
-    row.getCell(4).numFmt = CURRENCY_FORMAT;
+    for (const day of data.dailyBreakdown) {
+      const row = sheet.addRow([
+        day.date,
+        day.revenueUsd,
+        day.salesCount,
+        day.avgSaleUsd,
+      ]);
+      row.getCell(2).numFmt = CURRENCY_FORMAT;
+      row.getCell(4).numFmt = CURRENCY_FORMAT;
+    }
+
+    if (data.dailyBreakdown.length > 1) {
+      const totalRow = sheet.addRow([
+        'Total',
+        data.totals.revenueUsd,
+        data.totals.salesCount,
+        data.totals.avgSaleUsd,
+      ]);
+      this.boldRow(totalRow);
+      totalRow.getCell(2).numFmt = CURRENCY_FORMAT;
+      totalRow.getCell(4).numFmt = CURRENCY_FORMAT;
+    }
   }
 
   // Column headers carry the "current" caveat directly — this sheet's
-  // balances are current, not as of `date`, the same caveat getDailyReport's
-  // `balances` field already carries. There's no ledger of what a balance
-  // was on a past date, only what the accountant last counted it as.
-  private addBalancesSheet(workbook: Workbook, data: DailyExportData): void {
+  // balances are current, not as of the report period, the same caveat
+  // getDailyReport's `balances` field already carries. There's no ledger of
+  // what a balance was on a past date, only what the accountant last
+  // counted it as.
+  private addBalancesSheet(
+    workbook: Workbook,
+    data: AccountingExportData,
+  ): void {
     const sheet = workbook.addWorksheet('Balances by Account');
     this.setColumnWidths(sheet, [22, 16, 10, 22, 20]);
-    this.addTitleRow(sheet, data.date, 5);
+    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 5);
     this.boldRow(
       sheet.addRow([
         'Bank Name',
@@ -117,15 +138,15 @@ export class ReportExportService {
     }
   }
 
-  // Two independent tables stacked in one sheet, both scoped to `date` —
-  // not the all-time breakdowns /overview shows.
+  // Two independent tables stacked in one sheet, both scoped to the report
+  // period — not the all-time breakdowns /overview shows.
   private addRevenueBreakdownSheet(
     workbook: Workbook,
-    data: DailyExportData,
+    data: AccountingExportData,
   ): void {
     const sheet = workbook.addWorksheet('Revenue Breakdown');
     this.setColumnWidths(sheet, [22, 16, 16, 16, 14, 12]);
-    this.addTitleRow(sheet, data.date, 6);
+    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 6);
 
     this.boldRow(sheet.addRow(['Revenue by Currency']));
     this.boldRow(
@@ -169,17 +190,24 @@ export class ReportExportService {
     }
   }
 
-  // Every sheet gets the same title so it's unambiguous which day it covers
-  // even once the file has been saved, renamed, or opened weeks later —
-  // "Report date: 2026-08-18", not a relative "Today" that goes stale.
-  // Merged across the sheet's full column count and followed by a blank
-  // spacer row before the real header.
+  // Every sheet gets the same title so it's unambiguous which period it
+  // covers even once the file has been saved, renamed, or opened weeks
+  // later — "Report date: 2026-08-18" for a single day (dateFrom ===
+  // dateTo), or "Report period: 2026-08-01 to 2026-08-31" for a range.
+  // Never a relative "Today" label, which goes stale. Merged across the
+  // sheet's full column count and followed by a blank spacer row before
+  // the real header.
   private addTitleRow(
     sheet: Worksheet,
-    date: string,
+    dateFrom: string,
+    dateTo: string,
     columnSpan: number,
   ): void {
-    const row = sheet.addRow([`Report date: ${date}`]);
+    const label =
+      dateFrom === dateTo
+        ? `Report date: ${dateFrom}`
+        : `Report period: ${dateFrom} to ${dateTo}`;
+    const row = sheet.addRow([label]);
     row.font = { bold: true, size: 12 };
     if (columnSpan > 1) sheet.mergeCells(row.number, 1, row.number, columnSpan);
     sheet.addRow([]);

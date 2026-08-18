@@ -206,36 +206,57 @@ export class AccountingDashboardController {
 
   @Get('reports/export')
   @ApiOperation({
-    summary: "Export a single date's accounting report as an .xlsx workbook",
+    summary: 'Export an accounting report as an .xlsx workbook',
     description:
-      'Four sheets: Transactions, Sales Summary, Balances by Account (current, not as of the date), and Revenue Breakdown by currency and bank account.',
+      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. Four sheets: Transactions, Sales Summary (one row per day for a range, plus a Total row), Balances by Account (current, not as of the period), and Revenue Breakdown by currency and bank account.',
   })
   @ApiQuery({
     name: 'date',
     required: false,
-    description: 'YYYY-MM-DD, defaults to today (UTC)',
+    description:
+      'YYYY-MM-DD, defaults to today (UTC). Omit if using dateFrom/dateTo instead.',
     example: '2026-07-28',
+  })
+  @ApiQuery({
+    name: 'dateFrom',
+    required: false,
+    description:
+      'YYYY-MM-DD, start of a range. Must be paired with dateTo; capped at 400 days apart.',
+    example: '2026-07-01',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: false,
+    description: 'YYYY-MM-DD, end of a range. Must be paired with dateFrom.',
+    example: '2026-07-31',
   })
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   )
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
-  async exportDailyReport(
+  async exportReport(
     @Req() req: WorkspaceRequest,
     @Query() query: ExportReportQueryDto,
   ): Promise<StreamableFile> {
-    const date =
-      (query as ExportReportQuery).date ??
-      new Date().toISOString().slice(0, 10);
-    const data = await this.dashboardService.getDailyExportData(
+    const { date, dateFrom, dateTo } = query as ExportReportQuery;
+    const today = new Date().toISOString().slice(0, 10);
+    const resolvedFrom = dateFrom ?? date ?? today;
+    const resolvedTo = dateTo ?? date ?? today;
+
+    const data = await this.dashboardService.getExportData(
       req.workspaceContext.workspaceId,
-      date,
+      resolvedFrom,
+      resolvedTo,
     );
-    const buffer = await this.reportExport.buildDailyReportWorkbook(data);
+    const buffer = await this.reportExport.buildReportWorkbook(data);
+    const filenameDate =
+      resolvedFrom === resolvedTo
+        ? resolvedFrom
+        : `${resolvedFrom}_to_${resolvedTo}`;
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      disposition: `attachment; filename="accounting-report-${date}.xlsx"`,
+      disposition: `attachment; filename="accounting-report-${filenameDate}.xlsx"`,
     });
   }
 

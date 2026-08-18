@@ -322,3 +322,21 @@ Both `GET /clients` and `GET /bank-accounts` return every linked transaction per
   - `monthly`: Whop 6,250/4, Slash 5,550/3, HBL 120,000 (431.65)/2 — matches the independently-computed `/reports/breakdown?dateFrom=<month-start>&dateTo=<today>` result exactly.
   - `yearly`: Whop 9,750/6, Slash 9,500/5, HBL 237,000 (852.52)/4 — matches the pre-change all-time total exactly, since every seeded transaction falls within the current year.
   - `revenueByCurrency` confirmed byte-for-byte identical between `period=daily` and `period=yearly` — proving it stayed all-time as intended, not accidentally scoped along with `revenueByBankAccount`.
+
+## Follow-up: [2026-08-18] Excel export now accepts a date range, not just a single date
+
+`GET /accounting-dashboard/reports/export` previously took only `date` (single day, optional, defaulting to today). It now also accepts `dateFrom`/`dateTo` for a range — `date` still works exactly as before for anyone already calling it.
+
+- **`ExportReportQuerySchema`** (`export-report-query.dto.ts`) gained `dateFrom`/`dateTo`, both optional, with four `.refine()`s: `date` and `dateFrom`/`dateTo` are mutually exclusive; `dateFrom`/`dateTo` must be provided together, not just one side; `dateFrom <= dateTo`; and the span is capped, reusing the same limit `/reports/breakdown` uses.
+- **Renamed `REPORTS_BREAKDOWN_MAX_RANGE_DAYS` → `ACCOUNTING_REPORTS_MAX_RANGE_DAYS`** (`accounting-dashboard.constants.ts`) since it's no longer breakdown-specific, and extracted `DATE_FORMAT_REGEX` / `daysBetweenDates()` there too — both the breakdown DTO and the new export DTO needed the identical YYYY-MM-DD format check and day-count math, and duplicating that (rather than importing it once) is exactly the kind of thing that quietly drifts between the two later.
+- **`AccountingDashboardService.getDailyExportData(workspaceId, date)` → `getExportData(workspaceId, dateFrom, dateTo)`.** For the old single-date call, `dateFrom === dateTo` and behavior is identical. `DailyExportData` → `AccountingExportData`: `date`/`salesSummary` replaced by `dailyBreakdown: ExportDailyBreakdownRow[]` (one row per calendar day in range, zero-filled, computed via a new `buildDailyBreakdown()`) plus `totals: ExportTotals` for the whole span.
+  - **`buildDailyBreakdown` is computed in memory from the already-fetched `transactions` array — no per-day queries.** A 400-day range would otherwise mean 400 sequential round-trips; instead the single existing `getTransactionsForRange` result is grouped by day in JS.
+  - `totals` still comes from the original `sumRevenueUsd`/`transaction.count` calls over the whole range, not by summing the (already-rounded) per-day rows — avoids compounding rounding drift between the daily rows and the total.
+- **`ReportExportService.buildDailyReportWorkbook` → `buildReportWorkbook`.** The "Sales Summary" sheet now renders one row per day, plus a bold "Total" row — but only when the range spans more than one day, since for a single date the Total row would just repeat the one data row above it. Every sheet's title row now reads "Report period: `<dateFrom>` to `<dateTo>`" for a range, or unchanged "Report date: `<date>`" for a single day (`dateFrom === dateTo`).
+- **Controller route unchanged**, `GET /accounting-dashboard/reports/export`; handler renamed `exportDailyReport` → `exportReport`. Filename becomes `accounting-report-<dateFrom>_to_<dateTo>.xlsx` for a range, unchanged `accounting-report-<date>.xlsx` for a single day.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- Verified live against the demo workspace: `?date=2026-08-18` (unchanged path) still produces an identical single-row Sales Summary sheet titled "Report date: 2026-08-18".
+- `?dateFrom=2026-08-01&dateTo=2026-08-18` produces an 18-row Sales Summary (one per day, zero-filled on quiet days) plus a Total row reading **12,231.65 / 9 sales / 1,359.07 avg** — cross-checked against the independently-computed `/overview?period=monthly` result from the previous follow-up (6,250 + 5,550 + 431.65 = 12,231.65, 4 + 3 + 2 = 9 sales) — exact match. All four sheets titled "Report period: 2026-08-01 to 2026-08-18".
+- Validation confirmed live, all returning `422`: `date` + `dateFrom` together; `dateFrom` without `dateTo`; `dateFrom` after `dateTo`; a >400-day span.

@@ -172,9 +172,26 @@ export type TransactionExportRow = {
   description: string | null;
 };
 
-export type DailyExportData = {
+export type ExportDailyBreakdownRow = {
   date: string;
-  salesSummary: { revenueUsd: number; salesCount: number; avgSaleUsd: number };
+  revenueUsd: number;
+  salesCount: number;
+  avgSaleUsd: number;
+};
+
+export type ExportTotals = {
+  revenueUsd: number;
+  salesCount: number;
+  avgSaleUsd: number;
+};
+
+export type AccountingExportData = {
+  dateFrom: string;
+  dateTo: string;
+  // One row per calendar day in [dateFrom, dateTo], zero-filled for days
+  // with no sales — collapses to exactly one row when dateFrom === dateTo.
+  dailyBreakdown: ExportDailyBreakdownRow[];
+  totals: ExportTotals;
   balancesByAccount: BankAccountBalanceItem[];
   revenueByCurrency: CurrencyRevenueItem[];
   revenueByBankAccount: BankAccountRevenueItem[];
@@ -336,15 +353,18 @@ export class AccountingDashboardService {
     };
   }
 
-  // Gathers everything the Excel export workbook needs for one date, reusing
-  // the same range-aware breakdowns getReportsBreakdown uses rather than
-  // re-querying. Balances are current-only (same caveat getDailyReport
-  // already carries) — no snapshot table exists to answer "as of `date`".
-  async getDailyExportData(
+  // Gathers everything the Excel export workbook needs for [dateFrom,
+  // dateTo], reusing the same range-aware breakdowns getReportsBreakdown
+  // uses rather than re-querying. dateFrom === dateTo for the original
+  // single-date export — dailyBreakdown then collapses to exactly one row.
+  // Balances are current-only (same caveat getDailyReport already carries)
+  // — no snapshot table exists to answer "as of `dateTo`".
+  async getExportData(
     workspaceId: string,
-    date: string,
-  ): Promise<DailyExportData> {
-    const range = this.utcDayRange(date, date);
+    dateFrom: string,
+    dateTo: string,
+  ): Promise<AccountingExportData> {
+    const range = this.utcDayRange(dateFrom, dateTo);
     const [
       revenueUsd,
       salesCount,
@@ -368,8 +388,10 @@ export class AccountingDashboardService {
       salesCount > 0 ? round2(roundedRevenueUsd / salesCount) : 0;
 
     return {
-      date,
-      salesSummary: {
+      dateFrom,
+      dateTo,
+      dailyBreakdown: this.buildDailyBreakdown(dateFrom, dateTo, transactions),
+      totals: {
         revenueUsd: roundedRevenueUsd,
         salesCount,
         avgSaleUsd,
@@ -388,6 +410,43 @@ export class AccountingDashboardService {
       revenueByBankAccount,
       transactions,
     };
+  }
+
+  // Built from the already-fetched `transactions` array rather than one
+  // query per day — a 400-day range would otherwise mean 400 sequential
+  // round-trips. Every day in [dateFrom, dateTo] gets a row, zero-filled,
+  // so a quiet day isn't just missing from the sheet.
+  private buildDailyBreakdown(
+    dateFrom: string,
+    dateTo: string,
+    transactions: TransactionExportRow[],
+  ): ExportDailyBreakdownRow[] {
+    const byDay = new Map<string, { revenueUsd: number; salesCount: number }>();
+    for (const transaction of transactions) {
+      const day = transaction.saleDate.toISOString().slice(0, 10);
+      const bucket = byDay.get(day) ?? { revenueUsd: 0, salesCount: 0 };
+      bucket.revenueUsd += toUsd(transaction.saleAmount, transaction.currency);
+      bucket.salesCount += 1;
+      byDay.set(day, bucket);
+    }
+
+    const rows: ExportDailyBreakdownRow[] = [];
+    const cursor = new Date(`${dateFrom}T00:00:00.000Z`);
+    const end = new Date(`${dateTo}T00:00:00.000Z`);
+    while (cursor.getTime() <= end.getTime()) {
+      const key = cursor.toISOString().slice(0, 10);
+      const bucket = byDay.get(key) ?? { revenueUsd: 0, salesCount: 0 };
+      const revenueUsd = round2(bucket.revenueUsd);
+      rows.push({
+        date: key,
+        revenueUsd,
+        salesCount: bucket.salesCount,
+        avgSaleUsd:
+          bucket.salesCount > 0 ? round2(revenueUsd / bucket.salesCount) : 0,
+      });
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return rows;
   }
 
   // Adds a zero-value row for every currency that has a bank account in
