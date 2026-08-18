@@ -372,3 +372,4 @@ Both were verified as the cause arithmetically, not inferred: the observed `2026
 - **No regression on the other three periods**, each checked for duplicate labels (none) and correct values: `daily` 7 buckets (`2026-08-13: 1600`, `2026-08-15: 2400`, `2026-08-18: 2201.08` — all matching seeded data); `weekly` 8 buckets at clean 7-day steps; `yearly` 5 buckets, `2026: 20102.52` = the sum of both non-zero months (12,231.65 + 7,870.86). `/monthly-breakdown` re-checked for the shared-`formatMonth` change: `2026-01 … 2026-12`, no duplicates.
 - **Calendar edge cases checked** (not just the current date): a 12-bucket monthly window computed in January correctly rolls back into the prior year (`2025-02 … 2026-01`), since `Date.UTC` normalises a negative month index; February and December windows likewise correct.
 
+
