@@ -373,3 +373,22 @@ Both were verified as the cause arithmetically, not inferred: the observed `2026
 - **Calendar edge cases checked** (not just the current date): a 12-bucket monthly window computed in January correctly rolls back into the prior year (`2025-02 … 2026-01`), since `Date.UTC` normalises a negative month index; February and December windows likewise correct.
 
 
+## Follow-up: [2026-08-18] `revenueByCurrency` on Overview now also respects `period`
+
+Extends the `period`-scoping follow-up above: `revenueByBankAccount` was made period-scoped there, but `revenueByCurrency` was deliberately left all-time at the time ("not asked for"). Now asked for — `revenueByCurrency` scopes to the same current window as `revenueByBankAccount`.
+
+- **`getOverview()`** now computes `getCurrentPeriodRange(period, new Date())` once and passes it to *both* `getRevenueByBankAccount` and `getRevenueByCurrency`, instead of computing it inline only for the bank-account call and calling `getRevenueByCurrency(workspaceId)` with no range. One shared range, two scoped calls.
+- **`topClients` is still untouched** — still all-time, still ranked by `Clients.totalRevenue`. Not asked for this round either; scoping it would need the same `getTopClientsByRevenue` treatment `/reports/breakdown` already has, not a trivial range param (see the reasoning in the `/reports/breakdown` follow-up above — `Clients.totalRevenue` has no date column to range against).
+- **Asymmetric zero-fill carries over unchanged and was re-verified**: `revenueByBankAccount` zero-fills every account in the workspace; `revenueByCurrency` only lists currencies with actual activity in the window (absent, not zeroed, when quiet) — this was already true for the all-time case and remains true now that both are period-scoped, confirmed live with a throwaway EUR account that had zero transactions.
+- Doc corrections made while here: the stale comment above `getRevenueByCurrency` (said "All-time revenue," matching the pattern already fixed on `getRevenueByBankAccount`'s comment), the `revenueByCurrency` field description in `dashboard-overview-response.dto.ts`, the `overview` endpoint's `@ApiOperation` and `period` `@ApiQuery` descriptions in the controller, and the "Trap" callout in `docs/accounting-reports-spec.md` (now only `topClients` is exempt from `period`, not both `revenueByCurrency` and `topClients`).
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **Full Overview response tested end-to-end for all four `period` values** against the demo workspace (not just the one field) — every section checked, not just the one that changed:
+  - `revenueByCurrency` scoped correctly and cross-validated against independent totals: `daily` USD 2,050 + PKR 151.08 = 2,201.08 = `revenueSummary.today.totalUsd`; `monthly` USD 11,800 + PKR 431.65 = 12,231.65 = `revenueSummary.thisMonth.totalUsd`; `yearly` USD 19,250 + PKR 852.52 = 20,102.52 = `revenueSummary.thisYear.totalUsd`. Three independent code paths agreeing exactly, for three different periods.
+  - `revenueByBankAccount` unchanged from the prior follow-up's verified values for all four periods (re-confirmed, no regression).
+  - **Confirmed correctly unaffected by this change**: `topClients` identical across all four periods; `balances.totalBalanceUsd` identical across all four (current-balance data, has no relationship to `period` at all); `bankAccounts.local`/`bankAccounts.international` counts identical across all four.
+  - `revenueOverview.points.length` still varies correctly by period (7/8/12/5) and the monthly chart still shows 12 sequential labels with no duplicates — re-confirmed no regression from the earlier bucket-drift fix.
+- **Zero-fill asymmetry re-verified live**: created a throwaway `EUR`/`LOCAL` bank account with no transactions. `revenueByBankAccount` listed it at `0` (zero-filled, as designed). `revenueByCurrency` correctly did **not** list `EUR` at all (no activity → absent, not zeroed) — same intentional asymmetry as before, now proven to hold under period-scoping too. Test account deleted after.
+
+

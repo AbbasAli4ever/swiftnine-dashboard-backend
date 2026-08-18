@@ -221,6 +221,7 @@ export class AccountingDashboardService {
     workspaceId: string,
     period: DashboardPeriod,
   ): Promise<DashboardOverview> {
+    const currentPeriodRange = this.getCurrentPeriodRange(period, new Date());
     const [
       balances,
       revenueSummary,
@@ -233,11 +234,8 @@ export class AccountingDashboardService {
       this.getBalances(workspaceId),
       this.getRevenueSummary(workspaceId),
       this.getRevenueOverview(workspaceId, period),
-      this.getRevenueByBankAccount(
-        workspaceId,
-        this.getCurrentPeriodRange(period, new Date()),
-      ),
-      this.getRevenueByCurrency(workspaceId),
+      this.getRevenueByBankAccount(workspaceId, currentPeriodRange),
+      this.getRevenueByCurrency(workspaceId, currentPeriodRange),
       this.getBankAccountsByType(workspaceId),
       this.getTopClients(workspaceId),
     ]);
@@ -951,8 +949,13 @@ export class AccountingDashboardService {
       .sort((a, b) => b.totalRevenueUsd - a.totalRevenueUsd);
   }
 
-  // All-time revenue grouped by the transaction's own currency. `total` is the
-  // native sum in that currency; `percent` is its share of the USD grand total.
+  // Revenue grouped by the transaction's own currency. `total` is the
+  // native sum in that currency; `percent` is its share of the USD grand
+  // total. Scope depends on the caller, same as getRevenueByBankAccount:
+  // `/overview` passes getCurrentPeriodRange's window; `/reports/breakdown`
+  // and the Excel export pass an explicit dateFrom/dateTo; no range means
+  // all-time (no caller does this anymore, but the signature stays
+  // optional for flexibility).
   private async getRevenueByCurrency(
     workspaceId: string,
     range?: DateRange,

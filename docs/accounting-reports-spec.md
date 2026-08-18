@@ -50,7 +50,7 @@ Three endpoints on `accounting-dashboard`, all `GET`, all workspace-scoped via t
 
 Returns seven sections: `balances`, `revenueSummary`, `revenueOverview`, `revenueByBankAccount`, `revenueByCurrency`, `bankAccounts`, `topClients`.
 
-> **Updated (see changelog):** `period` now does two things, not one. It still controls `revenueOverview.points`' bucket granularity, and — as of the follow-up adding today/weekly/monthly/yearly filters — it *also* scopes `revenueByBankAccount` to a current window (today/trailing-7-days/month-to-date/year-to-date). `revenueByCurrency` and `topClients` are **not** scoped by it and remain all-time regardless of `period` — that part of the original trap still holds for those two fields only.
+> **Updated (see changelog):** `period` now does two things, not one. It still controls `revenueOverview.points`' bucket granularity, and it *also* scopes both `revenueByBankAccount` and `revenueByCurrency` to a current window (today/trailing-7-days/month-to-date/year-to-date). `topClients` is the only one **not** scoped by it — still all-time regardless of `period` — so the original trap now holds for that one field only.
 
 ### 2.2 `GET /accounting-dashboard/daily-report?date=YYYY-MM-DD`
 
