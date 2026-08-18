@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Workbook, type Row } from 'exceljs';
+import { Workbook, type Row, type Worksheet } from 'exceljs';
 import type { DailyExportData } from './accounting-dashboard.service';
 
 const CURRENCY_FORMAT = '#,##0.00';
@@ -32,29 +32,32 @@ export class ReportExportService {
     data: DailyExportData,
   ): void {
     const sheet = workbook.addWorksheet('Transactions');
-    sheet.columns = [
-      { header: 'Ref ID', key: 'refId', width: 22 },
-      { header: 'Date', key: 'date', width: 14 },
-      { header: 'Client', key: 'client', width: 24 },
-      { header: 'Bank Account', key: 'bankAccount', width: 20 },
-      { header: 'Currency', key: 'currency', width: 10 },
-      { header: 'Amount', key: 'amount', width: 16 },
-      { header: 'Description', key: 'description', width: 32 },
-    ];
-    this.boldRow(sheet.getRow(1));
+    this.setColumnWidths(sheet, [22, 14, 24, 20, 10, 16, 32]);
+    this.addTitleRow(sheet, data.date, 7);
+    this.boldRow(
+      sheet.addRow([
+        'Ref ID',
+        'Date',
+        'Client',
+        'Bank Account',
+        'Currency',
+        'Amount',
+        'Description',
+      ]),
+    );
 
     for (const transaction of data.transactions) {
-      sheet.addRow({
-        refId: transaction.refId,
-        date: transaction.saleDate.toISOString().slice(0, 10),
-        client: transaction.clientName,
-        bankAccount: transaction.bankAccount.bankName,
-        currency: transaction.currency,
-        amount: transaction.saleAmount,
-        description: transaction.description ?? '',
-      });
+      const row = sheet.addRow([
+        transaction.refId,
+        transaction.saleDate.toISOString().slice(0, 10),
+        transaction.clientName,
+        transaction.bankAccount.bankName,
+        transaction.currency,
+        transaction.saleAmount,
+        transaction.description ?? '',
+      ]);
+      row.getCell(6).numFmt = CURRENCY_FORMAT;
     }
-    sheet.getColumn('amount').numFmt = CURRENCY_FORMAT;
   }
 
   private addSalesSummarySheet(
@@ -62,72 +65,72 @@ export class ReportExportService {
     data: DailyExportData,
   ): void {
     const sheet = workbook.addWorksheet('Sales Summary');
-    sheet.columns = [
-      { header: 'Date', key: 'date', width: 14 },
-      { header: 'Total Revenue (USD)', key: 'revenue', width: 20 },
-      { header: 'Sales Count', key: 'count', width: 14 },
-      { header: 'Average Sale (USD)', key: 'avg', width: 20 },
-    ];
-    this.boldRow(sheet.getRow(1));
+    this.setColumnWidths(sheet, [14, 20, 14, 20]);
+    this.addTitleRow(sheet, data.date, 4);
+    this.boldRow(
+      sheet.addRow([
+        'Date',
+        'Total Revenue (USD)',
+        'Sales Count',
+        'Average Sale (USD)',
+      ]),
+    );
 
-    sheet.addRow({
-      date: data.date,
-      revenue: data.salesSummary.revenueUsd,
-      count: data.salesSummary.salesCount,
-      avg: data.salesSummary.avgSaleUsd,
-    });
-    sheet.getColumn('revenue').numFmt = CURRENCY_FORMAT;
-    sheet.getColumn('avg').numFmt = CURRENCY_FORMAT;
+    const row = sheet.addRow([
+      data.date,
+      data.salesSummary.revenueUsd,
+      data.salesSummary.salesCount,
+      data.salesSummary.avgSaleUsd,
+    ]);
+    row.getCell(2).numFmt = CURRENCY_FORMAT;
+    row.getCell(4).numFmt = CURRENCY_FORMAT;
   }
 
-  // Header labels carry the "current" caveat directly (rather than a note
-  // row above the table) because setting `sheet.columns` always writes its
-  // own header into row 1 — the same caveat getDailyReport's `balances`
-  // field already carries: these are current balances, not as of `date`.
+  // Column headers carry the "current" caveat directly — this sheet's
+  // balances are current, not as of `date`, the same caveat getDailyReport's
+  // `balances` field already carries. There's no ledger of what a balance
+  // was on a past date, only what the accountant last counted it as.
   private addBalancesSheet(workbook: Workbook, data: DailyExportData): void {
     const sheet = workbook.addWorksheet('Balances by Account');
-    sheet.columns = [
-      { header: 'Bank Name', key: 'bankName', width: 22 },
-      { header: 'Account Type', key: 'accountType', width: 16 },
-      { header: 'Currency', key: 'currency', width: 10 },
-      { header: 'Balance — native (current)', key: 'amount', width: 22 },
-      { header: 'Balance — USD (current)', key: 'amountUsd', width: 20 },
-    ];
-    this.boldRow(sheet.getRow(1));
+    this.setColumnWidths(sheet, [22, 16, 10, 22, 20]);
+    this.addTitleRow(sheet, data.date, 5);
+    this.boldRow(
+      sheet.addRow([
+        'Bank Name',
+        'Account Type',
+        'Currency',
+        'Balance — native (current)',
+        'Balance — USD (current)',
+      ]),
+    );
 
     for (const account of data.balancesByAccount) {
-      sheet.addRow({
-        bankName: account.bankName,
-        accountType: account.accountType,
-        currency: account.currencyType,
-        amount: account.amount,
-        amountUsd: account.amountUsd,
-      });
+      const row = sheet.addRow([
+        account.bankName,
+        account.accountType,
+        account.currencyType,
+        account.amount,
+        account.amountUsd,
+      ]);
+      row.getCell(4).numFmt = CURRENCY_FORMAT;
+      row.getCell(5).numFmt = CURRENCY_FORMAT;
     }
-    sheet.getColumn('amount').numFmt = CURRENCY_FORMAT;
-    sheet.getColumn('amountUsd').numFmt = CURRENCY_FORMAT;
   }
 
-  // Two independent tables stacked in one sheet, scoped to `date` — not the
-  // all-time breakdowns /overview shows. Built row-by-row (not via
-  // `sheet.columns`, which only supports one header row per sheet).
+  // Two independent tables stacked in one sheet, both scoped to `date` —
+  // not the all-time breakdowns /overview shows.
   private addRevenueBreakdownSheet(
     workbook: Workbook,
     data: DailyExportData,
   ): void {
     const sheet = workbook.addWorksheet('Revenue Breakdown');
-    [22, 16, 16, 16, 14, 12].forEach((width, index) => {
-      sheet.getColumn(index + 1).width = width;
-    });
+    this.setColumnWidths(sheet, [22, 16, 16, 16, 14, 12]);
+    this.addTitleRow(sheet, data.date, 6);
 
     this.boldRow(sheet.addRow(['Revenue by Currency']));
-    const currencyHeader = sheet.addRow([
-      'Currency',
-      'Total (native)',
-      'Total (USD)',
-      '% of Total',
-    ]);
-    this.boldRow(currencyHeader);
+    this.boldRow(
+      sheet.addRow(['Currency', 'Total (native)', 'Total (USD)', '% of Total']),
+    );
     for (const item of data.revenueByCurrency) {
       const row = sheet.addRow([
         item.currency,
@@ -142,15 +145,16 @@ export class ReportExportService {
     sheet.addRow([]);
 
     this.boldRow(sheet.addRow(['Revenue by Bank Account']));
-    const bankAccountHeader = sheet.addRow([
-      'Bank Name',
-      'Account Type',
-      'Currency',
-      'Revenue (native)',
-      'Revenue (USD)',
-      'Sales Count',
-    ]);
-    this.boldRow(bankAccountHeader);
+    this.boldRow(
+      sheet.addRow([
+        'Bank Name',
+        'Account Type',
+        'Currency',
+        'Revenue (native)',
+        'Revenue (USD)',
+        'Sales Count',
+      ]),
+    );
     for (const item of data.revenueByBankAccount) {
       const row = sheet.addRow([
         item.bankName,
@@ -163,6 +167,28 @@ export class ReportExportService {
       if (item.totalRevenue !== null) row.getCell(4).numFmt = CURRENCY_FORMAT;
       row.getCell(5).numFmt = CURRENCY_FORMAT;
     }
+  }
+
+  // Every sheet gets the same title so it's unambiguous which day it covers
+  // even once the file has been saved, renamed, or opened weeks later —
+  // "Report date: 2026-08-18", not a relative "Today" that goes stale.
+  // Merged across the sheet's full column count and followed by a blank
+  // spacer row before the real header.
+  private addTitleRow(
+    sheet: Worksheet,
+    date: string,
+    columnSpan: number,
+  ): void {
+    const row = sheet.addRow([`Report date: ${date}`]);
+    row.font = { bold: true, size: 12 };
+    if (columnSpan > 1) sheet.mergeCells(row.number, 1, row.number, columnSpan);
+    sheet.addRow([]);
+  }
+
+  private setColumnWidths(sheet: Worksheet, widths: number[]): void {
+    widths.forEach((width, index) => {
+      sheet.getColumn(index + 1).width = width;
+    });
   }
 
   private boldRow(row: Row): void {

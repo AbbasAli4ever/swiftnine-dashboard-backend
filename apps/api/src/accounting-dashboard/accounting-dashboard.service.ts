@@ -371,11 +371,44 @@ export class AccountingDashboardService {
         salesCount,
         avgSaleUsd,
       },
+      // Zero-filled for every currency actually in use by a bank account in
+      // this workspace — getRevenueByCurrency itself only returns
+      // currencies with activity in range (fine for /overview and
+      // /reports/breakdown, which already document that), but a printed
+      // spreadsheet reads as incomplete if PKR silently vanishes on a day
+      // with only USD sales while an HBL/PKR account still exists.
+      revenueByCurrency: this.fillMissingCurrencies(
+        revenueByCurrency,
+        balancesByAccount,
+      ),
       balancesByAccount,
-      revenueByCurrency,
       revenueByBankAccount,
       transactions,
     };
+  }
+
+  // Adds a zero-value row for every currency that has a bank account in
+  // this workspace but no revenue in range — export-only; the shared
+  // getRevenueByCurrency stays as-is for /overview and /reports/breakdown,
+  // which already document "no activity in range → absent, not zeroed."
+  private fillMissingCurrencies(
+    revenueByCurrency: CurrencyRevenueItem[],
+    balancesByAccount: BankAccountBalanceItem[],
+  ): CurrencyRevenueItem[] {
+    const present = new Set(revenueByCurrency.map((item) => item.currency));
+    const missing = [
+      ...new Set(balancesByAccount.map((account) => account.currencyType)),
+    ].filter((currency) => !present.has(currency));
+
+    return [
+      ...revenueByCurrency,
+      ...missing.map((currency) => ({
+        currency,
+        total: 0,
+        totalUsd: 0,
+        percent: 0,
+      })),
+    ];
   }
 
   // Every bank account's current balance, uncapped — unlike
