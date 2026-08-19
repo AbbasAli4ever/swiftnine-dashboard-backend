@@ -32,7 +32,7 @@ export class CreateTransactionDto extends createZodDto(
     type: String,
     format: 'uuid',
     description:
-      "Id of the bank account this transaction affects. Must already exist, and its currencyType must match this transaction's currency.",
+      "Id of the bank account this transaction affects. Must already exist — its currencyType does not need to match this transaction's currency; an INTERNATIONAL account can take any currency. Exception: a LOCAL account only ever accepts PKR.",
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
   bankAccountId: string = '';
@@ -47,7 +47,8 @@ export class CreateTransactionDto extends createZodDto(
 
   @ApiPropertyOptional({
     enum: CURRENCY_VALUES,
-    description: 'Currency the transaction was settled in',
+    description:
+      'Currency the transaction was settled in. Any value is accepted for an INTERNATIONAL bank account; a LOCAL bank account only accepts PKR.',
     default: 'USD',
   })
   currency: (typeof CURRENCY_VALUES)[number] = 'USD';

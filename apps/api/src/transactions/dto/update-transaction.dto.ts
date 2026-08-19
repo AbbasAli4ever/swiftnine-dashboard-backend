@@ -49,7 +49,7 @@ export class UpdateTransactionDto extends createZodDto(
     type: String,
     format: 'uuid',
     description:
-      "Move this transaction to a different bank account. Its currencyType must match this transaction's currency.",
+      "Move this transaction to a different bank account. Its currencyType does not need to match this transaction's currency — unless it's a LOCAL account, which only ever accepts PKR.",
   })
   bankAccountId?: string;
 
@@ -62,7 +62,8 @@ export class UpdateTransactionDto extends createZodDto(
 
   @ApiPropertyOptional({
     enum: CURRENCY_VALUES,
-    description: 'Currency the transaction was settled in',
+    description:
+      'Currency the transaction was settled in. Any value is accepted for an INTERNATIONAL bank account; a LOCAL bank account only accepts PKR.',
   })
   currency?: (typeof CURRENCY_VALUES)[number];
 

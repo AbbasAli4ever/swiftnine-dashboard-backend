@@ -13,7 +13,7 @@ import type {
 import {
   BANK_ACCOUNT_NOT_FOUND,
   CLIENT_NOT_FOUND,
-  TRANSACTION_CURRENCY_MISMATCH,
+  TRANSACTION_LOCAL_ACCOUNT_CURRENCY,
   TRANSACTION_NOT_FOUND,
   TRANSACTION_REF_ID_TAKEN,
   TRANSACTION_SELECT,
@@ -56,11 +56,14 @@ export class TransactionService {
     if (existing) throw new ConflictException(TRANSACTION_REF_ID_TAKEN);
 
     const client = await this.findClientOrThrow(workspaceId, dto.clientId);
+    // Existence/workspace-scope check, plus the one remaining currency rule:
+    // a LOCAL account (Pakistan) only ever takes PKR — INTERNATIONAL
+    // accounts (Whop, Slash, ...) take any currency interchangeably.
     const bankAccount = await this.findBankAccountOrThrow(
       workspaceId,
       dto.bankAccountId,
     );
-    this.assertCurrencyMatches(dto.currency, bankAccount);
+    this.assertLocalAccountCurrency(bankAccount.accountType, dto.currency);
 
     const transaction = await this.prisma.transaction.create({
       data: {
@@ -166,26 +169,32 @@ export class TransactionService {
       updateData.saleDate = new Date(dto.saleDate);
     if (dto.description !== undefined) updateData.description = dto.description;
 
-    const balanceFieldsChanged =
-      dto.bankAccountId !== undefined ||
-      dto.saleAmount !== undefined ||
-      dto.currency !== undefined;
-
-    if (balanceFieldsChanged) {
-      const newBankAccountId = dto.bankAccountId ?? transaction.bankAccountId;
-      const newCurrency = dto.currency ?? transaction.currency;
-      const newAmount = dto.saleAmount ?? transaction.saleAmount;
-
-      const newBankAccount = await this.findBankAccountOrThrow(
+    // bankAccountId and currency no longer constrain each other exactly
+    // (any currency is fine on an INTERNATIONAL account), but the
+    // LOCAL-account-must-be-PKR rule still has to hold for whichever
+    // account/currency pair the transaction ends up with. Whichever one of
+    // the two is changing gets checked against the other's effective
+    // (new-or-existing) value; if neither changes there's nothing to
+    // re-validate.
+    if (dto.bankAccountId !== undefined) {
+      const bankAccount = await this.findBankAccountOrThrow(
         workspaceId,
-        newBankAccountId,
+        dto.bankAccountId,
       );
-      this.assertCurrencyMatches(newCurrency, newBankAccount);
-
-      updateData.bankAccount = { connect: { id: newBankAccountId } };
-      updateData.saleAmount = newAmount;
-      updateData.currency = newCurrency;
+      this.assertLocalAccountCurrency(
+        bankAccount.accountType,
+        dto.currency ?? transaction.currency,
+      );
+      updateData.bankAccount = { connect: { id: dto.bankAccountId } };
+    } else if (dto.currency !== undefined) {
+      const bankAccount = await this.findBankAccountOrThrow(
+        workspaceId,
+        transaction.bankAccountId,
+      );
+      this.assertLocalAccountCurrency(bankAccount.accountType, dto.currency);
     }
+    if (dto.saleAmount !== undefined) updateData.saleAmount = dto.saleAmount;
+    if (dto.currency !== undefined) updateData.currency = dto.currency;
 
     if (Object.keys(updateData).length === 0) return transaction;
 
@@ -246,21 +255,26 @@ export class TransactionService {
   private async findBankAccountOrThrow(
     workspaceId: string,
     bankAccountId: string,
-  ): Promise<{ id: string; currencyType: Currency }> {
+  ): Promise<{ id: string; accountType: AccountType }> {
     const bankAccount = await this.prisma.bankAccount.findFirst({
       where: { id: bankAccountId, workspaceId },
-      select: { id: true, currencyType: true },
+      select: { id: true, accountType: true },
     });
     if (!bankAccount) throw new NotFoundException(BANK_ACCOUNT_NOT_FOUND);
     return bankAccount;
   }
 
-  private assertCurrencyMatches(
+  // The one remaining currency constraint: LOCAL accounts (Pakistan) only
+  // ever hold PKR, so a transaction routed through one must be PKR too.
+  // INTERNATIONAL accounts (Whop, Slash, ...) have no such restriction —
+  // any currency is fine, and doesn't have to match the account's own
+  // currencyType either (see the decoupling follow-up in the changelog).
+  private assertLocalAccountCurrency(
+    accountType: AccountType,
     currency: Currency,
-    bankAccount: { currencyType: Currency },
   ): void {
-    if (currency !== bankAccount.currencyType) {
-      throw new BadRequestException(TRANSACTION_CURRENCY_MISMATCH);
+    if (accountType === 'LOCAL' && currency !== 'PKR') {
+      throw new BadRequestException(TRANSACTION_LOCAL_ACCOUNT_CURRENCY);
     }
   }
 

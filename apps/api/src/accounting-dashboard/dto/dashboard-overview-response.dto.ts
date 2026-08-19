@@ -113,7 +113,8 @@ export class BankAccountRevenueItemDto {
   @ApiProperty({
     enum: CURRENCY_VALUES,
     example: 'USD',
-    description: "The account's own currency — the unit of totalRevenue",
+    description:
+      "The account's own declared currency (its balance's unit) — not necessarily the currency of every transaction routed through it; a transaction's currency doesn't have to match its bank account's currencyType.",
   })
   currencyType!: (typeof CURRENCY_VALUES)[number];
 
@@ -121,7 +122,7 @@ export class BankAccountRevenueItemDto {
     example: 28400,
     nullable: true,
     description:
-      "All-time revenue in the account's own currency. Null in the edge case where the account has sales in more than one currency, since summing those natively would be meaningless — use totalRevenueUsd then.",
+      "All-time revenue in the account's own declared currency. Null whenever that isn't unambiguous — the account has sales in more than one currency, or its only sales are in a currency other than its own currencyType — since summing or mislabeling those natively would be meaningless. Use totalRevenueUsd instead in that case.",
   })
   totalRevenue!: number | null;
 

@@ -5,8 +5,8 @@ export const TRANSACTION_REF_ID_TAKEN =
   'A transaction with this reference ID already exists';
 export const CLIENT_NOT_FOUND = 'Client not found';
 export const BANK_ACCOUNT_NOT_FOUND = 'Bank account not found';
-export const TRANSACTION_CURRENCY_MISMATCH =
-  "Transaction currency must match the bank account's currency";
+export const TRANSACTION_LOCAL_ACCOUNT_CURRENCY =
+  'A LOCAL bank account only accepts PKR transactions';
 
 export const CURRENCY_VALUES = [
   'USD',
