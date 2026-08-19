@@ -208,7 +208,7 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Export an accounting report as an .xlsx workbook',
     description:
-      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. Four sheets: Transactions, Sales Summary (one row per day for a range, plus a Total row), Balances by Account (current, not as of the period), and Revenue Breakdown by currency and bank account — every sheet titled with the active period and filters.',
+      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. One sheet, one row per matching transaction — Date, Revenue (USD), Currency, Client, Bank — mirroring the Reports table exactly, with or without filters applied.',
   })
   @ApiQuery({
     name: 'date',
