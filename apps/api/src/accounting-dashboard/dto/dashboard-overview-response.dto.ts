@@ -236,7 +236,7 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({
     type: [BankAccountRevenueItemDto],
     description:
-      'All-time revenue per bank account — every account in the workspace (LOCAL and INTERNATIONAL), uncapped, sorted by totalRevenueUsd descending. Accounts with no sales appear with 0. Transaction-driven, not balance-driven: for current balances see bankAccounts.',
+      "Revenue per bank account — every account in the workspace (LOCAL and INTERNATIONAL), uncapped, sorted by totalRevenueUsd descending. Accounts with no sales in the window appear with 0. Scoped to the request's `period`: today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly) — not all-time. Transaction-driven, not balance-driven: for current balances see bankAccounts.",
   })
   revenueByBankAccount!: BankAccountRevenueItemDto[];
 

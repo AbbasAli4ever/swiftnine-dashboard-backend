@@ -1,9 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { REPORTS_BREAKDOWN_MAX_RANGE_DAYS } from '../accounting-dashboard.constants';
-
-const DATE_FORMAT_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+import {
+  ACCOUNTING_REPORTS_MAX_RANGE_DAYS,
+  DATE_FORMAT_REGEX,
+  daysBetweenDates,
+} from '../accounting-dashboard.constants';
 
 export const ReportsBreakdownQuerySchema = z
   .object({
@@ -19,15 +20,11 @@ export const ReportsBreakdownQuerySchema = z
     path: ['dateTo'],
   })
   .refine(
-    (value) => {
-      const days =
-        (Date.parse(`${value.dateTo}T00:00:00.000Z`) -
-          Date.parse(`${value.dateFrom}T00:00:00.000Z`)) /
-        MS_PER_DAY;
-      return days <= REPORTS_BREAKDOWN_MAX_RANGE_DAYS;
-    },
+    (value) =>
+      daysBetweenDates(value.dateFrom, value.dateTo) <=
+      ACCOUNTING_REPORTS_MAX_RANGE_DAYS,
     {
-      message: `Range cannot exceed ${REPORTS_BREAKDOWN_MAX_RANGE_DAYS} days`,
+      message: `Range cannot exceed ${ACCOUNTING_REPORTS_MAX_RANGE_DAYS} days`,
       path: ['dateTo'],
     },
   );

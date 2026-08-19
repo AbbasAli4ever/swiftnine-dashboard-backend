@@ -15,6 +15,18 @@ export const BANK_ACCOUNT_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
+export const BANK_ACCOUNT_TRANSACTION_SELECT = {
+  id: true,
+  refId: true,
+  saleAmount: true,
+  currency: true,
+  saleDate: true,
+  description: true,
+  createdAt: true,
+  updatedAt: true,
+  client: { select: { id: true, clientName: true } },
+} satisfies Prisma.TransactionSelect;
+
 export const BANK_ACCOUNT_SELECT = {
   id: true,
   bankName: true,
@@ -24,6 +36,11 @@ export const BANK_ACCOUNT_SELECT = {
   logoUrl: true,
   createdAt: true,
   updatedAt: true,
+  _count: { select: { transactions: true } },
+  transactions: {
+    select: BANK_ACCOUNT_TRANSACTION_SELECT,
+    orderBy: { saleDate: 'desc' },
+  },
 } satisfies Prisma.BankAccountSelect;
 
 export const BANK_LOGO_KEY_PREFIX = 'accounts_dashboard_assets/bank-logos';

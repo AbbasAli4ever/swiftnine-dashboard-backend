@@ -126,7 +126,11 @@ export class BankAccountController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List and search bank accounts' })
+  @ApiOperation({
+    summary: 'List and search bank accounts',
+    description:
+      'Each bank account includes a transaction count and every linked transaction (with the client it came from).',
+  })
   @ApiQuery({
     name: 'q',
     required: false,

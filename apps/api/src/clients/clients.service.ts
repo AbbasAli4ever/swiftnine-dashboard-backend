@@ -36,26 +36,33 @@ type RawClientData = Prisma.ClientsGetPayload<{
   select: typeof CLIENTS_SELECT;
 }>;
 
+type MappedTransaction<T extends { saleAmount: Prisma.Decimal }> = Omit<
+  T,
+  'saleAmount'
+> & { saleAmount: number };
+
+function mapTransactions<T extends { saleAmount: Prisma.Decimal }>(
+  transactions: T[],
+): MappedTransaction<T>[] {
+  return transactions.map((transaction) => ({
+    ...transaction,
+    saleAmount: Number(transaction.saleAmount),
+  }));
+}
+
 export type ClientData = Omit<
   RawClientData,
   'transactions' | 'totalRevenue'
 > & {
-  transactions: (Omit<RawClientData['transactions'][number], 'saleAmount'> & {
-    saleAmount: number;
-  })[];
+  transactions: MappedTransaction<RawClientData['transactions'][number]>[];
   totalSaleAmount: CurrencySaleTotal[];
   totalRevenue: number;
 };
 
 function toClientData(row: RawClientData): ClientData {
-  const transactions = row.transactions.map((transaction) => ({
-    ...transaction,
-    saleAmount: Number(transaction.saleAmount),
-  }));
-
   return {
     ...row,
-    transactions,
+    transactions: mapTransactions(row.transactions),
     totalSaleAmount: sumByCurrency(row.transactions),
     totalRevenue: Number(row.totalRevenue),
   };
@@ -69,15 +76,16 @@ export type ClientListItemData = Omit<
   RawClientListItem,
   'transactions' | 'totalRevenue'
 > & {
+  transactions: MappedTransaction<RawClientListItem['transactions'][number]>[];
   totalSaleAmount: CurrencySaleTotal[];
   totalRevenue: number;
 };
 
 function toClientListItemData(row: RawClientListItem): ClientListItemData {
-  const { transactions, ...rest } = row;
   return {
-    ...rest,
-    totalSaleAmount: sumByCurrency(transactions),
+    ...row,
+    transactions: mapTransactions(row.transactions),
+    totalSaleAmount: sumByCurrency(row.transactions),
     totalRevenue: Number(row.totalRevenue),
   };
 }

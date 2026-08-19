@@ -220,7 +220,7 @@ This partly reverts the direction of the original migration, which had converted
 - **The revenue/balance divergence was demonstrated, not just argued.** With `PATCH /bank-accounts` setting Kraken's balance to 5000 while it had zero sales, one response held `totalBalanceUsd: 6100` against a revenue total of `1100`. Also confirmed `PATCH /transactions/:id` (600→500) correctly reverses and re-applies the balance delta, so balance follows edits while revenue reflects the current row.
 - `revenueByCurrency` returns **`[]`** on a workspace with no transactions, where the old balance-driven `balancesByCurrency` always returned one row per currency present. Frontend must handle the empty array rather than assuming a row per currency.
 
-## Follow-up: [2026-08-17] Transactions no longer move bank account balances
+## Follow-up: [2026-08-18] Transactions no longer move bank account balances
 
 Product decision: balances stop being derived from transaction activity. `BankAccount.amount` is now **purely accountant-maintained** — the only way it changes is the existing manual `PATCH /bank-accounts/:id` endpoint. Creating, editing, or deleting a `Transaction` no longer has any side effect on the linked account's balance.
 
@@ -236,7 +236,7 @@ Product decision: balances stop being derived from transaction activity. `BankAc
 - **Verified against the real dev Postgres DB** via the actual `TransactionService`/`PrismaService` classes (not mocks, not raw SQL) against an isolated throwaway workspace: created a transaction on a 1000 USD account → balance stayed `1000`. Moved the same transaction to a 50000 PKR account with a new amount → old account stayed `1000`, new account stayed `50000` (previously this would have reversed one and applied the other). Deleted it → balance still `50000`. Test fixtures cleaned up afterward, DB back at baseline.
 - Confirmed `PATCH /bank-accounts/:id` is untouched and remains the sole path to `amount`.
 
-## Follow-up: [2026-08-17] Date-ranged Reports breakdowns (`/reports/breakdown`)
+## Follow-up: [2026-08-18] Date-ranged Reports breakdowns (`/reports/breakdown`)
 
 Closes the gap `docs/accounting-reports-spec.md` §4.1 flagged: every breakdown behind `/overview` (revenue by bank account, by currency, top clients) was all-time only, blocking Monthly/Yearly Reports and Analytics as specified in the UI/UX brief.
 
@@ -251,7 +251,7 @@ Closes the gap `docs/accounting-reports-spec.md` §4.1 flagged: every breakdown 
 - `tsc`, `eslint`, `nest build` clean.
 - Verified against the real dev Postgres DB via the actual service classes against an isolated throwaway workspace: a 300 USD sale and a 2780 PKR sale (= 10 USD at the fixed rate) both dated today. `getReportsBreakdown(workspaceId, today, today)` returned `revenueByBankAccount` USD native total `300`, PKR account `totalRevenueUsd: 10`; `revenueByCurrency` USD total `300`; `topClients` summed to `310` USD for the one client. `getOverview()` (no range passed) independently confirmed the same `300` USD total on the same account — proving the optional-range change didn't alter Overview's all-time numbers.
 
-## Follow-up: [2026-08-17] Excel export (`/reports/export`)
+## Follow-up: [2026-08-18] Excel export (`/reports/export`)
 
 Adds a one-click `.xlsx` export of a single date's full accounting picture — replacing the last piece of the manual WhatsApp-report habit the UI/UX brief's §1 calls out.
 
@@ -270,3 +270,73 @@ Adds a one-click `.xlsx` export of a single date's full accounting picture — r
 - `tsc`, `eslint`, `nest build` clean.
 - Verified against the real dev Postgres DB via the actual service classes: exported a day with 2 transactions (300 USD + 2780 PKR) — `salesCount: 2`, `revenueUsd: 310`, `avgSaleUsd: 155`, all matching independently. Parsed the resulting `.xlsx` buffer back with exceljs's own reader: confirmed all 4 sheet names present, `Transactions` sheet has header + 2 rows, `Balances by Account` has header + 2 accounts.
 - **Zero-transaction-day edge case checked explicitly**: exported a date with no transactions — `salesCount: 0`, `avgSaleUsd: 0` (confirmed not `NaN`), workbook still generated without error.
+
+## Follow-up: [2026-08-18] Export sheets zero-fill currencies and label their report date
+
+Two small fixes to the Excel export from the previous follow-up, based on review:
+
+- **`getDailyExportData`'s `revenueByCurrency` is now zero-filled** for every currency that has a bank account in the workspace, via a new private `fillMissingCurrencies(revenueByCurrency, balancesByAccount)` on `AccountingDashboardService`. Previously a currency with zero sales that day (e.g. PKR, if only USD sales happened) was silently absent from the "Revenue by Currency" table — correct for `/overview`/`/reports/breakdown`, which already document that as intentional, but confusing in a printed spreadsheet where an HBL/PKR account still visibly exists elsewhere on the same file. This is **export-only** — the shared `getRevenueByCurrency` and the `/reports/breakdown` JSON response are untouched.
+- **Every export sheet now opens with a bold "Report date: `<date>`" row**, merged across the sheet's column count, via a new `ReportExportService.addTitleRow()` helper. Deliberately the concrete date, not a relative "Today" label, so the file still makes sense once saved, renamed, or opened weeks later. Required switching `addTransactionsSheet`/`addSalesSummarySheet`/`addBalancesSheet` off the `sheet.columns` shorthand (which always writes its own header into row 1, leaving no room for a title above it) to the same manual row-by-row construction `addRevenueBreakdownSheet` already used.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- Verified live against the demo workspace: exported a date where only 1 of 3 accounts had a sale — the previously-missing currency now shows `0 | 0 | 0` in "Revenue by Currency" instead of being absent, and all four sheets open with the correct "Report date: 2026-08-15" title (confirmed by reading the generated `.xlsx` back with exceljs).
+
+## Follow-up: [2026-08-18] Clients and bank accounts now embed every linked transaction
+
+Both `GET /clients` and `GET /bank-accounts` return every linked transaction per row now, not just an aggregate.
+
+- **Clients**: `GET /clients/:clientId` already embedded full `transactions` (via `CLIENTS_SELECT`) — only the **list** endpoint (`CLIENTS_LIST_SELECT`) stripped them down to `{ saleAmount, currency }` for computing `totalSaleAmount`. `CLIENTS_LIST_SELECT` now mirrors `CLIENTS_SELECT` exactly, and `clients.service.ts`'s `toClientListItemData` keeps the mapped transactions instead of discarding them (`const { transactions, ...rest } = row` → gone). A shared `mapTransactions()` helper replaced the duplicated `saleAmount: Number(...)` mapping that both `toClientData` and `toClientListItemData` had.
+- **Each embedded transaction now also carries its `bankAccount` (`{ id, bankName, logoUrl }`)** — added to `CLIENT_TRANSACTION_SELECT`. This is the closest available stand-in for "payment method" now that there's no `PaymentPlatform` enum (removed in an earlier follow-up) — which account a payment came in through is the nearest equivalent.
+- **Bank accounts had no transaction embedding at all before this** — `BANK_ACCOUNT_SELECT` (used by every bank-account endpoint: create/update/findOne/findAll) gained a `transactions` relation (new `BANK_ACCOUNT_TRANSACTION_SELECT`: `id, refId, saleAmount, currency, saleDate, description, createdAt, updatedAt`, plus `client: { id, clientName }`) and a `_count.transactions`, ordered `saleDate: 'desc'`. No separate list/single split was introduced (bank-accounts never had one) — one select, used everywhere, mirroring where the clients module ended up after this same change.
+- **Not changed**: `Transaction`'s existing `orderBy: { createdAt: 'desc' }` on the clients side was left as-is — an earlier draft of this change accidentally switched it to `saleDate: 'desc'`, caught and reverted before shipping since that wasn't asked for.
+- **Known tradeoff, not addressed here**: transactions are embedded in full, unpaginated, on every list row — for a client or account with a very large transaction history, a list response could get large. Matches the existing precedent of `GET /clients/:clientId` (already unpaginated) and was requested explicitly ("send all the transactions"); flagged here in case it becomes a real problem once workspaces have more data.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- Verified live against the demo workspace over real HTTP: `GET /clients?limit=1` returned a client with 5 embedded transactions (each with its `bankAccount`), matching `_count.transactions`. `GET /bank-accounts?limit=1` returned an account with 4 embedded transactions (each with its `client`), matching `_count.transactions`.
+- Confirmed `GET /clients/:id` and `GET /bank-accounts/:id` (single-item) still return the same shape as before, transaction counts matching the list view.
+- Confirmed `POST /bank-accounts` (a brand-new account with no transactions yet) returns `transactions: []` and `_count.transactions: 0` without error, then cleaned up via `DELETE /bank-accounts/:id`.
+
+## Follow-up: [2026-08-18] Overview's `revenueByBankAccount` now respects `period` (today/weekly/monthly/yearly)
+
+`GET /accounting-dashboard/overview?period=` previously used `period` for exactly one thing: the bucket granularity of `revenueOverview.points`. Every other section — including `revenueByBankAccount` — was silently all-time regardless of `period` (documented as a known "trap" in `docs/accounting-reports-spec.md`). `revenueByBankAccount` now scopes to a current window based on `period`:
+
+| `period` | Window |
+|---|---|
+| `daily` | Today (UTC calendar day) |
+| `weekly` | Trailing 7 days including today (rolling, **not** a calendar week — matches `getBucketConfig`'s own existing definition of "weekly" elsewhere in this file) |
+| `monthly` | Month-to-date (1st of the current month through today) |
+| `yearly` | Year-to-date (Jan 1 through today) |
+
+- New private `getCurrentPeriodRange(period, now)` on `AccountingDashboardService`, distinct from `getBucketConfig` (which computes an N-*bucket* trailing window for the chart, not a single current-period filter). All boundaries UTC, matching this file's newer methods.
+- `getOverview()` now calls `this.getRevenueByBankAccount(workspaceId, this.getCurrentPeriodRange(period, new Date()))` instead of the no-range (all-time) call.
+- **Scoped to `revenueByBankAccount` only, on purpose.** `revenueByCurrency` and `topClients` were not touched and remain all-time on `/overview` regardless of `period` — not asked for, and changing them would be a second, separate breaking change bundled into this one.
+- Doc corrections made while here: the stale comment above `getRevenueByBankAccount` (referenced "all-time" and outdated migration context), the `period` `@ApiQuery` description and the `overview` endpoint's `@ApiOperation` description (previously described fields — "balances by currency", "international account balances ranked descending" — that don't match the current response shape), the `revenueByBankAccount` field description in `dashboard-overview-response.dto.ts`, and the "Trap" callout in `docs/accounting-reports-spec.md` (updated rather than deleted, since half of it — `revenueByCurrency`/`topClients` staying all-time — is still true).
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- Verified live against the demo workspace (15 seeded transactions across today, this week, this month, and last month) for all four `period` values — every number hand-computed from the known seed data and cross-checked against the response:
+  - `daily`: Whop 1,200 USD/1 sale, Slash 850 USD/1, HBL 42,000 PKR (151.08 USD)/1 — today's 3 transactions only.
+  - `weekly`: Whop 3,600/2, Slash 2,450/2, HBL 42,000 (151.08)/1 — adds the two sales from 3 and 5 days ago.
+  - `monthly`: Whop 6,250/4, Slash 5,550/3, HBL 120,000 (431.65)/2 — matches the independently-computed `/reports/breakdown?dateFrom=<month-start>&dateTo=<today>` result exactly.
+  - `yearly`: Whop 9,750/6, Slash 9,500/5, HBL 237,000 (852.52)/4 — matches the pre-change all-time total exactly, since every seeded transaction falls within the current year.
+  - `revenueByCurrency` confirmed byte-for-byte identical between `period=daily` and `period=yearly` — proving it stayed all-time as intended, not accidentally scoped along with `revenueByBankAccount`.
+
+## Follow-up: [2026-08-18] Excel export now accepts a date range, not just a single date
+
+`GET /accounting-dashboard/reports/export` previously took only `date` (single day, optional, defaulting to today). It now also accepts `dateFrom`/`dateTo` for a range — `date` still works exactly as before for anyone already calling it.
+
+- **`ExportReportQuerySchema`** (`export-report-query.dto.ts`) gained `dateFrom`/`dateTo`, both optional, with four `.refine()`s: `date` and `dateFrom`/`dateTo` are mutually exclusive; `dateFrom`/`dateTo` must be provided together, not just one side; `dateFrom <= dateTo`; and the span is capped, reusing the same limit `/reports/breakdown` uses.
+- **Renamed `REPORTS_BREAKDOWN_MAX_RANGE_DAYS` → `ACCOUNTING_REPORTS_MAX_RANGE_DAYS`** (`accounting-dashboard.constants.ts`) since it's no longer breakdown-specific, and extracted `DATE_FORMAT_REGEX` / `daysBetweenDates()` there too — both the breakdown DTO and the new export DTO needed the identical YYYY-MM-DD format check and day-count math, and duplicating that (rather than importing it once) is exactly the kind of thing that quietly drifts between the two later.
+- **`AccountingDashboardService.getDailyExportData(workspaceId, date)` → `getExportData(workspaceId, dateFrom, dateTo)`.** For the old single-date call, `dateFrom === dateTo` and behavior is identical. `DailyExportData` → `AccountingExportData`: `date`/`salesSummary` replaced by `dailyBreakdown: ExportDailyBreakdownRow[]` (one row per calendar day in range, zero-filled, computed via a new `buildDailyBreakdown()`) plus `totals: ExportTotals` for the whole span.
+  - **`buildDailyBreakdown` is computed in memory from the already-fetched `transactions` array — no per-day queries.** A 400-day range would otherwise mean 400 sequential round-trips; instead the single existing `getTransactionsForRange` result is grouped by day in JS.
+  - `totals` still comes from the original `sumRevenueUsd`/`transaction.count` calls over the whole range, not by summing the (already-rounded) per-day rows — avoids compounding rounding drift between the daily rows and the total.
+- **`ReportExportService.buildDailyReportWorkbook` → `buildReportWorkbook`.** The "Sales Summary" sheet now renders one row per day, plus a bold "Total" row — but only when the range spans more than one day, since for a single date the Total row would just repeat the one data row above it. Every sheet's title row now reads "Report period: `<dateFrom>` to `<dateTo>`" for a range, or unchanged "Report date: `<date>`" for a single day (`dateFrom === dateTo`).
+- **Controller route unchanged**, `GET /accounting-dashboard/reports/export`; handler renamed `exportDailyReport` → `exportReport`. Filename becomes `accounting-report-<dateFrom>_to_<dateTo>.xlsx` for a range, unchanged `accounting-report-<date>.xlsx` for a single day.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- Verified live against the demo workspace: `?date=2026-08-18` (unchanged path) still produces an identical single-row Sales Summary sheet titled "Report date: 2026-08-18".
+- `?dateFrom=2026-08-01&dateTo=2026-08-18` produces an 18-row Sales Summary (one per day, zero-filled on quiet days) plus a Total row reading **12,231.65 / 9 sales / 1,359.07 avg** — cross-checked against the independently-computed `/overview?period=monthly` result from the previous follow-up (6,250 + 5,550 + 431.65 = 12,231.65, 4 + 3 + 2 = 9 sales) — exact match. All four sheets titled "Report period: 2026-08-01 to 2026-08-18".
+- Validation confirmed live, all returning `422`: `date` + `dateFrom` together; `dateFrom` without `dateTo`; `dateFrom` after `dateTo`; a >400-day span.

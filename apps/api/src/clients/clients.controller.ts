@@ -97,7 +97,7 @@ export class ClientsController {
   @ApiOperation({
     summary: 'List and search clients',
     description:
-      'Each client includes a transaction count and a total sale amount per currency. Individual transactions are not embedded here — use GET /clients/:clientId for the full list.',
+      'Each client includes a transaction count, a total sale amount per currency, and every linked transaction (with the bank account it came through).',
   })
   @ApiQuery({
     name: 'q',
