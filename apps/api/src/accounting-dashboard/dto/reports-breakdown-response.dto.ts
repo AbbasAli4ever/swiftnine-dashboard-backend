@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  BalanceSummaryDto,
   BankAccountRevenueItemDto,
   CurrencyRevenueItemDto,
   TopClientRevenueItemDto,
@@ -31,4 +32,11 @@ export class ReportsBreakdownResponseDto {
       'Top clients by summed transaction revenue for the requested period only. Clients with no sales in the period are omitted (not zero-filled).',
   })
   topClients!: TopClientRevenueItemDto[];
+
+  @ApiProperty({
+    type: BalanceSummaryDto,
+    description:
+      'Current balances (not scoped to dateFrom/dateTo — there is no historical balance snapshot), narrowed to accounts matching bankAccountId/accountType/currency. clientId has no effect here.',
+  })
+  balances!: BalanceSummaryDto;
 }
