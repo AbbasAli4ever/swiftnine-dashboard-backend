@@ -340,3 +340,83 @@ Both `GET /clients` and `GET /bank-accounts` return every linked transaction per
 - Verified live against the demo workspace: `?date=2026-08-18` (unchanged path) still produces an identical single-row Sales Summary sheet titled "Report date: 2026-08-18".
 - `?dateFrom=2026-08-01&dateTo=2026-08-18` produces an 18-row Sales Summary (one per day, zero-filled on quiet days) plus a Total row reading **12,231.65 / 9 sales / 1,359.07 avg** — cross-checked against the independently-computed `/overview?period=monthly` result from the previous follow-up (6,250 + 5,550 + 431.65 = 12,231.65, 4 + 3 + 2 = 9 sales) — exact match. All four sheets titled "Report period: 2026-08-01 to 2026-08-18".
 - Validation confirmed live, all returning `422`: `date` + `dateFrom` together; `dateFrom` without `dateTo`; `dateFrom` after `dateTo`; a >400-day span.
+
+## Follow-up: [2026-08-18] Bug fix — `/overview?period=monthly` chart produced duplicate, missing and misaligned month buckets
+
+**Reported symptom:** the monthly filter on the Overview API "not working properly." Reproduced immediately on the dev host (UTC+5) — `revenueOverview.points` came back as:
+
+```
+2025-09, 2025-10, 2025-10, 2025-12, 2025-12, 2026-01, 2026-03, 2026-03, 2026-04, 2026-05, 2026-06, 2026-07
+```
+
+Three labels duplicated (`2025-10`, `2025-12`, `2026-03`), three months missing (`2025-11`, `2026-02`, and **the current month `2026-08` entirely**), and the two non-zero values wrong: `2026-06: 7669.42` / `2026-07: 12433.09` against true monthly totals of `2026-07: 7870.86` / `2026-08: 12231.65`.
+
+### Root cause — two compounding bugs in `getBucketConfig`
+
+1. **Local-time boundary construction.** `new Date(now.getFullYear(), now.getMonth(), 1)` builds *local* midnight. On UTC+5 that serialises to `2026-07-31T19:00:00Z` — the **previous month's last day**, not a month start. This is the identical bug the changelog records as "deliberately fixed" in `getMonthlyBreakdownForYear` via `Date.UTC`; `getBucketConfig` was simply never given the same treatment.
+2. **Postgres month-arithmetic clamping, amplified by (1).** `generate_series(..., '1 month')` anchored on a day-31 timestamp clamps to the shorter month's last day and then keeps clamping from the clamped value. Confirmed by querying Postgres directly with the buggy anchor: the steps walked `08-31 → 09-30 → 10-30 → 11-30 → 12-30 → 01-30 → 02-28 → 03-28 → 04-28 → 05-28 → 06-28 → 07-28`. Buckets therefore stopped lining up with months at all — each window straddled two real months (which is why the sums were wrong, not just the labels), and once combined with local-time label formatting, two adjacent drifted starts could format to the same month string while another month never appeared.
+
+Both were verified as the cause arithmetically, not inferred: the observed `2026-06: 7669.42` is exactly the sum of the five transactions falling in `[2026-06-28T19:00Z, 2026-07-28T19:00Z)`, and `2026-07: 12433.09` exactly the eight in `[2026-07-28T19:00Z, 2026-08-28T19:00Z)`.
+
+### Fix
+
+- **`getBucketConfig` now builds every boundary with `Date.UTC`** (and `setUTCDate` for the day/week steppers) instead of local-time constructors — for all four periods, not just `monthly`. Anchoring on **day 1** is what defeats bug (2): day 1 exists in every month, so Postgres never clamps. Verified directly against Postgres — a day-1 UTC anchor steps cleanly `2025-09-01 … 2026-08-01`.
+- **`formatMonth` and `formatBucketLabel` now read the bucket start with UTC getters** (`getUTCFullYear`/`getUTCMonth`) to match how the boundaries are constructed. `formatDay` already used `toISOString()` and needed no change.
+  - This also fixes a **latent bug in `getMonthlyBreakdownForYear`**, which shares `formatMonth`. Its boundaries were already correctly UTC, but the local-time formatter happened to produce right answers only on a *positive*-offset host; on a negative-offset host (e.g. UTC−5) `2026-01-01T00:00Z` would have formatted as `2025-12`, shifting every label back a month. Not the reported bug, but the same defect one layer over.
+- `getCurrentPeriodRange` (added in the `period`-scoping follow-up above) was already UTC and needed no change.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **`period=monthly` after the fix**: `2025-09 … 2026-08` — 12 sequential labels, no duplicates, no gaps, current month present as the final bucket. `2026-07: 7870.86`, `2026-08: 12231.65`.
+- **Cross-validated two independent ways.** `2026-08: 12231.65` matches `revenueSummary.thisMonth.totalUsd` (computed by a completely separate code path) exactly. And `/monthly-breakdown?year=2026` — a different method, different SQL bounds — independently returns `2026-07: 7870.86` / `2026-08: 12231.65`, agreeing with the chart to the cent where previously the two disagreed.
+- **No regression on the other three periods**, each checked for duplicate labels (none) and correct values: `daily` 7 buckets (`2026-08-13: 1600`, `2026-08-15: 2400`, `2026-08-18: 2201.08` — all matching seeded data); `weekly` 8 buckets at clean 7-day steps; `yearly` 5 buckets, `2026: 20102.52` = the sum of both non-zero months (12,231.65 + 7,870.86). `/monthly-breakdown` re-checked for the shared-`formatMonth` change: `2026-01 … 2026-12`, no duplicates.
+- **Calendar edge cases checked** (not just the current date): a 12-bucket monthly window computed in January correctly rolls back into the prior year (`2025-02 … 2026-01`), since `Date.UTC` normalises a negative month index; February and December windows likewise correct.
+
+
+## Follow-up: [2026-08-18] `revenueByCurrency` on Overview now also respects `period`
+
+Extends the `period`-scoping follow-up above: `revenueByBankAccount` was made period-scoped there, but `revenueByCurrency` was deliberately left all-time at the time ("not asked for"). Now asked for — `revenueByCurrency` scopes to the same current window as `revenueByBankAccount`.
+
+- **`getOverview()`** now computes `getCurrentPeriodRange(period, new Date())` once and passes it to *both* `getRevenueByBankAccount` and `getRevenueByCurrency`, instead of computing it inline only for the bank-account call and calling `getRevenueByCurrency(workspaceId)` with no range. One shared range, two scoped calls.
+- **`topClients` is still untouched** — still all-time, still ranked by `Clients.totalRevenue`. Not asked for this round either; scoping it would need the same `getTopClientsByRevenue` treatment `/reports/breakdown` already has, not a trivial range param (see the reasoning in the `/reports/breakdown` follow-up above — `Clients.totalRevenue` has no date column to range against).
+- **Asymmetric zero-fill carries over unchanged and was re-verified**: `revenueByBankAccount` zero-fills every account in the workspace; `revenueByCurrency` only lists currencies with actual activity in the window (absent, not zeroed, when quiet) — this was already true for the all-time case and remains true now that both are period-scoped, confirmed live with a throwaway EUR account that had zero transactions.
+- Doc corrections made while here: the stale comment above `getRevenueByCurrency` (said "All-time revenue," matching the pattern already fixed on `getRevenueByBankAccount`'s comment), the `revenueByCurrency` field description in `dashboard-overview-response.dto.ts`, the `overview` endpoint's `@ApiOperation` and `period` `@ApiQuery` descriptions in the controller, and the "Trap" callout in `docs/accounting-reports-spec.md` (now only `topClients` is exempt from `period`, not both `revenueByCurrency` and `topClients`).
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **Full Overview response tested end-to-end for all four `period` values** against the demo workspace (not just the one field) — every section checked, not just the one that changed:
+  - `revenueByCurrency` scoped correctly and cross-validated against independent totals: `daily` USD 2,050 + PKR 151.08 = 2,201.08 = `revenueSummary.today.totalUsd`; `monthly` USD 11,800 + PKR 431.65 = 12,231.65 = `revenueSummary.thisMonth.totalUsd`; `yearly` USD 19,250 + PKR 852.52 = 20,102.52 = `revenueSummary.thisYear.totalUsd`. Three independent code paths agreeing exactly, for three different periods.
+  - `revenueByBankAccount` unchanged from the prior follow-up's verified values for all four periods (re-confirmed, no regression).
+  - **Confirmed correctly unaffected by this change**: `topClients` identical across all four periods; `balances.totalBalanceUsd` identical across all four (current-balance data, has no relationship to `period` at all); `bankAccounts.local`/`bankAccounts.international` counts identical across all four.
+  - `revenueOverview.points.length` still varies correctly by period (7/8/12/5) and the monthly chart still shows 12 sequential labels with no duplicates — re-confirmed no regression from the earlier bucket-drift fix.
+- **Zero-fill asymmetry re-verified live**: created a throwaway `EUR`/`LOCAL` bank account with no transactions. `revenueByBankAccount` listed it at `0` (zero-filled, as designed). `revenueByCurrency` correctly did **not** list `EUR` at all (no activity → absent, not zeroed) — same intentional asymmetry as before, now proven to hold under period-scoping too. Test account deleted after.
+
+## Follow-up: [2026-08-18] Reports list filters (`GET /transactions`) and matching filtered Excel export
+
+New Reports UI: a paginated transaction list with filters (Date Range, Client, Payment Platform, Currency, Account) and an Export Report button that exports whatever the filters currently show — defaulting to today when no date is chosen.
+
+**Assumptions made explicit before writing any code** (not asked to confirm, but stated so a wrong guess is easy to catch and correct):
+- "Payment Platform" in the UI maps to the existing `accountType` enum (`LOCAL`/`INTERNATIONAL`) — there is no `PaymentPlatform` field anymore (removed in an earlier follow-up), and this matches both the screenshot's "Pakistan Balance"/"International Balance" cards and an existing code comment that already calls international accounts "what used to be a platform." "Account" maps to a specific `bankAccountId`.
+- The list itself is `GET /transactions`, extended with the two filters it was missing — not a new endpoint. Matches the standing design decision that Reports reuses `/transactions` for per-transaction detail rather than duplicating it (see `docs/accounting-reports-spec.md`).
+- "Export only that data" means every sheet reflects the active filters — Transactions, Sales Summary, and Revenue Breakdown fully; Balances by Account is filtered by `bankAccountId`/`accountType`/`currency` (real properties of an account) but not by `clientId` (an account isn't tied to one client).
+
+**`GET /transactions`** (`list-transactions-query.dto.ts`, `transaction.service.ts`, `transaction.controller.ts`): added `bankAccountId` (plain equality) and `accountType` (comma-separated, matching the existing `currency` filter's pattern) query params. `accountType` lives on the related `BankAccount`, not `Transaction`, so it's a relational filter (`where.bankAccount = { accountType: { in: [...] } }`), not a plain column match.
+
+**`GET /accounting-dashboard/reports/export`** (`export-report-query.dto.ts`, `accounting-dashboard.service.ts`, `accounting-dashboard.controller.ts`, `report-export.service.ts`) gained the same four filters — `clientId`, `bankAccountId`, `accountType`, `currency` — layered on top of whichever date resolution already applied (`date`, `dateFrom`/`dateTo`, or the today default when neither is given):
+
+- New `ExportFilters` type and two private where-builders on `AccountingDashboardService`: `transactionFilterWhere()` (clientId/bankAccountId/currency direct, accountType via the `bankAccount` relation) and `bankAccountFilterWhere()` (bankAccountId as the account's own id, accountType, currencyType — no clientId, matching the assumption above). Threaded through every query `getExportData` uses: `sumRevenueUsd`, the transaction count, `getAllBankAccountBalances`, `getRevenueByCurrency`, `getRevenueByBankAccount`, `getTransactionsForRange` — each gained an optional `filters` parameter, defaulting to `undefined` for every other caller (`/overview`, `/reports/breakdown`), so those are provably unaffected.
+- **New `activeFilters` field on `AccountingExportData`**, resolved by a new `describeActiveFilters()`: `accountType`/`currency` are already human-readable enum values, but `clientId`/`bankAccountId` are just UUIDs, so those two get a small dedicated name lookup rather than relying on a match turning up in the (possibly empty) filtered results. `ReportExportService`'s title row now appends `" — Filtered by: Client: Victoria Partners, Currency: PKR"` (etc.) whenever any filter is active, so an exported file is self-describing about what it excludes, not just what period it covers.
+- No contradiction-handling needed beyond what already existed — a filter combination matching zero transactions produces a valid, empty-but-correctly-shaped workbook (header rows only, `0`/`0`/`0` totals), not an error.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **`GET /transactions` filters, live against the demo workspace**: `accountType=LOCAL` → 4 transactions, all HBL; `accountType=INTERNATIONAL` → 11, all Whop/Slash. `bankAccountId=<Whop's id>` → 6, all Whop. Combined `clientId` + `currency` + pagination (`page=2&limit=2`) → correct `meta` object and only that client's rows. Invalid `accountType` value → `422`.
+- **Export filters, live, each downloaded and parsed back**:
+  - No filters → today's 3 transactions, plain "Report date: 2026-08-18" title, no filter suffix.
+  - `clientId` only → 1 transaction (that client's), title resolves the UUID to "Client: Victoria Partners" (not a raw id); Balances by Account correctly still shows **all 3** accounts (not client-scoped, per the stated assumption); Revenue Breakdown correctly scopes the *values* to that client while still zero-filling every workspace account/currency.
+  - `accountType=INTERNATIONAL` + a month range → 7 of the month's 8 transactions (the 1 HBL/LOCAL one correctly excluded); Balances by Account correctly narrowed to **2** accounts (Whop, Slash — no HBL); title reads "Report period: 2026-08-01 to 2026-08-18 — Filtered by: Payment Platform: INTERNATIONAL".
+  - `currency=PKR` → exactly the 1 matching transaction, title "Filtered by: Currency: PKR".
+  - **Contradictory filters** (`clientId` for a client with zero PKR sales + `currency=PKR`) → `200`, not an error: empty Transactions sheet (header only), Sales Summary shows one `0`/`0`/`0` row, title correctly lists both active filters.
+- **Regression check**: `/overview?period=monthly` and `/reports/breakdown` re-verified byte-for-byte identical to their pre-change values (`Whop 6,250`, `Slash 5,550`, `HBL 431.65`, `revenueByCurrency` unchanged) — confirming the new optional `filters` parameter threaded through five shared methods didn't alter behavior for callers that don't pass it.
+
+

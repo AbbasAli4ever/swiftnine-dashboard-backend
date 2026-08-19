@@ -33,7 +33,7 @@ export class ReportExportService {
   ): void {
     const sheet = workbook.addWorksheet('Transactions');
     this.setColumnWidths(sheet, [22, 14, 24, 20, 10, 16, 32]);
-    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 7);
+    this.addTitleRow(sheet, data, 7);
     this.boldRow(
       sheet.addRow([
         'Ref ID',
@@ -69,7 +69,7 @@ export class ReportExportService {
   ): void {
     const sheet = workbook.addWorksheet('Sales Summary');
     this.setColumnWidths(sheet, [14, 20, 14, 20]);
-    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 4);
+    this.addTitleRow(sheet, data, 4);
     this.boldRow(
       sheet.addRow([
         'Date',
@@ -114,7 +114,7 @@ export class ReportExportService {
   ): void {
     const sheet = workbook.addWorksheet('Balances by Account');
     this.setColumnWidths(sheet, [22, 16, 10, 22, 20]);
-    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 5);
+    this.addTitleRow(sheet, data, 5);
     this.boldRow(
       sheet.addRow([
         'Bank Name',
@@ -146,7 +146,7 @@ export class ReportExportService {
   ): void {
     const sheet = workbook.addWorksheet('Revenue Breakdown');
     this.setColumnWidths(sheet, [22, 16, 16, 16, 14, 12]);
-    this.addTitleRow(sheet, data.dateFrom, data.dateTo, 6);
+    this.addTitleRow(sheet, data, 6);
 
     this.boldRow(sheet.addRow(['Revenue by Currency']));
     this.boldRow(
@@ -190,24 +190,29 @@ export class ReportExportService {
     }
   }
 
-  // Every sheet gets the same title so it's unambiguous which period it
-  // covers even once the file has been saved, renamed, or opened weeks
-  // later — "Report date: 2026-08-18" for a single day (dateFrom ===
-  // dateTo), or "Report period: 2026-08-01 to 2026-08-31" for a range.
-  // Never a relative "Today" label, which goes stale. Merged across the
-  // sheet's full column count and followed by a blank spacer row before
-  // the real header.
+  // Every sheet gets the same title so it's unambiguous which period (and,
+  // now, which filters) it covers even once the file has been saved,
+  // renamed, or opened weeks later — "Report date: 2026-08-18" for a single
+  // day (dateFrom === dateTo), or "Report period: 2026-08-01 to 2026-08-31"
+  // for a range, with " — Filtered by: Account: Whop, Currency: USD"
+  // appended whenever activeFilters is non-empty. Never a relative "Today"
+  // label, which goes stale. Merged across the sheet's full column count
+  // and followed by a blank spacer row before the real header.
   private addTitleRow(
     sheet: Worksheet,
-    dateFrom: string,
-    dateTo: string,
+    data: AccountingExportData,
     columnSpan: number,
   ): void {
-    const label =
-      dateFrom === dateTo
-        ? `Report date: ${dateFrom}`
-        : `Report period: ${dateFrom} to ${dateTo}`;
-    const row = sheet.addRow([label]);
+    const period =
+      data.dateFrom === data.dateTo
+        ? `Report date: ${data.dateFrom}`
+        : `Report period: ${data.dateFrom} to ${data.dateTo}`;
+    const filterSuffix = data.activeFilters.length
+      ? ` — Filtered by: ${data.activeFilters
+          .map((f) => `${f.label}: ${f.value}`)
+          .join(', ')}`
+      : '';
+    const row = sheet.addRow([period + filterSuffix]);
     row.font = { bold: true, size: 12 };
     if (columnSpan > 1) sheet.mergeCells(row.number, 1, row.number, columnSpan);
     sheet.addRow([]);

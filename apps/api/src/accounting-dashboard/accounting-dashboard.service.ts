@@ -185,6 +185,8 @@ export type ExportTotals = {
   avgSaleUsd: number;
 };
 
+export type ExportActiveFilter = { label: string; value: string };
+
 export type AccountingExportData = {
   dateFrom: string;
   dateTo: string;
@@ -196,6 +198,11 @@ export type AccountingExportData = {
   revenueByCurrency: CurrencyRevenueItem[];
   revenueByBankAccount: BankAccountRevenueItem[];
   transactions: TransactionExportRow[];
+  // Human-readable form of whatever ExportFilters were applied — empty when
+  // none were. Resolved here (this service has DB access) so
+  // ReportExportService can stay a pure renderer and just join these into
+  // the title.
+  activeFilters: ExportActiveFilter[];
 };
 
 function toUsd(amount: number, currency: Currency): number {
@@ -213,6 +220,19 @@ function percentChange(current: number, previous: number): number {
 
 type DateRange = { gte: Date; lt?: Date };
 
+// Extra filters layered on top of a date range — used only by the Excel
+// export's "filtered export" path (see getExportData). Every other caller
+// of the methods that accept this (getRevenueByBankAccount,
+// getRevenueByCurrency, getAllBankAccountBalances, getTransactionsForRange)
+// passes undefined, so their existing all-time/date-only behavior is
+// unaffected.
+type ExportFilters = {
+  clientId?: string;
+  bankAccountId?: string;
+  accountType?: AccountType;
+  currency?: Currency;
+};
+
 @Injectable()
 export class AccountingDashboardService {
   constructor(private readonly prisma: PrismaService) {}
@@ -221,6 +241,7 @@ export class AccountingDashboardService {
     workspaceId: string,
     period: DashboardPeriod,
   ): Promise<DashboardOverview> {
+    const currentPeriodRange = this.getCurrentPeriodRange(period, new Date());
     const [
       balances,
       revenueSummary,
@@ -233,11 +254,8 @@ export class AccountingDashboardService {
       this.getBalances(workspaceId),
       this.getRevenueSummary(workspaceId),
       this.getRevenueOverview(workspaceId, period),
-      this.getRevenueByBankAccount(
-        workspaceId,
-        this.getCurrentPeriodRange(period, new Date()),
-      ),
-      this.getRevenueByCurrency(workspaceId),
+      this.getRevenueByBankAccount(workspaceId, currentPeriodRange),
+      this.getRevenueByCurrency(workspaceId, currentPeriodRange),
       this.getBankAccountsByType(workspaceId),
       this.getTopClients(workspaceId),
     ]);
@@ -363,6 +381,7 @@ export class AccountingDashboardService {
     workspaceId: string,
     dateFrom: string,
     dateTo: string,
+    filters?: ExportFilters,
   ): Promise<AccountingExportData> {
     const range = this.utcDayRange(dateFrom, dateTo);
     const [
@@ -372,15 +391,21 @@ export class AccountingDashboardService {
       revenueByCurrency,
       revenueByBankAccount,
       transactions,
+      activeFilters,
     ] = await Promise.all([
-      this.sumRevenueUsd(workspaceId, range),
+      this.sumRevenueUsd(workspaceId, range, filters),
       this.prisma.transaction.count({
-        where: { workspaceId, saleDate: range },
+        where: {
+          workspaceId,
+          saleDate: range,
+          ...this.transactionFilterWhere(filters),
+        },
       }),
-      this.getAllBankAccountBalances(workspaceId),
-      this.getRevenueByCurrency(workspaceId, range),
-      this.getRevenueByBankAccount(workspaceId, range),
-      this.getTransactionsForRange(workspaceId, range),
+      this.getAllBankAccountBalances(workspaceId, filters),
+      this.getRevenueByCurrency(workspaceId, range, filters),
+      this.getRevenueByBankAccount(workspaceId, range, filters),
+      this.getTransactionsForRange(workspaceId, range, filters),
+      this.describeActiveFilters(workspaceId, filters),
     ]);
 
     const roundedRevenueUsd = round2(revenueUsd);
@@ -409,7 +434,48 @@ export class AccountingDashboardService {
       balancesByAccount,
       revenueByBankAccount,
       transactions,
+      activeFilters,
     };
+  }
+
+  // Resolves ExportFilters into display labels for the workbook's title —
+  // accountType/currency are already human-readable enum values, but
+  // clientId/bankAccountId are just UUIDs, so those two get a tiny
+  // dedicated lookup rather than relying on a match turning up in the
+  // (possibly empty) filtered transaction/account results.
+  private async describeActiveFilters(
+    workspaceId: string,
+    filters?: ExportFilters,
+  ): Promise<ExportActiveFilter[]> {
+    if (!filters) return [];
+
+    const [client, bankAccount] = await Promise.all([
+      filters.clientId
+        ? this.prisma.clients.findFirst({
+            where: { id: filters.clientId, workspaceId },
+            select: { clientName: true },
+          })
+        : null,
+      filters.bankAccountId
+        ? this.prisma.bankAccount.findFirst({
+            where: { id: filters.bankAccountId, workspaceId },
+            select: { bankName: true },
+          })
+        : null,
+    ]);
+
+    const active: ExportActiveFilter[] = [];
+    if (client) active.push({ label: 'Client', value: client.clientName });
+    if (bankAccount) {
+      active.push({ label: 'Account', value: bankAccount.bankName });
+    }
+    if (filters.accountType) {
+      active.push({ label: 'Payment Platform', value: filters.accountType });
+    }
+    if (filters.currency) {
+      active.push({ label: 'Currency', value: filters.currency });
+    }
+    return active;
   }
 
   // Built from the already-fetched `transactions` array rather than one
@@ -473,14 +539,47 @@ export class AccountingDashboardService {
     ];
   }
 
+  // Transaction-side filters, shared by every export query that reads from
+  // Transaction. accountType lives on the related BankAccount, hence the
+  // nested filter rather than a plain column match.
+  private transactionFilterWhere(
+    filters?: ExportFilters,
+  ): Prisma.TransactionWhereInput {
+    if (!filters) return {};
+    return {
+      ...(filters.clientId && { clientId: filters.clientId }),
+      ...(filters.bankAccountId && { bankAccountId: filters.bankAccountId }),
+      ...(filters.currency && { currency: filters.currency }),
+      ...(filters.accountType && {
+        bankAccount: { accountType: filters.accountType },
+      }),
+    };
+  }
+
+  // BankAccount-side filters — same ExportFilters, but clientId doesn't
+  // apply (an account isn't tied to one client) and bankAccountId narrows
+  // by the account's own id rather than a transaction's foreign key.
+  private bankAccountFilterWhere(
+    filters?: ExportFilters,
+  ): Prisma.BankAccountWhereInput {
+    if (!filters) return {};
+    return {
+      ...(filters.bankAccountId && { id: filters.bankAccountId }),
+      ...(filters.accountType && { accountType: filters.accountType }),
+      ...(filters.currency && { currencyType: filters.currency }),
+    };
+  }
+
   // Every bank account's current balance, uncapped — unlike
   // getBankAccountsByType, which caps at BANK_ACCOUNTS_PER_GROUP_LIMIT per
-  // type for the Overview UI panel. An export must list every account.
+  // type for the Overview UI panel. An export must list every account
+  // matching the filters (or every account, when there are none).
   private async getAllBankAccountBalances(
     workspaceId: string,
+    filters?: ExportFilters,
   ): Promise<BankAccountBalanceItem[]> {
     const accounts = await this.prisma.bankAccount.findMany({
-      where: { workspaceId },
+      where: { workspaceId, ...this.bankAccountFilterWhere(filters) },
       select: BANK_ACCOUNT_SELECT,
       orderBy: [{ accountType: 'asc' }, { amount: 'desc' }],
     });
@@ -504,9 +603,14 @@ export class AccountingDashboardService {
   private async getTransactionsForRange(
     workspaceId: string,
     range: DateRange,
+    filters?: ExportFilters,
   ): Promise<TransactionExportRow[]> {
     const rows = await this.prisma.transaction.findMany({
-      where: { workspaceId, saleDate: range },
+      where: {
+        workspaceId,
+        saleDate: range,
+        ...this.transactionFilterWhere(filters),
+      },
       select: TRANSACTION_SELECT,
       orderBy: { saleDate: 'asc' },
     });
@@ -678,10 +782,15 @@ export class AccountingDashboardService {
   private async sumRevenueUsd(
     workspaceId: string,
     range: DateRange,
+    filters?: ExportFilters,
   ): Promise<number> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: { workspaceId, saleDate: range },
+      where: {
+        workspaceId,
+        saleDate: range,
+        ...this.transactionFilterWhere(filters),
+      },
       _sum: { saleAmount: true },
     });
 
@@ -778,51 +887,75 @@ export class AccountingDashboardService {
     });
   }
 
-  // Mirrors the boundaries the old JS-bucketing loop used to produce, so
-  // switching to SQL-side grouping doesn't change any bucket's meaning —
-  // including "weekly", which is a rolling 7-day window ending today, not
-  // a calendar week.
+  // Bucket boundaries for the revenue time series. "weekly" is a rolling
+  // 7-day window, not a calendar week — preserved from the original
+  // JS-bucketing implementation this replaced.
+  //
+  // Every boundary is built with Date.UTC, never `new Date(y, m, d)`. Two
+  // bugs came from the local-time version, and both only reproduce on a
+  // host whose offset isn't UTC (found live on UTC+5):
+  //
+  //   1. `new Date(2026, 7, 1)` is local midnight, which serializes to
+  //      2026-07-31T19:00:00Z — the *previous* month's last day. So the
+  //      generate_series anchor wasn't a month start at all.
+  //   2. Postgres clamps `+ 1 month` to the shorter month's last day, and
+  //      keeps clamping from there. Anchored on a day-31 timestamp, the
+  //      steps drifted 31 -> 30 -> 30 -> ... -> 28 -> 28, so buckets stopped
+  //      lining up with months entirely: labels came out duplicated
+  //      (2025-10 twice), months went missing (2025-11, 2026-02), the
+  //      current month never appeared, and each bucket's window straddled
+  //      two real months so the sums were wrong too.
+  //
+  // Anchoring on day 1 in UTC fixes both: day 1 exists in every month, so
+  // Postgres never clamps, and the anchor is a true month start.
   private getBucketConfig(
     period: DashboardPeriod,
     now: Date,
   ): { firstStart: Date; lastStart: Date; intervalSql: string } {
     const count = REVENUE_OVERVIEW_BUCKET_COUNT[period];
     const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
     );
 
     if (period === 'daily') {
       const lastStart = todayStart;
       const firstStart = new Date(lastStart);
-      firstStart.setDate(firstStart.getDate() - (count - 1));
+      firstStart.setUTCDate(firstStart.getUTCDate() - (count - 1));
       return { firstStart, lastStart, intervalSql: '1 day' };
     }
     if (period === 'weekly') {
       const lastStart = new Date(todayStart);
-      lastStart.setDate(lastStart.getDate() - 7);
+      lastStart.setUTCDate(lastStart.getUTCDate() - 7);
       const firstStart = new Date(lastStart);
-      firstStart.setDate(firstStart.getDate() - (count - 1) * 7);
+      firstStart.setUTCDate(firstStart.getUTCDate() - (count - 1) * 7);
       return { firstStart, lastStart, intervalSql: '7 days' };
     }
     if (period === 'monthly') {
-      const lastStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+      );
+      // Date.UTC normalises a negative month index, so a 12-bucket window
+      // in January correctly rolls back into the previous year.
       const firstStart = new Date(
-        now.getFullYear(),
-        now.getMonth() - (count - 1),
-        1,
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (count - 1), 1),
       );
       return { firstStart, lastStart, intervalSql: '1 month' };
     }
-    const lastStart = new Date(now.getFullYear(), 0, 1);
-    const firstStart = new Date(now.getFullYear() - (count - 1), 0, 1);
+    const lastStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+    const firstStart = new Date(
+      Date.UTC(now.getUTCFullYear() - (count - 1), 0, 1),
+    );
     return { firstStart, lastStart, intervalSql: '1 year' };
   }
 
+  // Labels read the bucket start in UTC, matching how the boundaries above
+  // (and getMonthlyBreakdownForYear's) are constructed. Using local getters
+  // here re-introduces the same class of drift on any non-UTC host — and on
+  // a negative-offset host it would shift every label back a month even
+  // when the boundaries themselves are correct.
   private formatBucketLabel(period: DashboardPeriod, start: Date): string {
     if (period === 'monthly') return this.formatMonth(start);
-    if (period === 'yearly') return String(start.getFullYear());
+    if (period === 'yearly') return String(start.getUTCFullYear());
     return this.formatDay(start);
   }
 
@@ -831,7 +964,7 @@ export class AccountingDashboardService {
   }
 
   private formatMonth(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
   }
 
   // Revenue per bank account, across LOCAL and INTERNATIONAL alike — this is
@@ -861,10 +994,11 @@ export class AccountingDashboardService {
   private async getRevenueByBankAccount(
     workspaceId: string,
     range?: DateRange,
+    filters?: ExportFilters,
   ): Promise<BankAccountRevenueItem[]> {
     const [accounts, grouped] = await Promise.all([
       this.prisma.bankAccount.findMany({
-        where: { workspaceId },
+        where: { workspaceId, ...this.bankAccountFilterWhere(filters) },
         select: {
           id: true,
           bankName: true,
@@ -874,7 +1008,11 @@ export class AccountingDashboardService {
       }),
       this.prisma.transaction.groupBy({
         by: ['bankAccountId', 'currency'],
-        where: { workspaceId, ...(range && { saleDate: range }) },
+        where: {
+          workspaceId,
+          ...(range && { saleDate: range }),
+          ...this.transactionFilterWhere(filters),
+        },
         _sum: { saleAmount: true },
         _count: true,
       }),
@@ -927,15 +1065,25 @@ export class AccountingDashboardService {
       .sort((a, b) => b.totalRevenueUsd - a.totalRevenueUsd);
   }
 
-  // All-time revenue grouped by the transaction's own currency. `total` is the
-  // native sum in that currency; `percent` is its share of the USD grand total.
+  // Revenue grouped by the transaction's own currency. `total` is the
+  // native sum in that currency; `percent` is its share of the USD grand
+  // total. Scope depends on the caller, same as getRevenueByBankAccount:
+  // `/overview` passes getCurrentPeriodRange's window; `/reports/breakdown`
+  // and the Excel export pass an explicit dateFrom/dateTo; no range means
+  // all-time (no caller does this anymore, but the signature stays
+  // optional for flexibility).
   private async getRevenueByCurrency(
     workspaceId: string,
     range?: DateRange,
+    filters?: ExportFilters,
   ): Promise<CurrencyRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: { workspaceId, ...(range && { saleDate: range }) },
+      where: {
+        workspaceId,
+        ...(range && { saleDate: range }),
+        ...this.transactionFilterWhere(filters),
+      },
       _sum: { saleAmount: true },
     });
 

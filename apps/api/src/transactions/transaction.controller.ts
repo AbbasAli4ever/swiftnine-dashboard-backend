@@ -127,6 +127,19 @@ export class TransactionController {
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
   })
   @ApiQuery({
+    name: 'bankAccountId',
+    required: false,
+    description: 'Filter to transactions on a single bank account',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'accountType',
+    required: false,
+    description:
+      'Comma-separated account types to filter by (LOCAL = Pakistan accounts, INTERNATIONAL = everything else) — the "Payment Platform" filter in the UI',
+    example: 'INTERNATIONAL',
+  })
+  @ApiQuery({
     name: 'currency',
     required: false,
     description: 'Comma-separated currencies to filter by',

@@ -243,7 +243,7 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({
     type: [CurrencyRevenueItemDto],
     description:
-      'All-time revenue grouped by the transaction currency, sorted by totalUsd descending.',
+      "Revenue grouped by the transaction currency, sorted by totalUsd descending. Scoped to the request's `period`, same window as revenueByBankAccount: today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly) — not all-time. Currencies with no activity in the window are absent, not zero-filled.",
   })
   revenueByCurrency!: CurrencyRevenueItemDto[];
 

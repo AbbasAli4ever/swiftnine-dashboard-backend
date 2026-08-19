@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
-import type { Currency } from '@app/database/generated/prisma/enums';
+import type {
+  AccountType,
+  Currency,
+} from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNT_NOT_FOUND,
   CLIENT_NOT_FOUND,
@@ -90,6 +93,16 @@ export class TransactionService {
     }
     if (query.clientId) {
       where.clientId = query.clientId;
+    }
+    if (query.bankAccountId) {
+      where.bankAccountId = query.bankAccountId;
+    }
+    if (query.accountType?.length) {
+      // accountType lives on BankAccount, not Transaction — a relational
+      // filter, not a plain column match.
+      where.bankAccount = {
+        accountType: { in: query.accountType as AccountType[] },
+      };
     }
     if (query.currency?.length) {
       where.currency = { in: query.currency as Currency[] };

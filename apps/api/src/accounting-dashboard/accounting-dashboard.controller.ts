@@ -83,13 +83,13 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Get the accounting dashboard overview',
     description:
-      'Balances by account type, revenue summary (today/month/year), a revenue time series, revenue by bank account (scoped to `period` — see below), all-time revenue by currency, current balances by account, and top clients by all-time revenue.',
+      'Balances by account type, revenue summary (today/month/year), a revenue time series, revenue by bank account and by currency (both scoped to `period` — see below), current balances by account, and top clients by all-time revenue.',
   })
   @ApiQuery({
     name: 'period',
     required: false,
     description:
-      'Controls two things: the bucket granularity of the revenue time series, and the window revenueByBankAccount is scoped to — today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly). Defaults to daily.',
+      'Controls two things: the bucket granularity of the revenue time series, and the window revenueByBankAccount and revenueByCurrency are scoped to — today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly). Defaults to daily.',
     example: 'daily',
   })
   @ApiOkResponse({
@@ -208,13 +208,13 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Export an accounting report as an .xlsx workbook',
     description:
-      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. Four sheets: Transactions, Sales Summary (one row per day for a range, plus a Total row), Balances by Account (current, not as of the period), and Revenue Breakdown by currency and bank account.',
+      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. Four sheets: Transactions, Sales Summary (one row per day for a range, plus a Total row), Balances by Account (current, not as of the period), and Revenue Breakdown by currency and bank account — every sheet titled with the active period and filters.',
   })
   @ApiQuery({
     name: 'date',
     required: false,
     description:
-      'YYYY-MM-DD, defaults to today (UTC). Omit if using dateFrom/dateTo instead.',
+      'YYYY-MM-DD, defaults to today (UTC) when no date/dateFrom/dateTo is given. Omit if using dateFrom/dateTo instead.',
     example: '2026-07-28',
   })
   @ApiQuery({
@@ -230,6 +230,31 @@ export class AccountingDashboardController {
     description: 'YYYY-MM-DD, end of a range. Must be paired with dateFrom.',
     example: '2026-07-31',
   })
+  @ApiQuery({
+    name: 'clientId',
+    required: false,
+    description: 'Filter the export to a single client',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'bankAccountId',
+    required: false,
+    description: 'Filter the export to a single bank account',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'accountType',
+    required: false,
+    description:
+      'Filter the export to LOCAL or INTERNATIONAL accounts — the "Payment Platform" filter in the UI',
+    example: 'INTERNATIONAL',
+  })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    description: 'Filter the export to a single currency',
+    example: 'USD',
+  })
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   )
@@ -239,7 +264,15 @@ export class AccountingDashboardController {
     @Req() req: WorkspaceRequest,
     @Query() query: ExportReportQueryDto,
   ): Promise<StreamableFile> {
-    const { date, dateFrom, dateTo } = query as ExportReportQuery;
+    const {
+      date,
+      dateFrom,
+      dateTo,
+      clientId,
+      bankAccountId,
+      accountType,
+      currency,
+    } = query as ExportReportQuery;
     const today = new Date().toISOString().slice(0, 10);
     const resolvedFrom = dateFrom ?? date ?? today;
     const resolvedTo = dateTo ?? date ?? today;
@@ -248,6 +281,7 @@ export class AccountingDashboardController {
       req.workspaceContext.workspaceId,
       resolvedFrom,
       resolvedTo,
+      { clientId, bankAccountId, accountType, currency },
     );
     const buffer = await this.reportExport.buildReportWorkbook(data);
     const filenameDate =

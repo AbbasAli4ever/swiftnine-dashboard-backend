@@ -5,10 +5,15 @@ import {
   DATE_FORMAT_REGEX,
   daysBetweenDates,
 } from '../accounting-dashboard.constants';
+import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
+import { ACCOUNT_TYPE_VALUES } from '../../bank-accounts/bank-account.constants';
 
 // Either a single `date` (unchanged, back-compat — defaults to today when
 // omitted entirely) or a `dateFrom`/`dateTo` range, never both, and never
-// just one side of the range.
+// just one side of the range. clientId/bankAccountId/accountType/currency
+// layer on top of whichever date resolution applies — same filter set as
+// GET /transactions, so "export only that data" matches what the Reports
+// list is showing when any of them are active.
 export const ExportReportQuerySchema = z
   .object({
     date: z
@@ -23,6 +28,10 @@ export const ExportReportQuerySchema = z
       .string()
       .regex(DATE_FORMAT_REGEX, 'dateTo must be in YYYY-MM-DD format')
       .optional(),
+    clientId: z.string().uuid('Invalid client id').optional(),
+    bankAccountId: z.string().uuid('Invalid bank account id').optional(),
+    accountType: z.enum(ACCOUNT_TYPE_VALUES).optional(),
+    currency: z.enum(CURRENCY_VALUES).optional(),
   })
   .refine((value) => !(value.date && (value.dateFrom || value.dateTo)), {
     message: 'Pass either `date` or `dateFrom`/`dateTo`, not both',
