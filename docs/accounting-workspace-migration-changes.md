@@ -391,4 +391,32 @@ Extends the `period`-scoping follow-up above: `revenueByBankAccount` was made pe
   - `revenueOverview.points.length` still varies correctly by period (7/8/12/5) and the monthly chart still shows 12 sequential labels with no duplicates — re-confirmed no regression from the earlier bucket-drift fix.
 - **Zero-fill asymmetry re-verified live**: created a throwaway `EUR`/`LOCAL` bank account with no transactions. `revenueByBankAccount` listed it at `0` (zero-filled, as designed). `revenueByCurrency` correctly did **not** list `EUR` at all (no activity → absent, not zeroed) — same intentional asymmetry as before, now proven to hold under period-scoping too. Test account deleted after.
 
+## Follow-up: [2026-08-18] Reports list filters (`GET /transactions`) and matching filtered Excel export
+
+New Reports UI: a paginated transaction list with filters (Date Range, Client, Payment Platform, Currency, Account) and an Export Report button that exports whatever the filters currently show — defaulting to today when no date is chosen.
+
+**Assumptions made explicit before writing any code** (not asked to confirm, but stated so a wrong guess is easy to catch and correct):
+- "Payment Platform" in the UI maps to the existing `accountType` enum (`LOCAL`/`INTERNATIONAL`) — there is no `PaymentPlatform` field anymore (removed in an earlier follow-up), and this matches both the screenshot's "Pakistan Balance"/"International Balance" cards and an existing code comment that already calls international accounts "what used to be a platform." "Account" maps to a specific `bankAccountId`.
+- The list itself is `GET /transactions`, extended with the two filters it was missing — not a new endpoint. Matches the standing design decision that Reports reuses `/transactions` for per-transaction detail rather than duplicating it (see `docs/accounting-reports-spec.md`).
+- "Export only that data" means every sheet reflects the active filters — Transactions, Sales Summary, and Revenue Breakdown fully; Balances by Account is filtered by `bankAccountId`/`accountType`/`currency` (real properties of an account) but not by `clientId` (an account isn't tied to one client).
+
+**`GET /transactions`** (`list-transactions-query.dto.ts`, `transaction.service.ts`, `transaction.controller.ts`): added `bankAccountId` (plain equality) and `accountType` (comma-separated, matching the existing `currency` filter's pattern) query params. `accountType` lives on the related `BankAccount`, not `Transaction`, so it's a relational filter (`where.bankAccount = { accountType: { in: [...] } }`), not a plain column match.
+
+**`GET /accounting-dashboard/reports/export`** (`export-report-query.dto.ts`, `accounting-dashboard.service.ts`, `accounting-dashboard.controller.ts`, `report-export.service.ts`) gained the same four filters — `clientId`, `bankAccountId`, `accountType`, `currency` — layered on top of whichever date resolution already applied (`date`, `dateFrom`/`dateTo`, or the today default when neither is given):
+
+- New `ExportFilters` type and two private where-builders on `AccountingDashboardService`: `transactionFilterWhere()` (clientId/bankAccountId/currency direct, accountType via the `bankAccount` relation) and `bankAccountFilterWhere()` (bankAccountId as the account's own id, accountType, currencyType — no clientId, matching the assumption above). Threaded through every query `getExportData` uses: `sumRevenueUsd`, the transaction count, `getAllBankAccountBalances`, `getRevenueByCurrency`, `getRevenueByBankAccount`, `getTransactionsForRange` — each gained an optional `filters` parameter, defaulting to `undefined` for every other caller (`/overview`, `/reports/breakdown`), so those are provably unaffected.
+- **New `activeFilters` field on `AccountingExportData`**, resolved by a new `describeActiveFilters()`: `accountType`/`currency` are already human-readable enum values, but `clientId`/`bankAccountId` are just UUIDs, so those two get a small dedicated name lookup rather than relying on a match turning up in the (possibly empty) filtered results. `ReportExportService`'s title row now appends `" — Filtered by: Client: Victoria Partners, Currency: PKR"` (etc.) whenever any filter is active, so an exported file is self-describing about what it excludes, not just what period it covers.
+- No contradiction-handling needed beyond what already existed — a filter combination matching zero transactions produces a valid, empty-but-correctly-shaped workbook (header rows only, `0`/`0`/`0` totals), not an error.
+
+### Verification
+- `tsc`, `eslint`, `nest build` clean.
+- **`GET /transactions` filters, live against the demo workspace**: `accountType=LOCAL` → 4 transactions, all HBL; `accountType=INTERNATIONAL` → 11, all Whop/Slash. `bankAccountId=<Whop's id>` → 6, all Whop. Combined `clientId` + `currency` + pagination (`page=2&limit=2`) → correct `meta` object and only that client's rows. Invalid `accountType` value → `422`.
+- **Export filters, live, each downloaded and parsed back**:
+  - No filters → today's 3 transactions, plain "Report date: 2026-08-18" title, no filter suffix.
+  - `clientId` only → 1 transaction (that client's), title resolves the UUID to "Client: Victoria Partners" (not a raw id); Balances by Account correctly still shows **all 3** accounts (not client-scoped, per the stated assumption); Revenue Breakdown correctly scopes the *values* to that client while still zero-filling every workspace account/currency.
+  - `accountType=INTERNATIONAL` + a month range → 7 of the month's 8 transactions (the 1 HBL/LOCAL one correctly excluded); Balances by Account correctly narrowed to **2** accounts (Whop, Slash — no HBL); title reads "Report period: 2026-08-01 to 2026-08-18 — Filtered by: Payment Platform: INTERNATIONAL".
+  - `currency=PKR` → exactly the 1 matching transaction, title "Filtered by: Currency: PKR".
+  - **Contradictory filters** (`clientId` for a client with zero PKR sales + `currency=PKR`) → `200`, not an error: empty Transactions sheet (header only), Sales Summary shows one `0`/`0`/`0` row, title correctly lists both active filters.
+- **Regression check**: `/overview?period=monthly` and `/reports/breakdown` re-verified byte-for-byte identical to their pre-change values (`Whop 6,250`, `Slash 5,550`, `HBL 431.65`, `revenueByCurrency` unchanged) — confirming the new optional `filters` parameter threaded through five shared methods didn't alter behavior for callers that don't pass it.
+
 
