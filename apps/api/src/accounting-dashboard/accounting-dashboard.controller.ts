@@ -102,17 +102,6 @@ export class AccountingDashboardController {
     @Req() req: WorkspaceRequest,
     @Query() query: DashboardOverviewQueryDto,
   ): Promise<ApiRes<DashboardOverview>> {
-  // fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json')
-  //   .then((res) => res.json())
-    //   .then((data) => console.log("CURRENCIES are", data));
-    
-   const api = await fetch(
-  'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json'
-  );
-  const res = await api.json();
-  console.log(res);
-
-
     const overview = await this.dashboardService.getOverview(
       req.workspaceContext.workspaceId,
       (query as DashboardOverviewQuery).period,
