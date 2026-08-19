@@ -23,6 +23,13 @@ class BalanceByAccountTypeDto {
     description: 'Number of bank accounts of this type',
   })
   accountCount!: number;
+
+  @ApiProperty({
+    example: 102500,
+    description:
+      'Every currency in `totals` converted and summed into one USD figure — e.g. the International Balance card, where INTERNATIONAL accounts may span USD/AED/GBP/etc. and the UI wants one number, not the per-currency `totals` list.',
+  })
+  totalUsd!: number;
 }
 
 export class BalanceSummaryDto {
@@ -35,7 +42,7 @@ export class BalanceSummaryDto {
   @ApiProperty({
     example: { USD: 1, PKR: 278, HKD: 7.8 },
     description:
-      'Fixed exchange rates used to convert every currency into totalBalanceUsd (units of that currency per 1 USD)',
+      'Exchange rates used to convert every currency into totalBalanceUsd (units of that currency per 1 USD). Live-fetched and cached for up to an hour; falls back to a fixed placeholder map if the live source is unreachable.',
   })
   exchangeRatesToUsd!: Record<string, number>;
 }
