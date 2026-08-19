@@ -8,6 +8,10 @@ const CURRENCY_FORMAT = '#,##0.00';
 // Buffer, mirroring PdfGenerationService/PptGenerationService's render-only
 // shape. Callers gather data (AccountingDashboardService.getExportData) and
 // stream the result back over HTTP; this service only builds the file.
+//
+// Mirrors the Reports table exactly: one sheet, one row per transaction,
+// columns Date / Revenue / Currency / Client / Bank — whether or not any
+// filters were applied. No separate summary/balance/breakdown sheets.
 @Injectable()
 export class ReportExportService {
   async buildReportWorkbook(data: AccountingExportData): Promise<Buffer> {
@@ -16,9 +20,6 @@ export class ReportExportService {
     workbook.created = new Date();
 
     this.addTransactionsSheet(workbook, data);
-    this.addSalesSummarySheet(workbook, data);
-    this.addBalancesSheet(workbook, data);
-    this.addRevenueBreakdownSheet(workbook, data);
 
     // exceljs bundles its own non-generic ambient `Buffer` type, which
     // conflicts with @types/node's generic `Buffer<TArrayBuffer>` — cast
@@ -31,191 +32,22 @@ export class ReportExportService {
     workbook: Workbook,
     data: AccountingExportData,
   ): void {
-    const sheet = workbook.addWorksheet('Transactions');
-    this.setColumnWidths(sheet, [22, 14, 24, 20, 10, 16, 32]);
-    this.addTitleRow(sheet, data, 7);
+    const sheet = workbook.addWorksheet('Report');
+    this.setColumnWidths(sheet, [14, 16, 10, 24, 20]);
     this.boldRow(
-      sheet.addRow([
-        'Ref ID',
-        'Date',
-        'Client',
-        'Bank Account',
-        'Currency',
-        'Amount',
-        'Description',
-      ]),
+      sheet.addRow(['Date', 'Revenue', 'Currency', 'Client', 'Bank']),
     );
 
     for (const transaction of data.transactions) {
       const row = sheet.addRow([
-        transaction.refId,
         transaction.saleDate.toISOString().slice(0, 10),
+        transaction.saleAmountUsd,
+        transaction.currency,
         transaction.clientName,
         transaction.bankAccount.bankName,
-        transaction.currency,
-        transaction.saleAmount,
-        transaction.description ?? '',
-      ]);
-      row.getCell(6).numFmt = CURRENCY_FORMAT;
-    }
-  }
-
-  // One row per day in range (zero-filled), plus a bold Total row once the
-  // range spans more than one day — for a single date that row would just
-  // repeat the one data row above it, so it's skipped.
-  private addSalesSummarySheet(
-    workbook: Workbook,
-    data: AccountingExportData,
-  ): void {
-    const sheet = workbook.addWorksheet('Sales Summary');
-    this.setColumnWidths(sheet, [14, 20, 14, 20]);
-    this.addTitleRow(sheet, data, 4);
-    this.boldRow(
-      sheet.addRow([
-        'Date',
-        'Total Revenue (USD)',
-        'Sales Count',
-        'Average Sale (USD)',
-      ]),
-    );
-
-    for (const day of data.dailyBreakdown) {
-      const row = sheet.addRow([
-        day.date,
-        day.revenueUsd,
-        day.salesCount,
-        day.avgSaleUsd,
       ]);
       row.getCell(2).numFmt = CURRENCY_FORMAT;
-      row.getCell(4).numFmt = CURRENCY_FORMAT;
     }
-
-    if (data.dailyBreakdown.length > 1) {
-      const totalRow = sheet.addRow([
-        'Total',
-        data.totals.revenueUsd,
-        data.totals.salesCount,
-        data.totals.avgSaleUsd,
-      ]);
-      this.boldRow(totalRow);
-      totalRow.getCell(2).numFmt = CURRENCY_FORMAT;
-      totalRow.getCell(4).numFmt = CURRENCY_FORMAT;
-    }
-  }
-
-  // Column headers carry the "current" caveat directly — this sheet's
-  // balances are current, not as of the report period, the same caveat
-  // getDailyReport's `balances` field already carries. There's no ledger of
-  // what a balance was on a past date, only what the accountant last
-  // counted it as.
-  private addBalancesSheet(
-    workbook: Workbook,
-    data: AccountingExportData,
-  ): void {
-    const sheet = workbook.addWorksheet('Balances by Account');
-    this.setColumnWidths(sheet, [22, 16, 10, 22, 20]);
-    this.addTitleRow(sheet, data, 5);
-    this.boldRow(
-      sheet.addRow([
-        'Bank Name',
-        'Account Type',
-        'Currency',
-        'Balance — native (current)',
-        'Balance — USD (current)',
-      ]),
-    );
-
-    for (const account of data.balancesByAccount) {
-      const row = sheet.addRow([
-        account.bankName,
-        account.accountType,
-        account.currencyType,
-        account.amount,
-        account.amountUsd,
-      ]);
-      row.getCell(4).numFmt = CURRENCY_FORMAT;
-      row.getCell(5).numFmt = CURRENCY_FORMAT;
-    }
-  }
-
-  // Two independent tables stacked in one sheet, both scoped to the report
-  // period — not the all-time breakdowns /overview shows.
-  private addRevenueBreakdownSheet(
-    workbook: Workbook,
-    data: AccountingExportData,
-  ): void {
-    const sheet = workbook.addWorksheet('Revenue Breakdown');
-    this.setColumnWidths(sheet, [22, 16, 16, 16, 14, 12]);
-    this.addTitleRow(sheet, data, 6);
-
-    this.boldRow(sheet.addRow(['Revenue by Currency']));
-    this.boldRow(
-      sheet.addRow(['Currency', 'Total (native)', 'Total (USD)', '% of Total']),
-    );
-    for (const item of data.revenueByCurrency) {
-      const row = sheet.addRow([
-        item.currency,
-        item.total,
-        item.totalUsd,
-        item.percent,
-      ]);
-      row.getCell(2).numFmt = CURRENCY_FORMAT;
-      row.getCell(3).numFmt = CURRENCY_FORMAT;
-    }
-
-    sheet.addRow([]);
-
-    this.boldRow(sheet.addRow(['Revenue by Bank Account']));
-    this.boldRow(
-      sheet.addRow([
-        'Bank Name',
-        'Account Type',
-        'Currency',
-        'Revenue (native)',
-        'Revenue (USD)',
-        'Sales Count',
-      ]),
-    );
-    for (const item of data.revenueByBankAccount) {
-      const row = sheet.addRow([
-        item.bankName,
-        item.accountType,
-        item.currencyType,
-        item.totalRevenue,
-        item.totalRevenueUsd,
-        item.salesCount,
-      ]);
-      if (item.totalRevenue !== null) row.getCell(4).numFmt = CURRENCY_FORMAT;
-      row.getCell(5).numFmt = CURRENCY_FORMAT;
-    }
-  }
-
-  // Every sheet gets the same title so it's unambiguous which period (and,
-  // now, which filters) it covers even once the file has been saved,
-  // renamed, or opened weeks later — "Report date: 2026-08-18" for a single
-  // day (dateFrom === dateTo), or "Report period: 2026-08-01 to 2026-08-31"
-  // for a range, with " — Filtered by: Account: Whop, Currency: USD"
-  // appended whenever activeFilters is non-empty. Never a relative "Today"
-  // label, which goes stale. Merged across the sheet's full column count
-  // and followed by a blank spacer row before the real header.
-  private addTitleRow(
-    sheet: Worksheet,
-    data: AccountingExportData,
-    columnSpan: number,
-  ): void {
-    const period =
-      data.dateFrom === data.dateTo
-        ? `Report date: ${data.dateFrom}`
-        : `Report period: ${data.dateFrom} to ${data.dateTo}`;
-    const filterSuffix = data.activeFilters.length
-      ? ` — Filtered by: ${data.activeFilters
-          .map((f) => `${f.label}: ${f.value}`)
-          .join(', ')}`
-      : '';
-    const row = sheet.addRow([period + filterSuffix]);
-    row.font = { bold: true, size: 12 };
-    if (columnSpan > 1) sheet.mergeCells(row.number, 1, row.number, columnSpan);
-    sheet.addRow([]);
   }
 
   private setColumnWidths(sheet: Worksheet, widths: number[]): void {

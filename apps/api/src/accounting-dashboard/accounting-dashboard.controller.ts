@@ -171,7 +171,7 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Get revenue breakdowns scoped to a date range',
     description:
-      'Revenue by bank account, by currency, and top clients — all scoped to [dateFrom, dateTo] instead of all-time. Pass the same date for both to get a single day; a full month or year covers Monthly/Yearly Reports.',
+      "Revenue by bank account, by currency, top clients, and current balances — all scoped to [dateFrom, dateTo] instead of all-time (balances are current-only; see below). Pass the same date for both to get a single day; a full month or year covers Monthly/Yearly Reports. clientId/bankAccountId/accountType/currency layer on top — the same filter set as GET /transactions and the Excel export — so the Reports page filter bar scopes this endpoint's numbers (including the balance cards) to exactly what the table is showing.",
   })
   @ApiQuery({
     name: 'dateFrom',
@@ -185,6 +185,33 @@ export class AccountingDashboardController {
     description: 'YYYY-MM-DD',
     example: '2026-07-31',
   })
+  @ApiQuery({
+    name: 'clientId',
+    required: false,
+    description:
+      "Filter to a single client. Has no effect on `balances` — an account isn't tied to one client.",
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'bankAccountId',
+    required: false,
+    description: 'Filter to a single bank account',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'accountType',
+    required: false,
+    description:
+      'Filter to LOCAL and/or INTERNATIONAL accounts — comma-separated for multiple, e.g. `LOCAL,INTERNATIONAL`.',
+    example: 'INTERNATIONAL',
+  })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    description:
+      'Filter to one or more currencies — comma-separated, e.g. `USD,PKR`.',
+    example: 'USD,PKR',
+  })
   @ApiOkResponse({
     description: 'Reports breakdown returned',
     type: ReportsBreakdownResponseDto,
@@ -195,11 +222,13 @@ export class AccountingDashboardController {
     @Req() req: WorkspaceRequest,
     @Query() query: ReportsBreakdownQueryDto,
   ): Promise<ApiRes<ReportsBreakdown>> {
-    const { dateFrom, dateTo } = query as ReportsBreakdownQuery;
+    const { dateFrom, dateTo, clientId, bankAccountId, accountType, currency } =
+      query as ReportsBreakdownQuery;
     const breakdown = await this.dashboardService.getReportsBreakdown(
       req.workspaceContext.workspaceId,
       dateFrom,
       dateTo,
+      { clientId, bankAccountId, accountType, currency },
     );
     return ok(breakdown);
   }
@@ -208,7 +237,7 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Export an accounting report as an .xlsx workbook',
     description:
-      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. Four sheets: Transactions, Sales Summary (one row per day for a range, plus a Total row), Balances by Account (current, not as of the period), and Revenue Breakdown by currency and bank account — every sheet titled with the active period and filters.',
+      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. One sheet, one row per matching transaction — Date, Revenue (USD), Currency, Client, Bank — mirroring the Reports table exactly, with or without filters applied.',
   })
   @ApiQuery({
     name: 'date',
@@ -246,14 +275,15 @@ export class AccountingDashboardController {
     name: 'accountType',
     required: false,
     description:
-      'Filter the export to LOCAL or INTERNATIONAL accounts — the "Payment Platform" filter in the UI',
+      'Filter the export to LOCAL and/or INTERNATIONAL accounts — the "Payment Platform" filter in the UI. Comma-separated for multiple, e.g. `LOCAL,INTERNATIONAL`.',
     example: 'INTERNATIONAL',
   })
   @ApiQuery({
     name: 'currency',
     required: false,
-    description: 'Filter the export to a single currency',
-    example: 'USD',
+    description:
+      'Filter the export to one or more currencies — comma-separated, e.g. `USD,PKR`.',
+    example: 'USD,PKR',
   })
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

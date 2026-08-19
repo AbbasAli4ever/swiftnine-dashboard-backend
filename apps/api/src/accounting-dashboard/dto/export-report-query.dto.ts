@@ -5,6 +5,7 @@ import {
   DATE_FORMAT_REGEX,
   daysBetweenDates,
 } from '../accounting-dashboard.constants';
+import { enumCsvOrArray } from '../../common/query/query.schemas';
 import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
 import { ACCOUNT_TYPE_VALUES } from '../../bank-accounts/bank-account.constants';
 
@@ -30,8 +31,10 @@ export const ExportReportQuerySchema = z
       .optional(),
     clientId: z.string().uuid('Invalid client id').optional(),
     bankAccountId: z.string().uuid('Invalid bank account id').optional(),
-    accountType: z.enum(ACCOUNT_TYPE_VALUES).optional(),
-    currency: z.enum(CURRENCY_VALUES).optional(),
+    // Comma-separated or repeated, same as GET /transactions — e.g.
+    // `currency=USD,PKR` exports both rather than requiring one value.
+    accountType: enumCsvOrArray(ACCOUNT_TYPE_VALUES, 'Invalid account type'),
+    currency: enumCsvOrArray(CURRENCY_VALUES, 'Invalid currency'),
   })
   .refine((value) => !(value.date && (value.dateFrom || value.dateTo)), {
     message: 'Pass either `date` or `dateFrom`/`dateTo`, not both',

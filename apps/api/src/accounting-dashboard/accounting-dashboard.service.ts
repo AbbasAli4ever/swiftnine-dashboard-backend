@@ -13,7 +13,6 @@ import {
   TOP_CLIENTS_LIMIT,
 } from './accounting-dashboard.constants';
 import type { DashboardPeriod } from './dto/dashboard-overview-query.dto';
-import { BANK_ACCOUNT_SELECT } from '../bank-accounts/bank-account.constants';
 import { TRANSACTION_SELECT } from '../transactions/transaction.constants';
 
 export type CurrencyTotal = { currency: Currency; total: number };
@@ -150,15 +149,11 @@ export type ReportsBreakdown = {
   revenueByBankAccount: BankAccountRevenueItem[];
   revenueByCurrency: CurrencyRevenueItem[];
   topClients: TopClientRevenueItem[];
-};
-
-export type BankAccountBalanceItem = {
-  id: string;
-  bankName: string;
-  accountType: AccountType;
-  currencyType: Currency;
-  amount: number;
-  amountUsd: number;
+  // Current balances (not scoped to [dateFrom, dateTo] — same "current, not
+  // as of the period" caveat getDailyReport/export already carry), narrowed
+  // to whichever accounts match bankAccountId/accountType/currency. clientId
+  // has no effect here — an account isn't tied to one client.
+  balances: BalanceSummary;
 };
 
 export type TransactionExportRow = {
@@ -169,40 +164,16 @@ export type TransactionExportRow = {
   bankAccount: { id: string; bankName: string; logoUrl: string | null };
   currency: Currency;
   saleAmount: number;
+  saleAmountUsd: number;
   description: string | null;
 };
 
-export type ExportDailyBreakdownRow = {
-  date: string;
-  revenueUsd: number;
-  salesCount: number;
-  avgSaleUsd: number;
-};
-
-export type ExportTotals = {
-  revenueUsd: number;
-  salesCount: number;
-  avgSaleUsd: number;
-};
-
-export type ExportActiveFilter = { label: string; value: string };
-
+// Mirrors the Reports table exactly (Date, Revenue, Currency, Client, Bank) —
+// one row per matching transaction, no separate summary/balance sheets.
 export type AccountingExportData = {
   dateFrom: string;
   dateTo: string;
-  // One row per calendar day in [dateFrom, dateTo], zero-filled for days
-  // with no sales — collapses to exactly one row when dateFrom === dateTo.
-  dailyBreakdown: ExportDailyBreakdownRow[];
-  totals: ExportTotals;
-  balancesByAccount: BankAccountBalanceItem[];
-  revenueByCurrency: CurrencyRevenueItem[];
-  revenueByBankAccount: BankAccountRevenueItem[];
   transactions: TransactionExportRow[];
-  // Human-readable form of whatever ExportFilters were applied — empty when
-  // none were. Resolved here (this service has DB access) so
-  // ReportExportService can stay a pure renderer and just join these into
-  // the title.
-  activeFilters: ExportActiveFilter[];
 };
 
 function toUsd(amount: number, currency: Currency): number {
@@ -220,17 +191,18 @@ function percentChange(current: number, previous: number): number {
 
 type DateRange = { gte: Date; lt?: Date };
 
-// Extra filters layered on top of a date range — used only by the Excel
-// export's "filtered export" path (see getExportData). Every other caller
-// of the methods that accept this (getRevenueByBankAccount,
-// getRevenueByCurrency, getAllBankAccountBalances, getTransactionsForRange)
-// passes undefined, so their existing all-time/date-only behavior is
-// unaffected.
-type ExportFilters = {
+// Extra filters layered on top of a date range — shared by /reports/export
+// and /reports/breakdown. currency/accountType accept multiple values (same
+// comma-separated pattern as GET /transactions); clientId/bankAccountId
+// stay single-valued, also matching /transactions. Every other caller of
+// the methods that accept this (getRevenueByBankAccount, getRevenueByCurrency,
+// getTransactionsForRange, getBalances) passes undefined, so their existing
+// all-time/date-only behavior is unaffected.
+type ReportFilters = {
   clientId?: string;
   bankAccountId?: string;
-  accountType?: AccountType;
-  currency?: Currency;
+  accountType?: AccountType[];
+  currency?: Currency[];
 };
 
 @Injectable()
@@ -348,18 +320,25 @@ export class AccountingDashboardService {
   // Reports (not Overview) entry point: every breakdown below scoped to a
   // caller-supplied [dateFrom, dateTo] instead of all-time. dateFrom/dateTo
   // may be the same day (a daily report), a full month, or a full year —
-  // one generic range covers all three Reports screens.
+  // one generic range covers all three Reports screens. filters are the
+  // same clientId/bankAccountId/accountType/currency set as GET /transactions
+  // and the Excel export, so the page's filter bar scopes revenue/top-clients
+  // AND the balance cards, not just the date range. balances (current, not
+  // period-scoped) only honor bankAccountId/accountType/currency — clientId
+  // has no effect there, same as everywhere else balances are filtered.
   async getReportsBreakdown(
     workspaceId: string,
     dateFrom: string,
     dateTo: string,
+    filters?: ReportFilters,
   ): Promise<ReportsBreakdown> {
     const range = this.utcDayRange(dateFrom, dateTo);
-    const [revenueByBankAccount, revenueByCurrency, topClients] =
+    const [revenueByBankAccount, revenueByCurrency, topClients, balances] =
       await Promise.all([
-        this.getRevenueByBankAccount(workspaceId, range),
-        this.getRevenueByCurrency(workspaceId, range),
-        this.getTopClientsByRevenue(workspaceId, range),
+        this.getRevenueByBankAccount(workspaceId, range, filters),
+        this.getRevenueByCurrency(workspaceId, range, filters),
+        this.getTopClientsByRevenue(workspaceId, range, filters),
+        this.getBalances(workspaceId, filters),
       ]);
 
     return {
@@ -368,242 +347,71 @@ export class AccountingDashboardService {
       revenueByBankAccount,
       revenueByCurrency,
       topClients,
+      balances,
     };
   }
 
-  // Gathers everything the Excel export workbook needs for [dateFrom,
-  // dateTo], reusing the same range-aware breakdowns getReportsBreakdown
-  // uses rather than re-querying. dateFrom === dateTo for the original
-  // single-date export — dailyBreakdown then collapses to exactly one row.
-  // Balances are current-only (same caveat getDailyReport already carries)
-  // — no snapshot table exists to answer "as of `dateTo`".
+  // Gathers what the Excel export needs for [dateFrom, dateTo]: exactly the
+  // rows the Reports table itself shows for the same filters (or today, by
+  // default) — a straight table export, not a separate multi-sheet report.
   async getExportData(
     workspaceId: string,
     dateFrom: string,
     dateTo: string,
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Promise<AccountingExportData> {
     const range = this.utcDayRange(dateFrom, dateTo);
-    const [
-      revenueUsd,
-      salesCount,
-      balancesByAccount,
-      revenueByCurrency,
-      revenueByBankAccount,
-      transactions,
-      activeFilters,
-    ] = await Promise.all([
-      this.sumRevenueUsd(workspaceId, range, filters),
-      this.prisma.transaction.count({
-        where: {
-          workspaceId,
-          saleDate: range,
-          ...this.transactionFilterWhere(filters),
-        },
-      }),
-      this.getAllBankAccountBalances(workspaceId, filters),
-      this.getRevenueByCurrency(workspaceId, range, filters),
-      this.getRevenueByBankAccount(workspaceId, range, filters),
-      this.getTransactionsForRange(workspaceId, range, filters),
-      this.describeActiveFilters(workspaceId, filters),
-    ]);
-
-    const roundedRevenueUsd = round2(revenueUsd);
-    const avgSaleUsd =
-      salesCount > 0 ? round2(roundedRevenueUsd / salesCount) : 0;
-
-    return {
-      dateFrom,
-      dateTo,
-      dailyBreakdown: this.buildDailyBreakdown(dateFrom, dateTo, transactions),
-      totals: {
-        revenueUsd: roundedRevenueUsd,
-        salesCount,
-        avgSaleUsd,
-      },
-      // Zero-filled for every currency actually in use by a bank account in
-      // this workspace — getRevenueByCurrency itself only returns
-      // currencies with activity in range (fine for /overview and
-      // /reports/breakdown, which already document that), but a printed
-      // spreadsheet reads as incomplete if PKR silently vanishes on a day
-      // with only USD sales while an HBL/PKR account still exists.
-      revenueByCurrency: this.fillMissingCurrencies(
-        revenueByCurrency,
-        balancesByAccount,
-      ),
-      balancesByAccount,
-      revenueByBankAccount,
-      transactions,
-      activeFilters,
-    };
+    const transactions = await this.getTransactionsForRange(
+      workspaceId,
+      range,
+      filters,
+    );
+    return { dateFrom, dateTo, transactions };
   }
 
-  // Resolves ExportFilters into display labels for the workbook's title —
-  // accountType/currency are already human-readable enum values, but
-  // clientId/bankAccountId are just UUIDs, so those two get a tiny
-  // dedicated lookup rather than relying on a match turning up in the
-  // (possibly empty) filtered transaction/account results.
-  private async describeActiveFilters(
-    workspaceId: string,
-    filters?: ExportFilters,
-  ): Promise<ExportActiveFilter[]> {
-    if (!filters) return [];
-
-    const [client, bankAccount] = await Promise.all([
-      filters.clientId
-        ? this.prisma.clients.findFirst({
-            where: { id: filters.clientId, workspaceId },
-            select: { clientName: true },
-          })
-        : null,
-      filters.bankAccountId
-        ? this.prisma.bankAccount.findFirst({
-            where: { id: filters.bankAccountId, workspaceId },
-            select: { bankName: true },
-          })
-        : null,
-    ]);
-
-    const active: ExportActiveFilter[] = [];
-    if (client) active.push({ label: 'Client', value: client.clientName });
-    if (bankAccount) {
-      active.push({ label: 'Account', value: bankAccount.bankName });
-    }
-    if (filters.accountType) {
-      active.push({ label: 'Payment Platform', value: filters.accountType });
-    }
-    if (filters.currency) {
-      active.push({ label: 'Currency', value: filters.currency });
-    }
-    return active;
-  }
-
-  // Built from the already-fetched `transactions` array rather than one
-  // query per day — a 400-day range would otherwise mean 400 sequential
-  // round-trips. Every day in [dateFrom, dateTo] gets a row, zero-filled,
-  // so a quiet day isn't just missing from the sheet.
-  private buildDailyBreakdown(
-    dateFrom: string,
-    dateTo: string,
-    transactions: TransactionExportRow[],
-  ): ExportDailyBreakdownRow[] {
-    const byDay = new Map<string, { revenueUsd: number; salesCount: number }>();
-    for (const transaction of transactions) {
-      const day = transaction.saleDate.toISOString().slice(0, 10);
-      const bucket = byDay.get(day) ?? { revenueUsd: 0, salesCount: 0 };
-      bucket.revenueUsd += toUsd(transaction.saleAmount, transaction.currency);
-      bucket.salesCount += 1;
-      byDay.set(day, bucket);
-    }
-
-    const rows: ExportDailyBreakdownRow[] = [];
-    const cursor = new Date(`${dateFrom}T00:00:00.000Z`);
-    const end = new Date(`${dateTo}T00:00:00.000Z`);
-    while (cursor.getTime() <= end.getTime()) {
-      const key = cursor.toISOString().slice(0, 10);
-      const bucket = byDay.get(key) ?? { revenueUsd: 0, salesCount: 0 };
-      const revenueUsd = round2(bucket.revenueUsd);
-      rows.push({
-        date: key,
-        revenueUsd,
-        salesCount: bucket.salesCount,
-        avgSaleUsd:
-          bucket.salesCount > 0 ? round2(revenueUsd / bucket.salesCount) : 0,
-      });
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-    return rows;
-  }
-
-  // Adds a zero-value row for every currency that has a bank account in
-  // this workspace but no revenue in range — export-only; the shared
-  // getRevenueByCurrency stays as-is for /overview and /reports/breakdown,
-  // which already document "no activity in range → absent, not zeroed."
-  private fillMissingCurrencies(
-    revenueByCurrency: CurrencyRevenueItem[],
-    balancesByAccount: BankAccountBalanceItem[],
-  ): CurrencyRevenueItem[] {
-    const present = new Set(revenueByCurrency.map((item) => item.currency));
-    const missing = [
-      ...new Set(balancesByAccount.map((account) => account.currencyType)),
-    ].filter((currency) => !present.has(currency));
-
-    return [
-      ...revenueByCurrency,
-      ...missing.map((currency) => ({
-        currency,
-        total: 0,
-        totalUsd: 0,
-        percent: 0,
-      })),
-    ];
-  }
-
-  // Transaction-side filters, shared by every export query that reads from
-  // Transaction. accountType lives on the related BankAccount, hence the
-  // nested filter rather than a plain column match.
+  // Transaction-side filters. accountType lives on the related BankAccount,
+  // hence the nested filter rather than a plain column match. currency and
+  // accountType accept multiple values (`{ in: [...] }`) — clientId and
+  // bankAccountId stay single-valued, matching GET /transactions.
   private transactionFilterWhere(
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Prisma.TransactionWhereInput {
     if (!filters) return {};
     return {
       ...(filters.clientId && { clientId: filters.clientId }),
       ...(filters.bankAccountId && { bankAccountId: filters.bankAccountId }),
-      ...(filters.currency && { currency: filters.currency }),
-      ...(filters.accountType && {
-        bankAccount: { accountType: filters.accountType },
+      ...(filters.currency?.length && { currency: { in: filters.currency } }),
+      ...(filters.accountType?.length && {
+        bankAccount: { accountType: { in: filters.accountType } },
       }),
     };
   }
 
-  // BankAccount-side filters — same ExportFilters, but clientId doesn't
+  // BankAccount-side filters — same ReportFilters, but clientId doesn't
   // apply (an account isn't tied to one client) and bankAccountId narrows
   // by the account's own id rather than a transaction's foreign key.
   private bankAccountFilterWhere(
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Prisma.BankAccountWhereInput {
     if (!filters) return {};
     return {
       ...(filters.bankAccountId && { id: filters.bankAccountId }),
-      ...(filters.accountType && { accountType: filters.accountType }),
-      ...(filters.currency && { currencyType: filters.currency }),
+      ...(filters.accountType?.length && {
+        accountType: { in: filters.accountType },
+      }),
+      ...(filters.currency?.length && {
+        currencyType: { in: filters.currency },
+      }),
     };
   }
 
-  // Every bank account's current balance, uncapped — unlike
-  // getBankAccountsByType, which caps at BANK_ACCOUNTS_PER_GROUP_LIMIT per
-  // type for the Overview UI panel. An export must list every account
-  // matching the filters (or every account, when there are none).
-  private async getAllBankAccountBalances(
-    workspaceId: string,
-    filters?: ExportFilters,
-  ): Promise<BankAccountBalanceItem[]> {
-    const accounts = await this.prisma.bankAccount.findMany({
-      where: { workspaceId, ...this.bankAccountFilterWhere(filters) },
-      select: BANK_ACCOUNT_SELECT,
-      orderBy: [{ accountType: 'asc' }, { amount: 'desc' }],
-    });
-
-    return accounts.map((account) => {
-      const amount = Number(account.amount);
-      return {
-        id: account.id,
-        bankName: account.bankName,
-        accountType: account.accountType,
-        currencyType: account.currencyType,
-        amount: round2(amount),
-        amountUsd: round2(toUsd(amount, account.currencyType)),
-      };
-    });
-  }
-
-  // Per-transaction detail for the export's Transactions sheet. Distinct
-  // from getDailyReport's clientPayments, which omits refId/description —
-  // fine for the dashboard UI, not enough for an accounting export.
+  // Per-transaction detail for the export table. Distinct from
+  // getDailyReport's clientPayments, which omits refId/description — fine
+  // for the dashboard UI, not enough for an accounting export.
   private async getTransactionsForRange(
     workspaceId: string,
     range: DateRange,
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Promise<TransactionExportRow[]> {
     const rows = await this.prisma.transaction.findMany({
       where: {
@@ -615,16 +423,20 @@ export class AccountingDashboardService {
       orderBy: { saleDate: 'asc' },
     });
 
-    return rows.map((row) => ({
-      id: row.id,
-      refId: row.refId,
-      saleDate: row.saleDate,
-      clientName: row.clientName,
-      bankAccount: row.bankAccount,
-      currency: row.currency,
-      saleAmount: Number(row.saleAmount),
-      description: row.description,
-    }));
+    return rows.map((row) => {
+      const saleAmount = Number(row.saleAmount);
+      return {
+        id: row.id,
+        refId: row.refId,
+        saleDate: row.saleDate,
+        clientName: row.clientName,
+        bankAccount: row.bankAccount,
+        currency: row.currency,
+        saleAmount,
+        saleAmountUsd: round2(toUsd(saleAmount, row.currency)),
+        description: row.description,
+      };
+    });
   }
 
   // UTC day-boundary range covering every day from dateFrom through dateTo
@@ -670,10 +482,17 @@ export class AccountingDashboardService {
     return { gte: yearStart, lt: tomorrowStart };
   }
 
-  private async getBalances(workspaceId: string): Promise<BalanceSummary> {
+  // filters narrows which accounts get summed — bankAccountId/accountType/
+  // currency only (clientId doesn't apply to a BankAccount). /overview and
+  // getDailyReport pass undefined, so they stay workspace-wide; only
+  // getReportsBreakdown passes real filters.
+  private async getBalances(
+    workspaceId: string,
+    filters?: ReportFilters,
+  ): Promise<BalanceSummary> {
     const grouped = await this.prisma.bankAccount.groupBy({
       by: ['accountType', 'currencyType'],
-      where: { workspaceId },
+      where: { workspaceId, ...this.bankAccountFilterWhere(filters) },
       _sum: { amount: true },
       _count: true,
     });
@@ -782,15 +601,10 @@ export class AccountingDashboardService {
   private async sumRevenueUsd(
     workspaceId: string,
     range: DateRange,
-    filters?: ExportFilters,
   ): Promise<number> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
-      where: {
-        workspaceId,
-        saleDate: range,
-        ...this.transactionFilterWhere(filters),
-      },
+      where: { workspaceId, saleDate: range },
       _sum: { saleAmount: true },
     });
 
@@ -994,7 +808,7 @@ export class AccountingDashboardService {
   private async getRevenueByBankAccount(
     workspaceId: string,
     range?: DateRange,
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Promise<BankAccountRevenueItem[]> {
     const [accounts, grouped] = await Promise.all([
       this.prisma.bankAccount.findMany({
@@ -1075,7 +889,7 @@ export class AccountingDashboardService {
   private async getRevenueByCurrency(
     workspaceId: string,
     range?: DateRange,
-    filters?: ExportFilters,
+    filters?: ReportFilters,
   ): Promise<CurrencyRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['currency'],
@@ -1178,10 +992,15 @@ export class AccountingDashboardService {
   private async getTopClientsByRevenue(
     workspaceId: string,
     range?: DateRange,
+    filters?: ReportFilters,
   ): Promise<TopClientRevenueItem[]> {
     const grouped = await this.prisma.transaction.groupBy({
       by: ['clientId', 'currency'],
-      where: { workspaceId, ...(range && { saleDate: range }) },
+      where: {
+        workspaceId,
+        ...(range && { saleDate: range }),
+        ...this.transactionFilterWhere(filters),
+      },
       _sum: { saleAmount: true },
       _count: true,
     });

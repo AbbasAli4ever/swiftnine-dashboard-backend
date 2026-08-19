@@ -420,3 +420,39 @@ New Reports UI: a paginated transaction list with filters (Date Range, Client, P
 - **Regression check**: `/overview?period=monthly` and `/reports/breakdown` re-verified byte-for-byte identical to their pre-change values (`Whop 6,250`, `Slash 5,550`, `HBL 431.65`, `revenueByCurrency` unchanged) — confirming the new optional `filters` parameter threaded through five shared methods didn't alter behavior for callers that don't pass it.
 
 
+
+## Follow-up: [2026-08-19] Excel export simplified to a single flat table (matching the Reports list)
+
+Replaced the export's 4-sheet workbook (Transactions, Sales Summary, Balances by Account, Revenue Breakdown) with **one sheet, one row per matching transaction** — `Date | Revenue | Currency | Client | Bank` — mirroring the Reports table UI exactly, with or without filters applied. Requested directly off a screenshot of the Reports table: the export should just be that table, not a separate report document.
+
+**`accounting-dashboard.service.ts`**: `AccountingExportData` collapsed to `{ dateFrom, dateTo, transactions }`. `TransactionExportRow` gained `saleAmountUsd` (computed once here via `toUsd()`, so the renderer stays a pure formatter with no currency-conversion logic of its own). `getExportData()` now only calls `getTransactionsForRange()` — dropped the parallel `sumRevenueUsd`/count/`getAllBankAccountBalances`/`getRevenueByCurrency`/`getRevenueByBankAccount`/`describeActiveFilters` calls entirely, since none of their output has a sheet to land on anymore.
+
+**Removed as dead code, not just unused**: `getAllBankAccountBalances()`, `describeActiveFilters()`, `buildDailyBreakdown()`, `fillMissingCurrencies()`, and the `BankAccountBalanceItem`/`ExportDailyBreakdownRow`/`ExportTotals`/`ExportActiveFilter` types — all existed only to feed the three sheets that no longer exist. Also dropped the now-always-`undefined` `filters` parameter from `getRevenueByBankAccount()`, `getRevenueByCurrency()`, and `sumRevenueUsd()` (nothing calls them with real filters anymore — only the removed export sheets did), and deleted `bankAccountFilterWhere()` (its only caller was the just-removed `getAllBankAccountBalances()`). `/overview` and `/reports/breakdown`, the two other callers of those three methods, never passed filters in the first place, so this is provably behavior-neutral for them.
+
+**`report-export.service.ts`**: rewritten from 4 sheet-builder methods plus a shared filter-aware title row down to one `addTransactionsSheet()` — no title row, no "Report date"/"Filtered by" banner, just a header row and the data, since the sheet **is** the filtered table now rather than a report labeled with its filters.
+
+**`accounting-dashboard.controller.ts`**: updated the `/reports/export` Swagger description to describe the new one-sheet shape instead of "Four sheets: ...".
+
+### Verification
+- `tsc --noEmit`, `eslint` on all three touched files — clean.
+- Live against the demo workspace (server on port 3020, demo accountant login): `GET /reports/export?dateFrom=2026-07-01&dateTo=2026-08-19` (no filters) and the same range with `currency=USD` added, both downloaded and parsed back with `exceljs`:
+  - Single worksheet named "Report" in both files.
+  - Header row exactly `Date, Revenue, Currency, Client, Bank`.
+  - No-filter file: 15 data rows including a PKR/Phase Shop/HBL row.
+  - `currency=USD` file: 11 data rows, PKR row correctly absent — confirms filters still apply to the export with the simplified shape.
+
+## Follow-up: [2026-08-19] Multi-value currency/accountType filters, and filtered balance totals on `/reports/breakdown`
+
+Two gaps found while re-testing the simplified export: (1) `currency`/`accountType` on `/reports/export` only accepted one value each, unlike `GET /transactions`, which already supports a comma-separated list (`currency=USD,PKR`) — asked directly and confirmed it should match; (2) the Reports page's "Pakistan Balance"/"International Balance" cards weren't filterable at all — asked for directly, off the Reports UI screenshot showing those cards sitting right above the same filter bar as the table.
+
+**`ReportFilters` (renamed from `ExportFilters`, now shared by `/reports/export` and `/reports/breakdown`)**: `currency`/`accountType` changed from single values to arrays — matching `GET /transactions`'s existing `enumCsvOrArray` pattern exactly (`export-report-query.dto.ts`, new `reports-breakdown-query.dto.ts` filters). `clientId`/`bankAccountId` stay single-valued, also matching `/transactions`. `transactionFilterWhere()` now uses `{ in: [...] }` for both instead of equality.
+
+**`/accounting-dashboard/reports/breakdown`** gained the same four filters, plus a new `balances` field on the response (`BalanceSummaryDto`, reused from `/overview`'s DTO). `getBalances()` (previously workspace-wide only) gained an optional `filters` param and a revived `bankAccountFilterWhere()` (bankAccountId/accountType/currency — no clientId, since a `BankAccount` isn't tied to one client). `getRevenueByBankAccount()`, `getRevenueByCurrency()`, and `getTopClientsByRevenue()` all gained the `filters` param back (removed in yesterday's export-simplification cleanup as dead code — now live again for this endpoint). `/overview`'s calls to these three methods still pass no filters, so its all-time/period-scoped numbers are unaffected.
+
+**Assumption made explicit before coding**: balances are current-only (no historical snapshot exists — same caveat `getDailyReport`/the export already carry), so `dateFrom`/`dateTo` never scope them, and `clientId` has no effect on them either, since an account isn't scoped to a client. Only `bankAccountId`/`accountType`/`currency` narrow which accounts get summed into the balance cards. Revenue/top-clients numbers on the same response *do* honor all four filters, including `clientId` and the date range.
+
+### Verification
+- `tsc --noEmit`, `eslint` — clean.
+- Live, demo workspace: `GET /reports/export?...&currency=USD,PKR` → `200`, single "Report" sheet, both currencies present (previously this 422'd on a comma list before today's change).
+- `GET /reports/breakdown?dateFrom=2026-07-01&dateTo=2026-08-19` (no filters) → `balances` shows LOCAL/PKR 1,250,000 (1 account) and INTERNATIONAL/USD 25,600 (2 accounts).
+- Same call + `accountType=LOCAL` → `balances` narrows to just the LOCAL/PKR entry; adding `clientId` on top of that left `balances` byte-for-byte identical (confirming clientId is correctly ignored there) while `topClients` dropped to 0 results (correctly filtered on the transaction side, since that client's sales are all on an INTERNATIONAL account).
