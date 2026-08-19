@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import type {
@@ -7,13 +7,18 @@ import type {
 } from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNTS_PER_GROUP_LIMIT,
+  CURRENCY_API_URL,
   DASHBOARD_SEARCH_RESULT_LIMIT,
   EXCHANGE_RATES_TO_USD,
+  EXCHANGE_RATE_CACHE_TTL_MS,
   REVENUE_OVERVIEW_BUCKET_COUNT,
   TOP_CLIENTS_LIMIT,
 } from './accounting-dashboard.constants';
 import type { DashboardPeriod } from './dto/dashboard-overview-query.dto';
-import { TRANSACTION_SELECT } from '../transactions/transaction.constants';
+import {
+  CURRENCY_VALUES,
+  TRANSACTION_SELECT,
+} from '../transactions/transaction.constants';
 
 export type CurrencyTotal = { currency: Currency; total: number };
 
@@ -21,6 +26,10 @@ export type BalanceByAccountType = {
   accountType: AccountType;
   totals: CurrencyTotal[];
   accountCount: number;
+  // Every currency in `totals` summed into one USD figure — e.g. the
+  // "International Balance" card, where INTERNATIONAL accounts may span
+  // USD/AED/GBP/etc. and the UI wants one number, not a per-currency list.
+  totalUsd: number;
 };
 
 export type BalanceSummary = {
@@ -176,10 +185,6 @@ export type AccountingExportData = {
   transactions: TransactionExportRow[];
 };
 
-function toUsd(amount: number, currency: Currency): number {
-  return amount / EXCHANGE_RATES_TO_USD[currency];
-}
-
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -207,12 +212,61 @@ type ReportFilters = {
 
 @Injectable()
 export class AccountingDashboardService {
+  private readonly logger = new Logger(AccountingDashboardService.name);
+  // Live-fetched, falls back to (and starts as) the static placeholder map.
+  // Refreshed by refreshExchangeRates(), currently called only from
+  // getOverview() — the Pakistan/International/Total balance cards are the
+  // one place accuracy was explicitly asked for. Every other caller of
+  // toUsd() uses whatever is currently cached here.
+  private exchangeRates: Record<Currency, number> = {
+    ...EXCHANGE_RATES_TO_USD,
+  };
+  private exchangeRatesFetchedAt = 0;
+
   constructor(private readonly prisma: PrismaService) {}
+
+  // Fetches live USD-base rates and merges them over the current map — one
+  // network call, cached for EXCHANGE_RATE_CACHE_TTL_MS. Never throws: on
+  // any failure (network, non-200, malformed body) it logs a warning and
+  // leaves the existing rates (live-but-stale, or the static fallback)
+  // exactly as they were, so a flaky third-party API can never break the
+  // dashboard. CRYPTO has no entry in the response, so it always keeps the
+  // static fallback.
+  private async refreshExchangeRates(): Promise<void> {
+    if (Date.now() - this.exchangeRatesFetchedAt < EXCHANGE_RATE_CACHE_TTL_MS) {
+      return;
+    }
+    try {
+      const response = await fetch(CURRENCY_API_URL);
+      if (!response.ok) {
+        throw new Error(`Currency API responded with ${response.status}`);
+      }
+      const body = (await response.json()) as { usd?: Record<string, number> };
+      if (!body.usd) throw new Error('Currency API response missing `usd`');
+
+      const next = { ...this.exchangeRates };
+      for (const currency of CURRENCY_VALUES) {
+        const rate = body.usd[currency.toLowerCase()];
+        if (typeof rate === 'number' && rate > 0) next[currency] = rate;
+      }
+      this.exchangeRates = next;
+      this.exchangeRatesFetchedAt = Date.now();
+    } catch (error) {
+      this.logger.warn(
+        `Falling back to cached exchange rates — ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private toUsd(amount: number, currency: Currency): number {
+    return amount / this.exchangeRates[currency];
+  }
 
   async getOverview(
     workspaceId: string,
     period: DashboardPeriod,
   ): Promise<DashboardOverview> {
+    await this.refreshExchangeRates();
     const currentPeriodRange = this.getCurrentPeriodRange(period, new Date());
     const [
       balances,
@@ -433,7 +487,7 @@ export class AccountingDashboardService {
         bankAccount: row.bankAccount,
         currency: row.currency,
         saleAmount,
-        saleAmountUsd: round2(toUsd(saleAmount, row.currency)),
+        saleAmountUsd: round2(this.toUsd(saleAmount, row.currency)),
         description: row.description,
       };
     });
@@ -499,30 +553,39 @@ export class AccountingDashboardService {
 
     const byType = new Map<
       AccountType,
-      { totals: CurrencyTotal[]; accountCount: number }
+      { totals: CurrencyTotal[]; accountCount: number; totalUsd: number }
     >();
     let totalBalanceUsd = 0;
 
     for (const row of grouped) {
       const amount = Number(row._sum.amount ?? 0);
-      totalBalanceUsd += toUsd(amount, row.currencyType);
+      const amountUsd = this.toUsd(amount, row.currencyType);
+      totalBalanceUsd += amountUsd;
 
       const bucket = byType.get(row.accountType) ?? {
         totals: [],
         accountCount: 0,
+        totalUsd: 0,
       };
       bucket.totals.push({ currency: row.currencyType, total: amount });
       bucket.accountCount += row._count;
+      bucket.totalUsd += amountUsd;
       byType.set(row.accountType, bucket);
     }
 
     return {
+      // totalUsd sums every currency within this account type into one USD
+      // figure — e.g. the "International Balance" card, where INTERNATIONAL
+      // accounts may span USD/AED/GBP/etc. `totals` (native, per currency)
+      // stays for anywhere that wants the un-converted breakdown.
       byAccountType: Array.from(byType, ([accountType, bucket]) => ({
         accountType,
-        ...bucket,
+        totals: bucket.totals,
+        accountCount: bucket.accountCount,
+        totalUsd: round2(bucket.totalUsd),
       })),
       totalBalanceUsd: round2(totalBalanceUsd),
-      exchangeRatesToUsd: EXCHANGE_RATES_TO_USD,
+      exchangeRatesToUsd: this.exchangeRates,
     };
   }
 
@@ -609,7 +672,8 @@ export class AccountingDashboardService {
     });
 
     return grouped.reduce(
-      (sum, row) => sum + toUsd(Number(row._sum.saleAmount ?? 0), row.currency),
+      (sum, row) =>
+        sum + this.toUsd(Number(row._sum.saleAmount ?? 0), row.currency),
       0,
     );
   }
@@ -684,7 +748,7 @@ export class AccountingDashboardService {
     for (const row of rows) {
       if (!row.currency) continue;
       const key = row.bucketStart.getTime();
-      const amountUsd = toUsd(Number(row.total ?? 0), row.currency);
+      const amountUsd = this.toUsd(Number(row.total ?? 0), row.currency);
       totalsByBucket.set(key, (totalsByBucket.get(key) ?? 0) + amountUsd);
     }
 
@@ -843,7 +907,7 @@ export class AccountingDashboardService {
         native: new Map<Currency, number>(),
       };
       const amount = Number(row._sum.saleAmount ?? 0);
-      bucket.totalUsd += toUsd(amount, row.currency);
+      bucket.totalUsd += this.toUsd(amount, row.currency);
       bucket.salesCount += row._count;
       bucket.native.set(
         row.currency,
@@ -906,7 +970,7 @@ export class AccountingDashboardService {
       return {
         currency: row.currency,
         total,
-        totalUsd: toUsd(total, row.currency),
+        totalUsd: this.toUsd(total, row.currency),
       };
     });
 
@@ -1024,7 +1088,7 @@ export class AccountingDashboardService {
         native: new Map<Currency, number>(),
       };
       const amount = Number(row._sum.saleAmount ?? 0);
-      bucket.totalUsd += toUsd(amount, row.currency);
+      bucket.totalUsd += this.toUsd(amount, row.currency);
       bucket.salesCount += row._count;
       bucket.native.set(
         row.currency,
