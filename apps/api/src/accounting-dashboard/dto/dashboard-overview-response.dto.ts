@@ -23,6 +23,13 @@ class BalanceByAccountTypeDto {
     description: 'Number of bank accounts of this type',
   })
   accountCount!: number;
+
+  @ApiProperty({
+    example: 102500,
+    description:
+      'Every currency in `totals` converted and summed into one USD figure — e.g. the International Balance card, where INTERNATIONAL accounts may span USD/AED/GBP/etc. and the UI wants one number, not the per-currency `totals` list.',
+  })
+  totalUsd!: number;
 }
 
 export class BalanceSummaryDto {
@@ -35,7 +42,7 @@ export class BalanceSummaryDto {
   @ApiProperty({
     example: { USD: 1, PKR: 278, HKD: 7.8 },
     description:
-      'Fixed exchange rates used to convert every currency into totalBalanceUsd (units of that currency per 1 USD)',
+      'Exchange rates used to convert every currency into totalBalanceUsd (units of that currency per 1 USD). Live-fetched and cached for up to an hour; falls back to a fixed placeholder map if the live source is unreachable.',
   })
   exchangeRatesToUsd!: Record<string, number>;
 }
@@ -93,7 +100,7 @@ class RevenueOverviewDto {
   points!: RevenueOverviewPointDto[];
 }
 
-class BankAccountRevenueItemDto {
+export class BankAccountRevenueItemDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
@@ -106,7 +113,8 @@ class BankAccountRevenueItemDto {
   @ApiProperty({
     enum: CURRENCY_VALUES,
     example: 'USD',
-    description: "The account's own currency — the unit of totalRevenue",
+    description:
+      "The account's own declared currency (its balance's unit) — not necessarily the currency of every transaction routed through it; a transaction's currency doesn't have to match its bank account's currencyType.",
   })
   currencyType!: (typeof CURRENCY_VALUES)[number];
 
@@ -114,7 +122,7 @@ class BankAccountRevenueItemDto {
     example: 28400,
     nullable: true,
     description:
-      "All-time revenue in the account's own currency. Null in the edge case where the account has sales in more than one currency, since summing those natively would be meaningless — use totalRevenueUsd then.",
+      "All-time revenue in the account's own declared currency. Null whenever that isn't unambiguous — the account has sales in more than one currency, or its only sales are in a currency other than its own currencyType — since summing or mislabeling those natively would be meaningless. Use totalRevenueUsd instead in that case.",
   })
   totalRevenue!: number | null;
 
@@ -131,7 +139,7 @@ class BankAccountRevenueItemDto {
   salesCount!: number;
 }
 
-class CurrencyRevenueItemDto {
+export class CurrencyRevenueItemDto {
   @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
   currency!: (typeof CURRENCY_VALUES)[number];
 
@@ -191,6 +199,38 @@ class TopClientItemDto {
   currencyType!: (typeof CURRENCY_VALUES)[number] | null;
 }
 
+export class TopClientRevenueItemDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Victoria Partners' })
+  clientName!: string;
+
+  @ApiPropertyOptional({
+    example: 32400,
+    nullable: true,
+    description:
+      "Revenue in the client's own currency for the requested period. Null when the client's sales in that period span more than one currency.",
+  })
+  totalRevenue!: number | null;
+
+  @ApiProperty({
+    example: 32400,
+    description: 'Revenue for the requested period, in USD',
+  })
+  totalRevenueUsd!: number;
+
+  @ApiProperty({ example: 4 })
+  salesCount!: number;
+
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    nullable: true,
+    example: 'USD',
+  })
+  currencyType!: (typeof CURRENCY_VALUES)[number] | null;
+}
+
 export class DashboardOverviewResponseDto {
   @ApiProperty({ type: BalanceSummaryDto })
   balances!: BalanceSummaryDto;
@@ -204,14 +244,14 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({
     type: [BankAccountRevenueItemDto],
     description:
-      'All-time revenue per bank account — every account in the workspace (LOCAL and INTERNATIONAL), uncapped, sorted by totalRevenueUsd descending. Accounts with no sales appear with 0. Transaction-driven, not balance-driven: for current balances see bankAccounts.',
+      "Revenue per bank account — every account in the workspace (LOCAL and INTERNATIONAL), uncapped, sorted by totalRevenueUsd descending. Accounts with no sales in the window appear with 0. Scoped to the request's `period`: today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly) — not all-time. Transaction-driven, not balance-driven: for current balances see bankAccounts.",
   })
   revenueByBankAccount!: BankAccountRevenueItemDto[];
 
   @ApiProperty({
     type: [CurrencyRevenueItemDto],
     description:
-      'All-time revenue grouped by the transaction currency, sorted by totalUsd descending.',
+      "Revenue grouped by the transaction currency, sorted by totalUsd descending. Scoped to the request's `period`, same window as revenueByBankAccount: today (daily), the trailing 7 days (weekly), month-to-date (monthly), or year-to-date (yearly) — not all-time. Currencies with no activity in the window are absent, not zero-filled.",
   })
   revenueByCurrency!: CurrencyRevenueItemDto[];
 

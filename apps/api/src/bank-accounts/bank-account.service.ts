@@ -30,12 +30,26 @@ type RawBankAccountData = Prisma.BankAccountGetPayload<{
   select: typeof BANK_ACCOUNT_SELECT;
 }>;
 
-export type BankAccountData = Omit<RawBankAccountData, 'amount'> & {
+export type BankAccountData = Omit<
+  RawBankAccountData,
+  'amount' | 'transactions'
+> & {
   amount: number;
+  transactions: (Omit<
+    RawBankAccountData['transactions'][number],
+    'saleAmount'
+  > & { saleAmount: number })[];
 };
 
 function toBankAccountData(row: RawBankAccountData): BankAccountData {
-  return { ...row, amount: Number(row.amount) };
+  return {
+    ...row,
+    amount: Number(row.amount),
+    transactions: row.transactions.map((transaction) => ({
+      ...transaction,
+      saleAmount: Number(transaction.saleAmount),
+    })),
+  };
 }
 
 export type BankAccountListResult = {

@@ -70,7 +70,7 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Record a new transaction',
     description:
-      "The client and bank account referenced must already exist, and the currency must match the bank account's currencyType. saleDate defaults to now if omitted — set it explicitly to backdate a late-entered sale.",
+      "The client and bank account referenced must already exist. currency is independent of the bank account's own currencyType — an INTERNATIONAL account can take transactions in any currency interchangeably (e.g. a Whop account can receive USD, HKD, or AED sales), with one exception: a LOCAL (Pakistan) account only ever accepts PKR. saleDate defaults to now if omitted — set it explicitly to backdate a late-entered sale.",
   })
   @ApiResponse({
     status: 201,
@@ -82,8 +82,7 @@ export class TransactionController {
   @ApiResponse({ status: 404, description: 'Client or bank account not found' })
   @ApiResponse({
     status: 400,
-    description:
-      "Transaction currency doesn't match the bank account's currency",
+    description: 'A LOCAL bank account only accepts PKR transactions',
   })
   @ApiResponse({
     status: 409,
@@ -125,6 +124,19 @@ export class TransactionController {
     required: false,
     description: 'Filter to transactions belonging to a single client',
     example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'bankAccountId',
+    required: false,
+    description: 'Filter to transactions on a single bank account',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'accountType',
+    required: false,
+    description:
+      'Comma-separated account types to filter by (LOCAL = Pakistan accounts, INTERNATIONAL = everything else) — the "Payment Platform" filter in the UI',
+    example: 'INTERNATIONAL',
   })
   @ApiQuery({
     name: 'currency',
@@ -202,7 +214,7 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Update transaction fields',
     description:
-      "Changing bankAccountId, saleAmount, currency, or type reverses the transaction's prior effect on its old bank account and re-applies it to the new state.",
+      'bankAccountId, saleAmount, and currency can each be changed independently. Bank account balances are never affected either way — they only ever change via PATCH /bank-accounts/:id.',
   })
   @ApiParam({ name: 'transactionId', description: 'Transaction UUID' })
   @ApiResponse({
@@ -218,8 +230,7 @@ export class TransactionController {
   })
   @ApiResponse({
     status: 400,
-    description:
-      "Transaction currency doesn't match the bank account's currency",
+    description: 'A LOCAL bank account only accepts PKR transactions',
   })
   async update(
     @Req() req: WorkspaceRequest,

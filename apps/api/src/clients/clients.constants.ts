@@ -19,6 +19,9 @@ export const CLIENT_TRANSACTION_SELECT = {
   description: true,
   createdAt: true,
   updatedAt: true,
+  // The account a payment came in through — the closest thing to a
+  // "payment method" now that there's no PaymentPlatform enum.
+  bankAccount: { select: { id: true, bankName: true, logoUrl: true } },
 } satisfies Prisma.TransactionSelect;
 
 export const CLIENTS_SELECT = {
@@ -35,8 +38,8 @@ export const CLIENTS_SELECT = {
   },
 } satisfies Prisma.ClientsSelect;
 
-// Listing endpoint doesn't need every transaction row — only enough
-// (saleAmount + currency) to compute a per-currency total in the service.
+// Same shape as CLIENTS_SELECT — the list endpoint now embeds every
+// transaction per client too, not just enough to compute a total.
 export const CLIENTS_LIST_SELECT = {
   id: true,
   clientName: true,
@@ -45,7 +48,10 @@ export const CLIENTS_LIST_SELECT = {
   createdAt: true,
   updatedAt: true,
   _count: { select: { transactions: true } },
-  transactions: { select: { saleAmount: true, currency: true } },
+  transactions: {
+    select: CLIENT_TRANSACTION_SELECT,
+    orderBy: { createdAt: 'desc' },
+  },
 } satisfies Prisma.ClientsSelect;
 
 export const CLIENT_SEARCH_SELECT = {
