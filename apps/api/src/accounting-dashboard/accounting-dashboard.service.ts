@@ -57,6 +57,7 @@ export type RevenueOverview = {
 export type BankAccountRevenueItem = {
   id: string;
   bankName: string;
+  logoUrl: string | null;
   accountType: AccountType;
   currencyType: Currency;
   totalRevenue: number | null;
@@ -74,6 +75,7 @@ export type CurrencyRevenueItem = {
 export type BankAccountItem = {
   id: string;
   bankName: string;
+  logoUrl: string | null;
   amount: number;
   currencyType: Currency;
 };
@@ -908,6 +910,7 @@ export class AccountingDashboardService {
           bankName: true,
           accountType: true,
           currencyType: true,
+          logoUrl: true,
         },
       }),
       this.prisma.transaction.groupBy({
@@ -965,6 +968,7 @@ export class AccountingDashboardService {
         return {
           id: account.id,
           bankName: account.bankName,
+          logoUrl: account.logoUrl,
           accountType: account.accountType,
           currencyType: account.currencyType,
           totalRevenue: nativeTotal === null ? null : round2(nativeTotal),
@@ -1025,6 +1029,7 @@ export class AccountingDashboardService {
     const select = {
       id: true,
       bankName: true,
+      logoUrl: true,
       amount: true,
       currencyType: true,
     } as const;
@@ -1047,6 +1052,7 @@ export class AccountingDashboardService {
     const toItem = (row: (typeof local)[number]): BankAccountItem => ({
       id: row.id,
       bankName: row.bankName,
+      logoUrl: row.logoUrl,
       amount: Number(row.amount),
       currencyType: row.currencyType,
     });
