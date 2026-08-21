@@ -39,9 +39,12 @@ export class ReportExportService {
     );
 
     for (const transaction of data.transactions) {
+      // Native amount, never converted to USD — Currency (column 3) names
+      // the unit Revenue (column 2) is actually in, whether one currency or
+      // several are present across the exported rows.
       const row = sheet.addRow([
         transaction.saleDate.toISOString().slice(0, 10),
-        transaction.saleAmountUsd,
+        transaction.saleAmount,
         transaction.currency,
         transaction.clientName,
         transaction.bankAccount.bankName,

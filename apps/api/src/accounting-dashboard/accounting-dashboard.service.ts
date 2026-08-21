@@ -172,8 +172,9 @@ export type TransactionExportRow = {
   clientName: string;
   bankAccount: { id: string; bankName: string; logoUrl: string | null };
   currency: Currency;
+  // Native amount only — the export never converts to USD, regardless of
+  // which currency filter(s) are applied.
   saleAmount: number;
-  saleAmountUsd: number;
   description: string | null;
 };
 
@@ -441,10 +442,18 @@ export class AccountingDashboardService {
     };
   }
 
-  // BankAccount-side filters — same ReportFilters, but clientId doesn't
-  // apply (an account isn't tied to one client) and bankAccountId narrows
-  // by the account's own id rather than a transaction's foreign key.
-  private bankAccountFilterWhere(
+  // BankAccount-side identity filters — bankAccountId/accountType are real,
+  // fixed properties of the account itself, so they're always safe to
+  // filter the account list by. currency is deliberately excluded: a
+  // transaction's currency no longer has to match its account's own
+  // currencyType (an account like Whop can take USD, HKD, AED, ... sales
+  // interchangeably), so the account's currencyType is no longer a
+  // reliable proxy for "does this account have activity in currency X" —
+  // that's a transaction-level question, answered by transactionFilterWhere
+  // instead. Used by getRevenueByBankAccount()'s account list, where
+  // excluding an account by its own currencyType would silently drop real
+  // revenue it earned in a different currency.
+  private bankAccountIdentityFilterWhere(
     filters?: ReportFilters,
   ): Prisma.BankAccountWhereInput {
     if (!filters) return {};
@@ -453,7 +462,21 @@ export class AccountingDashboardService {
       ...(filters.accountType?.length && {
         accountType: { in: filters.accountType },
       }),
-      ...(filters.currency?.length && {
+    };
+  }
+
+  // Same as bankAccountIdentityFilterWhere, plus currency — here currency
+  // means the account's own held-currency balance (BankAccount.currencyType
+  // + amount), a distinct, still-single-currency-per-account concept from
+  // what currency transactions routed through it happen to be in. Used by
+  // getBalances() only — "show me PKR balances" should mean PKR-denominated
+  // accounts, not accounts that happened to take a PKR sale.
+  private bankAccountFilterWhere(
+    filters?: ReportFilters,
+  ): Prisma.BankAccountWhereInput {
+    return {
+      ...this.bankAccountIdentityFilterWhere(filters),
+      ...(filters?.currency?.length && {
         currencyType: { in: filters.currency },
       }),
     };
@@ -478,7 +501,6 @@ export class AccountingDashboardService {
     });
 
     return rows.map((row) => {
-      const saleAmount = Number(row.saleAmount);
       return {
         id: row.id,
         refId: row.refId,
@@ -486,8 +508,10 @@ export class AccountingDashboardService {
         clientName: row.clientName,
         bankAccount: row.bankAccount,
         currency: row.currency,
-        saleAmount,
-        saleAmountUsd: round2(this.toUsd(saleAmount, row.currency)),
+        // Native amount, deliberately not converted — the export shows each
+        // transaction in its own currency (matching the Currency column),
+        // never USD, no matter which currency filter(s) are applied.
+        saleAmount: Number(row.saleAmount),
         description: row.description,
       };
     });
@@ -861,14 +885,16 @@ export class AccountingDashboardService {
   // follow-up) and which only ever changes via a manual PATCH.
   //
   // Grouped by [bankAccountId, currency] rather than bankAccountId alone
-  // because Transaction.currency is its own column. TransactionService's
-  // assertCurrencyMatches currently forces it to equal the account's
-  // currencyType, so in practice there's one group per account — but the
-  // schema doesn't guarantee that, and grouping this way stays correct if
-  // that rule is ever relaxed (each group converts at its own rate).
+  // because Transaction.currency is its own column and no longer has to
+  // equal the account's own currencyType — an account can genuinely have
+  // sales in several currencies at once, each converting at its own rate.
   //
   // Accounts with no transactions are included at 0 so the panel lists every
-  // account, matching how it renders today.
+  // account, matching how it renders today. The account list itself is
+  // filtered by bankAccountIdentityFilterWhere (bankAccountId/accountType
+  // only, never currency) — see that method's comment for why a `currency`
+  // filter must narrow which *transactions* count, not which accounts
+  // appear, now that an account isn't pinned to one currency.
   private async getRevenueByBankAccount(
     workspaceId: string,
     range?: DateRange,
@@ -876,7 +902,7 @@ export class AccountingDashboardService {
   ): Promise<BankAccountRevenueItem[]> {
     const [accounts, grouped] = await Promise.all([
       this.prisma.bankAccount.findMany({
-        where: { workspaceId, ...this.bankAccountFilterWhere(filters) },
+        where: { workspaceId, ...this.bankAccountIdentityFilterWhere(filters) },
         select: {
           id: true,
           bankName: true,
@@ -919,10 +945,16 @@ export class AccountingDashboardService {
     return accounts
       .map((account) => {
         const bucket = totals.get(account.id);
-        // Native total is only meaningful while every sale on the account
-        // shares one currency (the invariant assertCurrencyMatches enforces).
-        // If that ever stops holding, send null rather than a figure that
-        // silently adds unlike currencies together.
+        // Native total is only meaningful when every sale on the account
+        // happens to be in the account's own declared currencyType — an
+        // account can now genuinely take sales in several currencies, or in
+        // one currency that differs from its own (e.g. a USD-labeled Whop
+        // account with only HKD sales this period), so both are real,
+        // expected cases now, not just a defensive edge case. Either way,
+        // `.get(account.currencyType)` naturally falls through to `null`
+        // (via `?? null`) rather than a figure that silently mixes or
+        // mislabels currencies — use totalRevenueUsd instead when this is
+        // null.
         const nativeTotal =
           !bucket || bucket.native.size === 0
             ? 0
