@@ -27,6 +27,10 @@ const USER_PROFILE_SELECT = {
   notificationPreferences: true,
   createdAt: true,
   updatedAt: true,
+  // Mirrors AUTH_USER_SELECT — this is the field the frontend's isPlatformAdmin
+  // gate reads, and this endpoint is how the user object gets rehydrated after
+  // a page refresh, not just at login.
+  isPlatformAdmin: true,
 } satisfies Prisma.UserSelect;
 
 const USER_PASSWORD_SELECT = {
@@ -55,6 +59,7 @@ export type UserProfile = {
   localTime: string | null;
   createdAt: Date;
   updatedAt: Date;
+  isPlatformAdmin: boolean;
 };
 
 @Injectable()
@@ -502,6 +507,7 @@ export class UserService {
       localTime: this.computeLocalTime(user.timezone, showLocalTime),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      isPlatformAdmin: user.isPlatformAdmin,
     };
   }
 

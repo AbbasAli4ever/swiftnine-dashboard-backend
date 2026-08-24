@@ -531,3 +531,82 @@ DTOs updated to match: `BankAccountRevenueItemDto` and `BankAccountItemDto` (`da
 ### Verification
 - `tsc --noEmit`, `eslint` — clean (the pre-existing compile error from the in-progress edit is gone).
 - Live: `GET /overview` — `logoUrl` present (as `null`, since no demo account has one uploaded) on every entry in `revenueByBankAccount`, `bankAccounts.local`, and `bankAccounts.international`.
+
+## Follow-up: [2026-08-21] Only a platform admin can grant accounting access
+
+**Problem.** Any workspace OWNER could grant or revoke accounting access, and the live SwiftNine LLC workspace has two owners (Zain and Ali) — so the workspace creator had the same power as the company admin. `role === 'OWNER'` therefore cannot be the discriminator; it needed a per-user flag.
+
+There were also **two** paths that set `accountingRole`, so restricting the obvious endpoint alone would not have closed it:
+
+1. `PUT /organizations/members/:id/accounting-role` — owner-gated
+2. The invite flow — an owner could attach `accountingRole` to an invite (single *or* batch), which was copied onto the `WorkspaceMember` on accept. The batch route made this worse: one request could have granted accounting access to up to 50 people.
+
+**`User.isPlatformAdmin`** (`prisma/schema.prisma`, migration `20260821180000_add_user_is_platform_admin`): company-wide flag, default `false`. Deliberately has **no API surface** — it is set by SQL only, so there is no privilege-escalation path through the app. Added to `AUTH_USER_SELECT`, and since `JwtStrategy` re-reads the user from the database on every request rather than trusting the token payload, granting or revoking it takes effect immediately with no token to invalidate.
+
+**New `PlatformAdminGuard`** (`auth/guards/platform-admin.guard.ts`): reads `req.user.isPlatformAdmin`. Needs no workspace context and no membership lookup, so it runs straight after `JwtAuthGuard`. This is now the third and most global of the three role guards — `roles.guard` (workspace role), `accounting-role.guard` (accounting access), and this one (company-wide).
+
+**Single write path.** `changeMemberAccountingRole()` is now the only place `accountingRole` is ever written:
+- Route: `@UseGuards(JwtAuthGuard, PlatformAdminGuard)` replaces `RolesGuard` + `@Roles('OWNER')`. `RolesGuard` was dropped rather than stacked — no workspace context is needed, and keeping an OWNER check alongside would have let ordinary owners through.
+- Service: `assertActorIsOwner()` replaced with a new `assertActorIsPlatformAdmin()`, which reads the flag fresh from the database. Checking at both layers means a future caller that forgets the guard still cannot reach around it.
+- `accountingRole` removed **entirely** from `InviteMemberDto` and `BatchInviteMembersDto` — unconditionally, for everyone including platform admins, rather than adding a conditional sender check. `sendInvite`/`sendBatchInvites`/`sendInviteToEmail` no longer take or write the field, and `claimInvite`/`acceptInvite` no longer copy it onto the new member. A new member always starts with zero accounting access.
+- `getInviteDetails` dropped its `accountingRole` response field, which would now always be `null`. **Frontend note:** this field is gone from `GET /workspaces/invite/:token`, and the invite form should no longer send an accounting field (it is silently ignored).
+
+**Default bank accounts moved to workspace creation.** They were previously created on invite-accept, but only when that invite carried an `accountingRole` — with the field gone that trigger would never have fired, and new workspaces would silently have had no bank accounts. `provisionDefaultBankAccountsIfNeeded(tx, workspaceId, accountingRole)` became `provisionDefaultBankAccounts(tx, workspaceId)` (the `accountingRole` early-return dropped, the idempotent existing-count check kept) and is now called from `create()`. This also decouples the two concerns properly: the accounts exist from day one and simply stay invisible until a platform admin grants someone accounting access, since every accounting endpoint sits behind `AccountingRoleGuard`.
+
+**`WorkspaceInvite.accountingRole` is now dead** — no longer read or written. Left as a nullable column rather than dropped, to avoid a data-dropping migration; documented as deprecated in the schema and safe to remove once live rows are all null.
+
+**`scripts/lockdown-accounting-access.ts`** — one-off cleanup for legacy grants and any pending invite still carrying the field. Dry-run by default (prints counts, writes nothing); `--apply` performs the writes. Deliberately **not** part of the migration, since it revokes real people's access and should be run knowingly after reviewing the counts. Idempotent. Also warns when no platform admin exists yet.
+
+Access levels themselves were already correct and are unchanged: `CEO` = read-only, `ACCOUNTANT` = read + write, `null` = none, enforced consistently across all four accounting controllers.
+
+### Verification
+- `tsc --noEmit`, `nest build api` — clean.
+- **Lint:** no new errors. `workspace.service.ts` back to its pre-change baseline of 17 (pre-existing `no-unsafe-*` debt in code this change didn't touch); `organizations.controller.ts` and `workspace.controller.ts` each went **down** by one. Only the two formatting errors this change introduced were fixed, rather than running `--fix` across files and churning unrelated code.
+- **Unit tests:** full suite identical to baseline — 345 passed, same 26 pre-existing failures, verified by diffing the failure sets before and after (the `AuthService` failures were already red, so the `AUTH_USER_SELECT` change did not cause them). Updated `workspace.service.spec.ts` for the two intentional behaviour changes: added a `bankAccount` mock plus an assertion that `create()` provisions the accounts, and added `isPlatformAdmin` to the two `AUTH_USER_SELECT` shape assertions. The one pre-existing `listMembers` failure was left alone as unrelated.
+- **Live end-to-end, 14/14 checks passed** against a purpose-built scenario: a fresh workspace created by a non-admin owner, with a platform admin added as a *second* OWNER — so both actors held `role: 'OWNER'` and only the flag separated them.
+  - Default bank accounts present immediately on workspace creation, with no accounting grant anywhere.
+  - Owner can still invite (single and batch). `accountingRole: 'ACCOUNTANT'` sent in both payloads was **not persisted** on either invite row.
+  - New member joins with `accountingRole: null`.
+  - Non-admin OWNER granting → `403`, and nothing written to the database.
+  - Platform admin: grant `CEO` → `200` and persisted; upgrade to `ACCOUNTANT` → persisted; revoke to `null` → `200` and cleared.
+  - Every grant recorded in `ActivityLog` as `member_accounting_role_changed`.
+  - Test users/workspaces removed afterwards.
+- **Cleanup script** dry-run verified: correctly reported 4 legacy member grants, 0 pending invites, wrote nothing, and warned that no platform admin exists in the local database.
+
+### Deployment notes
+1. Apply the migration. It includes `UPDATE users SET is_platform_admin = true WHERE email = 'ali@swiftnine.com'` — **check the row count.** `0 rows` means that user does not exist yet on that environment (on live he currently shows as never having logged in), in which case re-run the `UPDATE` once he has signed in for the first time. Until then nobody can grant accounting access.
+2. Run `scripts/lockdown-accounting-access.ts` (dry run first) to review and then clear legacy grants.
+
+## Follow-up: [2026-08-24] Employees + manual commission per sale
+
+Added a new `employees` entity so a transaction can optionally credit a sales employee and record what commission they're owed on it — entered by hand, never computed as a percentage of the sale.
+
+### Schema changes
+
+- New `Employee` model: `id`, `workspaceId`, `name`, timestamps — workspace-scoped, same shape as `Clients` today (no email/status field; kept to just a name for now).
+- `Transaction` gained three nullable columns: `employeeId` (FK to `Employee`, `onDelete: Restrict` — same protection `bankAccountId` already has, so an employee with sales history can't be silently deleted out from under it), `commissionAmount` (`Decimal(12,2)`), `commissionCurrency` (`Currency`, but only ever validated as `USD`/`PKR` — commission is always paid in one of those two regardless of what currency the sale itself settled in).
+- Fully additive: nothing existing was touched. Migration: `prisma/migrations/20260824140000_add_employee_commission/migration.sql`.
+- **Not generated via `prisma migrate dev`** — the local dev database's `_prisma_migrations` history table was already out of sync with its actual schema (every prior migration showed as "not applied" despite the schema matching), so `migrate dev` insisted on a full reset. Generated instead via `prisma migrate diff --from-config-datasource prisma.config.ts --to-schema prisma/schema.prisma --script` against the live dev DB and applied by hand with `psql` — same approach the `accounting_per_workspace` migration used or a schema-to-schema diff, minus that one's `TRUNCATE` (nothing here is destructive). The pre-existing migration-history drift is unrelated to this change and was left alone.
+
+### Backend
+
+- New `employees` module (`apps/api/src/employees/`), a straight clone of the `clients` module's shape: `EmployeesController`/`EmployeesService`/DTOs/constants, same guard stack (`AccountingRoleGuard`, CEO+ACCOUNTANT read, ACCOUNTANT-only write), same list/search/get/update/delete behavior including the delete-blocked-while-linked-transactions-exist rule (409, mirroring `CLIENT_HAS_TRANSACTIONS`).
+- `CreateTransactionDto`/`UpdateTransactionDto` gained `employeeId`, `commissionAmount`, `commissionCurrency` (all optional). Two rules enforced via Zod `.refine()` on create, and re-checked in `TransactionService.update` against the *effective* (existing-or-incoming) state since a PATCH can touch just one of the three fields:
+  1. `commissionAmount` and `commissionCurrency` must be provided together — one without the other is rejected (`TRANSACTION_COMMISSION_FIELDS_MISMATCH`).
+  2. A commission requires an employee to be assigned — `TRANSACTION_COMMISSION_REQUIRES_EMPLOYEE`.
+- `TRANSACTION_SELECT` now embeds `employee: { id, name }` alongside the existing `client`/`bankAccount` embeds.
+- `COMMISSION_CURRENCY_VALUES = ['USD', 'PKR']` added to `transaction.constants.ts`, deliberately narrower than the full `CURRENCY_VALUES` transactions use.
+
+### Frontend
+
+- `accounting.service.ts`: `AccountingEmployee`/`EmployeeSearchResult`/`EmployeeTransaction` types, `employeeService` (mirrors `clientService`), `COMMISSION_CURRENCIES` constant; `AccountingTransaction` and the create/update transaction payloads gained `employeeId`/`employee`/`commissionAmount`/`commissionCurrency`.
+- `useAccounting.ts`: `useEmployeeMutations`, `useAccountingEmployees`, `useEmployeeSearch` — same shape as the client hooks. No new invalidation logic needed; the existing `[ACCOUNTING_ROOT_KEY]` prefix invalidation already covers the new query keys.
+- New components: `EmployeePicker` (clone of `ClientPicker`), `EmployeeFormModal` (one modal handles both create and rename — unlike Clients, an Employee has only a `name` field so there's no create-only-field asymmetry to justify splitting it), `EmployeeTransactionsModal` (clone of `ClientTransactionsModal`, showing commission per sale instead of sale amount), `EmployeesView` (clone of `ClientsView`).
+- New route `/accounts/employees` (reuses the existing `AccountingRouteGuard` layout) and a new "Employees" entry in the accounting sidebar nav, between Clients and Accounts & Balances.
+- `AddSaleModal` and `TransactionsView`'s `EditTransactionModal` both gained an employee picker plus commission amount/currency inputs (the currency/amount fields only render once an employee is picked — clearing the employee clears them too, client-side, matching the backend's "commission needs an employee" rule). `TransactionsView`'s table gained Employee and Commission columns.
+
+### Verification
+
+- `tsc --noEmit` and `nest build` clean on the backend; `tsc --noEmit` and `eslint` clean on the frontend (only pre-existing, unrelated warnings remain on both sides).
+- Migration SQL applied directly to the local dev database via `psql`; `\d "Employee"` / `\d "Transaction"` confirmed the new table, columns, indexes and FK constraint, with existing data (workspaces, members, transactions) untouched.
+- No automated tests existed for `clients`/`transactions` before this change, so none were added here either — consistent with, not a regression from, the existing state of this codebase.

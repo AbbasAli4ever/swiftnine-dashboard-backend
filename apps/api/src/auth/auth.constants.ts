@@ -32,6 +32,11 @@ export const EMAIL_ALREADY_REGISTERED_MESSAGE =
   'This email is already registered but not yet verified. A new verification code has been sent.';
 export const GOOGLE_ONLY_ACCOUNT_MESSAGE =
   'This account uses Google sign-in and has no password to reset';
+// Shared by PlatformAdminGuard (route level) and
+// WorkspaceService.assertActorIsPlatformAdmin (service level) so both layers
+// reject with the same message.
+export const PLATFORM_ADMIN_ONLY =
+  'Only a platform admin can perform this action';
 
 export const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 export const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 minutes
@@ -42,6 +47,11 @@ export const AUTH_USER_SELECT = {
   email: true,
   avatarUrl: true,
   avatarColor: true,
+  // Read on every authenticated request (JwtStrategy re-queries the user
+  // rather than trusting the token payload), so PlatformAdminGuard always
+  // sees the current value — granting or revoking it takes effect
+  // immediately, with no token to invalidate.
+  isPlatformAdmin: true,
 } satisfies Prisma.UserSelect;
 
 export const ACCESS_TOKEN_PAYLOAD_SCHEMA = z.object({

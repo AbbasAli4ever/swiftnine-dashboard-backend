@@ -143,6 +143,11 @@ model User {
   timezone                String?
   notificationPreferences Json      @default("{}") @map("notification_preferences")
   isEmailVerified         Boolean   @default(false) @map("is_email_verified")
+  /// Company-wide super admin. The ONLY thing this grants is the ability to
+  /// set a member's accountingRole — see WorkspaceMember.accountingRole.
+  /// Deliberately has no API surface: set it directly in the database so it
+  /// can never be granted through the app (no privilege-escalation path).
+  isPlatformAdmin         Boolean   @default(false) @map("is_platform_admin")
   createdAt               DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
   deletedAt               DateTime? @map("deleted_at")
@@ -277,6 +282,7 @@ model Workspace {
   clients                 Clients[]
   transactions            Transaction[]
   bankAccounts            BankAccount[]
+  employees               Employee[]
 
   @@map("workspaces")
 }
@@ -287,6 +293,10 @@ model WorkspaceMember {
   workspaceId    String      @map("workspace_id")
   userId         String      @map("user_id")
   role           Role        @default(MEMBER)
+  /// Accounting feature access, independent of `role`. CEO = read-only,
+  /// ACCOUNTANT = read + write, null = no access. Writable through exactly
+  /// ONE path — WorkspaceService.changeMemberAccountingRole, which requires
+  /// User.isPlatformAdmin. Never set from an invite (see WorkspaceInvite).
   accountingRole UserRole?   @map("accounting_role")
   aiModelTier    AiModelTier @default(STANDARD) @map("ai_model_tier")
   createdAt      DateTime    @default(now()) @map("created_at")
@@ -309,6 +319,11 @@ model WorkspaceInvite {
   workspaceId    String       @map("workspace_id")
   email          String
   role           Role         @default(MEMBER)
+  /// DEPRECATED — no longer written or read. Accounting access used to ride
+  /// along on an invite, which let any workspace owner grant it; it is now
+  /// granted only via changeMemberAccountingRole by a platform admin, after
+  /// the invite has been accepted. Kept as a nullable column to avoid a
+  /// data-dropping migration; safe to remove once live rows are all null.
   accountingRole UserRole?    @map("accounting_role")
   inviteToken    String       @unique @map("invite_token")
   invitedBy      String       @map("invited_by")
@@ -1316,6 +1331,18 @@ model Transaction {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  // Who gets credited for this sale, and what they're paid for it — both
+  // optional: not every sale has a commissioned employee attached.
+  // `onDelete: Restrict` mirrors `bankAccount` above — an employee with sales
+  // history can't be silently deleted out from under it.
+  employeeId         String?   @map("employee_id")
+  employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  // Manually entered by whoever records the sale — never computed from
+  // saleAmount. Independent currency from the sale itself (commission is
+  // always paid in USD or PKR regardless of what currency the sale settled in).
+  commissionAmount   Decimal?  @db.Decimal(12, 2) @map("commission_amount")
+  commissionCurrency Currency? @map("commission_currency")
+
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, refId])
@@ -1323,6 +1350,7 @@ model Transaction {
   @@index([clientId])
   @@index([bankAccountId])
   @@index([saleDate])
+  @@index([employeeId])
 }
 
 model BankAccount {
@@ -1341,4 +1369,20 @@ model BankAccount {
   transactions Transaction[]
 
   @@index([workspaceId])
+}
+
+/// Sales employees, for attributing a transaction and manually recording the
+/// commission owed on it. Workspace-scoped, same shape as `Clients`.
+model Employee {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([workspaceId])
+  @@index([name])
 }

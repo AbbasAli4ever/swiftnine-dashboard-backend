@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Param, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PlatformAdminGuard } from '../auth/guards/platform-admin.guard';
 import { WorkspaceService } from './workspace.service';
 import { RemoveMemberDto } from './dto/remove-member.dto';
 import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
@@ -86,20 +87,23 @@ export class OrganizationsController {
     return ok(null, 'Member role updated successfully');
   }
 
+  // PlatformAdminGuard, not RolesGuard — this is the one action a workspace
+  // OWNER deliberately cannot perform. A workspace can have several owners,
+  // so an OWNER check couldn't distinguish the company admin from an ordinary
+  // one; granting financial access is a company-level decision. No workspace
+  // context is needed either, so RolesGuard is dropped rather than stacked.
   @Put('members/:id/accounting-role')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('OWNER')
+  @UseGuards(JwtAuthGuard, PlatformAdminGuard)
   @ApiBearerAuth()
-  @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
   @ApiParam({
     name: 'id',
     description: 'Workspace member id (membership record id)',
     example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
   })
   @ApiOperation({
-    summary: "Change a member's accounting feature access (OWNER only)",
+    summary: "Change a member's accounting feature access (platform admin only)",
     description:
-      'Independent of the workspace role (OWNER/ADMIN/MEMBER) — grants or revokes CEO/ACCOUNTANT access to the accounting feature for this workspace.',
+      'Grants or revokes CEO (read-only) / ACCOUNTANT (read + write) access to the accounting feature, or null for no access. Independent of the workspace role (OWNER/ADMIN/MEMBER). Restricted to platform admins — workspace owners cannot grant accounting access, and it can no longer be attached to an invite, so this endpoint is the only way it is ever set.',
   })
   @ApiBody({
     type: ChangeMemberAccountingRoleDto,
@@ -122,7 +126,7 @@ export class OrganizationsController {
   @ApiResponse({ status: 200, description: 'Member accounting role updated successfully' })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
-  @ApiResponse({ status: 403, description: 'Not a member or insufficient role' })
+  @ApiResponse({ status: 403, description: 'Platform admin access required' })
   @ApiResponse({ status: 404, description: 'Member or workspace not found' })
   async changeMemberAccountingRole(
     @Req() req: AuthenticatedRequest,

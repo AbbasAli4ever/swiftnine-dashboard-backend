@@ -68,4 +68,11 @@ export class UserProfileResponseDto {
     format: 'date-time',
   })
   updatedAt!: Date;
+
+  @ApiProperty({
+    example: false,
+    description:
+      'Company-wide flag, not workspace-scoped. Only settable directly in the database.',
+  })
+  isPlatformAdmin!: boolean;
 }
