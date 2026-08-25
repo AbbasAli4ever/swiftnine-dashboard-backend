@@ -1,8 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsUUID } from 'class-validator';
 
+// MANAGER or MEMBER only — never OWNER. An existing member can be promoted
+// to MANAGER or demoted to MEMBER, but OWNER is set exactly once, at
+// workspace creation, and is never granted again through any path (this was
+// the last of three places that used to allow it — see the 2026-08-25
+// workspace-role follow-up in docs/accounting-workspace-migration-changes.md).
 export enum MemberRole {
-  OWNER = 'OWNER',
+  MANAGER = 'MANAGER',
   MEMBER = 'MEMBER',
 }
 

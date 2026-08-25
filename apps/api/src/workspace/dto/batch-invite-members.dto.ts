@@ -6,12 +6,16 @@ import { z } from 'zod';
 // access is granted per member after acceptance by a platform admin, never
 // attached to an invite. This mattered most on the batch route, where one
 // request could otherwise have granted accounting access to 50 people at once.
+//
+// role is MANAGER or MEMBER only — never OWNER, same reasoning as
+// InviteMemberDto. This mattered most here too: one batch request used to be
+// able to mint up to 50 new OWNERs at once.
 const BatchInviteMembersSchema = z.object({
   emails: z
     .array(z.string().email('Invalid email address'))
     .min(1, 'At least one email is required')
     .max(50, 'You can invite at most 50 emails per request'),
-  role: z.enum(['OWNER', 'MEMBER']).default('MEMBER'),
+  role: z.enum(['MANAGER', 'MEMBER']).default('MEMBER'),
 });
 
 export class BatchInviteMembersDto extends createZodDto(BatchInviteMembersSchema) {}

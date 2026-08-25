@@ -157,7 +157,7 @@ export class ClientsService {
     return toClientData(client, this.toUsd);
   }
 
-  async findAll(
+  async findAll( 
     workspaceId: string,
     query: ListClientsQuery,
   ): Promise<ClientListResult> {

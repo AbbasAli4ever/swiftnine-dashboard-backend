@@ -21,10 +21,12 @@ export class OrganizationsController {
 
   @Delete('members')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
-  @ApiOperation({ summary: 'Remove a member from a workspace (OWNER only)' })
+  @ApiOperation({
+    summary: 'Remove a member from a workspace (OWNER or MANAGER)',
+  })
   @ApiBody({
     type: RemoveMemberDto,
     description: 'Workspace id and workspace-member id to remove',
@@ -50,7 +52,7 @@ export class OrganizationsController {
 
   @Put('members/:id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @ApiHeader({ name: 'x-workspace-id', required: false, description: 'Active workspace ID. If omitted, body.workspaceId is used.' })
   @ApiParam({
@@ -58,14 +60,21 @@ export class OrganizationsController {
     description: 'Workspace member id (membership record id)',
     example: '2f9c1b8a-3b4a-4f3d-9b2a-1234567890ab',
   })
-  @ApiOperation({ summary: "Change a member's role in the workspace (OWNER only)" })
+  @ApiOperation({
+    summary: "Change a member's role in the workspace (OWNER or MANAGER)",
+    description:
+      'role is MANAGER or MEMBER only — OWNER cannot be granted this way. It is set exactly once, at workspace creation, and never handed out again.',
+  })
   @ApiBody({
     type: ChangeMemberRoleDto,
     description: 'Workspace id and new role for the specified membership',
     examples: {
-      makeOwner: {
-        summary: 'Promote to OWNER',
-        value: { workspaceId: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29', role: 'OWNER' },
+      promote: {
+        summary: 'Promote to MANAGER',
+        value: {
+          workspaceId: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29',
+          role: 'MANAGER',
+        },
       },
       demote: {
         summary: 'Demote to MEMBER',

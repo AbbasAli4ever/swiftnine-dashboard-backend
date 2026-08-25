@@ -31,7 +31,14 @@ import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
 import { DEFAULT_BANK_ACCOUNTS } from '../bank-accounts/default-bank-accounts.data';
 
 const WORKSPACE_NOT_FOUND = 'Workspace not found';
-const OWNER_ONLY = 'Only the workspace owner can perform this action';
+// MANAGER is a full peer of OWNER for every workspace-management action in
+// this file (settings, deletion, invites, adding/removing members, changing
+// roles) — the same blast radius an invited "OWNER" used to have before
+// OWNER became a single, invite-proof role. The one deliberate exception is
+// changeMemberAccountingRole, which stays platform-admin-only (see its own
+// comment) — granting financial access was never part of this parity.
+const OWNER_OR_MANAGER_ONLY =
+  'Only the workspace owner or a manager can perform this action';
 const INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const PASSWORD_SALT_ROUNDS = 10;
 const INVITE_ALREADY_REGISTERED_MESSAGE =
@@ -419,7 +426,9 @@ export class WorkspaceService {
     role: Role,
     dto: UpdateWorkspaceDto,
   ): Promise<WorkspaceData> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+    if (role !== 'OWNER' && role !== 'MANAGER') {
+      throw new ForbiddenException(OWNER_OR_MANAGER_ONLY);
+    }
 
     const workspace = await this.prisma.workspace.findFirst({
       where: { id: workspaceId, deletedAt: null },
@@ -504,7 +513,9 @@ export class WorkspaceService {
   }
 
   async remove(workspaceId: string, userId: string, role: Role): Promise<void> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+    if (role !== 'OWNER' && role !== 'MANAGER') {
+      throw new ForbiddenException(OWNER_OR_MANAGER_ONLY);
+    }
 
     const workspace = await this.prisma.workspace.findFirst({
       where: { id: workspaceId, deletedAt: null },
@@ -796,7 +807,9 @@ export class WorkspaceService {
     inviterId: string,
     role: Role,
   ): Promise<InviteContext> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
+    if (role !== 'OWNER' && role !== 'MANAGER') {
+      throw new ForbiddenException(OWNER_OR_MANAGER_ONLY);
+    }
 
     const workspace = await this.prisma.workspace.findFirst({
       where: { id: workspaceId, deletedAt: null },
@@ -921,7 +934,10 @@ export class WorkspaceService {
     }
   }
 
-  private async assertActorIsOwner(
+  // MANAGER is a full peer of OWNER here — see OWNER_OR_MANAGER_ONLY's
+  // comment for why, and for the one deliberate exception
+  // (changeMemberAccountingRole uses assertActorIsPlatformAdmin instead).
+  private async assertActorIsOwnerOrManager(
     workspaceId: string,
     actorId: string,
   ): Promise<void> {
@@ -934,10 +950,8 @@ export class WorkspaceService {
       throw new ForbiddenException('You are not a member of this workspace');
     }
 
-    if (actor.role !== 'OWNER') {
-      throw new ForbiddenException(
-        'Only the workspace owner can perform this action',
-      );
+    if (actor.role !== 'OWNER' && actor.role !== 'MANAGER') {
+      throw new ForbiddenException(OWNER_OR_MANAGER_ONLY);
     }
   }
 
@@ -961,7 +975,7 @@ export class WorkspaceService {
     memberId: string,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwner(workspaceId, actorId);
+    await this.assertActorIsOwnerOrManager(workspaceId, actorId);
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
@@ -1011,7 +1025,19 @@ export class WorkspaceService {
     newRole: Role,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwner(workspaceId, actorId);
+    // ChangeMemberRoleDto's own enum already excludes OWNER, so this can't
+    // be reached over HTTP today — kept anyway as the same defense-in-depth
+    // this codebase already uses elsewhere (e.g. the LOCAL-account/PKR
+    // currency rule is checked at both the DTO and the service). OWNER is
+    // set exactly once, at workspace creation, and is never granted again by
+    // any path — this is what actually keeps that true, not just the DTO.
+    if (newRole === 'OWNER') {
+      throw new BadRequestException(
+        'OWNER cannot be granted this way — it is set once, at workspace creation',
+      );
+    }
+
+    await this.assertActorIsOwnerOrManager(workspaceId, actorId);
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
@@ -1139,7 +1165,7 @@ export class WorkspaceService {
     role: Role,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwner(workspaceId, actorId);
+    await this.assertActorIsOwnerOrManager(workspaceId, actorId);
 
     const user = await this.prisma.user.findFirst({
       where: { id: userId, deletedAt: null },
@@ -1179,7 +1205,7 @@ export class WorkspaceService {
     role: Role,
     actorId: string,
   ): Promise<BatchAddResult> {
-    await this.assertActorIsOwner(workspaceId, actorId);
+    await this.assertActorIsOwnerOrManager(workspaceId, actorId);
 
     const uniqueIds = [...new Set(userIds.map((id) => id.trim()))];
     const results: BatchAddMemberResult[] = [];

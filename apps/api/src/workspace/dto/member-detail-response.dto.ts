@@ -13,8 +13,11 @@ export class MemberDetailResponseDto {
   @ApiProperty({ example: 'shoaib@example.com' })
   email!: string;
 
-  @ApiProperty({ example: 'MEMBER', enum: ['OWNER', 'ADMIN', 'MEMBER'] })
-  role!: 'OWNER' | 'ADMIN' | 'MEMBER';
+  @ApiProperty({
+    example: 'MEMBER',
+    enum: ['OWNER', 'ADMIN', 'MANAGER', 'MEMBER'],
+  })
+  role!: 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
   @ApiPropertyOptional({
     example: null,

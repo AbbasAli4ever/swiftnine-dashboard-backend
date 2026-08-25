@@ -700,3 +700,25 @@ Reverses the previous day's commission-on-transaction link (`20260824140000_add_
 - Live: `POST /transactions` sending `employeeId`/`commissionAmount`/`commissionCurrency` in the payload anyway → `201`, but none of those three fields appear anywhere in the response — there's no schema column left to hold them, so they're silently dropped rather than erroring.
 - Live: `PATCH /employees/:id` with only `pendingCommission` → updates just that field (`paidCommission` unchanged at `15000`, `pendingCommission` `5000 → 8000`) and correctly recomputes `totalCommission: 23000`.
 - Test employee and transaction removed after verification.
+
+## Follow-up: [2026-08-25] New `MANAGER` invite role — first step of the multi-OWNER cleanup
+
+First step of a larger workspace-role redesign discussed but not yet built: today any workspace OWNER can invite someone else as OWNER too (`role: z.enum(['OWNER', 'MEMBER'])`), which is exactly how the live SwiftNine LLC workspace ended up with two OWNERs (Zain and Ali). The end goal is exactly one OWNER per workspace, set once at creation, never granted by invite — with a new MANAGER role for day-to-day delegation. This step is scoped to just the invite options; no permission/access logic changes yet, and existing multi-OWNER workspaces are untouched (that data cleanup is a separate, later step).
+
+**Schema**: added `MANAGER` to the `Role` enum (migration `20260825140000_add_manager_role`, additive, `ALTER TYPE "Role" ADD VALUE 'MANAGER'`). Deliberately **not** a rename of the existing `ADMIN` value — `ADMIN` already has real, active meaning elsewhere (channel/chat moderation, project access, attachment-deletion parity with OWNER — `role === 'ADMIN'` checks in `channels.service.ts`, `chat.service.ts`, `project.service.ts`, `attachments.service.ts`). Reusing it for the new invite role would have silently handed all of that to anyone invited as a manager, which contradicts "no access/permission changes right now." `MANAGER` is a brand-new value nothing currently checks for, so granting it is a no-op for permissions today — exactly the intended scope.
+
+**`invite-member.dto.ts` / `batch-invite-members.dto.ts`**: `role` narrowed from `z.enum(['OWNER', 'MEMBER'])` to `z.enum(['MANAGER', 'MEMBER'])`. `OWNER` is no longer an invite-able role at all, in either the single or batch route.
+
+**Exhaustive `Role` mappings elsewhere that needed a `MANAGER` entry to keep compiling**, found via `tsc`, not by searching:
+- `doc-permissions.constants.ts`'s `WORKSPACE_ROLE_TO_DOC_ROLE: Record<Role, DocRole>` — mapped `MANAGER` to `'EDITOR'`, same as `MEMBER`/`ADMIN`, consistent with "grants nothing extra yet."
+- `member-response.dto.ts` and `member-detail-response.dto.ts` — their `role` field's literal union type gained `'MANAGER'`.
+
+**Left alone, flagged not fixed**: `channel-response.dto.ts` and `message-response.dto.ts` have the same `'OWNER' | 'ADMIN' | 'MEMBER'` literal for `ChannelMember.role` (the *same* `Role` enum), now technically missing `MANAGER` too — didn't surface as a compile error because `channels.service.ts` builds those literals through its own normalization logic rather than passing a raw `Role` through, so nothing is actually broken. A documentation-completeness gap in an unrelated module, outside this step's scope.
+
+**Not done, by design — the rest of the discussed redesign**: MANAGER still grants no permissions (no `assertActorIsOwner`-equivalent for managers yet, so only a real OWNER can send invites, remove members, or change roles); existing multi-OWNER workspaces are unchanged; `ChannelMember`/chat/project role checks are untouched. These are explicit follow-ups, not gaps introduced here.
+
+### Verification
+- `tsc --noEmit`, `nest build api` — clean.
+- `eslint` — zero new errors on any touched file; the two touched response DTOs each dropped from 15 combined pre-existing errors down to 13 by fixing only the two lines this change added, leaving unrelated pre-existing formatting debt untouched.
+- Full test suite unaffected: identical to the established baseline (345 passed, same 26 pre-existing failures).
+- Live, demo workspace: `POST /workspaces/:id/invite` with `role: "MANAGER"` → `200`, persisted as `WorkspaceInvite.role = 'MANAGER'`. Same with `role: "MEMBER"` (and the default, omitted) → `200`, persisted as `MEMBER`. `role: "OWNER"` → `422` with `"expected one of \"MANAGER\"|\"MEMBER\""`, and correctly never persisted (no invite row created). Test invites removed after verification.

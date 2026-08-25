@@ -2,12 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+// role is MANAGER or MEMBER only — never OWNER, same reasoning as
+// InviteMemberDto: OWNER is set once, at workspace creation, and never
+// granted again through any path.
 const BatchAddMembersSchema = z.object({
   userIds: z
     .array(z.string().uuid('Invalid user id'))
     .min(1, 'At least one user id is required')
     .max(50, 'You can add at most 50 users per request'),
-  role: z.enum(['OWNER', 'MEMBER']).default('MEMBER'),
+  role: z.enum(['MANAGER', 'MEMBER']).default('MEMBER'),
 });
 
 export class BatchAddMembersDto extends createZodDto(BatchAddMembersSchema) {}

@@ -10,9 +10,13 @@ export const DOC_ROLE_RANK: Record<DocRole, number> = {
 };
 
 // Maps workspace/project membership Role to the doc role a member inherits by default.
+// MANAGER is invite-only and currently grants no special permissions anywhere
+// (see prisma/schema.prisma's Role enum) — mapped the same as MEMBER/ADMIN
+// until that changes deliberately.
 export const WORKSPACE_ROLE_TO_DOC_ROLE: Record<Role, DocRole> = {
   OWNER: 'OWNER',
   ADMIN: 'EDITOR',
+  MANAGER: 'EDITOR',
   MEMBER: 'EDITOR',
 };
 

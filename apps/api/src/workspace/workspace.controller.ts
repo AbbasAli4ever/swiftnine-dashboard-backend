@@ -155,12 +155,17 @@ export class WorkspaceController {
 
   @Patch(':workspaceId')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update workspace settings (OWNER only)' })
+  @ApiOperation({
+    summary: 'Update workspace settings (OWNER or MANAGER)',
+  })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace updated' })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   async update(
     @Req() req: WorkspaceRequest,
@@ -177,13 +182,16 @@ export class WorkspaceController {
 
   @Delete(':workspaceId')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Soft delete a workspace (OWNER only)' })
+  @ApiOperation({ summary: 'Soft delete a workspace (OWNER or MANAGER)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Workspace deleted' })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   async remove(@Req() req: WorkspaceRequest): Promise<ApiRes<null>> {
     await this.workspaceService.remove(
@@ -198,13 +206,16 @@ export class WorkspaceController {
 
   @Post(':workspaceId/invite')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send a workspace invite email (OWNER only)' })
+  @ApiOperation({ summary: 'Send a workspace invite email (OWNER or MANAGER)' })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Invite sent' })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   async sendInvite(
     @Req() req: WorkspaceRequest,
@@ -221,17 +232,22 @@ export class WorkspaceController {
 
   @Post(':workspaceId/invites')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send workspace invite emails in bulk (OWNER only)' })
+  @ApiOperation({
+    summary: 'Send workspace invite emails in bulk (OWNER or MANAGER)',
+  })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({
     status: 200,
     type: BatchInviteResponseDto,
     description: 'Batch invite processed',
   })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiResponse({ status: 422, description: 'Validation failed' })
   async sendBatchInvites(
@@ -249,13 +265,18 @@ export class WorkspaceController {
 
   @Post(':workspaceId/members')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Add an existing user to a workspace (OWNER only)' })
+  @ApiOperation({
+    summary: 'Add an existing user to a workspace (OWNER or MANAGER)',
+  })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({ status: 200, description: 'Member added' })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace or user not found' })
   async addMember(
     @Req() req: WorkspaceRequest,
@@ -272,17 +293,22 @@ export class WorkspaceController {
 
   @Post(':workspaceId/members/batch')
   @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
+  @Roles('OWNER', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Add multiple existing users to a workspace (OWNER only)' })
+  @ApiOperation({
+    summary: 'Add multiple existing users to a workspace (OWNER or MANAGER)',
+  })
   @ApiHeader({ name: 'x-workspace-id', required: true })
   @ApiResponse({
     status: 200,
     type: BatchAddResponseDto,
     description: 'Batch add processed',
   })
-  @ApiResponse({ status: 403, description: 'Not a member or not an owner' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member, or not an owner/manager',
+  })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiResponse({ status: 422, description: 'Validation failed' })
   async addMembersBatch(

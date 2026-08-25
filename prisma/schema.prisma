@@ -20,6 +20,13 @@ datasource db {
 enum Role {
   OWNER
   ADMIN
+  /// Invite-only role, distinct from ADMIN — ADMIN already has real meaning
+  /// elsewhere (channel/chat moderation, project access, attachment
+  /// deletion; see role === 'ADMIN' checks across those modules) and reusing
+  /// it here would have silently granted all of that to anyone invited as a
+  /// manager. MANAGER currently grants nothing on its own — no code checks
+  /// for it yet — it exists so invites can offer a role other than OWNER.
+  MANAGER
   MEMBER
 }
 
