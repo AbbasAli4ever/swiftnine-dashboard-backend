@@ -107,6 +107,13 @@ export class BankAccountRevenueItemDto {
   @ApiProperty({ example: 'Whop' })
   bankName!: string;
 
+  @ApiPropertyOptional({
+    example: 'https://cdn.example.com/logos/whop.png',
+    nullable: true,
+    description: 'Bank/platform logo, if one was uploaded for this account',
+  })
+  logoUrl!: string | null;
+
   @ApiProperty({ enum: ACCOUNT_TYPE_VALUES, example: 'INTERNATIONAL' })
   accountType!: (typeof ACCOUNT_TYPE_VALUES)[number];
 
@@ -165,6 +172,13 @@ class BankAccountItemDto {
 
   @ApiProperty({ example: 'HBL' })
   bankName!: string;
+
+  @ApiPropertyOptional({
+    example: 'https://cdn.example.com/logos/hbl.png',
+    nullable: true,
+    description: 'Bank/platform logo, if one was uploaded for this account',
+  })
+  logoUrl!: string | null;
 
   @ApiProperty({ example: 1250000 })
   amount!: number;
