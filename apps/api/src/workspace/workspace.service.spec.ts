@@ -29,6 +29,11 @@ describe('WorkspaceService', () => {
       findFirst: jest.Mock;
       create: jest.Mock;
     };
+    // create() provisions the default bank accounts for every new workspace.
+    bankAccount: {
+      count: jest.Mock;
+      createMany: jest.Mock;
+    };
     emailVerificationToken: {
       deleteMany: jest.Mock;
     };
@@ -67,6 +72,12 @@ describe('WorkspaceService', () => {
       workspaceMember: {
         findFirst: jest.fn(),
         create: jest.fn().mockResolvedValue(undefined),
+      },
+      bankAccount: {
+        // 0 existing accounts → provisioning proceeds, matching a brand-new
+        // workspace.
+        count: jest.fn().mockResolvedValue(0),
+        createMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
       emailVerificationToken: {
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -150,6 +161,10 @@ describe('WorkspaceService', () => {
         role: 'OWNER',
       },
     });
+    // Default bank accounts are provisioned at workspace creation. They used
+    // to be created on invite-accept, but only when the invite carried an
+    // accountingRole — invites no longer carry one, so that trigger is gone.
+    expect(prisma.bankAccount.createMany).toHaveBeenCalledTimes(1);
     expect(prisma.activityLog.create).toHaveBeenCalledWith({
       data: {
         workspaceId: 'workspace-1',
@@ -398,6 +413,7 @@ describe('WorkspaceService', () => {
         email: true,
         avatarUrl: true,
         avatarColor: true,
+        isPlatformAdmin: true,
       },
     });
     expect(prisma.workspaceInvite.update).toHaveBeenCalledWith({
@@ -531,6 +547,7 @@ describe('WorkspaceService', () => {
         email: true,
         avatarUrl: true,
         avatarColor: true,
+        isPlatformAdmin: true,
       },
     });
     expect(prisma.emailVerificationToken.deleteMany).toHaveBeenCalledWith({

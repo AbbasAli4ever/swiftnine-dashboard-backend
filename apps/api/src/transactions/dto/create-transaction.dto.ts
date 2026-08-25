@@ -1,20 +1,49 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CURRENCY_VALUES } from '../transaction.constants';
+import {
+  COMMISSION_CURRENCY_VALUES,
+  CURRENCY_VALUES,
+} from '../transaction.constants';
 
-const CreateTransactionSchema = z.object({
-  clientId: z.string().uuid('Client id must be a valid UUID'),
-  bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
-  saleAmount: z.coerce
-    .number()
-    .nonnegative('Sale amount cannot be negative')
-    .default(0),
-  currency: z.enum(CURRENCY_VALUES).default('USD'),
-  saleDate: z.string().datetime().optional(),
-  refId: z.string().trim().min(1, 'Reference ID is required').max(255),
-  description: z.string().trim().max(2000).optional(),
-});
+const CreateTransactionSchema = z
+  .object({
+    clientId: z.string().uuid('Client id must be a valid UUID'),
+    bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
+    saleAmount: z.coerce
+      .number()
+      .nonnegative('Sale amount cannot be negative')
+      .default(0),
+    currency: z.enum(CURRENCY_VALUES).default('USD'),
+    saleDate: z.string().datetime().optional(),
+    refId: z.string().trim().min(1, 'Reference ID is required').max(255),
+    description: z.string().trim().max(2000).optional(),
+    employeeId: z.string().uuid('Employee id must be a valid UUID').optional(),
+    commissionAmount: z.coerce
+      .number()
+      .nonnegative('Commission amount cannot be negative')
+      .optional(),
+    commissionCurrency: z.enum(COMMISSION_CURRENCY_VALUES).optional(),
+  })
+  .refine(
+    (data) =>
+      (data.commissionAmount === undefined) ===
+      (data.commissionCurrency === undefined),
+    {
+      message:
+        'commissionAmount and commissionCurrency must be provided together',
+      path: ['commissionCurrency'],
+    },
+  )
+  .refine(
+    (data) =>
+      data.employeeId !== undefined || data.commissionAmount === undefined,
+    {
+      message:
+        'A commission can only be set on a transaction that has an employee assigned',
+      path: ['employeeId'],
+    },
+  );
 
 export class CreateTransactionDto extends createZodDto(
   CreateTransactionSchema,
@@ -75,4 +104,28 @@ export class CreateTransactionDto extends createZodDto(
     maxLength: 2000,
   })
   description?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    description:
+      'Id of the employee who gets credited for this sale. Optional — not every sale has one.',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  employeeId?: string;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description:
+      'Manually entered commission owed on this sale. Requires employeeId and commissionCurrency to also be set — never computed automatically.',
+    example: 20,
+  })
+  commissionAmount?: number;
+
+  @ApiPropertyOptional({
+    enum: COMMISSION_CURRENCY_VALUES,
+    description:
+      "Currency the commission is paid in — independent of the sale's own currency. Requires commissionAmount to also be set.",
+  })
+  commissionCurrency?: (typeof COMMISSION_CURRENCY_VALUES)[number];
 }

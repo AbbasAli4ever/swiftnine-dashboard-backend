@@ -22,7 +22,7 @@ import {
   AuthService,
   type TokenPair,
 } from '../auth/auth.service';
-import { AUTH_USER_SELECT } from '../auth/auth.constants';
+import { AUTH_USER_SELECT, PLATFORM_ADMIN_ONLY } from '../auth/auth.constants';
 import type { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import type { InviteMemberDto } from './dto/invite-member.dto';
@@ -128,6 +128,15 @@ export class WorkspaceService {
           role: 'OWNER',
         },
       });
+
+      // Every workspace gets the default bank accounts up front. They used to
+      // be created on invite-accept, but only when that invite carried an
+      // accountingRole — accounting access no longer rides on invites, so
+      // that trigger is gone. Creating them here also decouples the two
+      // concerns: the accounts exist from day one, and they simply stay
+      // invisible until a platform admin grants someone accounting access
+      // (the accounting endpoints are all behind AccountingRoleGuard).
+      await this.provisionDefaultBankAccounts(tx, workspace.id);
 
       await tx.activityLog.create({
         data: {
@@ -538,7 +547,6 @@ export class WorkspaceService {
       inviteContext,
       dto.email,
       dto.role,
-      dto.accountingRole,
     );
 
     if (result.status === 'failed') {
@@ -566,12 +574,7 @@ export class WorkspaceService {
 
     for (const email of uniqueEmails) {
       results.push(
-        await this.sendInviteToEmail(
-          inviteContext,
-          email,
-          dto.role,
-          dto.accountingRole,
-        ),
+        await this.sendInviteToEmail(inviteContext, email, dto.role),
       );
     }
 
@@ -593,14 +596,12 @@ export class WorkspaceService {
     workspaceName: string;
     invitedEmail: string;
     role: Role;
-    accountingRole: UserRole | null;
     inviterName: string;
     nextStep: InviteNextStep;
   }> {
     const invite = await this.findPendingInviteByToken(token, {
       email: true,
       role: true,
-      accountingRole: true,
       workspace: { select: { id: true, name: true } },
       sender: { select: { fullName: true } },
     });
@@ -615,7 +616,6 @@ export class WorkspaceService {
       workspaceName: invite.workspace.name,
       invitedEmail: invite.email,
       role: invite.role,
-      accountingRole: invite.accountingRole,
       inviterName: invite.sender.fullName,
       nextStep: existingUser?.isEmailVerified ? 'login' : 'claim_account',
     };
@@ -627,7 +627,6 @@ export class WorkspaceService {
       workspaceId: true,
       email: true,
       role: true,
-      accountingRole: true,
     });
 
     const inviteEmail = invite.email.trim().toLowerCase();
@@ -694,21 +693,18 @@ export class WorkspaceService {
       });
 
       if (!existingMember) {
+        // No accountingRole here by design — a new member always starts with
+        // zero accounting access, and only a platform admin can grant it
+        // afterwards (changeMemberAccountingRole). An invite can no longer
+        // carry accounting access, so there is nothing to copy across.
         await tx.workspaceMember.create({
           data: {
             workspaceId: invite.workspaceId,
             userId: authUser.id,
             role: invite.role,
-            accountingRole: invite.accountingRole,
           },
         });
       }
-
-      await this.provisionDefaultBankAccountsIfNeeded(
-        tx,
-        invite.workspaceId,
-        invite.accountingRole,
-      );
 
       return authUser;
     });
@@ -731,7 +727,6 @@ export class WorkspaceService {
       workspaceId: true,
       email: true,
       role: true,
-      accountingRole: true,
     });
 
     if (invite.email !== userEmail.trim().toLowerCase()) {
@@ -753,21 +748,16 @@ export class WorkspaceService {
       });
 
       if (!existingMember) {
+        // Same as claimInvite: joins with no accounting access, which only a
+        // platform admin can grant later.
         await tx.workspaceMember.create({
           data: {
             workspaceId: invite.workspaceId,
             userId,
             role: invite.role,
-            accountingRole: invite.accountingRole,
           },
         });
       }
-
-      await this.provisionDefaultBankAccountsIfNeeded(
-        tx,
-        invite.workspaceId,
-        invite.accountingRole,
-      );
     });
 
     return { workspaceId: invite.workspaceId };
@@ -777,13 +767,13 @@ export class WorkspaceService {
     return createHash('sha256').update(rawToken).digest('hex');
   }
 
-  private async provisionDefaultBankAccountsIfNeeded(
+  // Called once, from create(). Idempotent via the count check so it can be
+  // safely re-pointed at another call site (or re-run) without duplicating
+  // accounts.
+  private async provisionDefaultBankAccounts(
     tx: Prisma.TransactionClient,
     workspaceId: string,
-    accountingRole: UserRole | null,
   ): Promise<void> {
-    if (!accountingRole) return;
-
     const existingCount = await tx.bankAccount.count({
       where: { workspaceId },
     });
@@ -849,11 +839,14 @@ export class WorkspaceService {
     return invite;
   }
 
+  // An invite carries a workspace role only. Accounting access is granted
+  // separately, after acceptance, by a platform admin — so there is no
+  // accountingRole parameter here to pass through, and no way for a
+  // workspace owner to grant accounting access by inviting someone.
   private async sendInviteToEmail(
     inviteContext: InviteContext,
     email: string,
     inviteRole: Role,
-    accountingRole: UserRole | null,
   ): Promise<BatchInviteMemberResult> {
     const inviteeEmail = email.trim().toLowerCase();
 
@@ -890,7 +883,6 @@ export class WorkspaceService {
         workspaceId: inviteContext.workspaceId,
         email: inviteeEmail,
         role: inviteRole,
-        accountingRole,
         inviteToken: tokenHash,
         invitedBy: inviteContext.inviterId,
         status: 'PENDING',
@@ -946,6 +938,21 @@ export class WorkspaceService {
       throw new ForbiddenException(
         'Only the workspace owner can perform this action',
       );
+    }
+  }
+
+  // Company-level check, deliberately not workspace-scoped: no membership
+  // lookup, so a platform admin can manage accounting access regardless of
+  // which workspaces they belong to. Reads the flag fresh from the database
+  // rather than trusting anything on the request.
+  private async assertActorIsPlatformAdmin(actorId: string): Promise<void> {
+    const actor = await this.prisma.user.findFirst({
+      where: { id: actorId, deletedAt: null },
+      select: { isPlatformAdmin: true },
+    });
+
+    if (!actor?.isPlatformAdmin) {
+      throw new ForbiddenException(PLATFORM_ADMIN_ONLY);
     }
   }
 
@@ -1059,13 +1066,19 @@ export class WorkspaceService {
     });
   }
 
+  // The ONLY place WorkspaceMember.accountingRole is ever written. Restricted
+  // to platform admins, NOT workspace owners: a workspace can have several
+  // owners, and granting financial access is a company-level decision rather
+  // than a workspace-management one. PlatformAdminGuard already blocks this
+  // at the route, and the assert below repeats it here so the service can't
+  // be reached around by a future caller that forgets the guard.
   async changeMemberAccountingRole(
     workspaceId: string,
     memberId: string,
     newAccountingRole: UserRole | null,
     actorId: string,
   ): Promise<void> {
-    await this.assertActorIsOwner(workspaceId, actorId);
+    await this.assertActorIsPlatformAdmin(actorId);
 
     let member = await this.prisma.workspaceMember.findFirst({
       where: { id: memberId, workspaceId, deletedAt: null },
