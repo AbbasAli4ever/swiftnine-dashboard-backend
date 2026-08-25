@@ -49,10 +49,6 @@ import {
   type ListClientsQuery,
 } from './dto/list-clients-query.dto';
 import {
-  SearchClientsQueryDto,
-  type SearchClientsQuery,
-} from './dto/search-clients-query.dto';
-import {
   ClientResponseDto,
   ClientSearchResultDto,
   PaginatedClientsResponseDto,
@@ -146,32 +142,28 @@ export class ClientsController {
     return paginated(result.items, result.total, result.page, result.limit);
   }
 
+  // Route kept as /search so existing frontend calls keep working, even though
+  // it no longer searches — it returns the whole list for a client picker and
+  // the frontend filters as the user types. A `q` param is now ignored rather
+  // than rejected, so an un-updated caller sending one still gets a 200.
   @Get('search')
   @ApiOperation({
-    summary: 'Search clients by name, matching words in any order',
+    summary: 'List every client in the workspace, alphabetically',
     description:
-      'Splits the query into words and returns every client whose clientName contains all of them, in any order (e.g. "Corp Acme" matches "Acme Corp Inc").',
-  })
-  @ApiQuery({
-    name: 'q',
-    required: true,
-    description: 'Search text — one or more words, matched in any order',
-    example: 'Corp Acme',
+      'Returns all clients as { id, clientName }, sorted A-Z case-insensitively — for populating a client picker/dropdown. Takes no parameters and does no server-side filtering: previously this matched clientName against a required `q`, now the full list is returned and the frontend narrows it locally. Uncapped, since a workspace client list is a small bounded set.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Matching clients returned',
+    description: 'All clients returned, alphabetically',
     type: [ClientSearchResultDto],
   })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
   async search(
     @Req() req: WorkspaceRequest,
-    @Query() query: SearchClientsQueryDto,
   ): Promise<ApiRes<ClientSearchResult[]>> {
-    const clients = await this.clientsService.search(
+    const clients = await this.clientsService.listAllForPicker(
       req.workspaceContext.workspaceId,
-      (query as SearchClientsQuery).q,
     );
     return ok(clients);
   }

@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { ExchangeRateModule } from '../exchange-rate/exchange-rate.module';
 import { AccountingDashboardService } from './accounting-dashboard.service';
 import { AccountingDashboardController } from './accounting-dashboard.controller';
 import { ReportExportService } from './report-export.service';
 
 @Module({
-  imports: [WorkspaceModule],
+  imports: [WorkspaceModule, ExchangeRateModule],
   controllers: [AccountingDashboardController],
   providers: [AccountingDashboardService, ReportExportService],
   exports: [AccountingDashboardService],

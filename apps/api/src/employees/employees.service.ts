@@ -1,91 +1,42 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import {
-  EMPLOYEE_HAS_TRANSACTIONS,
   EMPLOYEE_NOT_FOUND,
   EMPLOYEE_SEARCH_SELECT,
-  EMPLOYEES_LIST_SELECT,
   EMPLOYEES_SELECT,
 } from './employees.constants';
 import type { CreateEmployeeDto } from './dto/create-employee.dto';
 import type { UpdateEmployeeDto } from './dto/update-employee.dto';
 import type { ListEmployeesQuery } from './dto/list-employees-query.dto';
 
-export type CommissionCurrencyTotal = { currency: string; total: number };
-
-/**
- * Only transactions that actually carry a commission contribute — an
- * employee's sale with no commission set shouldn't show up as a currency
- * with a 0 total.
- */
-function sumCommissionByCurrency(
-  transactions: {
-    commissionAmount: Prisma.Decimal | null;
-    commissionCurrency: string | null;
-  }[],
-): CommissionCurrencyTotal[] {
-  const totals = new Map<string, number>();
-  for (const transaction of transactions) {
-    if (
-      transaction.commissionAmount === null ||
-      !transaction.commissionCurrency
-    ) {
-      continue;
-    }
-    const amount = Number(transaction.commissionAmount);
-    totals.set(
-      transaction.commissionCurrency,
-      (totals.get(transaction.commissionCurrency) ?? 0) + amount,
-    );
-  }
-  return Array.from(totals, ([currency, total]) => ({ currency, total }));
-}
-
 type RawEmployeeData = Prisma.EmployeeGetPayload<{
   select: typeof EMPLOYEES_SELECT;
 }>;
 
-type MappedTransaction<
-  T extends {
-    saleAmount: Prisma.Decimal;
-    commissionAmount: Prisma.Decimal | null;
-  },
-> = Omit<T, 'saleAmount' | 'commissionAmount'> & {
-  saleAmount: number;
-  commissionAmount: number | null;
+export type EmployeeData = Omit<
+  RawEmployeeData,
+  'paidCommission' | 'pendingCommission'
+> & {
+  paidCommission: number;
+  pendingCommission: number;
+  // Not stored — always paidCommission + pendingCommission, computed here so
+  // the two figures can never drift out of sync with their own sum.
+  totalCommission: number;
 };
 
-function mapTransactions<
-  T extends {
-    saleAmount: Prisma.Decimal;
-    commissionAmount: Prisma.Decimal | null;
-  },
->(transactions: T[]): MappedTransaction<T>[] {
-  return transactions.map((transaction) => ({
-    ...transaction,
-    saleAmount: Number(transaction.saleAmount),
-    commissionAmount:
-      transaction.commissionAmount === null
-        ? null
-        : Number(transaction.commissionAmount),
-  }));
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
-export type EmployeeData = Omit<RawEmployeeData, 'transactions'> & {
-  transactions: MappedTransaction<RawEmployeeData['transactions'][number]>[];
-  totalCommission: CommissionCurrencyTotal[];
-};
-
 function toEmployeeData(row: RawEmployeeData): EmployeeData {
+  const paidCommission = Number(row.paidCommission);
+  const pendingCommission = Number(row.pendingCommission);
   return {
     ...row,
-    transactions: mapTransactions(row.transactions),
-    totalCommission: sumCommissionByCurrency(row.transactions),
+    paidCommission,
+    pendingCommission,
+    totalCommission: round2(paidCommission + pendingCommission),
   };
 }
 
@@ -109,7 +60,12 @@ export class EmployeesService {
     dto: CreateEmployeeDto,
   ): Promise<EmployeeData> {
     const employee = await this.prisma.employee.create({
-      data: { workspaceId, name: dto.name },
+      data: {
+        workspaceId,
+        name: dto.name,
+        paidCommission: dto.paidCommission,
+        pendingCommission: dto.pendingCommission,
+      },
       select: EMPLOYEES_SELECT,
     });
     return toEmployeeData(employee);
@@ -131,7 +87,7 @@ export class EmployeesService {
       this.prisma.employee.count({ where }),
       this.prisma.employee.findMany({
         where,
-        select: EMPLOYEES_LIST_SELECT,
+        select: EMPLOYEES_SELECT,
         orderBy: { [query.sortBy]: query.sortOrder },
         skip,
         take: query.limit,
@@ -180,18 +136,24 @@ export class EmployeesService {
 
     const employee = await this.prisma.employee.update({
       where: { id: employeeId },
-      data: { name: dto.name },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.paidCommission !== undefined && {
+          paidCommission: dto.paidCommission,
+        }),
+        ...(dto.pendingCommission !== undefined && {
+          pendingCommission: dto.pendingCommission,
+        }),
+      },
       select: EMPLOYEES_SELECT,
     });
     return toEmployeeData(employee);
   }
 
+  // No linked-transactions check any more — an employee has no relation to
+  // delete around, so removal is unconditional.
   async remove(workspaceId: string, employeeId: string): Promise<void> {
-    const employee = await this.findEmployeeOrThrow(workspaceId, employeeId);
-    if (employee._count.transactions > 0) {
-      throw new ConflictException(EMPLOYEE_HAS_TRANSACTIONS);
-    }
-
+    await this.findEmployeeOrThrow(workspaceId, employeeId);
     await this.prisma.employee.delete({ where: { id: employeeId } });
   }
 

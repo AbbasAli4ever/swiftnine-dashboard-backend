@@ -195,24 +195,8 @@ class BankAccountsByTypeDto {
   international!: BankAccountItemDto[];
 }
 
-class TopClientItemDto {
-  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
-  id!: string;
-
-  @ApiProperty({ example: 'Victoria Partners' })
-  clientName!: string;
-
-  @ApiProperty({ example: 32400 })
-  totalRevenue!: number;
-
-  @ApiPropertyOptional({
-    enum: CURRENCY_VALUES,
-    nullable: true,
-    example: 'USD',
-  })
-  currencyType!: (typeof CURRENCY_VALUES)[number] | null;
-}
-
+// Transaction-derived — used by both /overview's topClients (all-time, no
+// range) and /reports/breakdown's topClients (scoped to dateFrom/dateTo).
 export class TopClientRevenueItemDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
@@ -224,13 +208,13 @@ export class TopClientRevenueItemDto {
     example: 32400,
     nullable: true,
     description:
-      "Revenue in the client's own currency for the requested period. Null when the client's sales in that period span more than one currency.",
+      "Revenue in the client's own currency, over the query's scope (all-time for /overview, the requested period for /reports/breakdown). Null when the client's sales in that scope span more than one currency.",
   })
   totalRevenue!: number | null;
 
   @ApiProperty({
     example: 32400,
-    description: 'Revenue for the requested period, in USD',
+    description: "Revenue over the query's scope, in USD",
   })
   totalRevenueUsd!: number;
 
@@ -272,6 +256,10 @@ export class DashboardOverviewResponseDto {
   @ApiProperty({ type: BankAccountsByTypeDto })
   bankAccounts!: BankAccountsByTypeDto;
 
-  @ApiProperty({ type: [TopClientItemDto] })
-  topClients!: TopClientItemDto[];
+  @ApiProperty({
+    type: [TopClientRevenueItemDto],
+    description:
+      'Top clients by all-time transaction revenue, sorted by totalRevenueUsd descending. Clients with no transactions are omitted (not zero-filled).',
+  })
+  topClients!: TopClientRevenueItemDto[];
 }

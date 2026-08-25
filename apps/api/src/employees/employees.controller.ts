@@ -96,7 +96,7 @@ export class EmployeesController {
   @ApiOperation({
     summary: 'List and search employees',
     description:
-      'Each employee includes a transaction count, total commission per currency, and every linked transaction (with the client it was for).',
+      'Each employee has paidCommission and pendingCommission (both PKR, entered manually) and their sum, totalCommission. No relation to Transaction — commission is not tied to any sale.',
   })
   @ApiQuery({
     name: 'q',
@@ -229,10 +229,6 @@ export class EmployeesController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   @ApiResponse({ status: 403, description: 'ACCOUNTANT role required' })
   @ApiResponse({ status: 404, description: 'Employee not found' })
-  @ApiResponse({
-    status: 409,
-    description: 'Employee still has transactions linked to it',
-  })
   async remove(
     @Req() req: WorkspaceRequest,
     @Param('employeeId', new ParseUUIDPipe()) employeeId: string,

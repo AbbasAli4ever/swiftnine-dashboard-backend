@@ -1,10 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  COMMISSION_CURRENCY_VALUES,
-  CURRENCY_VALUES,
-} from '../transaction.constants';
+import { CURRENCY_VALUES } from '../transaction.constants';
 
 const UpdateTransactionSchema = z
   .object({
@@ -26,26 +23,6 @@ const UpdateTransactionSchema = z
     currency: z.enum(CURRENCY_VALUES).optional(),
     saleDate: z.string().datetime().optional(),
     description: z.string().trim().max(2000).nullable().optional(),
-    // Nullable so a caller can explicitly clear the assignment/commission,
-    // not just leave it untouched by omitting the field. Whether the
-    // resulting *combination* is valid (amount needs a currency, commission
-    // needs an employee) depends on whatever the transaction already has for
-    // fields not included here, so that cross-field check happens in
-    // TransactionService.update, not this schema.
-    employeeId: z
-      .string()
-      .uuid('Employee id must be a valid UUID')
-      .nullable()
-      .optional(),
-    commissionAmount: z.coerce
-      .number()
-      .nonnegative('Commission amount cannot be negative')
-      .nullable()
-      .optional(),
-    commissionCurrency: z
-      .enum(COMMISSION_CURRENCY_VALUES)
-      .nullable()
-      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
@@ -105,28 +82,4 @@ export class UpdateTransactionDto extends createZodDto(
     nullable: true,
   })
   description?: string | null;
-
-  @ApiPropertyOptional({
-    type: String,
-    format: 'uuid',
-    description:
-      'Reassign who gets credited for this sale. Send null to clear it — this also clears any commission (a commission cannot exist without an employee).',
-    nullable: true,
-  })
-  employeeId?: string | null;
-
-  @ApiPropertyOptional({
-    type: Number,
-    description:
-      'Correct the manually entered commission for this sale. Send null to clear it.',
-    nullable: true,
-  })
-  commissionAmount?: number | null;
-
-  @ApiPropertyOptional({
-    enum: COMMISSION_CURRENCY_VALUES,
-    description: 'Correct the currency the commission is paid in.',
-    nullable: true,
-  })
-  commissionCurrency?: (typeof COMMISSION_CURRENCY_VALUES)[number] | null;
 }

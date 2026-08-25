@@ -93,6 +93,13 @@ export class ClientResponseDto {
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
 
+  @ApiProperty({
+    example: 1039.5,
+    description:
+      'Every entry in totalSaleAmount converted to USD and summed — the one meaningful total when a client has sales in more than one currency. This is what changes as transactions are added; totalRevenue above is a fixed figure entered when the client was created and does not update.',
+  })
+  totalRevenueUsd!: number;
+
   @ApiProperty({ type: [ClientTransactionBriefDto] })
   transactions!: ClientTransactionBriefDto[];
 }
@@ -125,6 +132,13 @@ export class ClientListItemResponseDto {
       "Sum of saleAmount across this client's transactions, grouped by currency",
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
+
+  @ApiProperty({
+    example: 1039.5,
+    description:
+      'Every entry in totalSaleAmount converted to USD and summed — the one meaningful total when a client has sales in more than one currency. This is what changes as transactions are added; totalRevenue above is a fixed figure entered when the client was created and does not update.',
+  })
+  totalRevenueUsd!: number;
 
   @ApiProperty({ type: [ClientTransactionBriefDto] })
   transactions!: ClientTransactionBriefDto[];
