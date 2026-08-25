@@ -1,8 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  COMMISSION_CURRENCY_VALUES,
-  CURRENCY_VALUES,
-} from '../transaction.constants';
+import { CURRENCY_VALUES } from '../transaction.constants';
 
 class TransactionClientBriefDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
@@ -10,14 +7,6 @@ class TransactionClientBriefDto {
 
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
-}
-
-class TransactionEmployeeBriefDto {
-  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
-  id!: string;
-
-  @ApiProperty({ example: 'Sara Khan' })
-  name!: string;
 }
 
 class TransactionBankAccountBriefDto {
@@ -80,28 +69,6 @@ export class TransactionResponseDto {
 
   @ApiProperty({ example: '2026-04-23T11:30:00.000Z' })
   updatedAt!: Date;
-
-  @ApiPropertyOptional({
-    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
-    nullable: true,
-  })
-  employeeId!: string | null;
-
-  @ApiPropertyOptional({ type: TransactionEmployeeBriefDto, nullable: true })
-  employee!: TransactionEmployeeBriefDto | null;
-
-  @ApiPropertyOptional({
-    example: 20,
-    nullable: true,
-    description: 'Manually entered — never computed from saleAmount',
-  })
-  commissionAmount!: number | null;
-
-  @ApiPropertyOptional({
-    enum: COMMISSION_CURRENCY_VALUES,
-    nullable: true,
-  })
-  commissionCurrency!: (typeof COMMISSION_CURRENCY_VALUES)[number] | null;
 }
 
 class PaginationMetaDto {

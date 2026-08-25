@@ -71,10 +71,21 @@ export class ClientResponseDto {
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
 
-  @ApiProperty({ example: 25000 })
+  @ApiProperty({
+    example: 0,
+    deprecated: true,
+    description:
+      'Legacy field. No longer settable — POST /clients accepts only clientName, so this is always 0 on clients created after 2026-08-25. Older clients keep whatever was hand-typed at creation. It never reflects real sales; use totalRevenueUsd instead.',
+  })
   totalRevenue!: number;
 
-  @ApiPropertyOptional({ enum: CURRENCY_VALUES, nullable: true })
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    nullable: true,
+    deprecated: true,
+    description:
+      'Legacy field, paired with totalRevenue. No longer settable — always null on clients created after 2026-08-25.',
+  })
   currencyType!: (typeof CURRENCY_VALUES)[number] | null;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
@@ -92,6 +103,13 @@ export class ClientResponseDto {
       "Sum of saleAmount across this client's transactions, grouped by currency",
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
+
+  @ApiProperty({
+    example: 1039.5,
+    description:
+      'Every entry in totalSaleAmount converted to USD and summed — the one meaningful total when a client has sales in more than one currency. This is what changes as transactions are added, and the field a "Total Revenue" column should bind to; totalRevenue above is a legacy field that can no longer be set and does not update.',
+  })
+  totalRevenueUsd!: number;
 
   @ApiProperty({ type: [ClientTransactionBriefDto] })
   transactions!: ClientTransactionBriefDto[];
@@ -104,10 +122,21 @@ export class ClientListItemResponseDto {
   @ApiProperty({ example: 'Acme Corp' })
   clientName!: string;
 
-  @ApiProperty({ example: 25000 })
+  @ApiProperty({
+    example: 0,
+    deprecated: true,
+    description:
+      'Legacy field. No longer settable — POST /clients accepts only clientName, so this is always 0 on clients created after 2026-08-25. Older clients keep whatever was hand-typed at creation. It never reflects real sales; use totalRevenueUsd instead.',
+  })
   totalRevenue!: number;
 
-  @ApiPropertyOptional({ enum: CURRENCY_VALUES, nullable: true })
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    nullable: true,
+    deprecated: true,
+    description:
+      'Legacy field, paired with totalRevenue. No longer settable — always null on clients created after 2026-08-25.',
+  })
   currencyType!: (typeof CURRENCY_VALUES)[number] | null;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
@@ -125,6 +154,13 @@ export class ClientListItemResponseDto {
       "Sum of saleAmount across this client's transactions, grouped by currency",
   })
   totalSaleAmount!: ClientCurrencyTotalDto[];
+
+  @ApiProperty({
+    example: 1039.5,
+    description:
+      'Every entry in totalSaleAmount converted to USD and summed — the one meaningful total when a client has sales in more than one currency. This is what changes as transactions are added, and the field a "Total Revenue" column should bind to; totalRevenue above is a legacy field that can no longer be set and does not update.',
+  })
+  totalRevenueUsd!: number;
 
   @ApiProperty({ type: [ClientTransactionBriefDto] })
   transactions!: ClientTransactionBriefDto[];

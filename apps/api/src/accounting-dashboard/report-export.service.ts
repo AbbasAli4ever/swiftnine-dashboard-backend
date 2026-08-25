@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Workbook, type Row, type Worksheet } from 'exceljs';
 import type { AccountingExportData } from './accounting-dashboard.service';
+import { REPORT_COLUMNS } from './report-columns';
 
 const CURRENCY_FORMAT = '#,##0.00';
 
@@ -9,9 +10,10 @@ const CURRENCY_FORMAT = '#,##0.00';
 // shape. Callers gather data (AccountingDashboardService.getExportData) and
 // stream the result back over HTTP; this service only builds the file.
 //
-// Mirrors the Reports table exactly: one sheet, one row per transaction,
-// columns Date / Revenue / Currency / Client / Bank — whether or not any
-// filters were applied. No separate summary/balance/breakdown sheets.
+// One sheet, one row per transaction — whether or not any filters were
+// applied. No separate summary/balance/breakdown sheets. Column order and
+// content come from the shared REPORT_COLUMNS, so this file and the PDF
+// export can never disagree about the table's shape.
 @Injectable()
 export class ReportExportService {
   async buildReportWorkbook(data: AccountingExportData): Promise<Buffer> {
@@ -33,23 +35,24 @@ export class ReportExportService {
     data: AccountingExportData,
   ): void {
     const sheet = workbook.addWorksheet('Report');
-    this.setColumnWidths(sheet, [14, 16, 10, 24, 20]);
-    this.boldRow(
-      sheet.addRow(['Date', 'Revenue', 'Currency', 'Client', 'Bank']),
+    this.setColumnWidths(
+      sheet,
+      REPORT_COLUMNS.map((column) => column.excelWidth),
     );
+    this.boldRow(sheet.addRow(REPORT_COLUMNS.map((column) => column.header)));
 
     for (const transaction of data.transactions) {
-      // Native amount, never converted to USD — Currency (column 3) names
-      // the unit Revenue (column 2) is actually in, whether one currency or
-      // several are present across the exported rows.
-      const row = sheet.addRow([
-        transaction.saleDate.toISOString().slice(0, 10),
-        transaction.saleAmount,
-        transaction.currency,
-        transaction.clientName,
-        transaction.bankAccount.bankName,
-      ]);
-      row.getCell(2).numFmt = CURRENCY_FORMAT;
+      const row = sheet.addRow(
+        REPORT_COLUMNS.map((column) => column.value(transaction)),
+      );
+      // Number-format every numeric column (currently just Revenue), found by
+      // the column's own type rather than a hardcoded index, so reordering
+      // REPORT_COLUMNS cannot leave the format on the wrong cell.
+      REPORT_COLUMNS.forEach((column, index) => {
+        if (typeof column.value(transaction) === 'number') {
+          row.getCell(index + 1).numFmt = CURRENCY_FORMAT;
+        }
+      });
     }
   }
 

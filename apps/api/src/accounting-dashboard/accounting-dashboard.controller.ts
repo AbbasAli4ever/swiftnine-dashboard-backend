@@ -26,6 +26,7 @@ import { WorkspaceGuard } from '../workspace/workspace.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import {
   AccountingDashboardService,
+  type AccountingExportData,
   type DailyReport,
   type DashboardOverview,
   type DashboardSearchResult,
@@ -33,6 +34,7 @@ import {
   type ReportsBreakdown,
 } from './accounting-dashboard.service';
 import { ReportExportService } from './report-export.service';
+import { ReportPdfService } from './report-pdf.service';
 import {
   DashboardOverviewQueryDto,
   type DashboardOverviewQuery,
@@ -77,6 +79,7 @@ export class AccountingDashboardController {
   constructor(
     private readonly dashboardService: AccountingDashboardService,
     private readonly reportExport: ReportExportService,
+    private readonly reportPdf: ReportPdfService,
   ) {}
 
   @Get('overview')
@@ -237,7 +240,7 @@ export class AccountingDashboardController {
   @ApiOperation({
     summary: 'Export an accounting report as an .xlsx workbook',
     description:
-      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. One sheet, one row per matching transaction — Date, Revenue (USD), Currency, Client, Bank — mirroring the Reports table exactly, with or without filters applied.',
+      'Pass a single `date` (defaults to today, UTC) for a one-day report, or `dateFrom`/`dateTo` together for a range — never both. clientId/bankAccountId/accountType/currency layer on top of whichever date resolution applies — the same filter set as GET /transactions, so exporting after filtering the Reports list exports exactly what the list shows. One sheet, one row per matching transaction — Date, Client, Bank, Currency, Revenue — with or without filters applied. Revenue is the native amount, never converted to USD.',
   })
   @ApiQuery({
     name: 'date',
@@ -294,6 +297,21 @@ export class AccountingDashboardController {
     @Req() req: WorkspaceRequest,
     @Query() query: ExportReportQueryDto,
   ): Promise<StreamableFile> {
+    const { data, filenameDate } = await this.resolveExportData(req, query);
+    const buffer = await this.reportExport.buildReportWorkbook(data);
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: `attachment; filename="accounting-report-${filenameDate}.xlsx"`,
+    });
+  }
+
+  // Same data, same filters, same filename convention as the .xlsx export
+  // above — only the rendering differs. Shared so the two exports can never
+  // resolve their date range or filters differently.
+  private async resolveExportData(
+    req: WorkspaceRequest,
+    query: ExportReportQueryDto,
+  ): Promise<{ data: AccountingExportData; filenameDate: string }> {
     const {
       date,
       dateFrom,
@@ -313,14 +331,79 @@ export class AccountingDashboardController {
       resolvedTo,
       { clientId, bankAccountId, accountType, currency },
     );
-    const buffer = await this.reportExport.buildReportWorkbook(data);
-    const filenameDate =
-      resolvedFrom === resolvedTo
-        ? resolvedFrom
-        : `${resolvedFrom}_to_${resolvedTo}`;
+    return {
+      data,
+      filenameDate:
+        resolvedFrom === resolvedTo
+          ? resolvedFrom
+          : `${resolvedFrom}_to_${resolvedTo}`,
+    };
+  }
+
+  @Get('reports/export/pdf')
+  @ApiOperation({
+    summary: 'Export an accounting report as a .pdf document',
+    description:
+      'Identical data, date resolution and filters to GET reports/export (the .xlsx version) — only the output format differs. Renders the same Date / Client / Bank / Currency / Revenue table, with the Swiftnine logo in the header, zebra-striped rows, a repeated table header on every page, and per-currency totals at the end. Revenue is the native amount, never converted to USD.',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description:
+      'YYYY-MM-DD, defaults to today (UTC) when no date/dateFrom/dateTo is given. Omit if using dateFrom/dateTo instead.',
+    example: '2026-07-28',
+  })
+  @ApiQuery({
+    name: 'dateFrom',
+    required: false,
+    description:
+      'YYYY-MM-DD, start of a range. Must be paired with dateTo; capped at 400 days apart.',
+    example: '2026-07-01',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: false,
+    description: 'YYYY-MM-DD, end of a range. Must be paired with dateFrom.',
+    example: '2026-07-31',
+  })
+  @ApiQuery({
+    name: 'clientId',
+    required: false,
+    description: 'Filter the export to a single client',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'bankAccountId',
+    required: false,
+    description: 'Filter the export to a single bank account',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  @ApiQuery({
+    name: 'accountType',
+    required: false,
+    description:
+      'Filter the export to LOCAL and/or INTERNATIONAL accounts — the "Payment Platform" filter in the UI. Comma-separated for multiple, e.g. `LOCAL,INTERNATIONAL`.',
+    example: 'INTERNATIONAL',
+  })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    description:
+      'Filter the export to one or more currencies — comma-separated, e.g. `USD,PKR`.',
+    example: 'USD,PKR',
+  })
+  @ApiProduces('application/pdf')
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'CEO or ACCOUNTANT role required' })
+  async exportReportPdf(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ExportReportQueryDto,
+  ): Promise<StreamableFile> {
+    const { data, filenameDate } = await this.resolveExportData(req, query);
+    const buffer = await this.reportPdf.buildReportPdf(data);
     return new StreamableFile(buffer, {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      disposition: `attachment; filename="accounting-report-${filenameDate}.xlsx"`,
+      type: 'application/pdf',
+      disposition: `attachment; filename="accounting-report-${filenameDate}.pdf"`,
     });
   }
 

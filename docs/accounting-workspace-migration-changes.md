@@ -610,3 +610,93 @@ Added a new `employees` entity so a transaction can optionally credit a sales em
 - `tsc --noEmit` and `nest build` clean on the backend; `tsc --noEmit` and `eslint` clean on the frontend (only pre-existing, unrelated warnings remain on both sides).
 - Migration SQL applied directly to the local dev database via `psql`; `\d "Employee"` / `\d "Transaction"` confirmed the new table, columns, indexes and FK constraint, with existing data (workspaces, members, transactions) untouched.
 - No automated tests existed for `clients`/`transactions` before this change, so none were added here either — consistent with, not a regression from, the existing state of this codebase.
+
+## Follow-up: [2026-08-21] `GET /clients/search` now returns every client, alphabetically
+
+The client picker previously required a `q` and returned only clients whose name contained all of its words. It now returns the **whole client list, sorted A-Z**, and the frontend narrows it as the user types — no request per keystroke, and the user can open the dropdown and browse rather than having to guess at a name.
+
+**`clients.service.ts`**: `search(workspaceId, q)` → `listAllForPicker(workspaceId)`. Renamed because a method called `search` that ignores its query is misleading; the route is unchanged (see below).
+
+Sorting is done in JS with `localeCompare(..., { sensitivity: 'base' })`, not `orderBy: { clientName: 'asc' }`. The Prisma ordering defers to the database collation, which on a C/POSIX-collated column groups every capitalised name ahead of every lowercase one — so `Zenith Holdings` would sort before `acme industries`. Prisma can't express an expression-based `orderBy` (`LOWER(...)`), and doing it in JS avoids the raw-SQL alternative's coupling to physical table/column names (which would break silently if `Clients` ever gained an `@@map`). The list is a small bounded set, so sorting in memory costs nothing.
+
+Deliberately **uncapped** — a picker that silently truncated would be worse than a slightly larger payload. Worth revisiting only if a workspace ever accumulates thousands of clients.
+
+**Route kept as `/clients/search`** rather than renamed, so existing frontend calls keep working. `search-clients-query.dto.ts` was deleted (nothing referenced it any more), which means a `q` sent by an un-updated caller is now silently ignored rather than rejected — verified below.
+
+**`scripts/seed-demo-clients.ts`** — seeds 30 clients into the demo workspace for testing. Names are chosen to be awkward for sorting rather than merely varied: all-lowercase and ALL-CAPS entries (to prove case-insensitivity), a leading-digit and a leading-symbol name, an accented name, and pairs differing only after several characters. Idempotent — skips names already present, so it can be re-run.
+
+### Verification
+- `tsc --noEmit`, `eslint` — clean.
+- Live, demo workspace (33 clients after seeding): `GET /clients/search` returned all 33 in correct A-Z order. The cases that would have failed under database collation all sorted correctly:
+  - `acme industries` (lowercase) sits between `Åberg Consulting` and `Anton Enne` — not grouped after the capitalised names.
+  - `harbourside traders` (lowercase) lands in the H position, not at the end.
+  - `Brightside Marketing` before `BRIGHTSIDE MEDIA` — case does not override the letter comparison (`Mar` < `Med`).
+  - `Åberg Consulting` sorts beside `Aberdeen Logistics`, so the accent is folded rather than pushed to the end.
+  - `3Point Analytics` leads and `Cedar & Sons` sits in C, so digits/symbols land predictably.
+- **Backwards compatibility:** an old caller sending `?q=acme` gets `200` with all 33 clients (the param is ignored, not rejected), and omitting the previously-required `q` returns `200` rather than `422`.
+- Still workspace-scoped: requesting with a different `x-workspace-id` returns `403 "You are not a member of this workspace"`.
+
+**Frontend note:** this endpoint no longer filters. Move the substring matching client-side, and drop `q` from the request — it does nothing.
+
+## Follow-up: [2026-08-25] `/overview`'s Client Revenue Summary now derived from real transactions
+
+Reported off a screenshot: the "Client Revenue Summary" panel showed nonsense — a client with 6 real transactions showed `USD 0`, a client with zero transactions showed `USD 25,000`, and several brand-new test clients with no activity at all crowded into the top-5 slots. This was the gap flagged (but not yet fixed) in earlier session notes: `/overview`'s `topClients` read `Clients.totalRevenue`, a hand-maintained column nothing keeps in sync with actual sales, while `/reports/breakdown`'s `topClients` had already been computed correctly from transactions since the reporting work earlier this month.
+
+**`accounting-dashboard.service.ts`**: `getOverview()` now calls `getTopClientsByRevenue(workspaceId)` (no range/filters → all-time) instead of the old `getTopClients(workspaceId)`. The old method and its `TopClientItem` type are deleted — nothing else referenced them. `getTopClientsByRevenue()`'s comment updated: it's no longer "the Reports-only ranking, distinct from Overview's" — it's now the only top-clients calculation, used by both endpoints.
+
+**DTO**: `DashboardOverviewResponseDto.topClients` switched from the deleted `TopClientItemDto` to the existing `TopClientRevenueItemDto` (already used by `/reports/breakdown`). Descriptions on that shared DTO updated to describe both scopes it now serves (all-time for `/overview`, a date range for `/reports/breakdown`) rather than only the latter.
+
+**Behavioral differences frontend should expect:**
+- `totalRevenue` (native currency) is now often `null` — it's only populated when every one of a client's sales shares one currency; otherwise use `totalRevenueUsd`. This was already true for `/reports/breakdown` and is not new, just newly visible on `/overview`.
+- A new `salesCount` field is now present.
+- Clients with zero transactions are **absent**, not zero-filled — a padded top-5 of empty clients isn't meaningful the way a fixed bank-account list is.
+- Sorted by `totalRevenueUsd` descending, computed from real `Transaction` rows — not whatever number was typed into `Clients.totalRevenue` at creation.
+
+**Not touched, flagged instead:** the screenshot's duplicate "Acme Corp" is real duplicate data in the `847e1f05-...` ("Test") workspace, not a display bug — two separate `Clients` rows share that name (one from 2026-08-11 with 6 real transactions and `totalRevenue: 0`; one from 2026-08-25 with 0 transactions and `totalRevenue: 25000`, likely created manually while testing). This fix makes the panel correctly show only the one with real activity, but the duplicate record itself is left alone — deleting a client is a real, potentially destructive action, and one of the two has genuine transaction history attached.
+
+### Verification
+- `tsc --noEmit`, `eslint`, `nest build api` — clean.
+- Live, demo workspace (`GET /overview`): `topClients` now returns Victoria Partners ($13,784.98, 13 sales), Anton Enne ($10,643.64, 6 sales), Phase Shop ($2,080.74, 5 sales) — real, transaction-derived figures, `totalRevenue: null` for all three since each has multi-currency sales, sorted descending by `totalRevenueUsd`.
+- Simulated the identical query against the `847e1f05-...` ("Test") workspace directly (no login available for that account): confirms `/overview` will return exactly one entry there — `Acme Corp`, `$175,410`, `salesCount: 6` — the duplicate-named zero-transaction client and every zero-activity seeded test client correctly drop out entirely.
+
+## Follow-up: [2026-08-25] `GET /clients` now shows a real, converted USD total — and the live-rate logic moved to a shared service
+
+Reported off a screenshot of the Clients list: "Total Revenue" showed `USD 0` for a client with real sales (`PKR 175,000 · USD 410` in the "Sales Recorded" column) — the same root cause as the `/overview` topClients fix two entries above, just on a different endpoint. Also asked for the fix to actually sum multiple currencies into one converted USD figure, not just reflect a single currency.
+
+**New shared `ExchangeRateService`** (`apps/api/src/exchange-rate/`): the live-fetch/cache/fallback logic that used to live entirely inside `AccountingDashboardService` is extracted here, since `ClientsService` needed the exact same conversion and duplicating a second independent fetch/cache would mean two services silently disagreeing on the current rate. `AccountingDashboardService` now injects it — `toUsd()` is a one-line pass-through so its ~10 existing call sites didn't need touching, and `getBalances()`'s `exchangeRatesToUsd` field now reads `exchangeRateService.getRates()`. `EXCHANGE_RATES_TO_USD` / `CURRENCY_API_URL` / `EXCHANGE_RATE_CACHE_TTL_MS` moved from `accounting-dashboard.constants.ts` to `exchange-rate.constants.ts` accordingly. New `ExchangeRateModule`, imported by both `AccountingDashboardModule` and `ClientsModule`.
+
+**`clients.service.ts`**: new `totalRevenueUsd` field on both `ClientData` and `ClientListItemData` — every entry in the already-correct `totalSaleAmount` (native, per-currency, summed straight from `Transaction` rows) converted to USD and added together. `totalRevenue`/`currencyType` are **left exactly as they were** — a hand-typed figure set at client creation (`CreateClientDto.totalRevenue`), not touched by this change, since it's a real, independently-writable field with its own input contract, not merely a broken stand-in the way `/overview`'s old `topClients` was. `totalRevenueUsd` is the new, correct field for a "Total Revenue" display; `totalRevenue` still means whatever was typed in at creation and won't move as sales come in. `exchangeRateService.refresh()` is called once per public method that returns client data (`create`, `findAll`, `findClientOrThrow` — covering `findOne`/`update`/`remove`), each a cheap TTL-gated no-op once a rate has been fetched recently.
+
+**`CurrencySaleTotal.currency` tightened from `string` to `Currency`** (the real Prisma enum type `Transaction.currency` already has) — needed so `toUsd(item.total, item.currency)` type-checks without a cast, and catches any future currency value that isn't one of the six supported ones at compile time instead of silently mis-converting it.
+
+**DTOs**: `ClientResponseDto` and `ClientListItemResponseDto` both gained `totalRevenueUsd`, documented as the field that changes with real sales, distinct from the static `totalRevenue`.
+
+### Verification
+- `tsc --noEmit`, `eslint`, `nest build api` — clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, same 26 pre-existing failures — no spec files exist yet for `clients` or `accounting-dashboard`, matching earlier session notes).
+- Live, demo workspace: `GET /clients` — Anton Enne (`AED 4200`, `USD 9500`) now returns `totalRevenueUsd: 10643.64` (4,200 AED ÷ live rate + 9,500 USD), matching `/overview`'s independently-verified figure for the same client from the previous follow-up.
+- Simulated the identical logic directly against the `847e1f05-...` ("Test") workspace (no login available for `umair@swiftnine.com`): the exact client from the screenshot — `Acme Corp`, `PKR 175,000 + USD 410` — now computes `totalRevenueUsd: 1040.90`, replacing the `USD 0` shown before. Every other client with real sales (Zenith Holdings, Aberdeen Logistics, Cedar & Sons, Delta Freight Co, Ember Studios — seeded in the prior follow-up) got correct converted totals too.
+
+**Frontend note:** bind the "Total Revenue" column to the new `totalRevenueUsd` field, not `totalRevenue` — the latter is unchanged (a static, hand-typed figure) and was never the source of the bug being fixed here.
+
+## Follow-up: [2026-08-25] Commission decoupled from transactions — now a manual, PKR-only figure on Employee
+
+Reverses the previous day's commission-on-transaction link (`20260824140000_add_employee_commission`): a transaction no longer optionally carries `employeeId`/`commissionAmount`/`commissionCurrency`. Instead, `Employee` gets two independent, manually-entered PKR figures — `paidCommission` and `pendingCommission` — with their sum, `totalCommission`, computed at read time. No relation to `Transaction` at all.
+
+**Schema** (migration `20260825120000_remove_transaction_commission_link`): dropped `Transaction.employeeId` (+ its FK and index), `commissionAmount`, `commissionCurrency`. Added `Employee.paidCommission`/`pendingCommission` (`Decimal(12,2)`, default `0`). `Employee.transactions` relation and `Transaction.employee` relation both removed — the two models no longer reference each other.
+
+**Data note**: 3 transactions (`DEMO-EMP-001/002/003`, in the `847e1f05-...` "Test" workspace) had `employeeId`/`commissionAmount` set — verified before writing the migration that these were test rows created while building the feature the day before, not real data. `prisma db push --accept-data-loss` used locally, consistent with this environment's established pattern (no working migration history — see earlier follow-ups).
+
+**`employees.service.ts`** rewritten — no more transaction embedding, currency-grouped totals, or the `EMPLOYEE_HAS_TRANSACTIONS` delete-guard (nothing to guard against once there's no relation). `EmployeeData` is now `{ id, name, paidCommission, pendingCommission, totalCommission, createdAt, updatedAt }`; `totalCommission` is computed in `toEmployeeData()`, never stored, so it can't drift from its own inputs. `update()` now supports partial updates (`name`/`paidCommission`/`pendingCommission` independently), matching the pattern already used by `TransactionService.update()`.
+
+**`transaction.service.ts`**: removed `findEmployeeOrThrow()`, the commission-fields-mismatch/requires-employee validation block in `update()`, and the employee/commission writes in `create()`. `TransactionData` no longer carries `commissionAmount`.
+
+**DTOs**: `CreateEmployeeDto`/`UpdateEmployeeDto` gained `paidCommission`/`pendingCommission` (both optional, nonnegative, default `0` on create). `EmployeeResponseDto` dropped the currency-grouped `totalCommission` array, the embedded `transactions` list, and `_count` — replaced with three plain numbers. `CreateTransactionDto`/`UpdateTransactionDto`/`TransactionResponseDto` all dropped `employeeId`/`commissionAmount`/`commissionCurrency` and the now-meaningless `COMMISSION_CURRENCY_VALUES` constant.
+
+### Verification
+- `tsc --noEmit`, `eslint`, `nest build api` — clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, same 26 pre-existing failures).
+- Live: `POST /employees` with `paidCommission: 15000, pendingCommission: 5000` → `201`, `totalCommission: 20000` in the response.
+- Live: `POST /transactions` sending `employeeId`/`commissionAmount`/`commissionCurrency` in the payload anyway → `201`, but none of those three fields appear anywhere in the response — there's no schema column left to hold them, so they're silently dropped rather than erroring.
+- Live: `PATCH /employees/:id` with only `pendingCommission` → updates just that field (`paidCommission` unchanged at `15000`, `pendingCommission` `5000 → 8000`) and correctly recomputes `totalCommission: 23000`.
+- Test employee and transaction removed after verification.

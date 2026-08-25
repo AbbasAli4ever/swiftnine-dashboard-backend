@@ -283,6 +283,7 @@ model Workspace {
   transactions            Transaction[]
   bankAccounts            BankAccount[]
   employees               Employee[]
+  vendors                 Vendor[]
 
   @@map("workspaces")
 }
@@ -1331,18 +1332,6 @@ model Transaction {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  // Who gets credited for this sale, and what they're paid for it — both
-  // optional: not every sale has a commissioned employee attached.
-  // `onDelete: Restrict` mirrors `bankAccount` above — an employee with sales
-  // history can't be silently deleted out from under it.
-  employeeId         String?   @map("employee_id")
-  employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  // Manually entered by whoever records the sale — never computed from
-  // saleAmount. Independent currency from the sale itself (commission is
-  // always paid in USD or PKR regardless of what currency the sale settled in).
-  commissionAmount   Decimal?  @db.Decimal(12, 2) @map("commission_amount")
-  commissionCurrency Currency? @map("commission_currency")
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, refId])
@@ -1350,7 +1339,6 @@ model Transaction {
   @@index([clientId])
   @@index([bankAccountId])
   @@index([saleDate])
-  @@index([employeeId])
 }
 
 model BankAccount {
@@ -1371,17 +1359,39 @@ model BankAccount {
   @@index([workspaceId])
 }
 
-/// Sales employees, for attributing a transaction and manually recording the
-/// commission owed on it. Workspace-scoped, same shape as `Clients`.
-model Employee {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+/// Vendors the workspace owes money to, with the outstanding amount entered
+/// manually — always PKR, and never linked to a Transaction. pendingPayment is
+/// a hand-entered figure, not derived from any purchase or sale.
+/// Workspace-scoped, same shape as `Employee`.
+model Vendor {
+  id             String   @id @default(uuid())
+  workspaceId    String   @map("workspace_id")
+  name           String
+  pendingPayment Decimal  @default(0) @map("pending_payment") @db.Decimal(12, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([name])
+}
+
+/// Sales employees and their commission, entered manually — always PKR, and
+/// never linked to a Transaction. paidCommission/pendingCommission are two
+/// independent hand-entered figures (not derived from any sale); their sum
+/// (totalCommission) is computed in the application layer, not stored.
+/// Workspace-scoped, same shape as `Clients`.
+model Employee {
+  id                String   @id @default(uuid())
+  workspaceId       String   @map("workspace_id")
+  name              String
+  paidCommission    Decimal  @default(0) @map("paid_commission") @db.Decimal(12, 2)
+  pendingCommission Decimal  @default(0) @map("pending_commission") @db.Decimal(12, 2)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
   @@index([name])

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
 import type {
@@ -7,18 +7,13 @@ import type {
 } from '@app/database/generated/prisma/enums';
 import {
   BANK_ACCOUNTS_PER_GROUP_LIMIT,
-  CURRENCY_API_URL,
   DASHBOARD_SEARCH_RESULT_LIMIT,
-  EXCHANGE_RATES_TO_USD,
-  EXCHANGE_RATE_CACHE_TTL_MS,
   REVENUE_OVERVIEW_BUCKET_COUNT,
   TOP_CLIENTS_LIMIT,
 } from './accounting-dashboard.constants';
 import type { DashboardPeriod } from './dto/dashboard-overview-query.dto';
-import {
-  CURRENCY_VALUES,
-  TRANSACTION_SELECT,
-} from '../transactions/transaction.constants';
+import { TRANSACTION_SELECT } from '../transactions/transaction.constants';
+import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
 export type CurrencyTotal = { currency: Currency; total: number };
 
@@ -41,6 +36,9 @@ export type BalanceSummary = {
 export type RevenueMetric = { totalUsd: number; changePercent: number };
 
 export type RevenueSummary = {
+  // Yesterday's revenue, compared against the day before yesterday — NOT
+  // today's. The key is kept as `today` so the existing frontend binding does
+  // not silently vanish; see getRevenueSummary() for why the window moved.
   today: RevenueMetric;
   thisMonth: RevenueMetric;
   thisYear: RevenueMetric;
@@ -83,13 +81,6 @@ export type BankAccountItem = {
 export type BankAccountsByType = {
   local: BankAccountItem[];
   international: BankAccountItem[];
-};
-
-export type TopClientItem = {
-  id: string;
-  clientName: string;
-  totalRevenue: number;
-  currencyType: Currency | null;
 };
 
 export type TopClientRevenueItem = {
@@ -151,7 +142,14 @@ export type DashboardOverview = {
   revenueByBankAccount: BankAccountRevenueItem[];
   revenueByCurrency: CurrencyRevenueItem[];
   bankAccounts: BankAccountsByType;
-  topClients: TopClientItem[];
+  // All-time, transaction-derived — see getTopClientsByRevenue(). Used to
+  // read the hand-maintained Clients.totalRevenue field instead (the old
+  // getTopClients()), which drifted from reality: a client with real sales
+  // could show 0 if nobody had ever typed a number into that field, while a
+  // client with zero transactions could show whatever was typed in at
+  // creation. Reports' topClients was already computed this way; Overview's
+  // just hadn't been switched over.
+  topClients: TopClientRevenueItem[];
 };
 
 export type ReportsBreakdown = {
@@ -215,61 +213,23 @@ type ReportFilters = {
 
 @Injectable()
 export class AccountingDashboardService {
-  private readonly logger = new Logger(AccountingDashboardService.name);
-  // Live-fetched, falls back to (and starts as) the static placeholder map.
-  // Refreshed by refreshExchangeRates(), currently called only from
-  // getOverview() — the Pakistan/International/Total balance cards are the
-  // one place accuracy was explicitly asked for. Every other caller of
-  // toUsd() uses whatever is currently cached here.
-  private exchangeRates: Record<Currency, number> = {
-    ...EXCHANGE_RATES_TO_USD,
-  };
-  private exchangeRatesFetchedAt = 0;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRateService: ExchangeRateService,
+  ) {}
 
-  constructor(private readonly prisma: PrismaService) {}
-
-  // Fetches live USD-base rates and merges them over the current map — one
-  // network call, cached for EXCHANGE_RATE_CACHE_TTL_MS. Never throws: on
-  // any failure (network, non-200, malformed body) it logs a warning and
-  // leaves the existing rates (live-but-stale, or the static fallback)
-  // exactly as they were, so a flaky third-party API can never break the
-  // dashboard. CRYPTO has no entry in the response, so it always keeps the
-  // static fallback.
-  private async refreshExchangeRates(): Promise<void> {
-    if (Date.now() - this.exchangeRatesFetchedAt < EXCHANGE_RATE_CACHE_TTL_MS) {
-      return;
-    }
-    try {
-      const response = await fetch(CURRENCY_API_URL);
-      if (!response.ok) {
-        throw new Error(`Currency API responded with ${response.status}`);
-      }
-      const body = (await response.json()) as { usd?: Record<string, number> };
-      if (!body.usd) throw new Error('Currency API response missing `usd`');
-
-      const next = { ...this.exchangeRates };
-      for (const currency of CURRENCY_VALUES) {
-        const rate = body.usd[currency.toLowerCase()];
-        if (typeof rate === 'number' && rate > 0) next[currency] = rate;
-      }
-      this.exchangeRates = next;
-      this.exchangeRatesFetchedAt = Date.now();
-    } catch (error) {
-      this.logger.warn(
-        `Falling back to cached exchange rates — ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
+  // Thin pass-through so the ~10 call sites below didn't need touching when
+  // the live-fetch/cache logic moved out to ExchangeRateService (shared with
+  // ClientsService, which needed the same conversion).
   private toUsd(amount: number, currency: Currency): number {
-    return amount / this.exchangeRates[currency];
+    return this.exchangeRateService.toUsd(amount, currency);
   }
 
   async getOverview(
     workspaceId: string,
     period: DashboardPeriod,
   ): Promise<DashboardOverview> {
-    await this.refreshExchangeRates();
+    await this.exchangeRateService.refresh();
     const currentPeriodRange = this.getCurrentPeriodRange(period, new Date());
     const [
       balances,
@@ -286,7 +246,7 @@ export class AccountingDashboardService {
       this.getRevenueByBankAccount(workspaceId, currentPeriodRange),
       this.getRevenueByCurrency(workspaceId, currentPeriodRange),
       this.getBankAccountsByType(workspaceId),
-      this.getTopClients(workspaceId),
+      this.getTopClientsByRevenue(workspaceId),
     ]);
 
     return {
@@ -611,7 +571,7 @@ export class AccountingDashboardService {
         totalUsd: round2(bucket.totalUsd),
       })),
       totalBalanceUsd: round2(totalBalanceUsd),
-      exchangeRatesToUsd: this.exchangeRates,
+      exchangeRatesToUsd: this.exchangeRateService.getRates(),
     };
   }
 
@@ -624,16 +584,23 @@ export class AccountingDashboardService {
       now.getMonth(),
       now.getDate(),
     );
+    // The headline daily metric reports YESTERDAY, not today: a partial
+    // current day always reads as a collapse against a complete previous one,
+    // so a mid-morning dashboard showed an alarming negative change every day.
+    // Yesterday is a closed, complete day, compared against the equally
+    // complete day before it.
     const startOfYesterday = new Date(startOfToday);
     startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const startOfDayBeforeYesterday = new Date(startOfYesterday);
+    startOfDayBeforeYesterday.setDate(startOfDayBeforeYesterday.getDate() - 1);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const startOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
 
     const [
-      todayTotal,
       yesterdayTotal,
+      dayBeforeYesterdayTotal,
       monthTotal,
       lastMonthTotal,
       yearTotal,
@@ -641,10 +608,13 @@ export class AccountingDashboardService {
       salesThisMonth,
       salesLastMonth,
     ] = await Promise.all([
-      this.sumRevenueUsd(workspaceId, { gte: startOfToday }),
       this.sumRevenueUsd(workspaceId, {
         gte: startOfYesterday,
         lt: startOfToday,
+      }),
+      this.sumRevenueUsd(workspaceId, {
+        gte: startOfDayBeforeYesterday,
+        lt: startOfYesterday,
       }),
       this.sumRevenueUsd(workspaceId, { gte: startOfMonth }),
       this.sumRevenueUsd(workspaceId, {
@@ -668,9 +638,13 @@ export class AccountingDashboardService {
     ]);
 
     return {
+      // Key intentionally still `today` — renaming it to `yesterday` would
+      // make the field disappear from every un-updated client rather than
+      // just change value, which is the worse failure. The value is
+      // yesterday's revenue vs the day before.
       today: {
-        totalUsd: round2(todayTotal),
-        changePercent: percentChange(todayTotal, yesterdayTotal),
+        totalUsd: round2(yesterdayTotal),
+        changePercent: percentChange(yesterdayTotal, dayBeforeYesterdayTotal),
       },
       thisMonth: {
         totalUsd: round2(monthTotal),
@@ -1063,30 +1037,13 @@ export class AccountingDashboardService {
     };
   }
 
-  private async getTopClients(workspaceId: string): Promise<TopClientItem[]> {
-    const clients = await this.prisma.clients.findMany({
-      where: { workspaceId },
-      select: {
-        id: true,
-        clientName: true,
-        totalRevenue: true,
-        currencyType: true,
-      },
-      orderBy: { totalRevenue: 'desc' },
-      take: TOP_CLIENTS_LIMIT,
-    });
-
-    return clients.map((client) => ({
-      id: client.id,
-      clientName: client.clientName,
-      totalRevenue: Number(client.totalRevenue),
-      currencyType: client.currencyType,
-    }));
-  }
-
-  // Reports-only ranking by summed Transaction.saleAmount, scoped to `range`
-  // — distinct from getTopClients (Overview), which ranks by the hand-entered
-  // Clients.totalRevenue field and has no date column to range against.
+  // Ranking by summed Transaction.saleAmount — used by both /overview (no
+  // range/filters, so all-time) and /reports/breakdown (scoped to `range`).
+  // Used to be Reports-only, ranked against getTopClients (Overview), which
+  // read the hand-entered Clients.totalRevenue field instead; that field
+  // isn't kept in sync with real sales, so it could show a client with zero
+  // transactions ahead of one with real revenue. getTopClients is gone —
+  // this is now the only top-clients calculation.
   // Unlike getRevenueByBankAccount's fixed, zero-filled account list,
   // clients with no sales in range are simply absent rather than zero-filled
   // — a "top N" list padded with zero-revenue clients isn't meaningful the

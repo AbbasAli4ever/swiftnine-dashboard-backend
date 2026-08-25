@@ -1,29 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class EmployeeResponseDto {
+export class VendorResponseDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
-  @ApiProperty({ example: 'Sara Khan' })
+  @ApiProperty({ example: 'Karachi Print House' })
   name!: string;
 
   @ApiProperty({
-    example: 15000,
-    description: 'Commission already paid out, in PKR — entered manually',
+    example: 45000,
+    description:
+      'Amount owed to this vendor but not yet paid, in PKR — entered manually, not derived from any transaction',
   })
-  paidCommission!: number;
-
-  @ApiProperty({
-    example: 5000,
-    description: 'Commission owed but not yet paid, in PKR — entered manually',
-  })
-  pendingCommission!: number;
-
-  @ApiProperty({
-    example: 20000,
-    description: 'paidCommission + pendingCommission — computed, not stored',
-  })
-  totalCommission!: number;
+  pendingPayment!: number;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;
@@ -32,15 +21,15 @@ export class EmployeeResponseDto {
   updatedAt!: Date;
 }
 
-export class EmployeeSearchResultDto {
+export class VendorSearchResultDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
   id!: string;
 
-  @ApiProperty({ example: 'Sara Khan' })
+  @ApiProperty({ example: 'Karachi Print House' })
   name!: string;
 }
 
-class EmployeePaginationMetaDto {
+class VendorPaginationMetaDto {
   @ApiProperty({ example: 1 })
   page!: number;
 
@@ -60,15 +49,15 @@ class EmployeePaginationMetaDto {
   has_prev!: boolean;
 }
 
-export class PaginatedEmployeesResponseDto {
+export class PaginatedVendorsResponseDto {
   @ApiProperty({ example: true })
   success!: true;
 
-  @ApiProperty({ type: [EmployeeResponseDto] })
-  data!: EmployeeResponseDto[];
+  @ApiProperty({ type: [VendorResponseDto] })
+  data!: VendorResponseDto[];
 
-  @ApiProperty({ type: EmployeePaginationMetaDto })
-  meta!: EmployeePaginationMetaDto;
+  @ApiProperty({ type: VendorPaginationMetaDto })
+  meta!: VendorPaginationMetaDto;
 
   @ApiProperty({ example: null, nullable: true })
   message!: string | null;
