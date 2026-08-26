@@ -147,12 +147,15 @@ export class EmployeesController {
 
   @Get('search')
   @ApiOperation({
-    summary: 'Search employees by name, matching words in any order',
+    summary: 'Search employees by name, or list all for a picker',
+    description:
+      'With q: matches words in any order. Without q (or empty): returns every employee in the workspace, alphabetically — for populating a picker/dropdown, same convention as /clients/search.',
   })
   @ApiQuery({
     name: 'q',
-    required: true,
-    description: 'Search text — one or more words, matched in any order',
+    required: false,
+    description:
+      'Search text — one or more words, matched in any order. Omit for the full alphabetical list.',
     example: 'Sara Khan',
   })
   @ApiResponse({

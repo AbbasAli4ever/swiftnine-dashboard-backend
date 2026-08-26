@@ -772,3 +772,20 @@ Immediate follow-up to the commission re-link above: transactions already showed
 - `tsc --noEmit`, `eslint` (zero new errors — only prettier formatting on newly-added lines, `--fix`-ed), `nest build api` — all clean.
 - Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
 - Live, demo workspace: created an employee (empty `transactions: []`, `_count.transactions: 0`), then a transaction with that employee + `commissionAmount: 123.45`. `GET /employees/:id` → `_count.transactions: 1`, `transactions[0]` carries the sale's `clientName`, `saleAmount`, `commissionAmount: 123.45`, and `bankAccount`; `pendingCommission` correctly `123.45`. `GET /employees?q=...` (list) → same embed present, confirming it's not detail-only. Test employee and transaction removed after verification.
+
+## Follow-up: [2026-08-26] `GET /employees/search` now supports a full-list picker, matching `/clients/search`
+
+Asked while wiring up the transaction-creation employee dropdown: `q` was required (min 1 char) on `/employees/search`, so a picker couldn't open and show every employee the way `/clients/search` already does — it would 422 with nothing typed yet.
+
+**`search-employees-query.dto.ts`**: `q` changed from required to `.optional()` (no `.min(1)`).
+
+**`employees.service.ts`**: `search(workspaceId, q?)` — when `q` is falsy (omitted or empty string), returns every employee in the workspace via a plain `findMany`, sorted in JS with `localeCompare`. Same reasoning as `ClientsService.listAllForPicker`: this DB's collation puts every capitalised name before every lowercase one, so a Prisma `orderBy: { name: 'asc' }` would produce a wrong-looking order — confirmed by seeding `"zzz..."` and `"Aaa..."` test names and checking the returned order directly, not just trusting the code. When `q` is provided, the existing multi-token AND-matched `contains` filter (Prisma `orderBy: { name: 'asc' }`) is unchanged — only the full-list branch is new.
+
+**Deliberately not a full mirror of `/clients/search`**: clients dropped `q` from the route entirely (always full list, filtering always client-side). Employees keeps `q` as a real, working filter — the full-list behavior only kicks in when `q` is absent, so the existing name-search use case (if any caller relies on it) keeps working exactly as before.
+
+**Controller/Swagger**: `@ApiQuery({ name: 'q', required: false, ... })`, operation summary/description updated to describe both modes.
+
+### Verification
+- `tsc --noEmit`, `eslint`, `nest build api` — clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
+- Live, demo workspace: seeded `"zzz Search Test Zeta"` and `"Aaa Search Test Alpha"`. `GET /employees/search` (no `q`) and `GET /employees/search?q=` (empty) both → `200`, full alphabetical list, `Aaa...` before `zzz...` — confirming the collation fix actually took effect, not just that no error was thrown. `GET /employees/search?q=Alpha` → `200`, only the matching employee, confirming the filtered path is untouched. Test employees removed after verification. Verified against the demo accountant's own already-running dev server rather than starting a new one, since it was already up when this session began.
