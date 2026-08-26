@@ -124,10 +124,25 @@ export class EmployeesService {
     };
   }
 
+  // q omitted/empty: every employee in the workspace, alphabetically — for
+  // populating a picker/dropdown, matching /clients/search's convention.
+  // Sorted in JS via localeCompare rather than Prisma's orderBy, same reason
+  // as ClientsService.listAllForPicker: a C/POSIX-collated column sorts
+  // every capitalised name before every lowercase one otherwise.
   async search(
     workspaceId: string,
-    q: string,
+    q?: string,
   ): Promise<EmployeeSearchResult[]> {
+    if (!q) {
+      const employees = await this.prisma.employee.findMany({
+        where: { workspaceId },
+        select: EMPLOYEE_SEARCH_SELECT,
+      });
+      return employees.sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+      );
+    }
+
     const tokens = q.split(/\s+/).filter(Boolean);
 
     return this.prisma.employee.findMany({

@@ -7,7 +7,12 @@ ALTER TABLE "Transaction"
   ADD COLUMN "employee_id" TEXT,
   ADD COLUMN "commission_amount" DECIMAL(12,2) NOT NULL DEFAULT 0;
 
-CREATE INDEX "Transaction_employeeId_idx" ON "Transaction"("employee_id");
+-- Created directly with its final snake_case name. An earlier migration
+-- (20260826083103) renamed a camelCase "Transaction_employeeId_idx" to this
+-- name, but by timestamp that rename replays BEFORE this file, so the index
+-- it targeted did not exist yet and a fresh replay failed with P3006/P1014.
+-- Creating the final name here makes that rename a no-op instead.
+CREATE INDEX "Transaction_employee_id_idx" ON "Transaction"("employee_id");
 
 -- SetNull, not Restrict/Cascade — deleting an employee must stay
 -- unconditional (see EmployeesService.remove()); it just clears the link on

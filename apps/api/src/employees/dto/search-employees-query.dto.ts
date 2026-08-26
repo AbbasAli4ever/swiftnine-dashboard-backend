@@ -2,7 +2,10 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 export const SearchEmployeesQuerySchema = z.object({
-  q: z.string().trim().min(1, 'Search query is required').max(200),
+  // Optional — empty/omitted returns every employee in the workspace
+  // (alphabetical), for populating a picker/dropdown. Matches the
+  // /clients/search convention.
+  q: z.string().trim().max(200).optional(),
 });
 
 export class SearchEmployeesQueryDto extends createZodDto(
