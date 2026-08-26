@@ -789,3 +789,20 @@ Asked while wiring up the transaction-creation employee dropdown: `q` was requir
 - `tsc --noEmit`, `eslint`, `nest build api` — clean.
 - Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
 - Live, demo workspace: seeded `"zzz Search Test Zeta"` and `"Aaa Search Test Alpha"`. `GET /employees/search` (no `q`) and `GET /employees/search?q=` (empty) both → `200`, full alphabetical list, `Aaa...` before `zzz...` — confirming the collation fix actually took effect, not just that no error was thrown. `GET /employees/search?q=Alpha` → `200`, only the matching employee, confirming the filtered path is untouched. Test employees removed after verification. Verified against the demo accountant's own already-running dev server rather than starting a new one, since it was already up when this session began.
+
+## Follow-up: [2026-08-26] `totalPendingCommission` / `totalPendingPayment` on the employees/vendors list
+
+Asked for a sum of all pending commission/payments on the employees and vendors sections. Added as a new top-level field on each list response, alongside the existing `data`/`meta`, computed with a `prisma.aggregate({ _sum })` run in parallel with the existing `count`/`findMany` — not derived by summing `data` client-side, since that would only cover the current page.
+
+**Scoped to the active filter, not the whole workspace** — same `where` as the list query, so it reflects the same set `meta.total` counts (all matching rows, not just the current page). Searching narrows the sum along with the results; an unfiltered call still returns the true workspace-wide total. Confirmed this distinction matters and works correctly by testing the filtered case explicitly, not just the unfiltered one.
+
+**Did not touch the shared `paginated()` helper** (`libs/common/src/utils/api-response.ts`) — it's used by every paginated list in the app (transactions, clients, tasks, ...), so changing its shape would ripple everywhere for a field only these two resources need. Instead, `EmployeesController.findAll()`/`VendorsController.findAll()` spread an extra key onto `paginated(...)`'s return value, with the method's return type widened to `PaginatedApiResponse<T> & { totalPendingX: number }` locally — no other paginated endpoint is affected.
+
+**`employees.service.ts`**/**`vendors.service.ts`**: `EmployeeListResult`/`VendorListResult` gained `totalPendingCommission`/`totalPendingPayment`. `vendors.service.ts` gained its own `round2()` (mirroring the one already in `employees.service.ts`/`clients.service.ts` — Prisma's `_sum` returns a `Decimal`, converted to a rounded `number` the same way every other money field in these services already is).
+
+**DTOs**: `PaginatedEmployeesResponseDto`/`PaginatedVendorsResponseDto` gained the new field for Swagger.
+
+### Verification
+- `tsc --noEmit`, `eslint` (zero new errors — only prettier line-wrapping on the newly-added return type, `--fix`-ed), `nest build api` — all clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
+- Live, demo workspace: seeded two employees (`pendingCommission: 1000.50` / `2500.25`) and two vendors (`pendingPayment: 5000` / `1234.75`). `GET /employees` → `totalPendingCommission: 3500.75`; `GET /vendors` → `totalPendingPayment: 6234.75` — correct even with `?limit=1`, confirming the sum isn't accidentally scoped to the current page. `GET /employees?q=Sum Test A` → `totalPendingCommission: 1000.5`, confirming the sum narrows with an active search filter rather than always being the workspace-wide total. Test employees/vendors removed after verification.

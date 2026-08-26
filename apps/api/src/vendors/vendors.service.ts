@@ -32,7 +32,15 @@ export type VendorListResult = {
   total: number;
   page: number;
   limit: number;
+  // Sum of pendingPayment across every vendor matching the current filter
+  // (not just the current page) — a section-level total, independent of
+  // pagination.
+  totalPendingPayment: number;
 };
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 export type VendorSearchResult = Prisma.VendorGetPayload<{
   select: typeof VENDOR_SEARCH_SELECT;
@@ -66,7 +74,7 @@ export class VendorsService {
 
     const skip = (query.page - 1) * query.limit;
 
-    const [total, items] = await Promise.all([
+    const [total, items, pendingPaymentSum] = await Promise.all([
       this.prisma.vendor.count({ where }),
       this.prisma.vendor.findMany({
         where,
@@ -75,6 +83,10 @@ export class VendorsService {
         skip,
         take: query.limit,
       }),
+      this.prisma.vendor.aggregate({
+        where,
+        _sum: { pendingPayment: true },
+      }),
     ]);
 
     return {
@@ -82,6 +94,9 @@ export class VendorsService {
       total,
       page: query.page,
       limit: query.limit,
+      totalPendingPayment: round2(
+        Number(pendingPaymentSum._sum.pendingPayment ?? 0),
+      ),
     };
   }
 

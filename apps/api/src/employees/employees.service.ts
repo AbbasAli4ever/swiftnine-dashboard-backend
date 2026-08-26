@@ -67,6 +67,10 @@ export type EmployeeListResult = {
   total: number;
   page: number;
   limit: number;
+  // Sum of pendingCommission across every employee matching the current
+  // filter (not just the current page) — a section-level total, independent
+  // of pagination.
+  totalPendingCommission: number;
 };
 
 export type EmployeeSearchResult = Prisma.EmployeeGetPayload<{
@@ -105,7 +109,7 @@ export class EmployeesService {
 
     const skip = (query.page - 1) * query.limit;
 
-    const [total, items] = await Promise.all([
+    const [total, items, pendingCommissionSum] = await Promise.all([
       this.prisma.employee.count({ where }),
       this.prisma.employee.findMany({
         where,
@@ -114,6 +118,10 @@ export class EmployeesService {
         skip,
         take: query.limit,
       }),
+      this.prisma.employee.aggregate({
+        where,
+        _sum: { pendingCommission: true },
+      }),
     ]);
 
     return {
@@ -121,6 +129,9 @@ export class EmployeesService {
       total,
       page: query.page,
       limit: query.limit,
+      totalPendingCommission: round2(
+        Number(pendingCommissionSum._sum.pendingCommission ?? 0),
+      ),
     };
   }
 

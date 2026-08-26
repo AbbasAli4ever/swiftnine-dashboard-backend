@@ -141,12 +141,19 @@ export class VendorsController {
   async findAll(
     @Req() req: WorkspaceRequest,
     @Query() query: ListVendorsQueryDto,
-  ): Promise<PaginatedApiResponse<VendorData>> {
+  ): Promise<
+    PaginatedApiResponse<VendorData> & { totalPendingPayment: number }
+  > {
     const result = await this.vendorsService.findAll(
       req.workspaceContext.workspaceId,
       query as ListVendorsQuery,
     );
-    return paginated(result.items, result.total, result.page, result.limit);
+    return {
+      ...paginated(result.items, result.total, result.page, result.limit),
+      // Sum across every vendor matching the filter, not just this page —
+      // same reasoning as meta.total.
+      totalPendingPayment: result.totalPendingPayment,
+    };
   }
 
   @Get('search')
