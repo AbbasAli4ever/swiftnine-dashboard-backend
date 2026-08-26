@@ -73,46 +73,25 @@ export class FavoritesService {
       },
       select: {
         createdAt: true,
-        project: {
-          select: {
-            ...PROJECT_WITH_STATUSES_SELECT,
-            passwordHash: true,
-            passwordUpdatedAt: true,
-          },
-        },
+        project: { select: PROJECT_WITH_STATUSES_SELECT },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    const lockedProjectIds = rows
-      .filter((row) => Boolean(row.project.passwordHash))
-      .map((row) => row.project.id);
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
-      lockedProjectIds,
-      userId,
-    );
+    const candidateProjectIds = rows.map((row) => row.project.id);
+    const accessibleProjectIds =
+      await this.projectSecurity.activeUnlockedProjectIds(
+        candidateProjectIds,
+        userId,
+      );
 
-    return rows.map((row) => {
-      const { passwordHash, ...project } = row.project;
-      const isLockedForUser = Boolean(passwordHash) && !unlockedProjectIds.has(project.id);
-
-      if (isLockedForUser) {
-        return {
-          id: project.id,
-          workspaceId: project.workspaceId,
-          locked: true,
-          isFavorite: true,
-          favoritedAt: row.createdAt,
-        };
-      }
-
-      return {
-        ...project,
-        locked: false,
+    return rows
+      .filter((row) => accessibleProjectIds.has(row.project.id))
+      .map((row) => ({
+        ...row.project,
         isFavorite: true,
         favoritedAt: row.createdAt,
-      };
-    });
+      }));
   }
 
   async listTaskFavorites(

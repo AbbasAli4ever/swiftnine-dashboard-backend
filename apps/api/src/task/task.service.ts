@@ -110,11 +110,16 @@ export class TaskService {
     listId: string,
     dto: CreateTaskDto,
   ): Promise<TaskDetailData> {
-    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
+    const project = await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
     await this.findListOrThrow(workspaceId, projectId, listId);
     await this.findStatusOrThrow(projectId, dto.statusId);
     if (dto.assigneeIds?.length) {
       await this.assertUsersAreMembers(workspaceId, dto.assigneeIds);
+      await this.projectSecurity.assertUsersCanAccessProject(
+        projectId,
+        project.visibility,
+        dto.assigneeIds,
+      );
     }
     if (dto.tagIds?.length) {
       await this.assertTagsInWorkspace(workspaceId, dto.tagIds);
@@ -354,7 +359,7 @@ export class TaskService {
   ): Promise<TaskListItemWithCreator[]> {
     if (!ids.length) return [];
 
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
       workspaceId,
       userId,
     );
@@ -370,7 +375,7 @@ export class TaskService {
             workspaceId,
             deletedAt: null,
             isArchived: false,
-            OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+            id: { in: Array.from(accessibleProjectIds) },
           },
         },
       },
@@ -688,6 +693,11 @@ export class TaskService {
     await this.assertTaskUnlocked(workspaceId, userId, taskId);
     const task = await this.findTaskMinimalOrThrow(workspaceId, taskId);
     await this.assertUsersAreMembers(workspaceId, dto.userIds);
+    await this.projectSecurity.assertUsersCanAccessProject(
+      task.list.project.id,
+      task.list.project.visibility,
+      dto.userIds,
+    );
 
     const existing = await this.prisma.taskAssignee.findMany({
       where: { taskId, userId: { in: dto.userIds } },
@@ -1037,7 +1047,7 @@ export class TaskService {
   ): Promise<TaskSearchResult> {
     const where = this.buildTaskSearchWhere(scope, query);
     if (enforceWorkspaceVisibility && !scope.projectId && !scope.listId) {
-      const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+      const accessibleProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
         scope.workspaceId,
         scope.userId,
       );
@@ -1046,7 +1056,7 @@ export class TaskService {
         ...listWhere,
         project: {
           ...((listWhere.project ?? {}) as Prisma.ProjectWhereInput),
-          OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+          id: { in: Array.from(accessibleProjectIds) },
         },
       } satisfies Prisma.TaskListWhereInput;
     }
@@ -1446,7 +1456,15 @@ export class TaskService {
             name: true,
             position: true,
             projectId: true,
-            project: { select: { id: true, workspaceId: true, taskIdPrefix: true, name: true } },
+            project: {
+              select: {
+                id: true,
+                workspaceId: true,
+                taskIdPrefix: true,
+                name: true,
+                visibility: true,
+              },
+            },
           },
         },
       },

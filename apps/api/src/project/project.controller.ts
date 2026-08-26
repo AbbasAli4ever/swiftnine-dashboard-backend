@@ -28,6 +28,8 @@ import { RolesGuard } from '../roles/roles.guard';
 import { ProjectService, type ProjectListItem, type ProjectWithDetails } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { UpdateProjectVisibilityDto } from './dto/update-project-visibility.dto';
+import { InviteProjectMemberDto } from './dto/invite-project-member.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 
@@ -160,6 +162,121 @@ export class ProjectController {
       dto,
     );
     return ok(project, 'Project updated successfully');
+  }
+
+  @Patch(':projectId/visibility')
+  @ApiOperation({
+    summary: 'Change a project between PUBLIC and PRIVATE',
+    description:
+      'Creator only — no OWNER override. PUBLIC: every workspace member can see and act on the project. PRIVATE: visible only to the creator and invited ProjectMembers; switching to PRIVATE automatically grandfathers in every current task assignee, and clears any existing project password (private replaces the need for one).',
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Visibility updated' })
+  @ApiResponse({
+    status: 403,
+    description: 'Only the project creator can change visibility',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async updateVisibility(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+    @Body() dto: UpdateProjectVisibilityDto,
+  ): Promise<ApiRes<ProjectWithDetails>> {
+    const project = await this.projectService.updateVisibility(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      dto.visibility,
+    );
+    return ok(project, 'Project visibility updated successfully');
+  }
+
+  @Get(':projectId/members')
+  @ApiOperation({
+    summary: "List a project's members (creator + invited users)",
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Members returned' })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async listMembers(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+  ): Promise<ApiRes<Awaited<ReturnType<ProjectService['listMembers']>>>> {
+    const members = await this.projectService.listMembers(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+    );
+    return ok(members);
+  }
+
+  @Post(':projectId/members')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Invite a workspace member to a PRIVATE project',
+    description:
+      'Creator only. Only valid on a PRIVATE project — a PUBLIC one already grants everyone access.',
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 201, description: 'Member invited' })
+  @ApiResponse({
+    status: 400,
+    description: 'Project is PUBLIC, or user is not a workspace member',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Only the project creator can invite members',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'User is already a member of this project',
+  })
+  async inviteMember(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+    @Body() dto: InviteProjectMemberDto,
+  ): Promise<ApiRes<null>> {
+    await this.projectService.inviteMember(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      dto.userId,
+    );
+    return ok(null, 'Member invited successfully');
+  }
+
+  @Delete(':projectId/members/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Remove a member from a PRIVATE project's invite list",
+    description:
+      "Creator only. The creator themselves can't be removed. Also strips the removed user as an assignee from every task in the project, since they can no longer open it.",
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiParam({ name: 'userId', description: 'User UUID to remove' })
+  @ApiResponse({ status: 200, description: 'Member removed' })
+  @ApiResponse({
+    status: 400,
+    description: "Cannot remove the project's creator",
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Only the project creator can remove members',
+  })
+  @ApiResponse({ status: 404, description: 'Project or member not found' })
+  async removeMember(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+    @Param('userId') userId: string,
+  ): Promise<ApiRes<null>> {
+    await this.projectService.removeMember(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      userId,
+    );
+    return ok(null, 'Member removed successfully');
   }
 
   @Delete(':projectId')

@@ -40,32 +40,16 @@ export class DocSearchService {
       : await this.searchWorkspace(query, params.workspaceId, params.userId);
 
     const results: DocSearchResult[] = [];
-    const lockedProjectIds = Array.from(
+    const candidateProjectIds = Array.from(
       new Set(rows.map((row) => row.projectId).filter((id): id is string => Boolean(id))),
     );
-    const projects = lockedProjectIds.length
-      ? await this.prisma.project.findMany({
-          where: { id: { in: lockedProjectIds } },
-          select: { id: true, passwordHash: true },
-        })
-      : [];
-    const unlockedByDefaultIds = new Set(
-      projects.filter((project) => !project.passwordHash).map((project) => project.id),
-    );
-    const passwordProtectedProjectIds = projects
-      .filter((project) => Boolean(project.passwordHash))
-      .map((project) => project.id);
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
-      passwordProtectedProjectIds,
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      candidateProjectIds,
       params.userId,
     );
 
     for (const row of rows) {
-      if (
-        row.projectId &&
-        !unlockedByDefaultIds.has(row.projectId) &&
-        !unlockedProjectIds.has(row.projectId)
-      ) {
+      if (row.projectId && !accessibleProjectIds.has(row.projectId)) {
         continue;
       }
 

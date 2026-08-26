@@ -265,7 +265,7 @@ export class TimeEntryService {
     workspaceId: string,
     userId: string,
   ): Promise<TimeEntryData | null> {
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
       workspaceId,
       userId,
     );
@@ -282,7 +282,7 @@ export class TimeEntryService {
             project: {
               workspaceId,
               deletedAt: null,
-              OR: [{ passwordHash: null }, { id: { in: Array.from(unlockedProjectIds) } }],
+              id: { in: Array.from(accessibleProjectIds) },
             },
           },
         },

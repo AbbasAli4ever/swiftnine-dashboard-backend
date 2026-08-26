@@ -485,7 +485,7 @@ describe('AttachmentsService doc attachments', () => {
     expect(result).not.toHaveProperty('viewUrl');
   });
 
-  it('searches project attachments without leaking locked projects', async () => {
+  it('searches project attachments without leaking inaccessible projects', async () => {
     projectSecurity.activeUnlockedWorkspaceProjectIds.mockResolvedValue(
       new Set(['project-unlocked']),
     );
@@ -510,10 +510,7 @@ describe('AttachmentsService doc attachments', () => {
         project: {
           workspaceId: 'workspace-1',
           deletedAt: null,
-          OR: [
-            { passwordHash: null },
-            { id: { in: ['project-unlocked'] } },
-          ],
+          id: { in: ['project-unlocked'] },
         },
         OR: [
           { fileName: { contains: 'reference', mode: 'insensitive' } },

@@ -19,9 +19,6 @@ describe('NotificationsService', () => {
     channelMessage: {
       findMany: jest.Mock;
     };
-    project: {
-      findMany: jest.Mock;
-    };
     notification: {
       deleteMany: jest.Mock;
     };
@@ -39,9 +36,6 @@ describe('NotificationsService', () => {
         findMany: jest.fn().mockResolvedValue([]),
       },
       channelMessage: {
-        findMany: jest.fn().mockResolvedValue([]),
-      },
-      project: {
         findMany: jest.fn().mockResolvedValue([]),
       },
       notification: {
@@ -75,15 +69,14 @@ describe('NotificationsService', () => {
     expect(count).toBe(3);
   });
 
-  it('filters locked project task notifications until the recipient unlocks the project', async () => {
+  it('filters private-project task notifications the recipient has no access to', async () => {
     prisma.task.findMany.mockResolvedValue([
-      { id: 'task-1', list: { projectId: 'project-locked' } },
+      { id: 'task-1', list: { projectId: 'project-private' } },
       { id: 'task-2', list: { projectId: 'project-open' } },
     ]);
-    prisma.project.findMany.mockResolvedValue([
-      { id: 'project-locked', passwordHash: 'hash' },
-      { id: 'project-open', passwordHash: null },
-    ]);
+    projectSecurity.activeUnlockedProjectIds.mockResolvedValue(
+      new Set(['project-open']),
+    );
 
     const visible = await service.filterVisibleNotificationsForUser('user-1', [
       { id: 'notif-1', referenceType: 'task', referenceId: 'task-1' },
@@ -97,18 +90,15 @@ describe('NotificationsService', () => {
     ]);
   });
 
-  it('keeps locked project notifications visible after the recipient unlocks the project', async () => {
+  it('keeps private-project notifications visible for a member with access', async () => {
     prisma.comment.findMany.mockResolvedValue([
       {
         id: 'comment-1',
-        task: { list: { projectId: 'project-locked' } },
+        task: { list: { projectId: 'project-private' } },
       },
     ]);
-    prisma.project.findMany.mockResolvedValue([
-      { id: 'project-locked', passwordHash: 'hash' },
-    ]);
     projectSecurity.activeUnlockedProjectIds.mockResolvedValue(
-      new Set(['project-locked']),
+      new Set(['project-private']),
     );
 
     const visible = await service.filterVisibleNotificationsForUser('user-1', [
