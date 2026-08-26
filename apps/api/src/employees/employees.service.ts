@@ -14,19 +14,40 @@ type RawEmployeeData = Prisma.EmployeeGetPayload<{
   select: typeof EMPLOYEES_SELECT;
 }>;
 
+type RawEmployeeTransaction = RawEmployeeData['transactions'][number];
+
+type MappedEmployeeTransaction = Omit<
+  RawEmployeeTransaction,
+  'saleAmount' | 'commissionAmount'
+> & {
+  saleAmount: number;
+  commissionAmount: number;
+};
+
 export type EmployeeData = Omit<
   RawEmployeeData,
-  'paidCommission' | 'pendingCommission'
+  'paidCommission' | 'pendingCommission' | 'transactions'
 > & {
   paidCommission: number;
   pendingCommission: number;
   // Not stored — always paidCommission + pendingCommission, computed here so
   // the two figures can never drift out of sync with their own sum.
   totalCommission: number;
+  transactions: MappedEmployeeTransaction[];
 };
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function mapEmployeeTransactions(
+  transactions: RawEmployeeTransaction[],
+): MappedEmployeeTransaction[] {
+  return transactions.map((transaction) => ({
+    ...transaction,
+    saleAmount: Number(transaction.saleAmount),
+    commissionAmount: Number(transaction.commissionAmount),
+  }));
 }
 
 function toEmployeeData(row: RawEmployeeData): EmployeeData {
@@ -37,6 +58,7 @@ function toEmployeeData(row: RawEmployeeData): EmployeeData {
     paidCommission,
     pendingCommission,
     totalCommission: round2(paidCommission + pendingCommission),
+    transactions: mapEmployeeTransactions(row.transactions),
   };
 }
 
@@ -150,8 +172,9 @@ export class EmployeesService {
     return toEmployeeData(employee);
   }
 
-  // No linked-transactions check any more — an employee has no relation to
-  // delete around, so removal is unconditional.
+  // Unconditional — Transaction.employeeId is onDelete: SetNull, so deleting
+  // an employee just clears the link on their past transactions instead of
+  // being blocked by them.
   async remove(workspaceId: string, employeeId: string): Promise<void> {
     await this.findEmployeeOrThrow(workspaceId, employeeId);
     await this.prisma.employee.delete({ where: { id: employeeId } });

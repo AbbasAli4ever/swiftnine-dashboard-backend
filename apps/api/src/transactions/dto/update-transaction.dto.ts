@@ -1,7 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { CURRENCY_VALUES } from '../transaction.constants';
+import {
+  CURRENCY_VALUES,
+  TRANSACTION_EMPLOYEE_COMMISSION_PAIR,
+} from '../transaction.constants';
 
 const UpdateTransactionSchema = z
   .object({
@@ -23,10 +26,24 @@ const UpdateTransactionSchema = z
     currency: z.enum(CURRENCY_VALUES).optional(),
     saleDate: z.string().datetime().optional(),
     description: z.string().trim().max(2000).nullable().optional(),
+    employeeId: z
+      .string()
+      .uuid('Employee id must be a valid UUID')
+      .nullable()
+      .optional(),
+    commissionAmount: z.coerce
+      .number()
+      .nonnegative('Commission amount cannot be negative')
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
-  });
+  })
+  .refine(
+    (data) =>
+      (data.employeeId === undefined) === (data.commissionAmount === undefined),
+    { message: TRANSACTION_EMPLOYEE_COMMISSION_PAIR, path: ['employeeId'] },
+  );
 
 export class UpdateTransactionDto extends createZodDto(
   UpdateTransactionSchema,
@@ -82,4 +99,21 @@ export class UpdateTransactionDto extends createZodDto(
     nullable: true,
   })
   description?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    description:
+      'Reassign (or clear, with null) the employee credited on this sale. Must be sent together with commissionAmount, or not at all. Never adjusts pendingCommission — that only happens once, at creation.',
+    nullable: true,
+  })
+  employeeId?: string | null;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description:
+      'Correct the commission amount (PKR) for this sale. Must be sent together with employeeId, or not at all. Never adjusts pendingCommission — that only happens once, at creation.',
+    example: 5000,
+  })
+  commissionAmount?: number;
 }

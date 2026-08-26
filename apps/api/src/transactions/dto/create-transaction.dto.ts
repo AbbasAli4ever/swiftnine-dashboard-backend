@@ -1,20 +1,35 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CURRENCY_VALUES } from '../transaction.constants';
+import {
+  CURRENCY_VALUES,
+  TRANSACTION_EMPLOYEE_COMMISSION_PAIR,
+} from '../transaction.constants';
 
-const CreateTransactionSchema = z.object({
-  clientId: z.string().uuid('Client id must be a valid UUID'),
-  bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
-  saleAmount: z.coerce
-    .number()
-    .nonnegative('Sale amount cannot be negative')
-    .default(0),
-  currency: z.enum(CURRENCY_VALUES).default('USD'),
-  saleDate: z.string().datetime().optional(),
-  refId: z.string().trim().min(1, 'Reference ID is required').max(255),
-  description: z.string().trim().max(2000).optional(),
-});
+const CreateTransactionSchema = z
+  .object({
+    clientId: z.string().uuid('Client id must be a valid UUID'),
+    bankAccountId: z.string().uuid('Bank account id must be a valid UUID'),
+    saleAmount: z.coerce
+      .number()
+      .nonnegative('Sale amount cannot be negative')
+      .default(0),
+    currency: z.enum(CURRENCY_VALUES).default('USD'),
+    saleDate: z.string().datetime().optional(),
+    refId: z.string().trim().min(1, 'Reference ID is required').max(255),
+    description: z.string().trim().max(2000).optional(),
+    employeeId: z.string().uuid('Employee id must be a valid UUID').optional(),
+    // PKR only — no currency field, unlike the earlier (removed) design.
+    commissionAmount: z.coerce
+      .number()
+      .nonnegative('Commission amount cannot be negative')
+      .optional(),
+  })
+  .refine(
+    (data) =>
+      (data.employeeId === undefined) === (data.commissionAmount === undefined),
+    { message: TRANSACTION_EMPLOYEE_COMMISSION_PAIR, path: ['employeeId'] },
+  );
 
 export class CreateTransactionDto extends createZodDto(
   CreateTransactionSchema,
@@ -75,4 +90,21 @@ export class CreateTransactionDto extends createZodDto(
     maxLength: 2000,
   })
   description?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    description:
+      'Employee who earned commission on this sale. Must be provided together with commissionAmount, or not at all.',
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+  })
+  employeeId?: string;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description:
+      "Commission earned on this sale, always PKR. Must be provided together with employeeId, or not at all. Added to the employee's pendingCommission once, at creation — later edits to this transaction never adjust it again.",
+    example: 5000,
+  })
+  commissionAmount?: number;
 }

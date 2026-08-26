@@ -1341,11 +1341,20 @@ model Transaction {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
+  // Optional: a sale may or may not carry a commission. Always PKR — no
+  // currency field, unlike the earlier (removed) design. onDelete: SetNull
+  // so deleting an employee stays unconditional (see Employee.remove()) —
+  // it clears the link on past transactions rather than being blocked.
+  employeeId       String?   @map("employee_id")
+  employee         Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  commissionAmount Decimal   @default(0) @map("commission_amount") @db.Decimal(12, 2)
+
   @@unique([workspaceId, refId])
   @@index([workspaceId])
   @@index([clientId])
   @@index([bankAccountId])
   @@index([saleDate])
+  @@index([employeeId])
 }
 
 model BankAccount {
@@ -1399,6 +1408,11 @@ model Employee {
   updatedAt         DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Back-reference only, required by the Transaction.employee relation above
+  // — not exposed on any Employee API response (no employee->transactions
+  // list; see EMPLOYEES_SELECT).
+  transactions Transaction[]
 
   @@index([workspaceId])
   @@index([name])

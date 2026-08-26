@@ -24,6 +24,14 @@ class TransactionBankAccountBriefDto {
   logoUrl!: string | null;
 }
 
+class TransactionEmployeeBriefDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'Sara Khan' })
+  name!: string;
+}
+
 export class TransactionResponseDto {
   @ApiProperty({ example: 'a843cde2-f8c4-49a1-916b-308941b56f34' })
   id!: string;
@@ -69,6 +77,22 @@ export class TransactionResponseDto {
 
   @ApiProperty({ example: '2026-04-23T11:30:00.000Z' })
   updatedAt!: Date;
+
+  @ApiPropertyOptional({
+    example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a',
+    nullable: true,
+  })
+  employeeId!: string | null;
+
+  @ApiPropertyOptional({ type: TransactionEmployeeBriefDto, nullable: true })
+  employee!: TransactionEmployeeBriefDto | null;
+
+  @ApiProperty({
+    example: 5000,
+    description:
+      'Commission earned on this sale, PKR. 0 when no employee is attached.',
+  })
+  commissionAmount!: number;
 }
 
 class PaginationMetaDto {

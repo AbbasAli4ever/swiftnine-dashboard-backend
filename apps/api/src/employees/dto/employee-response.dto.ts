@@ -1,4 +1,66 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CURRENCY_VALUES } from '../../transactions/transaction.constants';
+
+class EmployeeTransactionBankAccountBriefDto {
+  @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
+  id!: string;
+
+  @ApiProperty({ example: 'HBL' })
+  bankName!: string;
+
+  @ApiPropertyOptional({
+    example:
+      'https://public-data-swiftnine.s3.us-east-1.amazonaws.com/accounts_dashboard_assets/bank-logos/hbl.svg',
+    nullable: true,
+  })
+  logoUrl!: string | null;
+}
+
+class EmployeeTransactionBriefDto {
+  @ApiProperty({ example: 'a843cde2-f8c4-49a1-916b-308941b56f34' })
+  id!: string;
+
+  @ApiProperty({ example: 'Acme Corp' })
+  clientName!: string;
+
+  @ApiProperty({ example: 199.99 })
+  saleAmount!: number;
+
+  @ApiProperty({ enum: CURRENCY_VALUES, example: 'USD' })
+  currency!: (typeof CURRENCY_VALUES)[number];
+
+  @ApiProperty({ example: '2026-07-15T00:00:00.000Z' })
+  saleDate!: Date;
+
+  @ApiProperty({ example: 'whop_txn_12345' })
+  refId!: string;
+
+  @ApiPropertyOptional({
+    example: 'Monthly subscription renewal',
+    nullable: true,
+  })
+  description!: string | null;
+
+  @ApiProperty({
+    example: 5000,
+    description: 'Commission earned on this specific sale, PKR',
+  })
+  commissionAmount!: number;
+
+  @ApiProperty({ type: EmployeeTransactionBankAccountBriefDto })
+  bankAccount!: EmployeeTransactionBankAccountBriefDto;
+
+  @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
+  createdAt!: Date;
+
+  @ApiProperty({ example: '2026-04-23T11:30:00.000Z' })
+  updatedAt!: Date;
+}
+
+class EmployeeCountDto {
+  @ApiProperty({ example: 12 })
+  transactions!: number;
+}
 
 export class EmployeeResponseDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
@@ -30,6 +92,16 @@ export class EmployeeResponseDto {
 
   @ApiProperty({ example: '2026-04-23T11:30:00.000Z' })
   updatedAt!: Date;
+
+  @ApiProperty({ type: EmployeeCountDto })
+  _count!: EmployeeCountDto;
+
+  @ApiProperty({
+    type: [EmployeeTransactionBriefDto],
+    description:
+      "Every sale this employee is attached to, most recent first — the source of paidCommission/pendingCommission. commissionAmount on each entry is that sale's specific commission, PKR.",
+  })
+  transactions!: EmployeeTransactionBriefDto[];
 }
 
 export class EmployeeSearchResultDto {

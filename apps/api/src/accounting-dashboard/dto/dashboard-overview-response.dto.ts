@@ -74,6 +74,13 @@ class RevenueSummaryDto {
   })
   today!: RevenueMetricDto;
 
+  @ApiProperty({
+    type: RevenueMetricDto,
+    description:
+      'Today so far, with changePercent measured against all of yesterday. Deliberately partial — unlike `today` above, this tracks live progress through the current day, so it carries the same misleading-negative-in-the-early-morning caveat `today` was changed to avoid. Label it as a partial/so-far figure in the UI (e.g. "Today so far").',
+  })
+  todayVsYesterday!: RevenueMetricDto;
+
   @ApiProperty({ type: RevenueMetricDto })
   thisMonth!: RevenueMetricDto;
 
