@@ -13,6 +13,7 @@ import type {
 import {
   BANK_ACCOUNT_NOT_FOUND,
   CLIENT_NOT_FOUND,
+  EMPLOYEE_NOT_FOUND,
   TRANSACTION_LOCAL_ACCOUNT_CURRENCY,
   TRANSACTION_NOT_FOUND,
   TRANSACTION_REF_ID_TAKEN,
@@ -26,14 +27,19 @@ type RawTransactionData = Prisma.TransactionGetPayload<{
   select: typeof TRANSACTION_SELECT;
 }>;
 
-export type TransactionData = Omit<RawTransactionData, 'saleAmount'> & {
+export type TransactionData = Omit<
+  RawTransactionData,
+  'saleAmount' | 'commissionAmount'
+> & {
   saleAmount: number;
+  commissionAmount: number;
 };
 
 function toTransactionData(row: RawTransactionData): TransactionData {
   return {
     ...row,
     saleAmount: Number(row.saleAmount),
+    commissionAmount: Number(row.commissionAmount),
   };
 }
 
@@ -68,20 +74,47 @@ export class TransactionService {
     );
     this.assertLocalAccountCurrency(bankAccount.accountType, dto.currency);
 
-    const transaction = await this.prisma.transaction.create({
-      data: {
-        workspaceId,
-        clientId: client.id,
-        clientName: client.clientName,
-        bankAccountId: dto.bankAccountId,
-        saleAmount: dto.saleAmount,
-        currency: dto.currency,
-        saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
-        refId: dto.refId,
-        description: dto.description,
-      },
-      select: TRANSACTION_SELECT,
-    });
+    if (dto.employeeId !== undefined) {
+      await this.findEmployeeOrThrow(workspaceId, dto.employeeId);
+    }
+    const commissionAmount = dto.commissionAmount ?? 0;
+
+    const createData = {
+      workspaceId,
+      clientId: client.id,
+      clientName: client.clientName,
+      bankAccountId: dto.bankAccountId,
+      saleAmount: dto.saleAmount,
+      currency: dto.currency,
+      saleDate: dto.saleDate ? new Date(dto.saleDate) : new Date(),
+      refId: dto.refId,
+      description: dto.description,
+      employeeId: dto.employeeId,
+      commissionAmount,
+    };
+
+    // Commission only ever moves into pendingCommission at creation — never
+    // reversed or reapplied on a later update/delete. If the commission was
+    // wrong, correct it directly via PATCH /employees/:id, the same manual
+    // path every other commission edit already goes through.
+    const transaction =
+      dto.employeeId && commissionAmount > 0
+        ? (
+            await this.prisma.$transaction([
+              this.prisma.transaction.create({
+                data: createData,
+                select: TRANSACTION_SELECT,
+              }),
+              this.prisma.employee.update({
+                where: { id: dto.employeeId },
+                data: { pendingCommission: { increment: commissionAmount } },
+              }),
+            ])
+          )[0]
+        : await this.prisma.transaction.create({
+            data: createData,
+            select: TRANSACTION_SELECT,
+          });
     return toTransactionData(transaction);
   }
 
@@ -199,6 +232,22 @@ export class TransactionService {
     if (dto.saleAmount !== undefined) updateData.saleAmount = dto.saleAmount;
     if (dto.currency !== undefined) updateData.currency = dto.currency;
 
+    // employeeId/commissionAmount are validated as a pair by the DTO itself
+    // (both provided or neither) — no cross-check against the existing row
+    // needed here. Changing them never touches Employee.pendingCommission;
+    // that only happens once, at creation (see create()).
+    if (dto.employeeId !== undefined) {
+      if (dto.employeeId !== null) {
+        await this.findEmployeeOrThrow(workspaceId, dto.employeeId);
+        updateData.employee = { connect: { id: dto.employeeId } };
+      } else {
+        updateData.employee = { disconnect: true };
+      }
+    }
+    if (dto.commissionAmount !== undefined) {
+      updateData.commissionAmount = dto.commissionAmount;
+    }
+
     if (Object.keys(updateData).length === 0) return transaction;
 
     const updated = await this.prisma.transaction.update({
@@ -253,6 +302,18 @@ export class TransactionService {
     });
     if (!client) throw new NotFoundException(CLIENT_NOT_FOUND);
     return client;
+  }
+
+  private async findEmployeeOrThrow(
+    workspaceId: string,
+    employeeId: string,
+  ): Promise<{ id: string }> {
+    const employee = await this.prisma.employee.findFirst({
+      where: { id: employeeId, workspaceId },
+      select: { id: true },
+    });
+    if (!employee) throw new NotFoundException(EMPLOYEE_NOT_FOUND);
+    return employee;
   }
 
   private async findBankAccountOrThrow(

@@ -722,3 +722,53 @@ First step of a larger workspace-role redesign discussed but not yet built: toda
 - `eslint` — zero new errors on any touched file; the two touched response DTOs each dropped from 15 combined pre-existing errors down to 13 by fixing only the two lines this change added, leaving unrelated pre-existing formatting debt untouched.
 - Full test suite unaffected: identical to the established baseline (345 passed, same 26 pre-existing failures).
 - Live, demo workspace: `POST /workspaces/:id/invite` with `role: "MANAGER"` → `200`, persisted as `WorkspaceInvite.role = 'MANAGER'`. Same with `role: "MEMBER"` (and the default, omitted) → `200`, persisted as `MEMBER`. `role: "OWNER"` → `422` with `"expected one of \"MANAGER\"|\"MEMBER\""`, and correctly never persisted (no invite row created). Test invites removed after verification.
+
+## Follow-up: [2026-08-26] Commission re-linked to transactions (create-only, PKR) + new `todayVsYesterday` overview metric
+
+Two independent, user-requested changes, planned together and confirmed before building (see "Confirm before I execute" decisions below):
+
+1. Re-adds a link between `Transaction` and `Employee` — narrower than the design removed the previous day (`20260825120000_remove_transaction_commission_link`): PKR-only (no `commissionCurrency`), fully optional, and **one-way** — creating a commission-bearing transaction increments `Employee.pendingCommission` once; later edits or deletes of that transaction never touch it again.
+2. Adds `revenueSummary.todayVsYesterday` to the accounting overview, alongside the existing (unchanged) `today` field.
+
+### Commission re-link
+
+**Schema** (migration `20260826120000_add_transaction_commission_link`): `Transaction` gains `employeeId` (nullable) + `commissionAmount` (`Decimal(12,2)`, default `0`), with `employee Employee? @relation(..., onDelete: SetNull)` — **SetNull, not Restrict**, so `EmployeesService.remove()` stays unconditional exactly as documented in the previous follow-up; deleting an employee just clears the link on their past transactions instead of being blocked. `Employee` gets the required back-reference `transactions Transaction[]`, not exposed on any Employee API response (`EMPLOYEES_SELECT` untouched — no employee→transactions list was requested or added).
+
+**Both-or-neither pairing, confirmed with the user rather than assumed**: `employeeId` and `commissionAmount` must be provided together or not at all — never one without the other. Enforced with a `.refine()` on both `CreateTransactionDto` and `UpdateTransactionDto` (`(employeeId === undefined) === (commissionAmount === undefined)`), so this is a per-request DTO-level check, not a merge against the transaction's existing state. `UpdateTransactionDto.employeeId` is nullable (unlike create) so a transaction can have its employee/commission cleared by sending both `employeeId: null` and `commissionAmount: 0`.
+
+**One-way, create-only pendingCommission increment — a deliberate scope decision, not an oversight**: `TransactionService.create()` wraps the transaction insert and `employee.update({ pendingCommission: { increment } })` in one `prisma.$transaction([...])`, only when `employeeId` is set and `commissionAmount > 0`. `update()` and `remove()` never adjust `pendingCommission`, even when `employeeId`/`commissionAmount` change or the transaction is deleted — correcting a wrong commission after the fact goes through the existing manual `PATCH /employees/:id`, the same path every other commission edit already uses. This was flagged as an explicit architectural choice before building: auto-adjusting on update/delete too would reintroduce the same kind of implicit balance-linkage this codebase deliberately removed for `BankAccount.amount`. The user chose one-way over full reversibility.
+
+**`TRANSACTION_SELECT`**: added `employeeId`, `commissionAmount`, `employee: { select: { id, name } }` — so commission now shows on both the transaction list and detail view for free, via the same `toTransactionData()` path both already go through.
+
+**New error messages** (`transaction.constants.ts`): `EMPLOYEE_NOT_FOUND` (employee must exist in the workspace, checked the same way `findClientOrThrow`/`findBankAccountOrThrow` already do), `TRANSACTION_EMPLOYEE_COMMISSION_PAIR` (the both-or-neither validation message).
+
+### Overview — `todayVsYesterday`
+
+No "this week" comparison metric was found anywhere in the codebase, git history, or the frontend integration doc — the only two comparisons that existed were `today` (already yesterday-vs-day-before, per the `[2026-08-25]` relabel) and `thisMonth`. Confirmed with the user rather than guessed: added a **new** `todayVsYesterday` field to `RevenueSummary` rather than mutating `today`'s meaning again, since `today` was deliberately changed away from a literal today-vs-yesterday comparison to avoid a partial current day always reading as a misleading collapse against a complete previous one. `todayVsYesterday` reintroduces exactly that live, partial-day comparison on purpose (today so far vs. all of yesterday) — it reuses the `startOfToday`/`startOfYesterday` boundaries `getRevenueSummary()` already computes, adding one more `sumRevenueUsd()` call for today-so-far and comparing it against the already-fetched `yesterdayTotal`. Documented on both the internal `RevenueSummary` type and `dashboard-overview-response.dto.ts` as carrying the same "misleading negative in the early morning" caveat `today` was fixed to avoid — frontend should label it as a partial/so-far figure.
+
+### DTOs
+
+`CreateTransactionDto`/`UpdateTransactionDto` gained `employeeId`/`commissionAmount` (paired, as above). `TransactionResponseDto` gained `employeeId`, `employee` (new `TransactionEmployeeBriefDto`, `{ id, name }`), `commissionAmount`. `dashboard-overview-response.dto.ts`'s `RevenueSummaryDto` gained `todayVsYesterday`.
+
+### Verification
+- `tsc --noEmit`, `eslint` (zero new errors — only prettier formatting on newly-added lines, `--fix`-ed), `nest build api` — all clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
+- `prisma db push` + `prisma migrate resolve --applied` for the new migration (this DB's established pattern — see earlier follow-ups on migration-history drift).
+- Live, demo workspace (`811785b9-...`): `POST /transactions` with `employeeId` but no `commissionAmount` → `422 employeeId and commissionAmount must be provided together, or not at all`. `POST /transactions` with both → `201`, employee's `pendingCommission` correctly incremented (`2000 → 2750` for a `750` commission). `GET /transactions/:id` shows `employee`/`commissionAmount` on the detail response. `PATCH /transactions/:id` changing `commissionAmount` (`750 → 100`, both fields resent) → transaction updated, employee's `pendingCommission` **unchanged** at `2750`, confirming the one-way behavior. Deleting an employee still linked to a transaction → `200`, transaction's `employeeId`/`employee` become `null`, `commissionAmount` untouched, confirming `SetNull`. `GET /accounting-dashboard/overview` → `revenueSummary.todayVsYesterday` present alongside the unchanged `today`, correctly reflecting a same-day test transaction. All test employees/transactions removed after verification.
+
+## Follow-up: [2026-08-26] Employee responses now embed their sales
+
+Immediate follow-up to the commission re-link above: transactions already showed their employee, but employees showed no way to see which sales their commission came from — just the two totals. User asked for it embedded directly on the employee response, same as one call rather than a separate lookup.
+
+**`employees.constants.ts`**: new `EMPLOYEE_TRANSACTION_SELECT` — same embed-on-every-response pattern `clients.constants.ts` already uses for `CLIENT_TRANSACTION_SELECT` (id, clientName, saleAmount, currency, saleDate, refId, description, createdAt, updatedAt, bank account brief), plus `commissionAmount`, which is the actual reason this list exists on an employee — the PKR figure earned on that specific sale. `EMPLOYEES_SELECT` gained `_count: { select: { transactions: true } }` and `transactions: { select: EMPLOYEE_TRANSACTION_SELECT, orderBy: { createdAt: 'desc' } }`, matching `CLIENTS_SELECT`/`CLIENTS_LIST_SELECT` exactly — embedded on **every** employee response (create, list, get-one, update), not just detail.
+
+**`employees.service.ts`**: `toEmployeeData()` now also maps each embedded transaction's `saleAmount`/`commissionAmount` from `Decimal` to `number` (`mapEmployeeTransactions()`, mirroring `clients.service.ts`'s `mapTransactions()`). `remove()`'s comment updated — it's unconditional because `Transaction.employeeId` is `onDelete: SetNull`, not because there's no relation (there now is one).
+
+**`employee-response.dto.ts`**: added `_count` (`{ transactions: number }`) and `transactions: EmployeeTransactionBriefDto[]` (id, clientName, saleAmount, currency, saleDate, refId, description, commissionAmount, bankAccount, createdAt, updatedAt).
+
+**Deliberately not built**: no new endpoint — this is a bigger response, not a second call. A workspace with a very high-volume employee (many sales) will return a proportionally larger `GET /employees` payload, same tradeoff `CLIENTS_LIST_SELECT` already accepted for clients; revisit the same way if it ever becomes an issue for either.
+
+### Verification
+- `tsc --noEmit`, `eslint` (zero new errors — only prettier formatting on newly-added lines, `--fix`-ed), `nest build api` — all clean.
+- Full test suite unaffected: identical to the established baseline (345 passed, 26 pre-existing failures, 9 failed suites, 371 total).
+- Live, demo workspace: created an employee (empty `transactions: []`, `_count.transactions: 0`), then a transaction with that employee + `commissionAmount: 123.45`. `GET /employees/:id` → `_count.transactions: 1`, `transactions[0]` carries the sale's `clientName`, `saleAmount`, `commissionAmount: 123.45`, and `bankAccount`; `pendingCommission` correctly `123.45`. `GET /employees?q=...` (list) → same embed present, confirming it's not detail-only. Test employee and transaction removed after verification.

@@ -40,6 +40,12 @@ export type RevenueSummary = {
   // today's. The key is kept as `today` so the existing frontend binding does
   // not silently vanish; see getRevenueSummary() for why the window moved.
   today: RevenueMetric;
+  // Today so far, compared against all of yesterday. Deliberately partial —
+  // unlike `today` above, this is meant to show live progress through the
+  // current day, so it carries the same "misleading negative in the early
+  // morning" caveat that `today` was changed to avoid. Label it as a
+  // partial/so-far figure on the frontend.
+  todayVsYesterday: RevenueMetric;
   thisMonth: RevenueMetric;
   thisYear: RevenueMetric;
   totalSales: { count: number; changePercent: number };
@@ -601,6 +607,7 @@ export class AccountingDashboardService {
     const [
       yesterdayTotal,
       dayBeforeYesterdayTotal,
+      todaySoFarTotal,
       monthTotal,
       lastMonthTotal,
       yearTotal,
@@ -616,6 +623,7 @@ export class AccountingDashboardService {
         gte: startOfDayBeforeYesterday,
         lt: startOfYesterday,
       }),
+      this.sumRevenueUsd(workspaceId, { gte: startOfToday }),
       this.sumRevenueUsd(workspaceId, { gte: startOfMonth }),
       this.sumRevenueUsd(workspaceId, {
         gte: startOfLastMonth,
@@ -645,6 +653,10 @@ export class AccountingDashboardService {
       today: {
         totalUsd: round2(yesterdayTotal),
         changePercent: percentChange(yesterdayTotal, dayBeforeYesterdayTotal),
+      },
+      todayVsYesterday: {
+        totalUsd: round2(todaySoFarTotal),
+        changePercent: percentChange(todaySoFarTotal, yesterdayTotal),
       },
       thisMonth: {
         totalUsd: round2(monthTotal),
