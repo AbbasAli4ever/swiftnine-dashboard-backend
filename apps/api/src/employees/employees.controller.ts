@@ -137,12 +137,19 @@ export class EmployeesController {
   async findAll(
     @Req() req: WorkspaceRequest,
     @Query() query: ListEmployeesQueryDto,
-  ): Promise<PaginatedApiResponse<EmployeeData>> {
+  ): Promise<
+    PaginatedApiResponse<EmployeeData> & { totalPendingCommission: number }
+  > {
     const result = await this.employeesService.findAll(
       req.workspaceContext.workspaceId,
       query as ListEmployeesQuery,
     );
-    return paginated(result.items, result.total, result.page, result.limit);
+    return {
+      ...paginated(result.items, result.total, result.page, result.limit),
+      // Sum across every employee matching the filter, not just this page —
+      // same reasoning as meta.total.
+      totalPendingCommission: result.totalPendingCommission,
+    };
   }
 
   @Get('search')

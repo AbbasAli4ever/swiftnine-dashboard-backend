@@ -142,6 +142,13 @@ export class PaginatedEmployeesResponseDto {
   @ApiProperty({ type: EmployeePaginationMetaDto })
   meta!: EmployeePaginationMetaDto;
 
+  @ApiProperty({
+    example: 62500,
+    description:
+      'Sum of pendingCommission across every employee matching the current filter, PKR — not just the current page.',
+  })
+  totalPendingCommission!: number;
+
   @ApiProperty({ example: null, nullable: true })
   message!: string | null;
 }

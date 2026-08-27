@@ -59,6 +59,13 @@ export class PaginatedVendorsResponseDto {
   @ApiProperty({ type: VendorPaginationMetaDto })
   meta!: VendorPaginationMetaDto;
 
+  @ApiProperty({
+    example: 187500,
+    description:
+      'Sum of pendingPayment across every vendor matching the current filter, PKR — not just the current page.',
+  })
+  totalPendingPayment!: number;
+
   @ApiProperty({ example: null, nullable: true })
   message!: string | null;
 }
