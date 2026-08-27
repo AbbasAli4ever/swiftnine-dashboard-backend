@@ -161,3 +161,22 @@ Reported (from an external review, verified independently before acting on it): 
 - `tsc --noEmit`, `eslint` (0 new errors, exact baseline match 17=17), `nest build api` — clean.
 - Full test suite: identical to the established baseline (337 passed, 26 pre-existing failures, 9 failed suites, 363 total).
 - **Live reproduction of the exact bug, then confirmation it's fixed**: created a project ("Hello"), then directly deleted its creator's `ProjectMember` row via a Prisma script (reproducing bug #1's end state precisely). Switched it to `PRIVATE` as the creator → `200`. Creator immediately re-opened it → `200` (this exact sequence would have been `404` before the fix — the toggle succeeds but silently never creates the creator's row). `GET .../members` afterward correctly showed the creator, confirming the self-heal. Test project deleted after verification.
+
+## Follow-up: [2026-08-27] Project creators can now delete their own project
+
+Reported as confusing, not a bug: a `MEMBER` who creates a project got `403` trying to delete it, since deletion was — and always had been — gated purely by *workspace* role (`OWNER` only), unrelated to who made the individual project. Since any workspace member can already create a project, asked to also let a project's own creator delete it.
+
+**Deliberately additive, not a replacement**: the workspace `OWNER` keeps the ability to delete any project (an admin safety net), confirmed with the user before building — this wasn't "creator-only, no OWNER override" the way visibility-toggle/invite/remove already work; deletion specifically keeps the OWNER's existing rights too.
+
+**`project.service.ts` (`remove`)**: now calls `projectSecurity.assertUnlocked(...)` first (same as every other project action), and uses its returned `{createdBy, name, ...}` directly — this made the separate `prisma.project.findFirst` lookup that used to follow the role check redundant, so it was deleted, not just reordered. The permission check became `role !== 'OWNER' && project.createdBy !== userId` → `403`.
+
+**`project.controller.ts`**: removed `RolesGuard`/`@Roles('OWNER')` from the `DELETE` route — that guard rejected non-OWNER callers before the request ever reached the service, which would have blocked a legitimate creator too. Falls back to the controller's class-level `JwtAuthGuard`/`WorkspaceGuard`, with the real OWNER-or-creator decision made inside the service where `createdBy` is known.
+
+**`project.constants.ts`**: `OWNER_ONLY` (only ever used by this one check) renamed to `PROJECT_DELETE_FORBIDDEN` with updated wording, since "owner only" was no longer accurate.
+
+**Test fixes**: `project.service.spec.ts`'s existing delete tests asserted the old behavior directly — one asserted `assertUnlocked` and `prisma.project.findFirst` were *never* called for a rejected deletion (true under the old short-circuit-on-role-check order, false now that `assertUnlocked` always runs first); updated both, and added a new test covering the actual new capability (a non-OWNER creator successfully deleting their own project).
+
+### Verification
+- `tsc --noEmit`, `eslint` (0 new errors, exact baseline match 28=28), `nest build api` — clean.
+- Full test suite: 338 passed (337 + 1 new test), 26 pre-existing failures, 9 failed suites, 364 total — matches the established baseline plus the intentional new test.
+- Live, demo workspace: a plain `MEMBER` created a project, then a *different* `MEMBER` (not the creator) tried to delete it → `403`; the creator deleted their own → `200`. Separately, a `MEMBER` created another project and the workspace `OWNER` (not its creator) deleted it → `200`, confirming the OWNER's admin safety net still works. All three cases matched exactly.

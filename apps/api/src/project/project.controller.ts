@@ -347,12 +347,17 @@ export class ProjectController {
   }
 
   @Delete(':projectId')
-  @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
-  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Soft delete a project and all its data (OWNER only)' })
+  @ApiOperation({
+    summary: "Soft delete a project and all its data (workspace OWNER or the project's creator)",
+    description:
+      "The workspace OWNER can delete any project. The project's own creator can also delete it, even as a plain MEMBER or MANAGER — additive to, not a replacement of, the OWNER's rights.",
+  })
   @ApiResponse({ status: 200, description: 'Project deleted' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can delete projects' })
+  @ApiResponse({
+    status: 403,
+    description: "Only the workspace owner or the project's creator can delete it",
+  })
   @ApiResponse({ status: 404, description: 'Project not found' })
   async remove(
     @Req() req: WorkspaceRequest,

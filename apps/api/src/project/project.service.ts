@@ -15,10 +15,10 @@ import type { CreateProjectDto } from './dto/create-project.dto';
 import type { UpdateProjectDto } from './dto/update-project.dto';
 import {
   DEFAULT_STATUSES,
-  OWNER_ONLY,
   PROJECT_ALREADY_ARCHIVED,
   PROJECT_CANNOT_INVITE_TO_PUBLIC,
   PROJECT_CANNOT_REMOVE_CREATOR,
+  PROJECT_DELETE_FORBIDDEN,
   PROJECT_MEMBER_ALREADY_INVITED,
   PROJECT_MEMBER_NOT_FOUND,
   PROJECT_MEMBER_NOT_WORKSPACE_MEMBER,
@@ -315,15 +315,18 @@ export class ProjectService {
     return this.findOne(workspaceId, userId, projectId);
   }
 
+  // Workspace OWNER can delete any project (admin safety net); the
+  // project's own creator can also delete it, even as a plain MEMBER —
+  // additive to, not a replacement of, the OWNER's existing rights.
   async remove(workspaceId: string, projectId: string, userId: string, role: Role): Promise<void> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
-    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
-
-    const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
-      select: { id: true, name: true },
-    });
-    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+    const project = await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      projectId,
+      userId,
+    );
+    if (role !== 'OWNER' && project.createdBy !== userId) {
+      throw new ForbiddenException(PROJECT_DELETE_FORBIDDEN);
+    }
 
     const now = new Date();
 

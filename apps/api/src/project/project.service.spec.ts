@@ -38,10 +38,11 @@ describe('ProjectService project deletion lifecycle', () => {
     service = new ProjectService(prisma as never, projectSecurity as never);
   });
 
-  it('soft deletes project attachments when a project is removed', async () => {
-    prisma.project.findFirst.mockResolvedValue({
+  it('soft deletes project attachments when a workspace OWNER removes a project', async () => {
+    projectSecurity.assertUnlocked.mockResolvedValue({
       id: 'project-1',
       name: 'Launch',
+      createdBy: 'someone-else',
     });
     prisma.taskList.findMany.mockResolvedValue([{ id: 'list-1' }]);
 
@@ -62,12 +63,38 @@ describe('ProjectService project deletion lifecycle', () => {
     });
   });
 
-  it('keeps project deletion owner-only', async () => {
+  it('lets a non-OWNER creator remove their own project', async () => {
+    projectSecurity.assertUnlocked.mockResolvedValue({
+      id: 'project-1',
+      name: 'Launch',
+      createdBy: 'member-1',
+    });
+    prisma.taskList.findMany.mockResolvedValue([]);
+
+    await service.remove('workspace-1', 'project-1', 'member-1', 'MEMBER');
+
+    expect(prisma.project.update).toHaveBeenCalledWith({
+      where: { id: 'project-1' },
+      data: { deletedAt: expect.any(Date) },
+    });
+  });
+
+  it('rejects deletion by a non-OWNER who is not the creator', async () => {
+    projectSecurity.assertUnlocked.mockResolvedValue({
+      id: 'project-1',
+      name: 'Launch',
+      createdBy: 'someone-else',
+    });
+
     await expect(
       service.remove('workspace-1', 'project-1', 'admin-1', 'ADMIN'),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(projectSecurity.assertUnlocked).not.toHaveBeenCalled();
-    expect(prisma.project.findFirst).not.toHaveBeenCalled();
+    expect(projectSecurity.assertUnlocked).toHaveBeenCalledWith(
+      'workspace-1',
+      'project-1',
+      'admin-1',
+    );
+    expect(prisma.project.update).not.toHaveBeenCalled();
   });
 });
