@@ -234,8 +234,7 @@ export class TransactionService {
 
     // employeeId/commissionAmount are validated as a pair by the DTO itself
     // (both provided or neither) — no cross-check against the existing row
-    // needed here. Changing them never touches Employee.pendingCommission;
-    // that only happens once, at creation (see create()).
+    // needed here.
     if (dto.employeeId !== undefined) {
       if (dto.employeeId !== null) {
         await this.findEmployeeOrThrow(workspaceId, dto.employeeId);
@@ -250,21 +249,103 @@ export class TransactionService {
 
     if (Object.keys(updateData).length === 0) return transaction;
 
-    const updated = await this.prisma.transaction.update({
-      where: { id: transactionId },
-      data: updateData,
-      select: TRANSACTION_SELECT,
-    });
+    // Keeps Employee.pendingCommission in sync with whatever this
+    // transaction currently says: reverses the old employee/amount and
+    // applies the new one, in the same atomic write as the transaction
+    // update itself.
+    const effectiveEmployeeId =
+      dto.employeeId !== undefined ? dto.employeeId : transaction.employeeId;
+    const effectiveCommissionAmount =
+      dto.commissionAmount !== undefined
+        ? dto.commissionAmount
+        : transaction.commissionAmount;
+    const commissionAdjustments = this.commissionAdjustments(
+      transaction.employeeId,
+      transaction.commissionAmount,
+      effectiveEmployeeId,
+      effectiveCommissionAmount,
+    );
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: updateData,
+        select: TRANSACTION_SELECT,
+      }),
+      ...commissionAdjustments.map(({ employeeId, delta }) =>
+        this.prisma.employee.update({
+          where: { id: employeeId },
+          data: { pendingCommission: { increment: delta } },
+        }),
+      ),
+    ]);
     return toTransactionData(updated);
   }
 
   async remove(workspaceId: string, transactionId: string): Promise<void> {
-    // Looked up (and discarded) purely to scope the delete to this
-    // workspace — `transaction.delete` can only filter by `id`, so skipping
-    // this check would let a caller delete another workspace's row by
-    // guessing its id.
-    await this.findTransactionOrThrow(workspaceId, transactionId);
-    await this.prisma.transaction.delete({ where: { id: transactionId } });
+    // Also used to reverse this transaction's commission, if it has one —
+    // not just to scope the delete to this workspace (transaction.delete
+    // can only filter by id, so skipping this lookup would let a caller
+    // delete another workspace's row by guessing its id).
+    const transaction = await this.findTransactionOrThrow(
+      workspaceId,
+      transactionId,
+    );
+    const commissionAdjustments = this.commissionAdjustments(
+      transaction.employeeId,
+      transaction.commissionAmount,
+      null,
+      0,
+    );
+
+    await this.prisma.$transaction([
+      this.prisma.transaction.delete({ where: { id: transactionId } }),
+      ...commissionAdjustments.map(({ employeeId, delta }) =>
+        this.prisma.employee.update({
+          where: { id: employeeId },
+          data: { pendingCommission: { increment: delta } },
+        }),
+      ),
+    ]);
+  }
+
+  // Reverses the old (employeeId, commissionAmount) pair and applies the
+  // new one — same employee with a changed amount nets to a single delta;
+  // a changed (or cleared) employee reverses the old one and applies the
+  // new one independently. Returns no-op (empty array) when nothing
+  // actually changed.
+  private commissionAdjustments(
+    oldEmployeeId: string | null,
+    oldCommissionAmount: number,
+    newEmployeeId: string | null,
+    newCommissionAmount: number,
+  ): Array<{ employeeId: string; delta: number }> {
+    if (oldEmployeeId === newEmployeeId) {
+      if (oldEmployeeId && newCommissionAmount !== oldCommissionAmount) {
+        return [
+          {
+            employeeId: oldEmployeeId,
+            delta: newCommissionAmount - oldCommissionAmount,
+          },
+        ];
+      }
+      return [];
+    }
+
+    const adjustments: Array<{ employeeId: string; delta: number }> = [];
+    if (oldEmployeeId && oldCommissionAmount > 0) {
+      adjustments.push({
+        employeeId: oldEmployeeId,
+        delta: -oldCommissionAmount,
+      });
+    }
+    if (newEmployeeId && newCommissionAmount > 0) {
+      adjustments.push({
+        employeeId: newEmployeeId,
+        delta: newCommissionAmount,
+      });
+    }
+    return adjustments;
   }
 
   private async findTransactionOrThrow(
