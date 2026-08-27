@@ -30,6 +30,10 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UpdateProjectVisibilityDto } from './dto/update-project-visibility.dto';
 import { InviteProjectMemberDto } from './dto/invite-project-member.dto';
+import {
+  BatchInviteProjectMembersDto,
+  BatchInviteProjectMembersResponseDto,
+} from './dto/batch-invite-project-members.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 
@@ -208,6 +212,69 @@ export class ProjectController {
       req.user.id,
     );
     return ok(members);
+  }
+
+  @Get(':projectId/members/candidates')
+  @ApiOperation({
+    summary: 'List every workspace member, flagged with project access',
+    description:
+      'Creator only. Returns every workspace member annotated with isProjectMember and isCreator, for building an invite picker in one call instead of cross-referencing GET /workspaces/:workspaceId/members and GET /projects/:projectId/members yourself.',
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Candidates returned' })
+  @ApiResponse({
+    status: 403,
+    description: 'Only the project creator can view invite candidates',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async listMemberCandidates(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+  ): Promise<
+    ApiRes<Awaited<ReturnType<ProjectService['listMemberCandidates']>>>
+  > {
+    const candidates = await this.projectService.listMemberCandidates(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+    );
+    return ok(candidates);
+  }
+
+  @Post(':projectId/members/batch')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Invite multiple workspace members to a PRIVATE project at once',
+    description:
+      'Creator only. Only valid on a PRIVATE project. Each userId is processed independently — one bad id (not a workspace member, already invited) does not fail the rest.',
+  })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Batch processed',
+    type: BatchInviteProjectMembersResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Project is PUBLIC',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Only the project creator can invite members',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async inviteMembersBatch(
+    @Req() req: WorkspaceRequest,
+    @Param('projectId') projectId: string,
+    @Body() dto: BatchInviteProjectMembersDto,
+  ): Promise<ApiRes<BatchInviteProjectMembersResponseDto>> {
+    const result = await this.projectService.inviteMembersBatch(
+      req.workspaceContext.workspaceId,
+      projectId,
+      req.user.id,
+      dto.userIds,
+    );
+    return ok(result, 'Batch invite processed');
   }
 
   @Post(':projectId/members')

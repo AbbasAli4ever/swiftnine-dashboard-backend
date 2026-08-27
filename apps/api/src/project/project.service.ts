@@ -38,6 +38,31 @@ type RawProjectWithDetails = Prisma.ProjectGetPayload<{ select: typeof PROJECT_W
 export type ProjectWithDetails = RawProjectWithDetails & { isFavorite: boolean };
 export type ProjectListItem = ProjectWithDetails & { favoritedAt?: Date };
 
+export type BatchInviteProjectMemberResult = {
+  userId: string;
+  status: 'invited' | 'already_member' | 'failed';
+  message: string | null;
+};
+export type BatchInviteProjectMembersResult = {
+  results: BatchInviteProjectMemberResult[];
+  summary: {
+    total: number;
+    invited: number;
+    alreadyMember: number;
+    failed: number;
+  };
+};
+
+export type ProjectMemberCandidate = {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+  isProjectMember: boolean;
+  isCreator: boolean;
+};
+
 @Injectable()
 export class ProjectService {
   constructor(
@@ -63,6 +88,7 @@ export class ProjectService {
           icon: dto.icon ?? null,
           taskIdPrefix: dto.taskIdPrefix,
           createdBy: userId,
+          visibility: dto.visibility,
         },
         select: PROJECT_SELECT,
       });
@@ -436,17 +462,7 @@ export class ProjectService {
     userId: string,
     targetUserId: string,
   ): Promise<void> {
-    const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
-      select: { id: true, createdBy: true, visibility: true },
-    });
-    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
-    if (project.createdBy !== userId) {
-      throw new ForbiddenException(PROJECT_VISIBILITY_MANAGER_ONLY);
-    }
-    if (project.visibility !== 'PRIVATE') {
-      throw new BadRequestException(PROJECT_CANNOT_INVITE_TO_PUBLIC);
-    }
+    await this.assertCanManageInvites(workspaceId, projectId, userId);
 
     const workspaceMember = await this.prisma.workspaceMember.findFirst({
       where: { workspaceId, userId: targetUserId, deletedAt: null },
@@ -477,17 +493,174 @@ export class ProjectService {
     });
   }
 
+  // Same rules as inviteMember, applied to each id independently — one bad
+  // id in the batch (not a workspace member, already invited) doesn't fail
+  // the rest. Mirrors WorkspaceService.addMembersByUserIds's per-item
+  // results/summary shape.
+  async inviteMembersBatch(
+    workspaceId: string,
+    projectId: string,
+    userId: string,
+    targetUserIds: string[],
+  ): Promise<BatchInviteProjectMembersResult> {
+    await this.assertCanManageInvites(workspaceId, projectId, userId);
+
+    const uniqueIds = [...new Set(targetUserIds.map((id) => id.trim()))];
+    const results: BatchInviteProjectMemberResult[] = [];
+
+    for (const targetUserId of uniqueIds) {
+      try {
+        const workspaceMember = await this.prisma.workspaceMember.findFirst({
+          where: { workspaceId, userId: targetUserId, deletedAt: null },
+          select: { id: true },
+        });
+        if (!workspaceMember) {
+          results.push({
+            userId: targetUserId,
+            status: 'failed',
+            message: PROJECT_MEMBER_NOT_WORKSPACE_MEMBER,
+          });
+          continue;
+        }
+
+        const existing = await this.prisma.projectMember.findUnique({
+          where: { projectId_userId: { projectId, userId: targetUserId } },
+        });
+        if (existing) {
+          results.push({
+            userId: targetUserId,
+            status: 'already_member',
+            message: null,
+          });
+          continue;
+        }
+
+        await this.prisma.$transaction([
+          this.prisma.projectMember.create({
+            data: { projectId, userId: targetUserId, invitedBy: userId },
+          }),
+          this.prisma.activityLog.create({
+            data: {
+              workspaceId,
+              entityType: 'project',
+              entityId: projectId,
+              action: 'member_invited',
+              metadata: { invitedUserId: targetUserId },
+              performedBy: userId,
+            },
+          }),
+        ]);
+
+        results.push({
+          userId: targetUserId,
+          status: 'invited',
+          message: null,
+        });
+      } catch (err) {
+        results.push({
+          userId: targetUserId,
+          status: 'failed',
+          message: err instanceof Error ? err.message : 'Unknown error',
+        });
+      }
+    }
+
+    return {
+      results,
+      summary: {
+        total: results.length,
+        invited: results.filter((r) => r.status === 'invited').length,
+        alreadyMember: results.filter((r) => r.status === 'already_member')
+          .length,
+        failed: results.filter((r) => r.status === 'failed').length,
+      },
+    };
+  }
+
+  // Every workspace member, annotated with whether they already have access
+  // to this project — for building an invite picker in one call instead of
+  // the frontend cross-referencing two separate lists. Creator-only, same
+  // as every other project-membership-management action; not restricted to
+  // PRIVATE projects (harmless to call on a PUBLIC one, just less useful).
+  async listMemberCandidates(
+    workspaceId: string,
+    projectId: string,
+    userId: string,
+  ): Promise<ProjectMemberCandidate[]> {
+    const project = await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      projectId,
+      userId,
+    );
+    if (project.createdBy !== userId) {
+      throw new ForbiddenException(PROJECT_VISIBILITY_MANAGER_ONLY);
+    }
+
+    const [workspaceMembers, projectMembers] = await Promise.all([
+      this.prisma.workspaceMember.findMany({
+        where: { workspaceId, deletedAt: null },
+        select: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+              avatarColor: true,
+            },
+          },
+        },
+      }),
+      this.prisma.projectMember.findMany({
+        where: { projectId },
+        select: { userId: true },
+      }),
+    ]);
+
+    const memberIds = new Set(projectMembers.map((m) => m.userId));
+
+    return workspaceMembers.map(({ user }) => ({
+      ...user,
+      isProjectMember: memberIds.has(user.id),
+      isCreator: user.id === project.createdBy,
+    }));
+  }
+
+  // assertUnlocked first — a non-member of a PRIVATE project must get the
+  // same 404 a genuinely missing project would, before we ever reveal
+  // whether they'd also fail the creator check. Checking createdBy first
+  // (as inviteMember/removeMember/listMemberCandidates all originally did)
+  // leaks existence via 403 instead.
+  private async assertCanManageInvites(
+    workspaceId: string,
+    projectId: string,
+    userId: string,
+  ): Promise<{ id: string; createdBy: string; visibility: ProjectVisibility }> {
+    const project = await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      projectId,
+      userId,
+    );
+    if (project.createdBy !== userId) {
+      throw new ForbiddenException(PROJECT_VISIBILITY_MANAGER_ONLY);
+    }
+    if (project.visibility !== 'PRIVATE') {
+      throw new BadRequestException(PROJECT_CANNOT_INVITE_TO_PUBLIC);
+    }
+    return project;
+  }
+
   async removeMember(
     workspaceId: string,
     projectId: string,
     userId: string,
     targetUserId: string,
   ): Promise<void> {
-    const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
-      select: { id: true, createdBy: true },
-    });
-    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+    const project = await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      projectId,
+      userId,
+    );
     if (project.createdBy !== userId) {
       throw new ForbiddenException(PROJECT_VISIBILITY_MANAGER_ONLY);
     }
