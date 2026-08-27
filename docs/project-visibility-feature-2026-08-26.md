@@ -143,3 +143,21 @@ Testing the new candidates endpoint against a genuine non-member returned `403` 
   - `POST .../members/batch` with `[validId, validId, bogusId]` → `2 invited, 0 alreadyMember, 1 failed` with a per-item message; re-run with one already-invited id → correctly reported `already_member`; attempted while the project was `PUBLIC` → `400`.
   - The 404-vs-403 fix: re-tested all four endpoints (`candidates`, single invite, batch invite, remove) against a genuine non-member (`404` on all, confirmed only after restarting the dev server — the first live check was accidentally run against a stale, pre-fix build since it had been started via a one-shot `nest start`, not `--watch`) and against a real member who isn't the creator (`403`, correctly distinct).
   - Test project deleted after verification (cascades its data); the three shared test accounts were left as they were — nothing else in the workspace was touched.
+
+## Follow-up: [2026-08-27] Fixed: creators could get locked out of their own project
+
+Reported (from an external review, verified independently before acting on it): a project named "Hello" broke after being switched to PRIVATE — its own creator started getting `404` on it. Root cause was two compounding bugs, both confirmed by reading the actual code before fixing anything:
+
+1. **`20260826150000_add_project_visibility` never backfilled `ProjectMember`.** It only created the table. Every project that existed before that migration ran — which was every real project in the app, since the table didn't exist yet — has no `ProjectMember` row at all, not even for its own creator. Latent while `PUBLIC` (visibility doesn't check membership then), but a ticking problem for the moment any of them switched to `PRIVATE`.
+2. **`updateVisibility`'s grandfather step assumed the creator already had a row.** `.filter((id) => id !== userId)` deliberately excluded the calling creator from the `ProjectMember` rows it creates when switching to `PRIVATE` — correct only if `create()`'s own insert had already given them one. For any project affected by bug #1 (or seeded outside `create()`, or restored from a backup missing that row), the creator's row is never created at all, and the very next request from the creator fails the same membership check a stranger would fail.
+
+### Fixes
+
+- **`project.service.ts` (`updateVisibility`)**: the creator is now always included in the grandfather `createMany`, not filtered out — `skipDuplicates: true` (already in place) makes this a no-op for the normal case and a repair for the broken one. This makes the endpoint self-healing: switching *any* project to `PRIVATE` now guarantees its creator has a `ProjectMember` row afterward, regardless of whether they had one before.
+- **New migration `20260827100000_backfill_project_creator_members`**: `INSERT ... SELECT ... WHERE NOT EXISTS`, idempotent, backfills the missing row for every non-deleted project's creator. Since this repo's local dev DB is synced via `prisma db push` (established convention — see earlier follow-ups on migration-history drift) and `db push` only applies schema diffs, never a migration file's DML, the same backfill was additionally run directly against the local DB via a one-off Prisma-client script (project + module-consistent) rather than relying on the migration file to execute it here. Only 1 non-deleted project existed locally at the time and it already had its row — nothing to repair in this environment; the migration file is what fixes it wherever "Hello" actually broke.
+
+### Verification
+
+- `tsc --noEmit`, `eslint` (0 new errors, exact baseline match 17=17), `nest build api` — clean.
+- Full test suite: identical to the established baseline (337 passed, 26 pre-existing failures, 9 failed suites, 363 total).
+- **Live reproduction of the exact bug, then confirmation it's fixed**: created a project ("Hello"), then directly deleted its creator's `ProjectMember` row via a Prisma script (reproducing bug #1's end state precisely). Switched it to `PRIVATE` as the creator → `200`. Creator immediately re-opened it → `200` (this exact sequence would have been `404` before the fix — the toggle succeeds but silently never creates the creator's row). `GET .../members` afterward correctly showed the creator, confirming the self-heal. Test project deleted after verification.

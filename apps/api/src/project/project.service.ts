@@ -404,26 +404,31 @@ export class ProjectService {
       });
 
       if (visibility === 'PRIVATE') {
-        // Grandfather in every current task assignee so nobody already
-        // doing work on this project silently loses access to it.
+        // Grandfather in every current task assignee, and the creator
+        // themselves, so nobody already doing work on this project silently
+        // loses access to it. Including the creator unconditionally (not
+        // just "if they don't already have a row") is deliberate: it makes
+        // this call self-healing for any project whose creator is missing
+        // a ProjectMember row for any reason (pre-existing project from
+        // before this table existed, restored backup, data seeded outside
+        // create()) — skipDuplicates makes the normal case a no-op and the
+        // broken case a repair, so there's no assumption left to violate.
         const assignees = await tx.taskAssignee.findMany({
           where: { task: { deletedAt: null, list: { projectId } } },
           select: { userId: true },
           distinct: ['userId'],
         });
-        const assigneeIds = assignees
-          .map((a) => a.userId)
-          .filter((id) => id !== userId);
-        if (assigneeIds.length > 0) {
-          await tx.projectMember.createMany({
-            data: assigneeIds.map((memberUserId) => ({
-              projectId,
-              userId: memberUserId,
-              invitedBy: userId,
-            })),
-            skipDuplicates: true,
-          });
-        }
+        const memberIds = new Set(assignees.map((a) => a.userId));
+        memberIds.add(userId);
+
+        await tx.projectMember.createMany({
+          data: [...memberIds].map((memberUserId) => ({
+            projectId,
+            userId: memberUserId,
+            invitedBy: userId,
+          })),
+          skipDuplicates: true,
+        });
       }
 
       await tx.activityLog.create({
