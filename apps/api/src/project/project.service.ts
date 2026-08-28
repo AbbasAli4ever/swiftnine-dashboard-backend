@@ -15,10 +15,10 @@ import type { CreateProjectDto } from './dto/create-project.dto';
 import type { UpdateProjectDto } from './dto/update-project.dto';
 import {
   DEFAULT_STATUSES,
-  OWNER_ONLY,
   PROJECT_ALREADY_ARCHIVED,
   PROJECT_CANNOT_INVITE_TO_PUBLIC,
   PROJECT_CANNOT_REMOVE_CREATOR,
+  PROJECT_DELETE_FORBIDDEN,
   PROJECT_MEMBER_ALREADY_INVITED,
   PROJECT_MEMBER_NOT_FOUND,
   PROJECT_MEMBER_NOT_WORKSPACE_MEMBER,
@@ -315,15 +315,18 @@ export class ProjectService {
     return this.findOne(workspaceId, userId, projectId);
   }
 
+  // Workspace OWNER can delete any project (admin safety net); the
+  // project's own creator can also delete it, even as a plain MEMBER —
+  // additive to, not a replacement of, the OWNER's existing rights.
   async remove(workspaceId: string, projectId: string, userId: string, role: Role): Promise<void> {
-    if (role !== 'OWNER') throw new ForbiddenException(OWNER_ONLY);
-    await this.projectSecurity.assertUnlocked(workspaceId, projectId, userId);
-
-    const project = await this.prisma.project.findFirst({
-      where: { id: projectId, workspaceId, deletedAt: null },
-      select: { id: true, name: true },
-    });
-    if (!project) throw new NotFoundException(PROJECT_NOT_FOUND);
+    const project = await this.projectSecurity.assertUnlocked(
+      workspaceId,
+      projectId,
+      userId,
+    );
+    if (role !== 'OWNER' && project.createdBy !== userId) {
+      throw new ForbiddenException(PROJECT_DELETE_FORBIDDEN);
+    }
 
     const now = new Date();
 
@@ -404,26 +407,31 @@ export class ProjectService {
       });
 
       if (visibility === 'PRIVATE') {
-        // Grandfather in every current task assignee so nobody already
-        // doing work on this project silently loses access to it.
+        // Grandfather in every current task assignee, and the creator
+        // themselves, so nobody already doing work on this project silently
+        // loses access to it. Including the creator unconditionally (not
+        // just "if they don't already have a row") is deliberate: it makes
+        // this call self-healing for any project whose creator is missing
+        // a ProjectMember row for any reason (pre-existing project from
+        // before this table existed, restored backup, data seeded outside
+        // create()) — skipDuplicates makes the normal case a no-op and the
+        // broken case a repair, so there's no assumption left to violate.
         const assignees = await tx.taskAssignee.findMany({
           where: { task: { deletedAt: null, list: { projectId } } },
           select: { userId: true },
           distinct: ['userId'],
         });
-        const assigneeIds = assignees
-          .map((a) => a.userId)
-          .filter((id) => id !== userId);
-        if (assigneeIds.length > 0) {
-          await tx.projectMember.createMany({
-            data: assigneeIds.map((memberUserId) => ({
-              projectId,
-              userId: memberUserId,
-              invitedBy: userId,
-            })),
-            skipDuplicates: true,
-          });
-        }
+        const memberIds = new Set(assignees.map((a) => a.userId));
+        memberIds.add(userId);
+
+        await tx.projectMember.createMany({
+          data: [...memberIds].map((memberUserId) => ({
+            projectId,
+            userId: memberUserId,
+            invitedBy: userId,
+          })),
+          skipDuplicates: true,
+        });
       }
 
       await tx.activityLog.create({
