@@ -22,8 +22,6 @@ import {
 import { ok, type ApiResponse as ApiRes } from '@app/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
-import { Roles } from '../roles/roles.decorator';
-import { RolesGuard } from '../roles/roles.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { StatusService, type GroupedStatuses, type StatusData } from './status.service';
 import { CreateStatusDto } from './dto/create-status.dto';
@@ -36,17 +34,18 @@ import { ListStatusesDto } from './dto/list-statuses.dto';
 @ApiTags('statuses')
 @ApiBearerAuth()
 @Controller('statuses')
-@UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
+// No RolesGuard: status access is decided per project by its creator, not by
+// a workspace-wide role. Enforced in StatusService.assertProjectCreator().
+@UseGuards(JwtAuthGuard, WorkspaceGuard)
 @ApiHeader({ name: 'x-workspace-id', required: true, description: 'Active workspace ID' })
 export class StatusController {
   constructor(private readonly statusService: StatusService) {}
 
   @Post()
-  @Roles('OWNER')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a custom status for a project (OWNER only)' })
+  @ApiOperation({ summary: 'Create a custom status for a project (project creator or workspace owner)' })
   @ApiResponse({ status: 201, description: 'Status created' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
+  @ApiResponse({ status: 403, description: 'Only the project creator or the workspace owner can manage its statuses' })
   async create(
     @Req() req: WorkspaceRequest,
     @Body() dto: CreateStatusDto,
@@ -76,10 +75,9 @@ export class StatusController {
   }
 
   @Put('reorder')
-  @Roles('OWNER')
-  @ApiOperation({ summary: 'Reorder statuses and move them across groups (OWNER only)' })
+  @ApiOperation({ summary: 'Reorder statuses and move them across groups (project creator or workspace owner)' })
   @ApiResponse({ status: 200, description: 'Statuses reordered' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
+  @ApiResponse({ status: 403, description: 'Only the project creator or the workspace owner can manage its statuses' })
   async reorder(
     @Req() req: WorkspaceRequest,
     @Body() dto: ReorderStatusesDto,
@@ -94,11 +92,10 @@ export class StatusController {
   }
 
   @Post('default')
-  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Apply the default status template to a project (OWNER only)' })
+  @ApiOperation({ summary: 'Apply the default status template to a project (project creator or workspace owner)' })
   @ApiResponse({ status: 200, description: 'Default statuses applied' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
+  @ApiResponse({ status: 403, description: 'Only the project creator or the workspace owner can manage its statuses' })
   async applyDefaultTemplate(
     @Req() req: WorkspaceRequest,
     @Body() dto: DefaultStatusesDto,
@@ -125,10 +122,9 @@ export class StatusController {
   }
 
   @Put(':id')
-  @Roles('OWNER')
-  @ApiOperation({ summary: 'Update a status (OWNER only)' })
+  @ApiOperation({ summary: 'Update a status (project creator or workspace owner)' })
   @ApiResponse({ status: 200, description: 'Status updated' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
+  @ApiResponse({ status: 403, description: 'Only the project creator or the workspace owner can manage its statuses' })
   async update(
     @Req() req: WorkspaceRequest,
     @Param('id') id: string,
@@ -145,11 +141,10 @@ export class StatusController {
   }
 
   @Delete(':id')
-  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a status and optionally reassign its tasks (OWNER only)' })
+  @ApiOperation({ summary: 'Delete a status and optionally reassign its tasks (project creator or workspace owner)' })
   @ApiResponse({ status: 200, description: 'Status deleted' })
-  @ApiResponse({ status: 403, description: 'Only workspace owner can manage statuses' })
+  @ApiResponse({ status: 403, description: 'Only the project creator or the workspace owner can manage its statuses' })
   async remove(
     @Req() req: WorkspaceRequest,
     @Param('id') id: string,

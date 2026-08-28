@@ -15,6 +15,11 @@ const CreateProjectSchema = z.object({
     .max(6, 'Prefix must be 2–6 characters')
     .regex(/^[A-Z0-9]+$/, 'Prefix must be uppercase letters and numbers only')
     .transform((v) => v.toUpperCase()),
+  // Optional — defaults to PUBLIC (every workspace member has access), same
+  // as before this field existed. PRIVATE at creation means only the
+  // creator has access from the very first moment, with no window where it
+  // was briefly visible to everyone.
+  visibility: z.enum(['PUBLIC', 'PRIVATE']).default('PUBLIC'),
 });
 
 export class CreateProjectDto extends createZodDto(CreateProjectSchema) {}

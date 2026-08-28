@@ -387,7 +387,7 @@ export class AttachmentsService {
       );
     }
 
-    const unlockedProjectIds = query.projectId
+    const accessibleProjectIds = query.projectId
       ? new Set<string>()
       : await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
           workspaceId,
@@ -404,12 +404,7 @@ export class AttachmentsService {
           deletedAt: null,
           ...(query.projectId
             ? {}
-            : {
-                OR: [
-                  { passwordHash: null },
-                  { id: { in: Array.from(unlockedProjectIds) } },
-                ],
-              }),
+            : { id: { in: Array.from(accessibleProjectIds) } }),
         },
         OR: [
           { fileName: { contains: q, mode: 'insensitive' } },

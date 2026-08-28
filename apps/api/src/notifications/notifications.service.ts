@@ -252,25 +252,11 @@ export class NotificationsService implements OnModuleDestroy {
       ),
     );
 
-    const projects =
+    const accessibleProjectIds =
       referencedProjectIds.length === 0
-        ? []
-        : await this.prisma.project.findMany({
-            where: { id: { in: referencedProjectIds }, deletedAt: null },
-            select: { id: true, passwordHash: true },
-          });
-
-    const projectLockState = new Map(
-      projects.map((project) => [project.id, Boolean(project.passwordHash)]),
-    );
-    const lockedProjectIds = projects
-      .filter((project) => Boolean(project.passwordHash))
-      .map((project) => project.id);
-    const unlockedProjectIds =
-      lockedProjectIds.length === 0
         ? new Set<string>()
         : await this.projectSecurity.activeUnlockedProjectIds(
-            lockedProjectIds,
+            referencedProjectIds,
             userId,
           );
 
@@ -284,9 +270,7 @@ export class NotificationsService implements OnModuleDestroy {
         return hasResolvedReference || !this.isProjectBoundReference(notification);
       }
 
-      const isLocked = projectLockState.get(projectId);
-      if (isLocked === undefined) return false;
-      return !isLocked || unlockedProjectIds.has(projectId);
+      return accessibleProjectIds.has(projectId);
     });
   }
 

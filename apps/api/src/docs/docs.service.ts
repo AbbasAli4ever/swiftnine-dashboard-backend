@@ -345,26 +345,13 @@ export class DocsService {
     );
     if (projectIds.length === 0) return docs;
 
-    const projects = await this.prisma.project.findMany({
-      where: { id: { in: projectIds } },
-      select: { id: true, passwordHash: true },
-    });
-    const unlockedByDefaultIds = new Set(
-      projects.filter((project) => !project.passwordHash).map((project) => project.id),
-    );
-    const lockedProjectIds = projects
-      .filter((project) => Boolean(project.passwordHash))
-      .map((project) => project.id);
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
-      lockedProjectIds,
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      projectIds,
       userId,
     );
 
     return docs.filter(
-      (doc) =>
-        !doc.projectId ||
-        unlockedByDefaultIds.has(doc.projectId) ||
-        unlockedProjectIds.has(doc.projectId),
+      (doc) => !doc.projectId || accessibleProjectIds.has(doc.projectId),
     );
   }
 

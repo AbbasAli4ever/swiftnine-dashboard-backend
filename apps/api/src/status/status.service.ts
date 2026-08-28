@@ -17,7 +17,7 @@ import {
   DELETE_REPLACEMENT_REQUIRED,
   INVALID_REORDER_PAYLOAD,
   INVALID_REPLACEMENT_STATUS,
-  OWNER_ONLY,
+  PROJECT_CREATOR_ONLY,
   PROJECT_NOT_FOUND,
   PROTECTED_STATUS_DELETE_FORBIDDEN,
   PROTECTED_STATUS_UPDATE_FORBIDDEN,
@@ -57,9 +57,9 @@ export class StatusService {
     role: Role,
     dto: CreateStatusDto,
   ): Promise<StatusData> {
-    this.assertOwner(role);
     await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
+    this.assertCanManageStatuses(project.createdBy, userId, role);
     const name = dto.name.trim();
 
     await this.assertUniqueStatusName(project.id, name);
@@ -113,10 +113,12 @@ export class StatusService {
     role: Role,
     dto: UpdateStatusDto,
   ): Promise<StatusData> {
-    this.assertOwner(role);
+    /* Resolved through the status, since these routes are addressed by status
+       id rather than project id — the creator check needs the owning project. */
     const status = await this.findStatusOrThrow(workspaceId, statusId, {
-      project: { select: { name: true } },
+      project: { select: { name: true, createdBy: true } },
     });
+    this.assertCanManageStatuses(status.project.createdBy, userId, role);
 
     if (status.isProtected && dto.color !== undefined) {
       throw new BadRequestException(PROTECTED_STATUS_UPDATE_FORBIDDEN);
@@ -183,10 +185,12 @@ export class StatusService {
     role: Role,
     dto: DeleteStatusDto,
   ): Promise<void> {
-    this.assertOwner(role);
+    /* Resolved through the status, since these routes are addressed by status
+       id rather than project id — the creator check needs the owning project. */
     const status = await this.findStatusOrThrow(workspaceId, statusId, {
-      project: { select: { name: true } },
+      project: { select: { name: true, createdBy: true } },
     });
+    this.assertCanManageStatuses(status.project.createdBy, userId, role);
 
     if (status.isProtected) {
       throw new BadRequestException(PROTECTED_STATUS_DELETE_FORBIDDEN);
@@ -256,9 +260,9 @@ export class StatusService {
     role: Role,
     dto: ReorderStatusesDto,
   ): Promise<GroupedStatuses> {
-    this.assertOwner(role);
     await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
+    this.assertCanManageStatuses(project.createdBy, userId, role);
     const statuses = await this.listProjectStatuses(project.id);
 
     const allIds = statuses.map((status) => status.id);
@@ -346,9 +350,9 @@ export class StatusService {
     role: Role,
     dto: DefaultStatusesDto,
   ): Promise<GroupedStatuses> {
-    this.assertOwner(role);
     await this.projectSecurity.assertUnlocked(workspaceId, dto.projectId, userId);
     const project = await this.findProjectOrThrow(workspaceId, dto.projectId);
+    this.assertCanManageStatuses(project.createdBy, userId, role);
     const statuses = await this.listProjectStatuses(project.id);
 
     await this.prisma.$transaction(async (tx) => {
@@ -406,19 +410,38 @@ export class StatusService {
     return this.findAll(workspaceId, project.id, userId);
   }
 
-  private assertOwner(role: Role): void {
-    if (role !== 'OWNER') {
-      throw new ForbiddenException(OWNER_ONLY);
+  /**
+   * Statuses are project-scoped configuration, so the person who created the
+   * project may always configure them — whatever their workspace role. A plain
+   * MEMBER who created a project has full control of its status columns.
+   *
+   * The workspace OWNER is allowed as well, as a workspace-wide administrative
+   * override: they can fix or adjust any project in their workspace, including
+   * ones somebody else created. A MANAGER who is not the creator cannot —
+   * unlike workspace management, where MANAGER has OWNER parity, this stays
+   * with the project's own creator plus the workspace owner.
+   *
+   * Replaces the previous `role !== 'OWNER'` check, which gated project-scoped
+   * configuration on workspace role alone and left the creator of a project
+   * unable to configure it.
+   */
+  private assertCanManageStatuses(
+    createdBy: string,
+    userId: string,
+    role: Role,
+  ): void {
+    if (createdBy !== userId && role !== 'OWNER') {
+      throw new ForbiddenException(PROJECT_CREATOR_ONLY);
     }
   }
 
   private async findProjectOrThrow(
     workspaceId: string,
     projectId: string,
-  ): Promise<{ id: string; name: string }> {
+  ): Promise<{ id: string; name: string; createdBy: string }> {
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, workspaceId, deletedAt: null },
-      select: { id: true, name: true },
+      select: { id: true, name: true, createdBy: true },
     });
 
     if (!project) {

@@ -669,7 +669,7 @@ export class ChatService {
     if (query.channelId) {
       await this.assertChannelMember(workspaceId, query.channelId, userId);
     }
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedWorkspaceProjectIds(
       workspaceId,
       userId,
     );
@@ -686,8 +686,7 @@ export class ChatService {
             ? {
                 OR: [
                   { projectId: null },
-                  { project: { passwordHash: null } },
-                  { projectId: { in: Array.from(unlockedProjectIds) } },
+                  { projectId: { in: Array.from(accessibleProjectIds) } },
                 ],
               }
             : {}),

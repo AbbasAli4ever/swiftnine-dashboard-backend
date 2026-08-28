@@ -238,7 +238,7 @@ export class ActivityService {
   ): Promise<Prisma.ActivityLogWhereInput> {
     const baseWhere = this.buildBaseWhere(workspaceId, actorId, dto);
     const scopeConditions = await this.buildScopeConditions(workspaceId, actorId, dto);
-    const visibilityWhere = await this.buildLockedProjectExclusion(workspaceId, actorId);
+    const visibilityWhere = await this.buildInaccessibleProjectExclusion(workspaceId, actorId);
     if (scopeConditions.length === 0) {
       return { AND: [baseWhere, visibilityWhere] };
     }
@@ -429,22 +429,24 @@ export class ActivityService {
     return statuses.map((status) => status.id);
   }
 
-  private async buildLockedProjectExclusion(
+  private async buildInaccessibleProjectExclusion(
     workspaceId: string,
     actorId: string,
   ): Promise<Prisma.ActivityLogWhereInput> {
-    const lockedProjects = await this.prisma.project.findMany({
-      where: { workspaceId, deletedAt: null, passwordHash: { not: null } },
+    const privateProjects = await this.prisma.project.findMany({
+      where: { workspaceId, deletedAt: null, visibility: 'PRIVATE' },
       select: { id: true },
     });
-    const lockedProjectIds = lockedProjects.map((project) => project.id);
-    if (lockedProjectIds.length === 0) return {};
+    const privateProjectIds = privateProjects.map((project) => project.id);
+    if (privateProjectIds.length === 0) return {};
 
-    const unlockedProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
-      lockedProjectIds,
+    const accessibleProjectIds = await this.projectSecurity.activeUnlockedProjectIds(
+      privateProjectIds,
       actorId,
     );
-    const hiddenProjectIds = lockedProjectIds.filter((id) => !unlockedProjectIds.has(id));
+    const hiddenProjectIds = privateProjectIds.filter(
+      (id) => !accessibleProjectIds.has(id),
+    );
     if (hiddenProjectIds.length === 0) return {};
 
     const [statuses, lists, tasks] = await Promise.all([

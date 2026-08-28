@@ -3,6 +3,13 @@ import type { Prisma } from '@app/database/generated/prisma/client';
 export const STATUS_NOT_FOUND = 'Status not found';
 export const PROJECT_NOT_FOUND = 'Project not found';
 export const OWNER_ONLY = 'Only the workspace owner can perform this action';
+
+/**
+ * Statuses are project-scoped configuration, so they are gated on who created
+ * the project, plus the workspace owner as an administrative override.
+ */
+export const PROJECT_CREATOR_ONLY =
+  'Only the person who created this project, or the workspace owner, can change its statuses';
 export const CLOSED_STATUS_CREATE_FORBIDDEN =
   'Closed statuses cannot be created manually';
 export const PROTECTED_STATUS_DELETE_FORBIDDEN =
