@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import type { Prisma } from '@app/database/generated/prisma/client';
+import type { Currency } from '@app/database/generated/prisma/enums';
 import {
   EMPLOYEE_NOT_FOUND,
   EMPLOYEE_SEARCH_SELECT,
@@ -9,6 +10,7 @@ import {
 import type { CreateEmployeeDto } from './dto/create-employee.dto';
 import type { UpdateEmployeeDto } from './dto/update-employee.dto';
 import type { ListEmployeesQuery } from './dto/list-employees-query.dto';
+import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
 type RawEmployeeData = Prisma.EmployeeGetPayload<{
   select: typeof EMPLOYEES_SELECT;
@@ -29,10 +31,13 @@ export type EmployeeData = Omit<
   'paidCommission' | 'pendingCommission' | 'transactions'
 > & {
   paidCommission: number;
+  paidCommissionUsd: number;
   pendingCommission: number;
+  pendingCommissionUsd: number;
   // Not stored — always paidCommission + pendingCommission, computed here so
   // the two figures can never drift out of sync with their own sum.
   totalCommission: number;
+  totalCommissionUsd: number;
   transactions: MappedEmployeeTransaction[];
 };
 
@@ -50,14 +55,24 @@ function mapEmployeeTransactions(
   }));
 }
 
-function toEmployeeData(row: RawEmployeeData): EmployeeData {
+type ToUsd = (amount: number, currency: Currency) => number;
+
+// Employee.paidCommission/pendingCommission are always PKR (same as
+// Transaction.commissionAmount, which they're summed from — see the schema
+// comment on that field), so the source currency here is fixed rather than
+// read off the row.
+function toEmployeeData(row: RawEmployeeData, toUsd: ToUsd): EmployeeData {
   const paidCommission = Number(row.paidCommission);
   const pendingCommission = Number(row.pendingCommission);
+  const totalCommission = round2(paidCommission + pendingCommission);
   return {
     ...row,
     paidCommission,
+    paidCommissionUsd: round2(toUsd(paidCommission, 'PKR')),
     pendingCommission,
-    totalCommission: round2(paidCommission + pendingCommission),
+    pendingCommissionUsd: round2(toUsd(pendingCommission, 'PKR')),
+    totalCommission,
+    totalCommissionUsd: round2(toUsd(totalCommission, 'PKR')),
     transactions: mapEmployeeTransactions(row.transactions),
   };
 }
@@ -71,6 +86,7 @@ export type EmployeeListResult = {
   // filter (not just the current page) — a section-level total, independent
   // of pagination.
   totalPendingCommission: number;
+  totalPendingCommissionUsd: number;
 };
 
 export type EmployeeSearchResult = Prisma.EmployeeGetPayload<{
@@ -79,12 +95,19 @@ export type EmployeeSearchResult = Prisma.EmployeeGetPayload<{
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRateService: ExchangeRateService,
+  ) {}
+
+  private toUsd: ToUsd = (amount, currency) =>
+    this.exchangeRateService.toUsd(amount, currency);
 
   async create(
     workspaceId: string,
     dto: CreateEmployeeDto,
   ): Promise<EmployeeData> {
+    await this.exchangeRateService.refresh();
     const employee = await this.prisma.employee.create({
       data: {
         workspaceId,
@@ -94,13 +117,14 @@ export class EmployeesService {
       },
       select: EMPLOYEES_SELECT,
     });
-    return toEmployeeData(employee);
+    return toEmployeeData(employee, this.toUsd);
   }
 
   async findAll(
     workspaceId: string,
     query: ListEmployeesQuery,
   ): Promise<EmployeeListResult> {
+    await this.exchangeRateService.refresh();
     const where: Prisma.EmployeeWhereInput = { workspaceId };
 
     if (query.q) {
@@ -124,13 +148,18 @@ export class EmployeesService {
       }),
     ]);
 
+    const totalPendingCommission = round2(
+      Number(pendingCommissionSum._sum.pendingCommission ?? 0),
+    );
+
     return {
-      items: items.map(toEmployeeData),
+      items: items.map((item) => toEmployeeData(item, this.toUsd)),
       total,
       page: query.page,
       limit: query.limit,
-      totalPendingCommission: round2(
-        Number(pendingCommissionSum._sum.pendingCommission ?? 0),
+      totalPendingCommission,
+      totalPendingCommissionUsd: round2(
+        this.toUsd(totalPendingCommission, 'PKR'),
       ),
     };
   }
@@ -195,7 +224,7 @@ export class EmployeesService {
       },
       select: EMPLOYEES_SELECT,
     });
-    return toEmployeeData(employee);
+    return toEmployeeData(employee, this.toUsd);
   }
 
   // Unconditional — Transaction.employeeId is onDelete: SetNull, so deleting
@@ -210,11 +239,12 @@ export class EmployeesService {
     workspaceId: string,
     employeeId: string,
   ): Promise<EmployeeData> {
+    await this.exchangeRateService.refresh();
     const employee = await this.prisma.employee.findFirst({
       where: { id: employeeId, workspaceId },
       select: EMPLOYEES_SELECT,
     });
     if (!employee) throw new NotFoundException(EMPLOYEE_NOT_FOUND);
-    return toEmployeeData(employee);
+    return toEmployeeData(employee, this.toUsd);
   }
 }

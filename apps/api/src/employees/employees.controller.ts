@@ -96,7 +96,7 @@ export class EmployeesController {
   @ApiOperation({
     summary: 'List and search employees',
     description:
-      'Each employee has paidCommission and pendingCommission (both PKR, entered manually) and their sum, totalCommission. No relation to Transaction — commission is not tied to any sale.',
+      'Each employee has paidCommission and pendingCommission (both PKR, entered manually) and their sum, totalCommission, each also returned as a Usd-suffixed field converted at the current rate. No relation to Transaction — commission is not tied to any sale.',
   })
   @ApiQuery({
     name: 'q',
@@ -138,7 +138,10 @@ export class EmployeesController {
     @Req() req: WorkspaceRequest,
     @Query() query: ListEmployeesQueryDto,
   ): Promise<
-    PaginatedApiResponse<EmployeeData> & { totalPendingCommission: number }
+    PaginatedApiResponse<EmployeeData> & {
+      totalPendingCommission: number;
+      totalPendingCommissionUsd: number;
+    }
   > {
     const result = await this.employeesService.findAll(
       req.workspaceContext.workspaceId,
@@ -149,6 +152,7 @@ export class EmployeesController {
       // Sum across every employee matching the filter, not just this page —
       // same reasoning as meta.total.
       totalPendingCommission: result.totalPendingCommission,
+      totalPendingCommissionUsd: result.totalPendingCommissionUsd,
     };
   }
 

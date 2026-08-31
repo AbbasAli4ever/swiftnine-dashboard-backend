@@ -19,11 +19,14 @@ const CreateTransactionSchema = z
     refId: z.string().trim().min(1, 'Reference ID is required').max(255),
     description: z.string().trim().max(2000).optional(),
     employeeId: z.string().uuid('Employee id must be a valid UUID').optional(),
-    // PKR only — no currency field, unlike the earlier (removed) design.
+    // Stored as PKR regardless of what's entered here — commissionCurrency
+    // is only how this amount is denominated on input; it's converted to
+    // PKR once, at creation, and only the PKR figure is persisted.
     commissionAmount: z.coerce
       .number()
       .nonnegative('Commission amount cannot be negative')
       .optional(),
+    commissionCurrency: z.enum(CURRENCY_VALUES).default('PKR'),
   })
   .refine(
     (data) =>
@@ -103,8 +106,16 @@ export class CreateTransactionDto extends createZodDto(
   @ApiPropertyOptional({
     type: Number,
     description:
-      "Commission earned on this sale, always PKR. Must be provided together with employeeId, or not at all. Added to the employee's pendingCommission once, at creation — later edits to this transaction never adjust it again.",
+      "Commission earned on this sale, denominated in commissionCurrency. Must be provided together with employeeId, or not at all. Converted to PKR once, at creation, and added to the employee's pendingCommission — later edits to this transaction never adjust it again.",
     example: 5000,
   })
   commissionAmount?: number;
+
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    description:
+      'Currency commissionAmount is entered in. Only used to convert to PKR at creation — not stored. Defaults to PKR.',
+    default: 'PKR',
+  })
+  commissionCurrency: (typeof CURRENCY_VALUES)[number] = 'PKR';
 }

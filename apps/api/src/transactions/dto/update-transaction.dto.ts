@@ -35,6 +35,11 @@ const UpdateTransactionSchema = z
       .number()
       .nonnegative('Commission amount cannot be negative')
       .optional(),
+    // No .default() here — this schema's "at least one field required" check
+    // runs on the parsed output, so a default would make that key always
+    // present and defeat the check for every update, not just this field.
+    // Defaults to PKR in the service instead when omitted.
+    commissionCurrency: z.enum(CURRENCY_VALUES).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
@@ -112,8 +117,15 @@ export class UpdateTransactionDto extends createZodDto(
   @ApiPropertyOptional({
     type: Number,
     description:
-      'Correct the commission amount (PKR) for this sale. Must be sent together with employeeId, or not at all. Never adjusts pendingCommission — that only happens once, at creation.',
+      'Correct the commission amount for this sale, denominated in commissionCurrency (defaults to PKR if omitted). Must be sent together with employeeId, or not at all. Converted to PKR and re-applied to pendingCommission as a delta against the old amount.',
     example: 5000,
   })
   commissionAmount?: number;
+
+  @ApiPropertyOptional({
+    enum: CURRENCY_VALUES,
+    description:
+      'Currency commissionAmount is entered in. Only used to convert to PKR — not stored. Defaults to PKR if omitted.',
+  })
+  commissionCurrency?: (typeof CURRENCY_VALUES)[number];
 }

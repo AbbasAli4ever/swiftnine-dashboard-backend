@@ -59,6 +59,14 @@ export class ExchangeRateService {
     return amount / this.rates[currency];
   }
 
+  // General cross-rate conversion, routed through USD (the rates map's own
+  // base) — e.g. convert(50, 'USD', 'PKR') for a commission entered in USD
+  // but stored in PKR.
+  convert(amount: number, from: Currency, to: Currency): number {
+    if (from === to) return amount;
+    return this.toUsd(amount, from) * this.rates[to];
+  }
+
   // Snapshot of whatever's currently cached — for responses that display the
   // rate table itself (e.g. the balance summary's "converted at X/USD"
   // caption), not for converting amounts (use toUsd for that).

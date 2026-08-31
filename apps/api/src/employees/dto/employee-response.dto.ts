@@ -76,16 +76,34 @@ export class EmployeeResponseDto {
   paidCommission!: number;
 
   @ApiProperty({
+    example: 53.96,
+    description: 'paidCommission converted to USD at the current rate',
+  })
+  paidCommissionUsd!: number;
+
+  @ApiProperty({
     example: 5000,
     description: 'Commission owed but not yet paid, in PKR — entered manually',
   })
   pendingCommission!: number;
 
   @ApiProperty({
+    example: 17.99,
+    description: 'pendingCommission converted to USD at the current rate',
+  })
+  pendingCommissionUsd!: number;
+
+  @ApiProperty({
     example: 20000,
     description: 'paidCommission + pendingCommission — computed, not stored',
   })
   totalCommission!: number;
+
+  @ApiProperty({
+    example: 71.94,
+    description: 'totalCommission converted to USD at the current rate',
+  })
+  totalCommissionUsd!: number;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;
@@ -148,6 +166,12 @@ export class PaginatedEmployeesResponseDto {
       'Sum of pendingCommission across every employee matching the current filter, PKR — not just the current page.',
   })
   totalPendingCommission!: number;
+
+  @ApiProperty({
+    example: 224.82,
+    description: 'totalPendingCommission converted to USD at the current rate',
+  })
+  totalPendingCommissionUsd!: number;
 
   @ApiProperty({ example: null, nullable: true })
   message!: string | null;

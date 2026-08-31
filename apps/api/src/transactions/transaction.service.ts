@@ -22,6 +22,11 @@ import {
 import type { CreateTransactionDto } from './dto/create-transaction.dto';
 import type { UpdateTransactionDto } from './dto/update-transaction.dto';
 import type { ListTransactionsQuery } from './dto/list-transactions-query.dto';
+import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 type RawTransactionData = Prisma.TransactionGetPayload<{
   select: typeof TRANSACTION_SELECT;
@@ -52,12 +57,16 @@ export type TransactionListResult = {
 
 @Injectable()
 export class TransactionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRateService: ExchangeRateService,
+  ) {}
 
   async create(
     workspaceId: string,
     dto: CreateTransactionDto,
   ): Promise<TransactionData> {
+    await this.exchangeRateService.refresh();
     const existing = await this.prisma.transaction.findFirst({
       where: { workspaceId, refId: dto.refId },
       select: { id: true },
@@ -77,7 +86,18 @@ export class TransactionService {
     if (dto.employeeId !== undefined) {
       await this.findEmployeeOrThrow(workspaceId, dto.employeeId);
     }
-    const commissionAmount = dto.commissionAmount ?? 0;
+    // commissionAmount is entered in commissionCurrency (defaults to PKR)
+    // but Transaction.commissionAmount is always PKR — converted once, here,
+    // and only the PKR figure is ever persisted.
+    const commissionAmount = dto.commissionAmount
+      ? round2(
+          this.exchangeRateService.convert(
+            dto.commissionAmount,
+            dto.commissionCurrency,
+            'PKR',
+          ),
+        )
+      : 0;
 
     const createData = {
       workspaceId,
@@ -190,6 +210,7 @@ export class TransactionService {
     transactionId: string,
     dto: UpdateTransactionDto,
   ): Promise<TransactionData> {
+    await this.exchangeRateService.refresh();
     const transaction = await this.findTransactionOrThrow(
       workspaceId,
       transactionId,
@@ -243,8 +264,20 @@ export class TransactionService {
         updateData.employee = { disconnect: true };
       }
     }
-    if (dto.commissionAmount !== undefined) {
-      updateData.commissionAmount = dto.commissionAmount;
+    // commissionAmount is entered in commissionCurrency (defaults to PKR)
+    // but Transaction.commissionAmount is always PKR — converted once, here.
+    const commissionAmountPkr =
+      dto.commissionAmount !== undefined
+        ? round2(
+            this.exchangeRateService.convert(
+              dto.commissionAmount,
+              dto.commissionCurrency ?? 'PKR',
+              'PKR',
+            ),
+          )
+        : undefined;
+    if (commissionAmountPkr !== undefined) {
+      updateData.commissionAmount = commissionAmountPkr;
     }
 
     if (Object.keys(updateData).length === 0) return transaction;
@@ -256,8 +289,8 @@ export class TransactionService {
     const effectiveEmployeeId =
       dto.employeeId !== undefined ? dto.employeeId : transaction.employeeId;
     const effectiveCommissionAmount =
-      dto.commissionAmount !== undefined
-        ? dto.commissionAmount
+      commissionAmountPkr !== undefined
+        ? commissionAmountPkr
         : transaction.commissionAmount;
     const commissionAdjustments = this.commissionAdjustments(
       transaction.employeeId,
