@@ -76,7 +76,7 @@ export class VendorsController {
   @ApiOperation({
     summary: 'Create a new vendor',
     description:
-      'Takes a name and an optional pendingPayment (PKR, defaults to 0). pendingPayment is entered manually — it is not derived from any transaction.',
+      'Takes a name, an optional pendingPayment (PKR, defaults to 0), and an optional dueDate. Both pendingPayment and dueDate are entered manually — neither is derived from any transaction.',
   })
   @ApiResponse({
     status: 201,
@@ -100,7 +100,7 @@ export class VendorsController {
   @ApiOperation({
     summary: 'List and search vendors',
     description:
-      'Each vendor has a pendingPayment (PKR, entered manually) — the amount owed but not yet paid. No relation to Transaction.',
+      'Each vendor has a pendingPayment (PKR, entered manually) — the amount owed but not yet paid — and an optional dueDate for when it is owed. No relation to Transaction.',
   })
   @ApiQuery({
     name: 'q',
@@ -211,7 +211,7 @@ export class VendorsController {
   @ApiOperation({
     summary: 'Update a vendor',
     description:
-      'name and pendingPayment are independently optional — send only the fields being changed. An empty body is rejected.',
+      'name, pendingPayment and dueDate are independently optional — send only the fields being changed. dueDate can be cleared by sending null. An empty body is rejected.',
   })
   @ApiParam({ name: 'vendorId', description: 'Vendor UUID' })
   @ApiResponse({

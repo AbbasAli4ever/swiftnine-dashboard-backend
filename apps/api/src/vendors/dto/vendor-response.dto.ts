@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class VendorResponseDto {
   @ApiProperty({ example: 'b3a6b8b0-9c1e-4b8b-8b1a-9b8b1a9b8b1a' })
@@ -13,6 +13,14 @@ export class VendorResponseDto {
       'Amount owed to this vendor but not yet paid, in PKR — entered manually, not derived from any transaction',
   })
   pendingPayment!: number;
+
+  @ApiPropertyOptional({
+    example: '2026-09-30T00:00:00.000Z',
+    description:
+      'When the pendingPayment is due — entered manually, no reminder/notification behavior',
+    nullable: true,
+  })
+  dueDate!: Date | null;
 
   @ApiProperty({ example: '2026-04-23T10:00:00.000Z' })
   createdAt!: Date;

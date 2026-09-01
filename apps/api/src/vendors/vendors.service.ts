@@ -56,6 +56,7 @@ export class VendorsService {
         workspaceId,
         name: dto.name,
         pendingPayment: dto.pendingPayment,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
       },
       select: VENDORS_SELECT,
     });
@@ -132,6 +133,9 @@ export class VendorsService {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.pendingPayment !== undefined && {
           pendingPayment: dto.pendingPayment,
+        }),
+        ...(dto.dueDate !== undefined && {
+          dueDate: dto.dueDate === null ? null : new Date(dto.dueDate),
         }),
       },
       select: VENDORS_SELECT,

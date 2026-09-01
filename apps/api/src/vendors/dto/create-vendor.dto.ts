@@ -11,6 +11,7 @@ const CreateVendorSchema = z.object({
     .number()
     .nonnegative('Pending payment cannot be negative')
     .default(0),
+  dueDate: z.string().datetime().optional(),
 });
 
 export class CreateVendorDto extends createZodDto(CreateVendorSchema) {
@@ -28,4 +29,13 @@ export class CreateVendorDto extends createZodDto(CreateVendorSchema) {
     example: 45000,
   })
   pendingPayment: number = 0;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description:
+      'When the pendingPayment is due. Entered manually, no reminder/notification is sent for it.',
+    example: '2026-09-30T00:00:00.000Z',
+  })
+  dueDate?: string;
 }

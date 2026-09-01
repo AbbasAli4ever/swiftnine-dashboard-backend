@@ -17,6 +17,7 @@ const UpdateVendorSchema = z
       .number()
       .nonnegative('Pending payment cannot be negative')
       .optional(),
+    dueDate: z.string().datetime().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
@@ -36,4 +37,14 @@ export class UpdateVendorDto extends createZodDto(UpdateVendorSchema) {
     example: 45000,
   })
   pendingPayment?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description:
+      'Correct when the pendingPayment is due, or clear it entirely with null.',
+    example: '2026-09-30T00:00:00.000Z',
+    nullable: true,
+  })
+  dueDate?: string | null;
 }

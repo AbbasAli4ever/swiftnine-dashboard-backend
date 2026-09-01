@@ -1356,15 +1356,18 @@ model BankAccount {
 
 /// Vendors the workspace owes money to, with the outstanding amount entered
 /// manually — always PKR, and never linked to a Transaction. pendingPayment is
-/// a hand-entered figure, not derived from any purchase or sale.
+/// a hand-entered figure, not derived from any purchase or sale. dueDate is
+/// likewise hand-entered (when the pendingPayment is due), optional, and
+/// carries no reminder/notification behavior of its own.
 /// Workspace-scoped, same shape as `Employee`.
 model Vendor {
-  id             String   @id @default(uuid())
-  workspaceId    String   @map("workspace_id")
+  id             String    @id @default(uuid())
+  workspaceId    String    @map("workspace_id")
   name           String
-  pendingPayment Decimal  @default(0) @map("pending_payment") @db.Decimal(12, 2)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  pendingPayment Decimal   @default(0) @map("pending_payment") @db.Decimal(12, 2)
+  dueDate        DateTime? @map("due_date")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
