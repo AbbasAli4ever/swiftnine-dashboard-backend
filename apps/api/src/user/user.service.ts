@@ -5,13 +5,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
+import { PublicAssetsS3Service } from '@app/common';
 import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'node:crypto';
 import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserPresenceStatus } from './dto/profile-status.enum';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import type { PresignAvatarDto } from './dto/presign-avatar.dto';
+import type { PresignAvatarResponseDto } from './dto/presign-avatar-response.dto';
+import {
+  AVATAR_KEY_PREFIX,
+  AVATAR_UPLOAD_URL_EXPIRY_SECONDS,
+} from './user.constants';
 
 const PASSWORD_SALT_ROUNDS = 10;
 
@@ -64,7 +72,47 @@ export type UserProfile = {
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly publicAssetsS3: PublicAssetsS3Service,
+  ) {}
+
+  // Unlike attachments.service.ts's uploads (private bucket, signed-URL-
+  // on-read only), avatarUrl is a plain, permanent string embedded
+  // directly into countless API responses (chat messages, member lists,
+  // ...) with no per-read refresh mechanism anywhere — so it needs a URL
+  // that just works, indefinitely, with no signing. That private bucket's
+  // "Bucket owner enforced" object-ownership setting doesn't allow ACLs at
+  // all (confirmed live), so ACL: public-read isn't an option there for
+  // anyone. This reuses the separate PUBLIC_ASSETS bucket instead — same
+  // one bank-account logos already use via PublicAssetsS3Service, already
+  // configured for public read at the bucket-policy level, not per-object.
+  async presignAvatarUpload(
+    userId: string,
+    dto: PresignAvatarDto,
+  ): Promise<PresignAvatarResponseDto> {
+    const ext = dto.mimeType.split('/').pop() ?? 'bin';
+    const key = this.publicAssetsS3.buildKey(
+      AVATAR_KEY_PREFIX,
+      userId,
+      `${randomUUID()}.${ext}`,
+    );
+
+    const uploadUrl = await this.publicAssetsS3.createPresignedPutUrl(
+      key,
+      AVATAR_UPLOAD_URL_EXPIRY_SECONDS,
+    );
+    const expiresAt = new Date(
+      Date.now() + AVATAR_UPLOAD_URL_EXPIRY_SECONDS * 1000,
+    );
+
+    return {
+      uploadUrl,
+      s3Key: key,
+      publicUrl: this.publicAssetsS3.getPublicUrl(key),
+      expiresAt,
+    };
+  }
 
   async createProfile(
     userId: string,

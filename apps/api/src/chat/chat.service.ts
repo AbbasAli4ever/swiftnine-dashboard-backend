@@ -565,6 +565,59 @@ export class ChatService {
     };
   }
 
+  // Per-caller only — flips isArchived on the caller's own ChannelMember row,
+  // never anyone else's. Archiving hides a channel/DM from only this
+  // person's own list (see listDms); it has no effect on other members.
+  async setArchived(
+    workspaceId: string,
+    userId: string,
+    channelId: string,
+    isArchived: boolean,
+  ) {
+    const membership = await this.assertChannelMember(
+      workspaceId,
+      channelId,
+      userId,
+    );
+
+    await this.prisma.channelMember.update({
+      where: { id: membership.id },
+      data: { isArchived },
+    });
+
+    return {
+      channelId,
+      userId,
+      isArchived,
+    };
+  }
+
+  // Same per-caller-only shape as setArchived/setMute — flips isFavourite on
+  // only the caller's own ChannelMember row.
+  async setFavourite(
+    workspaceId: string,
+    userId: string,
+    channelId: string,
+    isFavourite: boolean,
+  ) {
+    const membership = await this.assertChannelMember(
+      workspaceId,
+      channelId,
+      userId,
+    );
+
+    await this.prisma.channelMember.update({
+      where: { id: membership.id },
+      data: { isFavourite },
+    });
+
+    return {
+      channelId,
+      userId,
+      isFavourite,
+    };
+  }
+
   async createDm(workspaceId: string, userId: string, dto: CreateDmDto) {
     if (dto.targetUserId === userId) {
       throw new BadRequestException('You cannot create a DM with yourself');
@@ -645,12 +698,28 @@ export class ChatService {
     return this.toChannelResponse(channel, userId);
   }
 
-  async listDms(workspaceId: string, userId: string) {
+  // archived=false (default): the caller's normal DM list — every DM they
+  // haven't archived. archived=true: only the ones they have. favourite,
+  // when passed, narrows further to only their starred (or unstarred) DMs —
+  // both flags are always scoped to the CALLER's own ChannelMember row;
+  // someone else archiving/favouriting the same DM has no effect here.
+  async listDms(
+    workspaceId: string,
+    userId: string,
+    archived = false,
+    favourite?: boolean,
+  ) {
     const channels = await this.prisma.channel.findMany({
       where: {
         workspaceId,
         kind: 'DM',
-        members: { some: { userId } },
+        members: {
+          some: {
+            userId,
+            isArchived: archived,
+            ...(favourite !== undefined ? { isFavourite: favourite } : {}),
+          },
+        },
       },
       include: this.channelIncludeForList(userId),
       orderBy: { createdAt: 'desc' },
@@ -949,6 +1018,24 @@ export class ChatService {
           user: { select: { id: true, fullName: true, avatarUrl: true } },
         },
       },
+      // Most recent message in the channel (any kind — including SYSTEM
+      // events like "member joined", same as the main message list itself
+      // doesn't filter those out), for a chat-list preview line. Ordered by
+      // (createdAt, id) rather than createdAt alone, same tie-break the
+      // cursor pagination elsewhere in this service already relies on.
+      messages: {
+        take: 1,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: {
+          id: true,
+          senderId: true,
+          kind: true,
+          plaintext: true,
+          createdAt: true,
+          deletedAt: true,
+          sender: { select: { id: true, fullName: true, avatarUrl: true } },
+        },
+      },
     } satisfies Prisma.ChannelInclude;
   }
 
@@ -1025,13 +1112,28 @@ export class ChatService {
       createdAt: channel.createdAt,
       updatedAt: channel.updatedAt,
       isMuted: selfMembership?.isMuted ?? false,
+      isArchived: selfMembership?.isArchived ?? false,
+      isFavourite: selfMembership?.isFavourite ?? false,
       unreadCount: selfMembership?.unreadCount ?? 0,
       lastReadMessageId: selfMembership?.lastReadMessageId ?? null,
+      lastMessage: channel.messages[0]
+        ? {
+            id: channel.messages[0].id,
+            senderId: channel.messages[0].senderId,
+            kind: channel.messages[0].kind,
+            plaintext: channel.messages[0].plaintext,
+            createdAt: channel.messages[0].createdAt,
+            deletedAt: channel.messages[0].deletedAt,
+            sender: channel.messages[0].sender,
+          }
+        : null,
       members: channel.members.map((member) => ({
         id: member.id,
         userId: member.userId,
         role: member.role,
         isMuted: member.isMuted,
+        isArchived: member.isArchived,
+        isFavourite: member.isFavourite,
         unreadCount: member.unreadCount,
         lastReadMessageId: member.lastReadMessageId,
         joinedAt: member.joinedAt,

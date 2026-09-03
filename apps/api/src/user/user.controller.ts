@@ -34,6 +34,8 @@ import { AdminSetPasswordDto } from './dto/admin-set-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
+import { PresignAvatarDto } from './dto/presign-avatar.dto';
+import { PresignAvatarResponseDto } from './dto/presign-avatar-response.dto';
 import { SetStatusDto } from './dto/set-status.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
@@ -127,6 +129,28 @@ export class UserController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserProfile> {
     return this.userService.getProfile(id);
+  }
+
+  @Post('profile/avatar/presign')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Get a presigned URL to upload a new profile picture',
+    description:
+      'Step 1 of 2. PUT the file bytes to the returned uploadUrl (set Content-Type to match mimeType so the object serves back correctly), then call PATCH /user/profile with profilePicture set to the returned publicUrl to actually apply it as your avatar. This endpoint alone does not change your avatarUrl.',
+  })
+  @ApiBody({ type: PresignAvatarDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Presigned upload URL issued',
+    type: PresignAvatarResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Unsupported image type' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async presignAvatarUpload(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: PresignAvatarDto,
+  ): Promise<PresignAvatarResponseDto> {
+    return this.userService.presignAvatarUpload(req.user.id, dto);
   }
 
   @Patch('profile')

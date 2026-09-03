@@ -830,6 +830,13 @@ model ChannelMember {
   userId            String   @map("user_id")
   role              Role     @default(MEMBER)
   isMuted           Boolean  @default(false) @map("is_muted")
+  // Per-person, not per-room — archiving hides the channel/DM from only this
+  // member's own list; every other member's row (and their own isArchived)
+  // is untouched. Same "one row per person per room" pattern isMuted uses.
+  isArchived        Boolean  @default(false) @map("is_archived")
+  // Same per-person pattern again — starring a channel/DM for quick access
+  // in only this member's own list, no effect on anyone else's.
+  isFavourite       Boolean  @default(false) @map("is_favourite")
   lastReadMessageId String?  @map("last_read_message_id")
   unreadCount       Int      @default(0) @map("unread_count")
   joinedAt          DateTime @default(now()) @map("joined_at")

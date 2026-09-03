@@ -89,11 +89,26 @@ type Channel = {
   // Caller-scoped state — populated for the requesting user
   isMember: boolean;                   // false for non-joined PUBLIC channels visible in directory
   isMuted: boolean;
+  isArchived: boolean;                 // caller's own archive state — see §5 DMs
+  isFavourite: boolean;                // caller's own favourite state — see §5 DMs
   unreadCount: number;
   lastReadMessageId: string | null;
+  lastMessage: LastMessage | null;     // most recent message in the channel, any kind (incl. SYSTEM) — see §5 DMs
   viewerMembership: ChannelMember | null;
 
   members: ChannelMember[];
+};
+
+// Only returned by GET /chat/dms and POST /chat/dm today (see §5) — not on
+// the /channels/workspaces/:workspaceId list.
+type LastMessage = {
+  id: string;
+  senderId: string | null;             // null for kind=SYSTEM
+  kind: 'USER' | 'SYSTEM';
+  plaintext: string;                   // '' if the message was deleted — check deletedAt, don't treat '' as "no content"
+  createdAt: string;
+  deletedAt: string | null;
+  sender: ChatUserSummary | null;
 };
 
 type ChannelMember = {
@@ -101,6 +116,8 @@ type ChannelMember = {
   userId: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER';
   isMuted: boolean;
+  isArchived: boolean;                 // this specific member's own archive state, not necessarily the caller's
+  isFavourite: boolean;                // this specific member's own favourite state, not necessarily the caller's
   unreadCount: number;
   lastReadMessageId: string | null;
   joinedAt: string;
@@ -140,6 +157,7 @@ type ChatUserSummary  = { id: string; fullName: string; avatarUrl: string | null
 type ChatReaction     = { id: string; messageId: string; userId: string; emoji: string; createdAt: string; user: ChatUserSummary };
 type ChatReplyPreview = { id: string; senderId: string|null; kind: 'USER'|'SYSTEM'; plaintext: string; deletedAt: string|null; sender: ChatUserSummary|null };
 ```
+`avatarUrl` here is always either a permanent public URL or an `initials:AB` placeholder — see §16 for how a user actually sets/uploads it.
 
 ### Soft-deleted message
 Tombstones come back with:
@@ -201,12 +219,36 @@ All under `/api/v1/chat`. All require `Authorization` and `x-workspace-id`. All 
 | POST | `/chat/channels/:channelId/read` | `{ lastReadMessageId }` | Recomputes unread count from DB; broadcasts `member:read`. Returns `{ channelId, userId, lastReadMessageId, unreadCount, readAt }` |
 | POST | `/chat/channels/:channelId/mute` | — | Self-only |
 | POST | `/chat/channels/:channelId/unmute` | — | Self-only |
+| POST | `/chat/channels/:channelId/archive` | — | Self-only. Works on any channel or DM, but only `GET /chat/dms` currently filters by it (see below) |
+| POST | `/chat/channels/:channelId/unarchive` | — | Self-only |
+| POST | `/chat/channels/:channelId/favourite` | — | Self-only. Same scope note as archive |
+| POST | `/chat/channels/:channelId/unfavourite` | — | Self-only |
+
+Archive/favourite/unarchive/unfavourite all return `{ channelId, userId, isArchived }` or `{ channelId, userId, isFavourite }`. **All four are per-person, not per-room** — same as mute: they flip a flag on only the caller's own `ChannelMember` row. Archiving/favouriting a DM is invisible to the other participant; their own list, their own `isArchived`/`isFavourite`, is completely unaffected.
 
 ### DMs
-| Method | Path | Body | Notes |
+| Method | Path | Body / Query | Notes |
 |---|---|---|---|
-| POST | `/chat/dm` | `{ targetUserId }` | Returns the existing DM if one exists between caller and target in this workspace; otherwise creates one. Both users become MEMBER. Server emits a `dm_started` SYSTEM message in the new DM. 400 if `targetUserId === self`. |
-| GET | `/chat/dms` | — | All DMs the caller participates in, in this workspace |
+| POST | `/chat/dm` | `{ targetUserId }` | Returns the existing DM if one exists between caller and target in this workspace; otherwise creates one. Both users become MEMBER. Server emits a `dm_started` SYSTEM message in the new DM. 400 if `targetUserId === self`. Response includes `lastMessage` (see §3) — `null` for a brand-new DM, the `dm_started` SYSTEM row otherwise. |
+| GET | `/chat/dms` | `?archived=` (default `false`), `?favourite=` (omit for no filter, `true`/`false` to narrow) | All DMs the caller participates in, in this workspace, matching both filters. Each entry includes `lastMessage`. |
+
+**Filtering client-side is equally valid and often simpler**: every `Channel` object already carries `isArchived`/`isFavourite` for the caller, so you can fetch the plain unfiltered list once (`GET /chat/dms`) and do `dms.filter(d => d.isFavourite)` / `.filter(d => !d.isArchived)` yourself instead of round-tripping with the query params. Use whichever fits your data-fetching pattern — the query params exist for workspaces with enough DMs that fetching everything becomes wasteful, not because client-side filtering is wrong.
+
+**How the DM list's `lastMessage` preview stays live — this is a client responsibility, not a server push.** There is no dedicated "DM list changed" socket event. What exists:
+- The server always computes `lastMessage` **fresh from the DB** on every `GET /chat/dms` / `POST /chat/dm` call — so a re-fetch is always correct, never stale.
+- The server broadcasts every new message live over the *same* `message:new` event (§6) that already powers an open chat thread — it is not a separate stream for the sidebar.
+
+To get an instant-updating sidebar preview (rather than one that only refreshes when you next call `GET /chat/dms`), listen for `message:new` globally — not only while that DM's thread happens to be open — and patch your local list state yourself:
+```ts
+chat.on('message:new', (msg) => {
+  store.updateDmListPreview(msg.channelId, {
+    lastMessage: msg,
+    // bump unreadCount here too unless msg.senderId === currentUserId
+  });
+  store.moveDmToTop(msg.channelId);
+});
+```
+If your app instead just re-fetches `GET /chat/dms` whenever the sidebar screen is opened/focused, that also works correctly — it's a latency tradeoff (instant vs. next-open), not a correctness one.
 
 ### Search
 | Method | Path | Query | Notes |
@@ -502,6 +544,39 @@ The following are deliberately not implemented in v1 — don't design UI around 
 
 ---
 
-## 16. Versioning
+## 16. User profile & avatars
+
+`avatarUrl` shows up throughout chat — `ChatUserSummary` (sender, pinnedBy, mentions, reaction users), every `ChannelMember.user`, presence — so integrating chat means integrating this too. All under `/api/v1/user`, `Authorization` required (no `x-workspace-id` — profile is global, not workspace-scoped).
+
+### The field itself
+`User.avatarUrl` (surfaced everywhere as `avatarUrl`, set via the `profilePicture` field on the profile endpoints) is always one of:
+- a full `https://...` URL, or
+- `initials:AB` / bare `AB` (1–4 letters) — a placeholder meaning "render initials, no image." New users default to this (initials derived from their name) until they set a real picture.
+
+Google sign-in auto-fills it from the Google account picture on first signup, and again on later login **only if the user still has no avatar** — it never overwrites a manually-set one.
+
+### Changing it — two-step upload, then apply
+There is no single "upload an avatar" call. Uploading and applying are deliberately separate:
+
+| Step | Method | Path | Body | Returns |
+|---|---|---|---|---|
+| 1 | POST | `/user/profile/avatar/presign` | `{ mimeType, fileName?, fileSize? }` — `mimeType` must be one of `image/png`, `image/jpeg`, `image/webp`, `image/gif` | `{ uploadUrl, s3Key, publicUrl, expiresAt }` |
+| 2 | — | *(direct to S3)* | `PUT` the raw file bytes to `uploadUrl` | — |
+| 3 | PATCH | `/user/profile` | `{ profilePicture: publicUrl }` | Updated profile |
+
+Notes on step 2: it's a plain `PUT`, no special headers required. Set `Content-Type` to the same `mimeType` you presigned with if you want the object to actually serve back with that content type later — it's not part of the signed request (so it can't cause a signature mismatch), but S3 stores whatever you send; skip it and the file serves as generic `binary/octet-stream` instead (still displays fine in an `<img>` tag, just not semantically correct). Do **not** attempt to set an ACL header of any kind — this upload's target bucket rejects ACLs outright (`AccessControlListNotSupported`, confirmed live); the bucket is already public at the policy level, no per-object ACL needed or possible.
+
+**This is intentionally the same shape as `POST /bank-accounts/logo-presign`** (presign → PUT → apply via the URL) if you've already integrated that flow elsewhere — the upload mechanics are identical, just a different owning entity.
+
+`publicUrl` (and therefore whatever ends up in `avatarUrl` after step 3) is reachable with **zero authentication, forever** — no signed URL, no expiry, plain public `https://` link. `uploadUrl` itself does expire (`expiresAt`, 15 minutes) — it's only good for the one PUT.
+
+**Step 3 is not automatic.** Uploading a file and stopping there does nothing to your profile — you must still call `PATCH /user/profile` yourself with the `publicUrl` from step 1. This also means `profilePicture` on `PATCH`/`POST /user/profile` isn't restricted to avatars uploaded this way — any `https://` URL or an initials placeholder (`initials:AB` / `AB`) is accepted directly, no presign needed, if you already have an image hosted elsewhere.
+
+### Reading the current profile
+`GET /user/profile` (self) / `GET /user/:id` (any user) — returns the full profile including `avatarUrl` as `profilePicture`. The rest of the profile shape (name, status, bio, timezone, notification preferences) is unrelated to and unchanged by any of the above — full field-by-field docs are in Swagger (`/api/docs`, `users` tag), out of scope for this chat-focused doc beyond the avatar field chat itself depends on.
+
+---
+
+## 17. Versioning
 
 This document tracks the actual implementation. If you find a divergence between this doc and the API behavior, the API behavior is the bug — file an issue and reference the affected section.

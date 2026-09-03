@@ -29,6 +29,7 @@ import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { AddReactionDto } from './dto/add-reaction.dto';
 import { CreateDmDto } from './dto/create-dm.dto';
 import { EditMessageDto } from './dto/edit-message.dto';
+import { ListDmsQueryDto, type ListDmsQuery } from './dto/list-dms-query.dto';
 import {
   ListMessagesDto,
   type ListMessagesQuery,
@@ -38,7 +39,9 @@ import {
   type MessageContextQuery,
 } from './dto/message-context.dto';
 import {
+  ChatArchiveStateResponseDto,
   ChatChannelResponseDto,
+  ChatFavouriteStateResponseDto,
   ChatMessageContextResponseDto,
   ChatMessageListResponseDto,
   ChatMessageResponseDto,
@@ -276,6 +279,82 @@ export class ChatController {
     return ok(result, 'Channel unmuted');
   }
 
+  @Post('channels/:channelId/archive')
+  @ApiOperation({
+    summary: 'Archive a channel/DM for the current user',
+    description:
+      "Per-person only — hides it from the caller's own list (see GET /chat/dms and its archived filter). Has no effect on any other member.",
+  })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChatArchiveStateResponseDto })
+  async archive(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.setArchived(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      true,
+    );
+    return ok(result, 'Channel archived');
+  }
+
+  @Post('channels/:channelId/unarchive')
+  @ApiOperation({ summary: 'Unarchive a channel/DM for the current user' })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChatArchiveStateResponseDto })
+  async unarchive(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.setArchived(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      false,
+    );
+    return ok(result, 'Channel unarchived');
+  }
+
+  @Post('channels/:channelId/favourite')
+  @ApiOperation({
+    summary: 'Favourite a channel/DM for the current user',
+    description:
+      "Per-person only — stars it in only the caller's own list. Has no effect on any other member.",
+  })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChatFavouriteStateResponseDto })
+  async favourite(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.setFavourite(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      true,
+    );
+    return ok(result, 'Channel favourited');
+  }
+
+  @Post('channels/:channelId/unfavourite')
+  @ApiOperation({ summary: 'Unfavourite a channel/DM for the current user' })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChatFavouriteStateResponseDto })
+  async unfavourite(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.setFavourite(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      false,
+    );
+    return ok(result, 'Channel unfavourited');
+  }
+
   @Post('dm')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create or return an existing DM channel' })
@@ -294,12 +373,33 @@ export class ChatController {
   }
 
   @Get('dms')
-  @ApiOperation({ summary: 'List the caller’s DM channels in the workspace' })
+  @ApiOperation({
+    summary: 'List the caller’s DM channels in the workspace',
+    description:
+      "Defaults to the caller's active (non-archived) DMs. Pass archived=true to list only the ones they've archived instead — archiving is per-person, so this never reflects what any other member has archived.",
+  })
+  @ApiQuery({
+    name: 'archived',
+    required: false,
+    description: 'true to list only archived DMs. Defaults to false.',
+  })
+  @ApiQuery({
+    name: 'favourite',
+    required: false,
+    description:
+      'true to list only favourited DMs, false to exclude them. Omit for no filtering.',
+  })
   @ApiResponse({ status: 200, type: ChatChannelResponseDto, isArray: true })
-  async listDms(@Req() req: WorkspaceRequest): Promise<ApiRes<any>> {
+  async listDms(
+    @Req() req: WorkspaceRequest,
+    @Query() query: ListDmsQueryDto,
+  ): Promise<ApiRes<any>> {
+    const typedQuery = query as ListDmsQuery;
     const result = await this.chatService.listDms(
       req.workspaceContext.workspaceId,
       req.user.id,
+      typedQuery.archived,
+      typedQuery.favourite,
     );
     return ok(result);
   }

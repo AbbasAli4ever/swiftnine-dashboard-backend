@@ -187,6 +187,54 @@ export class ChatMuteStateResponseDto {
   isMuted!: boolean;
 }
 
+export class ChatArchiveStateResponseDto {
+  @ApiProperty()
+  channelId!: string;
+
+  @ApiProperty()
+  userId!: string;
+
+  @ApiProperty()
+  isArchived!: boolean;
+}
+
+export class ChatFavouriteStateResponseDto {
+  @ApiProperty()
+  channelId!: string;
+
+  @ApiProperty()
+  userId!: string;
+
+  @ApiProperty()
+  isFavourite!: boolean;
+}
+
+export class ChatLastMessageDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  senderId?: string | null;
+
+  @ApiProperty({ enum: ['USER', 'SYSTEM'] })
+  kind!: 'USER' | 'SYSTEM';
+
+  @ApiProperty({
+    description:
+      'Empty string if the message was deleted — check deletedAt to tell a deleted message apart from a genuinely empty one',
+  })
+  plaintext!: string;
+
+  @ApiProperty()
+  createdAt!: Date;
+
+  @ApiPropertyOptional({ nullable: true })
+  deletedAt?: Date | null;
+
+  @ApiPropertyOptional({ type: ChatUserSummaryDto, nullable: true })
+  sender?: ChatUserSummaryDto | null;
+}
+
 export class ChatChannelMemberDto {
   @ApiProperty()
   id!: string;
@@ -199,6 +247,12 @@ export class ChatChannelMemberDto {
 
   @ApiProperty()
   isMuted!: boolean;
+
+  @ApiProperty()
+  isArchived!: boolean;
+
+  @ApiProperty()
+  isFavourite!: boolean;
 
   @ApiProperty()
   unreadCount!: number;
@@ -248,10 +302,24 @@ export class ChatChannelResponseDto {
   isMuted!: boolean;
 
   @ApiProperty()
+  isArchived!: boolean;
+
+  @ApiProperty()
+  isFavourite!: boolean;
+
+  @ApiProperty()
   unreadCount!: number;
 
   @ApiPropertyOptional({ nullable: true })
   lastReadMessageId?: string | null;
+
+  @ApiPropertyOptional({
+    type: ChatLastMessageDto,
+    nullable: true,
+    description:
+      'Most recent message in the channel, null if none yet — for a chat-list preview line',
+  })
+  lastMessage?: ChatLastMessageDto | null;
 
   @ApiProperty({ type: ChatChannelMemberDto, isArray: true })
   members!: ChatChannelMemberDto[];
