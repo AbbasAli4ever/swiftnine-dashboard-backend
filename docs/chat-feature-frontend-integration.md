@@ -206,9 +206,34 @@ All under `/api/v1/chat`. All require `Authorization` and `x-workspace-id`. All 
 | GET | `/chat/channels/:channelId/messages` | `?cursor=&limit=` (default 50, max 100) | `{ items: ChatMessage[], nextCursor: string\|null }` — newest first |
 | GET | `/chat/channels/:channelId/messages/context` | `?messageId=&before=&after=` (each default 20, max 50) | `{ items, anchorMessageId, hasBefore, hasAfter }` — chronological order |
 | GET | `/chat/channels/:channelId/messages/pinned` | — | `ChatMessage[]` — most recently pinned first |
+| GET | `/chat/channels/:channelId/attachments` | — | `{ images: ChatAttachmentView[], videos: [...], files: [...] }` — every attachment ever shared in the channel/DM's entire history, grouped by `mimeType` prefix (`image/*`, `video/*`, everything else → files). See note below. |
 | POST | `/chat/channels/:channelId/messages` | `{ contentJson, replyToMessageId?, mentionedUserIds?, attachmentIds? }` | `ChatMessage` — content **or** at least one attachment is required. Rate-limited to 30/min per (user, channel) → 429 |
 | PATCH | `/chat/messages/:messageId` | `{ contentJson, mentionedUserIds? }` | `ChatMessage` — author only, within 5 min, USER kind only |
 | DELETE | `/chat/messages/:messageId` | — | `ChatMessage` (tombstone) — author or channel OWNER/ADMIN; SYSTEM messages are immutable |
+
+```ts
+type ChatAttachmentView = {
+  id: string;
+  s3Key: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  url: string;        // signed S3 GET URL, generated fresh for THIS call
+  expiresAt: string;  // 15 minutes from when you called the endpoint
+  createdAt: string;
+};
+```
+**Do not cache or store `url`.** It's a signed link into the private attachments bucket, valid for 15 minutes from the moment you called this endpoint — the same mechanism every message's embedded `attachments[]` already uses (§3), just aggregated across the whole channel instead of one message. Re-call this endpoint whenever the user opens the "media/files" panel again; don't try to keep yesterday's response around and reuse its URLs. (This is unrelated to avatars/§16 — those live in a different, genuinely public bucket and their URLs never expire.)
+
+**When to call it, and where `channelId` comes from:** don't call this on every conversation open — only when the user actually opens the "Media, Links and docs" side panel (or equivalent UI) for the currently-open conversation. Firing it automatically alongside every `GET .../messages` load wastes a full S3-signing round trip for a panel the user may never look at.
+
+You never need a separate lookup for `channelId` — it's the exact same id you're already holding for whichever conversation is currently open, sourced from wherever you got there:
+- Opened from the DM sidebar → it's that item's `id` from `GET /chat/dms`.
+- Opened from the channel sidebar → it's that item's `id` from `GET /channels/workspaces/:workspaceId`.
+
+That's the same `channelId` already being used for `GET .../messages`, `POST .../messages`, mark-read, etc. for that same open conversation — attachments just reuses it, not a new identifier.
+
+Because `url`s expire in 15 minutes, a panel left open significantly longer than that will start showing broken images/links — re-call the endpoint when the panel regains focus (tab switch back, reopen) rather than assuming a single fetch stays valid for an indefinitely-long session.
 
 ### Reactions, pin, mute, read
 | Method | Path | Body | Notes |

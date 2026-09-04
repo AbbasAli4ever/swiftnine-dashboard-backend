@@ -728,6 +728,68 @@ export class ChatService {
     return channels.map((channel) => this.toChannelResponse(channel, userId));
   }
 
+  // Every file/image/video ever shared in this channel or DM, across its
+  // entire message history — not scoped to any single message. Works for
+  // group channels and DMs identically (a DM is just a 2-member channel).
+  // Each item's `url` is a signed S3 GET URL generated fresh right now
+  // (same 15-minute-expiry mechanism every other attachment view in this
+  // app already uses, via AttachmentsService.toViewAttachment) — it is not
+  // a stored, cacheable link. Callers should re-request this endpoint
+  // whenever they need to render attachments again, rather than persisting
+  // the returned URLs.
+  async listChannelAttachments(
+    workspaceId: string,
+    userId: string,
+    channelId: string,
+  ) {
+    await this.assertChannelMember(workspaceId, channelId, userId);
+
+    const attachments = await this.prisma.attachment.findMany({
+      where: {
+        channelMessage: { channelId, deletedAt: null },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        fileName: true,
+        mimeType: true,
+        s3Key: true,
+        fileSize: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const viewAttachments = await Promise.all(
+      attachments.map(async (attachment) => {
+        const view = await this.attachments.toViewAttachment(attachment);
+        return {
+          id: view.id,
+          s3Key: view.s3Key,
+          fileName: view.fileName,
+          mimeType: view.mimeType,
+          fileSize: view.fileSize,
+          url: view.url,
+          expiresAt: view.expiresAt,
+          createdAt: attachment.createdAt,
+        };
+      }),
+    );
+
+    const images: (typeof viewAttachments)[number][] = [];
+    const videos: (typeof viewAttachments)[number][] = [];
+    const files: (typeof viewAttachments)[number][] = [];
+
+    for (const attachment of viewAttachments) {
+      const category = attachment.mimeType.split('/')[0];
+      if (category === 'image') images.push(attachment);
+      else if (category === 'video') videos.push(attachment);
+      else files.push(attachment);
+    }
+
+    return { images, videos, files };
+  }
+
   async searchMessages(
     workspaceId: string,
     userId: string,

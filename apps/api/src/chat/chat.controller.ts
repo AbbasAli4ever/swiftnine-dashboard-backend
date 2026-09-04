@@ -27,6 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { AddReactionDto } from './dto/add-reaction.dto';
+import { ChannelAttachmentsResponseDto } from './dto/channel-attachments-response.dto';
 import { CreateDmDto } from './dto/create-dm.dto';
 import { EditMessageDto } from './dto/edit-message.dto';
 import { ListDmsQueryDto, type ListDmsQuery } from './dto/list-dms-query.dto';
@@ -113,6 +114,27 @@ export class ChatController {
     @Param('channelId') channelId: string,
   ): Promise<ApiRes<any>> {
     const result = await this.chatService.listPinnedMessages(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+    );
+    return ok(result);
+  }
+
+  @Get('channels/:channelId/attachments')
+  @ApiOperation({
+    summary:
+      'List every attachment ever shared in a channel or DM, grouped by type',
+    description:
+      "Scans the channel's entire message history — not one message. Each item's url is a signed S3 link generated fresh on this call, expiring in 15 minutes — re-call this endpoint to render attachments again rather than caching the returned URLs.",
+  })
+  @ApiParam({ name: 'channelId', description: 'Channel id' })
+  @ApiResponse({ status: 200, type: ChannelAttachmentsResponseDto })
+  async listChannelAttachments(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.listChannelAttachments(
       req.workspaceContext.workspaceId,
       req.user.id,
       channelId,
