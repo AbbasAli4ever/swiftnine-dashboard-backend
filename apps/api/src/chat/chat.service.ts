@@ -770,6 +770,7 @@ export class ChatService {
           mimeType: view.mimeType,
           fileSize: view.fileSize,
           url: view.url,
+          downloadUrl: view.downloadUrl,
           expiresAt: view.expiresAt,
           createdAt: attachment.createdAt,
         };

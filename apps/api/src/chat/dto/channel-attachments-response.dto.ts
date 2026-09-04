@@ -18,12 +18,19 @@ export class ChannelAttachmentItemDto {
 
   @ApiProperty({
     description:
-      'Freshly-signed S3 GET URL, generated at request time — expires 15 minutes after this response, same as every other attachment view in this app. Re-call this endpoint to get a live one; do not cache/store this value.',
+      'Freshly-signed S3 GET URL, generated at request time — expires 15 minutes after this response, same as every other attachment view in this app. Renders inline for browser-displayable types (images, PDFs) — use this for <img>/<video> src. Re-call this endpoint to get a live one; do not cache/store this value.',
   })
   url!: string;
 
   @ApiProperty({
-    description: 'When url stops working (15 minutes from issuance).',
+    description:
+      'Same object, different signed URL — carries a Content-Disposition: attachment header so the browser always forces a Save As dialog with the real fileName, regardless of file type. Use this for a "Download" button/link; plain <a download> does not reliably work for this cross-origin S3 URL on its own.',
+  })
+  downloadUrl!: string;
+
+  @ApiProperty({
+    description:
+      'When url/downloadUrl stop working (15 minutes from issuance).',
   })
   expiresAt!: Date;
 

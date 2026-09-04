@@ -16,6 +16,27 @@ export class AttachmentDto {
   @ApiProperty({ example: 245000, required: false })
   fileSize?: number;
 
+  @ApiProperty({
+    required: false,
+    description:
+      'Freshly-signed S3 GET URL, generated when this response was built — expires 15 minutes later. Renders inline for browser-displayable types; use for <img>/<video> src.',
+  })
+  url?: string;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Same object, but with a Content-Disposition: attachment header baked in — use for a "Download" button/link so the browser always saves the file rather than trying to render it.',
+  })
+  downloadUrl?: string;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'When url/downloadUrl stop working (15 minutes after this response).',
+  })
+  expiresAt?: Date;
+
   @ApiProperty({ example: '2026-04-21T12:00:00.000Z', format: 'date-time' })
   createdAt!: Date;
 }

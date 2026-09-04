@@ -218,12 +218,20 @@ type ChatAttachmentView = {
   fileName: string;
   mimeType: string;
   fileSize: number;
-  url: string;        // signed S3 GET URL, generated fresh for THIS call
-  expiresAt: string;  // 15 minutes from when you called the endpoint
+  url: string;         // signed S3 GET URL, generated fresh for THIS call — renders inline
+  downloadUrl: string; // same object, forces a Save As dialog instead — see note below
+  expiresAt: string;   // 15 minutes from when you called the endpoint, for BOTH urls
   createdAt: string;
 };
 ```
-**Do not cache or store `url`.** It's a signed link into the private attachments bucket, valid for 15 minutes from the moment you called this endpoint — the same mechanism every message's embedded `attachments[]` already uses (§3), just aggregated across the whole channel instead of one message. Re-call this endpoint whenever the user opens the "media/files" panel again; don't try to keep yesterday's response around and reuse its URLs. (This is unrelated to avatars/§16 — those live in a different, genuinely public bucket and their URLs never expire.)
+**Do not cache or store `url`/`downloadUrl`.** Both are signed links into the private attachments bucket, valid for 15 minutes from the moment you called this endpoint — the same mechanism every message's embedded `attachments[]` already uses (§3), just aggregated across the whole channel instead of one message. Re-call this endpoint whenever the user opens the "media/files" panel again; don't try to keep yesterday's response around and reuse its URLs. (This is unrelated to avatars/§16 — those live in a different, genuinely public bucket and their URLs never expire.)
+
+**`url` vs `downloadUrl` — use the right one for the right UI element:**
+```jsx
+<img src={attachment.url} />                  {/* inline preview — renders in the browser */}
+<a href={attachment.downloadUrl}>Download</a>  {/* forces a Save As dialog */}
+```
+They point at the same S3 object but are two separately-signed URLs: `url` carries no disposition override (browsers render it inline for displayable types like images/PDFs — right for `<img>`/`<video>` `src`, or an "open" action). `downloadUrl` has `Content-Disposition: attachment` baked into its signature, with the real `fileName` — that's what actually forces the browser to save the file rather than open it, for any file type. **Plain HTML `<a href={url} download>` does not reliably work here** — the `download` attribute is only honored by browsers for same-origin links, and this is a cross-origin S3 URL; only the real `Content-Disposition` response header (i.e., `downloadUrl`) forces it. Same two fields, same reasoning, also present on every attachment already embedded in `ChatMessage.attachments[]` (§3) — not unique to this endpoint.
 
 **When to call it, and where `channelId` comes from:** don't call this on every conversation open — only when the user actually opens the "Media, Links and docs" side panel (or equivalent UI) for the currently-open conversation. Firing it automatically alongside every `GET .../messages` load wastes a full S3-signing round trip for a panel the user may never look at.
 

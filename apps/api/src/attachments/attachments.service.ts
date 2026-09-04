@@ -1732,13 +1732,41 @@ export class AttachmentsService {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: att.s3Key,
     });
-    const url = await getSignedUrl(this.s3, cmd, { expiresIn: 60 * 15 });
+    // Separate signed URL for forced downloads. `url` above carries no
+    // disposition override, so browsers render it inline when the
+    // mimeType allows (images, PDFs, ...) — exactly what an <img>/<video>
+    // tag or "open" action wants. HTML's <a download> attribute does NOT
+    // reliably force a save dialog for a cross-origin link like this one
+    // (browsers largely ignore it off-origin) — only a real
+    // Content-Disposition: attachment response header does, which is what
+    // ResponseContentDisposition bakes into this second signed request.
+    const downloadCmd = new GetObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: att.s3Key,
+      ResponseContentDisposition: this.buildAttachmentDisposition(att.fileName),
+    });
+    const [url, downloadUrl] = await Promise.all([
+      getSignedUrl(this.s3, cmd, { expiresIn: 60 * 15 }),
+      getSignedUrl(this.s3, downloadCmd, { expiresIn: 60 * 15 }),
+    ]);
     return {
       ...att,
       fileSize: Number(att.fileSize),
       url,
+      downloadUrl,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     };
+  }
+
+  // RFC 5987/6266: filename= is an ASCII fallback for older clients,
+  // filename*= carries the real (possibly non-ASCII) name for everyone
+  // else. Quotes in the ASCII fallback are escaped so a filename
+  // containing one can't break out of the quoted string.
+  private buildAttachmentDisposition(fileName: string): string {
+    const asciiFallback = fileName
+      .replace(/[^\x20-\x7E]/g, '_')
+      .replace(/"/g, '\\"');
+    return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
   }
 
   private assertFileAttachmentMetadata(att: {
