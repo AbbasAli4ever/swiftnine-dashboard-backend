@@ -270,7 +270,7 @@ model Workspace {
   deletedAt      DateTime?               @map("deleted_at")
 
   // Relations
-  creator                 User                      @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+  creator                 User                      @relation("WorkspaceCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   members                 WorkspaceMember[]
   invites                 WorkspaceInvite[]
   projects                Project[]
@@ -341,7 +341,7 @@ model WorkspaceInvite {
 
   // Relations
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  sender    User      @relation("InviteSender", fields: [invitedBy], references: [id])
+  sender    User      @relation("InviteSender", fields: [invitedBy], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, email, status])
   @@map("workspace_invites")
@@ -377,7 +377,7 @@ model Project {
 
   // Relations
   workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creator     User              @relation("ProjectCreator", fields: [createdBy], references: [id])
+  creator     User              @relation("ProjectCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   channels    Channel[]
   taskLists   TaskList[]
   statuses    Status[]
@@ -403,7 +403,7 @@ model ProjectMember {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation("ProjectMemberUser", fields: [userId], references: [id], onDelete: Cascade)
-  inviter User    @relation("ProjectMemberInviter", fields: [invitedBy], references: [id])
+  inviter User    @relation("ProjectMemberInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
   @@index([projectId])
@@ -429,7 +429,7 @@ model TaskList {
 
   // Relations
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  creator     User         @relation("TaskListCreator", fields: [createdBy], references: [id])
+  creator     User         @relation("TaskListCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   owner       User?        @relation("TaskListOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   tasks       Task[]
   attachments Attachment[]
@@ -510,7 +510,7 @@ model Task {
   parent      Task?          @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
   children    Task[]         @relation("TaskSubtasks")
   status      Status         @relation(fields: [statusId], references: [id])
-  creator     User           @relation("TaskCreator", fields: [createdBy], references: [id])
+  creator     User           @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   assignees   TaskAssignee[]
   tags        TaskTag[]
   comments    Comment[]
@@ -572,8 +572,8 @@ model TaskAssignee {
 
   // Relations
   task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user     User @relation("AssignedUser", fields: [userId], references: [id])
-  assigner User @relation("AssignedByUser", fields: [assignedBy], references: [id])
+  user     User @relation("AssignedUser", fields: [userId], references: [id], onDelete: Cascade)
+  assigner User @relation("AssignedByUser", fields: [assignedBy], references: [id], onDelete: Cascade)
 
   @@unique([taskId, userId])
   @@index([userId])
@@ -609,7 +609,7 @@ model Comment {
 
   // Relations
   task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author    User       @relation(fields: [userId], references: [id])
+  author    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[]  @relation("CommentReplies")
   mentions  Mention[]
@@ -646,7 +646,7 @@ model Mention {
 
   // Relations
   comment       Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  mentionedUser User    @relation(fields: [mentionedUserId], references: [id])
+  mentionedUser User    @relation(fields: [mentionedUserId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, mentionedUserId])
   @@map("mentions")
@@ -720,7 +720,7 @@ model Attachment {
   taskList              TaskList?              @relation(fields: [taskListId], references: [id], onDelete: Cascade)
   aiConversation        AiConversation?        @relation(fields: [aiConversationId], references: [id], onDelete: Cascade)
   aiConversationMessage AiConversationMessage? @relation(fields: [aiConversationMessageId], references: [id], onDelete: Cascade)
-  uploader              User                   @relation(fields: [uploadedBy], references: [id])
+  uploader              User                   @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@index([docId])
@@ -748,7 +748,7 @@ model TimeEntry {
 
   // Relations
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([taskId, userId])
   @@map("time_entries")
@@ -769,8 +769,8 @@ model ActivityLog {
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  performer User      @relation(fields: [performedBy], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  performer User      @relation(fields: [performedBy], references: [id], onDelete: Cascade)
 
   @@index([entityType, entityId])
   @@index([workspaceId, createdAt])
@@ -812,8 +812,8 @@ model Channel {
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
-  workspace    Workspace            @relation(fields: [workspaceId], references: [id])
-  project      Project?             @relation(fields: [projectId], references: [id])
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project      Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
   members      ChannelMember[]
   messages     ChannelMessage[]
   joinRequests ChannelJoinRequest[]
@@ -844,7 +844,7 @@ model ChannelMember {
 
   // Relations
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([channelId, userId])
   @@index([userId])
@@ -891,7 +891,7 @@ model ChannelMessageMention {
   createdAt       DateTime @default(now()) @map("created_at")
 
   message       ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  mentionedUser User           @relation(fields: [mentionedUserId], references: [id])
+  mentionedUser User           @relation(fields: [mentionedUserId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, mentionedUserId])
   @@index([mentionedUserId])
@@ -906,7 +906,7 @@ model ChannelMessageReaction {
   createdAt DateTime @default(now()) @map("created_at")
 
   message ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User           @relation(fields: [userId], references: [id])
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId, emoji])
   @@index([messageId])
@@ -923,7 +923,7 @@ model ChannelJoinRequest {
   decidedAt   DateTime?                @map("decided_at")
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user      User    @relation("JoinRequester", fields: [userId], references: [id])
+  user      User    @relation("JoinRequester", fields: [userId], references: [id], onDelete: Cascade)
   decidedBy User?   @relation("JoinRequestDecider", fields: [decidedById], references: [id])
 
   @@unique([channelId, userId, status])
@@ -1062,7 +1062,7 @@ model Doc {
   // Relations
   workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project     Project?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  owner       User               @relation("DocOwner", fields: [ownerId], references: [id])
+  owner       User               @relation("DocOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   versions    DocVersion[]
   permissions DocPermission[]
   threads     DocCommentThread[]
@@ -1087,7 +1087,7 @@ model DocVersion {
 
   // Relations
   doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
-  createdBy User @relation("DocVersionCreator", fields: [createdById], references: [id])
+  createdBy User @relation("DocVersionCreator", fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([docId, createdAt])
   @@map("doc_versions")
@@ -1104,8 +1104,8 @@ model DocPermission {
 
   // Relations
   doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
-  user      User @relation("DocPermissionGrantee", fields: [userId], references: [id])
-  grantedBy User @relation("DocPermissionGranter", fields: [grantedById], references: [id])
+  user      User @relation("DocPermissionGrantee", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User @relation("DocPermissionGranter", fields: [grantedById], references: [id], onDelete: Cascade)
 
   @@unique([docId, userId])
   @@index([userId])
@@ -1125,7 +1125,7 @@ model DocCommentThread {
 
   // Relations
   doc       Doc          @relation(fields: [docId], references: [id], onDelete: Cascade)
-  createdBy User         @relation("DocThreadCreator", fields: [createdById], references: [id])
+  createdBy User         @relation("DocThreadCreator", fields: [createdById], references: [id], onDelete: Cascade)
   comments  DocComment[]
 
   @@index([docId, resolved])
@@ -1145,7 +1145,7 @@ model DocComment {
 
   // Relations
   thread DocCommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  author User             @relation("DocCommentAuthor", fields: [authorId], references: [id])
+  author User             @relation("DocCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([threadId, createdAt])
   @@map("doc_comments")
@@ -1164,7 +1164,7 @@ model DocShareLink {
 
   // Relations
   doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
-  createdBy User @relation("DocShareLinkCreator", fields: [createdById], references: [id])
+  createdBy User @relation("DocShareLinkCreator", fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([docId])
   @@map("doc_share_links")
