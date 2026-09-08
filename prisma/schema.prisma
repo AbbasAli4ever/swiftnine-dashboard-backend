@@ -811,6 +811,12 @@ model Channel {
   createdBy   String         @map("created_by")
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
+  /// Set when the channel owner "deletes" the channel. The row, its
+  /// members, and its full message history are kept — nothing is actually
+  /// destroyed, and the channel stays visible in listings. It blocks new
+  /// messages (see ChatService.sendMessage), but members can still read its
+  /// existing history.
+  deletedAt   DateTime?      @map("deleted_at")
 
   workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project      Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)

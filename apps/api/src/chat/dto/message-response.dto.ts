@@ -324,3 +324,20 @@ export class ChatChannelResponseDto {
   @ApiProperty({ type: ChatChannelMemberDto, isArray: true })
   members!: ChatChannelMemberDto[];
 }
+
+export class GlobalSearchResponseDto {
+  @ApiProperty({
+    type: ChatChannelResponseDto,
+    isArray: true,
+    description:
+      "DMs from the caller's own DM list whose other participant's name matches the query.",
+  })
+  people!: ChatChannelResponseDto[];
+
+  @ApiProperty({
+    type: ChatMessageListResponseDto,
+    description:
+      'Matching messages across every channel/DM the caller belongs to (same search this endpoint runs when scoped to one channel via ?channelId=).',
+  })
+  messages!: ChatMessageListResponseDto;
+}

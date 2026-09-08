@@ -287,6 +287,62 @@ export class ChannelsService {
     });
   }
 
+  // "Deleting" a channel freezes it rather than destroying anything: the
+  // channel row, its members, and its full message history all stay intact,
+  // and it stays visible in listByWorkspace/listByProject (deletedAt is
+  // returned on the response so the frontend can grey it out / disable the
+  // composer). It starts rejecting new messages (see ChatService.
+  // sendMessage), but reading its history keeps working. OWNER only — this
+  // is a bigger, less reversible action than the rename/privacy changes
+  // updateChannel allows ADMINs to make.
+  async deleteChannel(
+    workspaceId: string,
+    channelId: string,
+    callerUserId: string,
+  ): Promise<void> {
+    const channel = await this.prisma.channel.findFirst({
+      where: { id: channelId, workspaceId },
+      select: { id: true, kind: true, name: true, deletedAt: true },
+    });
+    if (!channel) throw new NotFoundException('Channel not found in workspace');
+    if (channel.kind !== 'CHANNEL') {
+      throw new BadRequestException('DMs cannot be deleted');
+    }
+    if (channel.deletedAt) return; // already deleted — idempotent no-op
+
+    const callerMembership = await this.prisma.channelMember.findFirst({
+      where: { channelId, userId: callerUserId },
+      select: { role: true },
+    });
+    if (!callerMembership || callerMembership.role !== 'OWNER') {
+      throw new ForbiddenException('Only the channel owner can delete the channel');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.channel.update({
+        where: { id: channelId },
+        data: { deletedAt: new Date() },
+      });
+
+      await this.chatSystem.emit(
+        channelId,
+        { event: 'channel_deleted', actorUserId: callerUserId },
+        tx,
+      );
+
+      await tx.activityLog.create({
+        data: {
+          workspaceId,
+          entityType: 'channel',
+          entityId: channelId,
+          action: 'deleted',
+          metadata: { channelName: channel.name },
+          performedBy: callerUserId,
+        },
+      });
+    });
+  }
+
   private mapRoleInput(input: string): Role {
     const normalized = (input ?? '').toLowerCase();
     if (normalized === 'admin') return 'ADMIN';

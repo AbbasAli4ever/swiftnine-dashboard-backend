@@ -119,4 +119,23 @@ export class ChannelsController {
     await this.channelsService.removeChannelMember(req.workspaceContext.workspaceId, channelId, req.user.id, memberId);
     return ok(null, 'Member removed from channel');
   }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Delete a channel (owner only)',
+    description:
+      'Freezes the channel rather than destroying it: the channel, its members, and its full ' +
+      'message history all stay in place, and it stays visible in channel listings (marked via ' +
+      'deletedAt). It stops accepting new messages, but existing members can still read its history.',
+  })
+  @ApiParam({ name: 'id', description: 'Channel id', example: 'cc6c4f04-6cae-4d0a-a3cb-864d53f92f29' })
+  @ApiResponse({ status: 200, description: 'Channel deleted' })
+  @ApiResponse({ status: 400, description: 'DMs cannot be deleted' })
+  @ApiResponse({ status: 403, description: 'Only the channel owner can delete the channel' })
+  @ApiResponse({ status: 404, description: 'Channel not found in workspace' })
+  async remove(@Req() req: WorkspaceRequest, @Param('id') channelId: string): Promise<ApiRes<any>> {
+    await this.channelsService.deleteChannel(req.workspaceContext.workspaceId, channelId, req.user.id);
+    return ok(null, 'Channel deleted');
+  }
 }

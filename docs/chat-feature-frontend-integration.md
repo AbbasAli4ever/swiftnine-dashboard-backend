@@ -85,6 +85,7 @@ type Channel = {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;            // non-null = channel was "deleted" by its OWNER — see §4
 
   // Caller-scoped state — populated for the requesting user
   isMember: boolean;                   // false for non-joined PUBLIC channels visible in directory
@@ -185,6 +186,15 @@ All under `/api/v1/channels`. All require `Authorization` and `x-workspace-id`.
 | POST | `/channels/:id/members` | `{ userId, role: 'admin'\|'member' }` | `ChannelMember` — OWNER/ADMIN only |
 | POST | `/channels/:id/members/bulk` | `{ members: [{ userId, role }] }` | `ChannelMember[]` |
 | DELETE | `/channels/:id/members/:memberId` | — | 200 — OWNER/ADMIN only; cannot remove self or OWNER; ADMIN-removable only by OWNER |
+| DELETE | `/channels/:id` | — | 200 — OWNER only. **Freezes** the channel, does not destroy it — see note below |
+
+**Deleting a channel is a freeze, not a destroy.** The channel row, its members, and its entire message history all stay exactly as they are — nothing is removed from the database. Concretely:
+- It **stays visible** in both `GET /channels/workspaces/:workspaceId` and `GET /channels/workspaces/:workspaceId/projects/:projectId` — check the channel's own `deletedAt` (§3) to detect this, don't expect it to disappear from the list.
+- `POST /chat/channels/:channelId/messages` starts returning 403 (`This channel has been deleted`) for everyone, including the owner — render the composer as disabled once you see `deletedAt` set.
+- Reading history keeps working exactly as before — `GET .../messages`, `.../messages/context`, `.../messages/pinned`, `.../attachments` are all unaffected. Members who already have the channel open can keep scrolling its history.
+- DMs (`kind: 'DM'`) cannot be deleted this way — 400. They have no OWNER role to begin with.
+- Calling it again on an already-deleted channel is a harmless no-op (200), not an error.
+- Emits a `channel_deleted` SYSTEM message (§11) so open clients see it happen live, same as `channel_renamed`/`channel_privacy_changed`.
 
 ### Join requests (PUBLIC channels only — PRIVATE = invite-only)
 | Method | Path | Body | Notes |
@@ -284,9 +294,26 @@ chat.on('message:new', (msg) => {
 If your app instead just re-fetches `GET /chat/dms` whenever the sidebar screen is opened/focused, that also works correctly — it's a latency tradeoff (instant vs. next-open), not a correctness one.
 
 ### Search
+Two different endpoints for two different UI surfaces — don't use one where the other belongs.
+
 | Method | Path | Query | Notes |
 |---|---|---|---|
 | GET | `/chat/search` | `q` (1–200 chars, required), `channelId?`, `cursor?`, `limit?` (default 50, max 100) | Case-insensitive substring on `plaintext`. Restricted to channels caller is a member of in the active workspace. Use `messages/context` to hydrate around a hit. |
+| GET | `/chat/search/global` | `q` (1–200 chars, required), `limit?` (default 20, max 50) | Powers the **sidebar's global search box**. Returns `{ people, messages }` — see below. |
+
+**`/chat/search` — in-conversation search bar.** Pass `channelId` set to the currently-open channel/DM's id and it searches only that one conversation's messages — this is the search icon inside an open chat. Omitting `channelId` searches every channel/DM the caller belongs to instead (used internally by `/chat/search/global` below, but callable directly too if you just want a flat message-only search).
+
+**`/chat/search/global` — sidebar "Search or start a new chat" box.** Response shape:
+```ts
+type GlobalSearchResult = {
+  people: Channel[];                                  // see §3 — full DM objects, same shape as GET /chat/dms
+  messages: { items: ChatMessage[]; nextCursor: string | null };
+};
+```
+- **Not a fallback chain** — `people` and `messages` are both computed and both returned on every call, regardless of whether the other one found anything. Searching "Bob" with both a DM named Bob *and* messages mentioning "Bob" returns both at once; it's not "check people first, only search messages if people came back empty." An empty `people` array (e.g. searching "hello", which won't match anyone's name) just means that half had nothing to show — `messages` is never conditional on it.
+- `people` is scoped to DMs already in the caller's own DM list whose *other* participant's name matches `q` — not a search over every workspace member. To let the user start a brand-new DM with someone they've never messaged, use `GET /workspaces/:workspaceId/members` (§17) to search all workspace members instead, then `POST /chat/dm` with their id.
+- `messages` is exactly what `/chat/search` returns with no `channelId` — matching messages across every channel/DM the caller belongs to, not just DMs.
+- Render as two sections under one search box: a short "People" list (click → open that DM) above a "Messages" list (click → `messages/context` to jump to that hit, same as today).
 
 ---
 
@@ -467,6 +494,7 @@ Events emitted today (render localized text on the frontend):
 | `member_joined` | `userId`, `actorUserId`, `source` (`'admin_added'` or `'join_request'`) | Member added by admin OR join request approved |
 | `member_role_changed` | `userId`, `from`, `to`, `actorUserId` | Bulk add hits an existing member with a different role |
 | `member_removed` | `userId`, `role`, `actorUserId` | After `DELETE /channels/:id/members/:memberId` |
+| `channel_deleted` | `actorUserId` | After `DELETE /channels/:id` (§4) — channel is frozen, not removed; keep rendering the channel and its history, just disable the composer |
 | `dm_started` | `participantUserIds` | After `POST /chat/dm` creates a fresh DM |
 
 System messages have `senderId: null`, `plaintext: ''`. They are **immutable** — edit/delete return 403. Reactions and pinning still work. They count toward `unreadCount` like any other message.
@@ -610,6 +638,36 @@ Notes on step 2: it's a plain `PUT`, no special headers required. Set `Content-T
 
 ---
 
-## 17. Versioning
+## 17. Workspace members
+
+Not a chat endpoint, but chat depends on it — this is the candidate list for **starting a brand-new DM** (`POST /chat/dm`'s `targetUserId`), since `/chat/search/global` (§5) only searches DMs you already have, not every workspace member. All under `/api/v1/workspaces`, `Authorization` + `x-workspace-id` required, any workspace member can call both (no OWNER/ADMIN restriction).
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/workspaces/:workspaceId/members` | `MemberRow[]` — every active member **plus** still-pending invites, merged into one list |
+| GET | `/workspaces/:workspaceId/members/:memberId` | `MemberDetail` — single row, richer profile fields |
+
+```ts
+type MemberRow = {
+  id: string;              // User.id for an actual member; WorkspaceInvite.id for a still-pending invite (no User yet)
+  fullName: string;        // the invited email address itself, if still pending
+  email: string;
+  role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
+  accountingRole: 'ACCOUNTANT' | 'CEO' | null;
+  aiModelTier: 'PREMIUM' | 'STANDARD';   // pending invites always report 'STANDARD'
+  lastActive: string | null;              // null for pending invites
+  invitedBy: string | null;               // inviter's fullName
+  invitedOn: string | null;
+  inviteStatus: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | null;  // null = not invited (e.g. workspace creator)
+};
+```
+
+**Telling a real member apart from a pending invite in this same list:** there is no `isPending` flag — check `inviteStatus === 'PENDING'`. A pending row's `id` is a `WorkspaceInvite.id`, not a user id, so don't feed it into anything expecting a real user (like `POST /chat/dm`'s `targetUserId`) — you can't DM someone who hasn't joined yet.
+
+`MemberDetail` is the same shape plus `workspaceMemberId`, `avatarUrl`, `avatarColor`, `designation`, `bio`, `isOnline`, `timezone`, `notificationPreferences`, `createdAt`, `updatedAt` — the full profile, not just the list-row summary.
+
+---
+
+## 18. Versioning
 
 This document tracks the actual implementation. If you find a divergence between this doc and the API behavior, the API behavior is the bug — file an issue and reference the affected section.

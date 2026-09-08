@@ -175,6 +175,9 @@ export class ChatService {
       channelId,
       userId,
     );
+    if (membership.channel.deletedAt) {
+      throw new ForbiddenException('This channel has been deleted');
+    }
     this.rateLimits.assertMessageSend(userId, channelId);
     const normalized = this.normalizeContent(dto.contentJson);
     const mentionedUserIds = await this.validateMentionedUsers(
@@ -848,6 +851,46 @@ export class ChatService {
     };
   }
 
+  // Powers the sidebar's global search box: "people" is scoped to the
+  // caller's own DM list (matched by the other participant's name), not
+  // every workspace member — starting a brand-new DM is a separate flow.
+  // "messages" reuses searchMessages() with no channelId, i.e. across every
+  // channel/DM the caller belongs to. The per-DM search bar keeps using
+  // searchMessages() directly with ?channelId=<dmId>, unchanged.
+  async searchGlobal(
+    workspaceId: string,
+    userId: string,
+    q: string,
+    limit: number,
+  ) {
+    const dmChannels = await this.prisma.channel.findMany({
+      where: {
+        workspaceId,
+        kind: 'DM',
+        members: { some: { userId } },
+        AND: {
+          members: {
+            some: {
+              userId: { not: userId },
+              user: { fullName: { contains: q, mode: 'insensitive' } },
+            },
+          },
+        },
+      },
+      include: this.channelIncludeForList(userId),
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    const people = dmChannels.map((channel) => this.toChannelResponse(channel, userId));
+    const messages = await this.searchMessages(workspaceId, userId, {
+      q,
+      limit,
+    } as SearchMessagesQuery);
+
+    return { people, messages };
+  }
+
   async getMessageForRealtime(messageId: string) {
     const message = await this.prisma.channelMessage.findFirst({
       where: { id: messageId },
@@ -967,6 +1010,7 @@ export class ChatService {
             name: true,
             privacy: true,
             projectId: true,
+            deletedAt: true,
             members: {
               select: {
                 userId: true,
