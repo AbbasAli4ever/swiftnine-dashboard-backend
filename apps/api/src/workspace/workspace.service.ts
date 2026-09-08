@@ -29,6 +29,7 @@ import type { InviteMemberDto } from './dto/invite-member.dto';
 import type { ClaimInviteDto } from './dto/claim-invite.dto';
 import type { BatchInviteMembersDto } from './dto/batch-invite-members.dto';
 import { DEFAULT_BANK_ACCOUNTS } from '../bank-accounts/default-bank-accounts.data';
+import { ChannelsService } from '../channels/channels.service';
 
 const WORKSPACE_NOT_FOUND = 'Workspace not found';
 // MANAGER is a full peer of OWNER for every workspace-management action in
@@ -110,6 +111,7 @@ export class WorkspaceService {
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
     private readonly authService: AuthService,
+    private readonly channels: ChannelsService,
   ) {}
 
   async create(
@@ -689,33 +691,12 @@ export class WorkspaceService {
         });
       }
 
-      const existingMember = await tx.workspaceMember.findFirst({
-        where: {
-          workspaceId: invite.workspaceId,
-          userId: authUser.id,
-          deletedAt: null,
-        },
-        select: { id: true },
-      });
-
       await tx.workspaceInvite.update({
         where: { id: invite.id },
         data: { status: 'ACCEPTED', acceptedAt: new Date() },
       });
 
-      if (!existingMember) {
-        // No accountingRole here by design — a new member always starts with
-        // zero accounting access, and only a platform admin can grant it
-        // afterwards (changeMemberAccountingRole). An invite can no longer
-        // carry accounting access, so there is nothing to copy across.
-        await tx.workspaceMember.create({
-          data: {
-            workspaceId: invite.workspaceId,
-            userId: authUser.id,
-            role: invite.role,
-          },
-        });
-      }
+      await this.joinWorkspace(tx, invite.workspaceId, authUser.id, invite.role);
 
       return authUser;
     });
@@ -746,29 +727,13 @@ export class WorkspaceService {
       );
     }
 
-    // Idempotent: if already a member, just mark invite accepted
-    const existingMember = await this.prisma.workspaceMember.findFirst({
-      where: { workspaceId: invite.workspaceId, userId, deletedAt: null },
-      select: { id: true },
-    });
-
     await this.prisma.$transaction(async (tx) => {
       await tx.workspaceInvite.update({
         where: { id: invite.id },
         data: { status: 'ACCEPTED', acceptedAt: new Date() },
       });
 
-      if (!existingMember) {
-        // Same as claimInvite: joins with no accounting access, which only a
-        // platform admin can grant later.
-        await tx.workspaceMember.create({
-          data: {
-            workspaceId: invite.workspaceId,
-            userId,
-            role: invite.role,
-          },
-        });
-      }
+      await this.joinWorkspace(tx, invite.workspaceId, userId, invite.role);
     });
 
     return { workspaceId: invite.workspaceId };
@@ -776,6 +741,40 @@ export class WorkspaceService {
 
   private hashToken(rawToken: string): string {
     return createHash('sha256').update(rawToken).digest('hex');
+  }
+
+  // Creates (or restores) the WorkspaceMember row for userId joining
+  // workspaceId, then adds them to every PUBLIC channel. WorkspaceMember has
+  // a hard @@unique([workspaceId, userId]) with no deletedAt exception, so a
+  // user who was previously removed (soft-deleted) and is now being
+  // re-invited/re-added still has a row occupying that pair — blindly
+  // creating a new one throws P2002 ("already exists"). Restoring that row
+  // instead avoids the conflict; it resets accountingRole/aiModelTier to
+  // their just-joined defaults, since accounting access is only ever granted
+  // fresh by a platform admin (see WorkspaceMember.accountingRole) and a
+  // stale privileged tier shouldn't silently survive a removal.
+  private async joinWorkspace(
+    tx: Prisma.TransactionClient,
+    workspaceId: string,
+    userId: string,
+    role: Role,
+  ): Promise<void> {
+    const existing = await tx.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId } },
+    });
+
+    if (existing && !existing.deletedAt) return; // already an active member
+
+    if (existing) {
+      await tx.workspaceMember.update({
+        where: { id: existing.id },
+        data: { deletedAt: null, role, accountingRole: null, aiModelTier: 'STANDARD' },
+      });
+    } else {
+      await tx.workspaceMember.create({ data: { workspaceId, userId, role } });
+    }
+
+    await this.channels.joinAllPublicChannels(workspaceId, userId, tx);
   }
 
   // Called once, from create(). Idempotent via the count check so it can be
@@ -996,6 +995,33 @@ export class WorkspaceService {
     }
 
     if (!member) {
+      // Not an actual member yet — listMembers() merges still-pending invites
+      // into the same list, keyed by WorkspaceInvite.id (no WorkspaceMember
+      // row exists until an invite is accepted), so a "remove" on one of
+      // those rows lands here rather than as a memberId/userId match.
+      const invite = await this.prisma.workspaceInvite.findFirst({
+        where: { id: memberId, workspaceId, status: 'PENDING' },
+        select: { id: true, email: true },
+      });
+
+      if (invite) {
+        await this.prisma.workspaceInvite.update({
+          where: { id: invite.id },
+          data: { status: 'REVOKED' },
+        });
+        await this.prisma.activityLog.create({
+          data: {
+            workspaceId,
+            entityType: 'workspace',
+            entityId: workspaceId,
+            action: 'invite_revoked',
+            metadata: { email: invite.email },
+            performedBy: actorId,
+          },
+        });
+        return;
+      }
+
       throw new NotFoundException('Member not found');
     }
 
@@ -1182,11 +1208,9 @@ export class WorkspaceService {
     if (existing)
       throw new ConflictException('User is already a member of the workspace');
 
-    await this.prisma.$transaction([
-      this.prisma.workspaceMember.create({
-        data: { workspaceId, userId: user.id, role },
-      }),
-      this.prisma.activityLog.create({
+    await this.prisma.$transaction(async (tx) => {
+      await this.joinWorkspace(tx, workspaceId, user.id, role);
+      await tx.activityLog.create({
         data: {
           workspaceId,
           entityType: 'workspace',
@@ -1195,8 +1219,8 @@ export class WorkspaceService {
           metadata: { memberId: user.id, memberName: user.fullName },
           performedBy: actorId,
         },
-      }),
-    ]);
+      });
+    });
   }
 
   async addMembersByUserIds(
@@ -1240,11 +1264,9 @@ export class WorkspaceService {
           continue;
         }
 
-        await this.prisma.$transaction([
-          this.prisma.workspaceMember.create({
-            data: { workspaceId, userId: user.id, role },
-          }),
-          this.prisma.activityLog.create({
+        await this.prisma.$transaction(async (tx) => {
+          await this.joinWorkspace(tx, workspaceId, user.id, role);
+          await tx.activityLog.create({
             data: {
               workspaceId,
               entityType: 'workspace',
@@ -1253,8 +1275,8 @@ export class WorkspaceService {
               metadata: { memberId: user.id, memberName: user.fullName },
               performedBy: actorId,
             },
-          }),
-        ]);
+          });
+        });
 
         results.push({ userId: uid, status: 'added', message: null });
       } catch (err: any) {

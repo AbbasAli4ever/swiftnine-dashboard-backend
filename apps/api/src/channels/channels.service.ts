@@ -8,9 +8,11 @@ import { PrismaService } from '@app/database';
 import type { CreateChannelDto } from './dto/create-channel.dto';
 import type { UpdateChannelDto } from './dto/update-channel.dto';
 import { NotificationsService } from '../notifications/notifications.service';
-import type { Role } from '@app/database/generated/prisma/client';
+import type { Prisma, Role } from '@app/database/generated/prisma/client';
 import { ChatSystemService } from '../chat/chat-system.service';
 import { ProjectSecurityService } from '../project-security/project-security.service';
+
+type ChannelJoinClient = Pick<PrismaService, 'channel' | 'channelMember'> | Prisma.TransactionClient;
 
 @Injectable()
 export class ChannelsService {
@@ -122,6 +124,28 @@ export class ChannelsService {
         data: { channelId: channel.id, userId, role: 'OWNER' },
       });
 
+      // PUBLIC channels are open to the whole workspace by design — every
+      // other current workspace member joins immediately as MEMBER, and
+      // anyone who joins the workspace later is added the same way (see
+      // WorkspaceService's invite-accept / add-member flows, which call
+      // joinAllPublicChannels below).
+      if (channel.privacy === 'PUBLIC') {
+        const otherMembers = await tx.workspaceMember.findMany({
+          where: { workspaceId, userId: { not: userId }, deletedAt: null },
+          select: { userId: true },
+        });
+        if (otherMembers.length) {
+          await tx.channelMember.createMany({
+            data: otherMembers.map((m) => ({
+              channelId: channel.id,
+              userId: m.userId,
+              role: 'MEMBER' as Role,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
       await this.chatSystem.emit(
         channel.id,
         {
@@ -153,6 +177,32 @@ export class ChannelsService {
       return createdChannel
         ? this.mapChannel(createdChannel, userId)
         : createdChannel;
+    });
+  }
+
+  // Called whenever a user newly joins a workspace (invite accepted, or
+  // added directly by an owner/manager) so the invariant "every workspace
+  // member is in every PUBLIC channel" holds regardless of when they joined.
+  // Accepts an optional transaction client so callers can run it atomically
+  // alongside their own WorkspaceMember creation.
+  async joinAllPublicChannels(
+    workspaceId: string,
+    userId: string,
+    client: ChannelJoinClient = this.prisma,
+  ): Promise<void> {
+    const publicChannels = await client.channel.findMany({
+      where: { workspaceId, kind: 'CHANNEL', privacy: 'PUBLIC' },
+      select: { id: true },
+    });
+    if (!publicChannels.length) return;
+
+    await client.channelMember.createMany({
+      data: publicChannels.map((c) => ({
+        channelId: c.id,
+        userId,
+        role: 'MEMBER' as Role,
+      })),
+      skipDuplicates: true,
     });
   }
 

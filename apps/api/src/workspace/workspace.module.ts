@@ -6,9 +6,10 @@ import { OrganizationsController } from './organizations.controller';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceGuard } from './workspace.guard';
 import { RolesModule } from '../roles/roles.module';
+import { ChannelsModule } from '../channels/channels.module';
 
 @Module({
-  imports: [CommonModule, AuthModule, RolesModule],
+  imports: [CommonModule, AuthModule, RolesModule, ChannelsModule],
   controllers: [WorkspaceController, OrganizationsController],
   providers: [WorkspaceService, WorkspaceGuard],
   exports: [WorkspaceGuard],

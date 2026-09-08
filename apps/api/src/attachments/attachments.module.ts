@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AttachmentsController } from './attachments.controller';
 import { ProjectAttachmentsController } from './project-attachments.controller';
 import { TaskListAttachmentsController } from './task-list-attachments.controller';
@@ -9,7 +9,10 @@ import { ProjectSecurityModule } from '../project-security/project-security.modu
 import { WorkspaceModule } from '../workspace/workspace.module';
 
 @Module({
-  imports: [ActivityModule, DocsModule, ProjectSecurityModule, WorkspaceModule],
+  // WorkspaceModule now imports ChannelsModule (-> ChatModule -> this module),
+  // closing a cycle back here; forwardRef defers the reference so this file's
+  // own decorator doesn't evaluate it while WorkspaceModule is still loading.
+  imports: [ActivityModule, DocsModule, ProjectSecurityModule, forwardRef(() => WorkspaceModule)],
   controllers: [
     AttachmentsController,
     ProjectAttachmentsController,
