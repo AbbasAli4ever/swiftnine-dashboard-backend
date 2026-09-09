@@ -48,7 +48,9 @@ import {
   ChatMessageResponseDto,
   ChatMuteStateResponseDto,
   ChatReadStateResponseDto,
+  GlobalSearchResponseDto,
 } from './dto/message-response.dto';
+import { GlobalSearchDto, type GlobalSearchQuery } from './dto/global-search.dto';
 import { MarkReadDto } from './dto/mark-read.dto';
 import {
   SearchMessagesDto,
@@ -422,6 +424,33 @@ export class ChatController {
       req.user.id,
       typedQuery.archived,
       typedQuery.favourite,
+    );
+    return ok(result);
+  }
+
+  @Get('search/global')
+  @ApiOperation({
+    summary: 'Global sidebar search — matching DMs and matching messages',
+    description:
+      "Powers the sidebar's search box: returns people (DMs from the caller's " +
+      'own DM list whose other participant matches the query) alongside ' +
+      'matching messages across every channel/DM the caller belongs to. For ' +
+      'the in-conversation search bar (search within one open DM/channel), ' +
+      'use GET /chat/search?q=...&channelId=... instead.',
+  })
+  @ApiQuery({ name: 'q', required: true })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiResponse({ status: 200, type: GlobalSearchResponseDto })
+  async searchGlobal(
+    @Req() req: WorkspaceRequest,
+    @Query() query: GlobalSearchDto,
+  ): Promise<ApiRes<any>> {
+    const typedQuery = query as GlobalSearchQuery;
+    const result = await this.chatService.searchGlobal(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      typedQuery.q,
+      typedQuery.limit,
     );
     return ok(result);
   }
