@@ -206,6 +206,8 @@ export class WorkspaceService {
       id: string;
       fullName: string;
       email: string;
+      avatarUrl: string | null;
+      avatarColor: string;
       role: Role;
       accountingRole: UserRole | null;
       aiModelTier: AiModelTier;
@@ -224,7 +226,17 @@ export class WorkspaceService {
           aiModelTier: true,
           createdAt: true,
           user: {
-            select: { id: true, fullName: true, email: true, lastSeenAt: true },
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              lastSeenAt: true,
+              // Member lists render avatars (assignee pickers, invite
+              // dialogs, project members) — without these they can only ever
+              // show initials, even for a user who has uploaded a picture.
+              avatarUrl: true,
+              avatarColor: true,
+            },
           },
         },
         orderBy: { createdAt: 'asc' },
@@ -264,6 +276,8 @@ export class WorkspaceService {
       return {
         id: u.id,
         fullName: u.fullName,
+        avatarUrl: u.avatarUrl,
+        avatarColor: u.avatarColor,
         email: u.email,
         role: m.role,
         accountingRole: m.accountingRole,
@@ -288,6 +302,11 @@ export class WorkspaceService {
         id: invite.id,
         fullName: invite.email,
         email: invite.email,
+        // An invite has no user account behind it yet, so there is no avatar
+        // to report — the client falls back to initials from the email.
+        avatarUrl: null,
+        // Matches the schema default on User.avatarColor.
+        avatarColor: '#6366f1',
         role: invite.role,
         // No membership row exists until the invite is accepted, so there's
         // no accounting role to report yet, same reasoning as aiModelTier.
