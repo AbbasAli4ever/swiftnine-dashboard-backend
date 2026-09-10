@@ -12,6 +12,7 @@ import { StatusModule } from './status/status.module';
 import { TaskListModule } from './task-list/task-list.module';
 import { TagModule } from './tag/tag.module';
 import { TaskModule } from './task/task.module';
+import { MeetingModule } from './meeting/meeting.module';
 import { TimeEntryModule } from './time-entry/time-entry.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { ActivityModule } from './activity/activity.module';
@@ -51,6 +52,7 @@ import { AccountingDashboardModule } from './accounting-dashboard/accounting-das
     TaskListModule,
     TagModule,
     TaskModule,
+    MeetingModule,
     TimeEntryModule,
     ActivityModule,
     CommentsModule,

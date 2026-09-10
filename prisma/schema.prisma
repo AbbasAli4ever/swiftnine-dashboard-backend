@@ -183,6 +183,8 @@ model User {
   tasksCreated               Task[]                    @relation("TaskCreator")
   taskAssignments            TaskAssignee[]            @relation("AssignedUser")
   taskAssignmentsMade        TaskAssignee[]            @relation("AssignedByUser")
+  meetingsCreated            MeetingMinutes[]          @relation("MeetingCreator")
+  meetingParticipations      MeetingParticipant[]
   comments                   Comment[]
   mentions                   Mention[]
   notificationsReceived      Notification[]            @relation("NotificationRecipient")
@@ -290,6 +292,7 @@ model Workspace {
   bankAccounts            BankAccount[]
   employees               Employee[]
   vendors                 Vendor[]
+  meetings                MeetingMinutes[]
 
   @@map("workspaces")
 }
@@ -486,6 +489,7 @@ model Task {
   id                   String    @id @default(uuid())
   listId               String    @map("list_id")
   parentId             String?   @map("parent_id")
+  meetingId            String?   @map("meeting_id")
   depth                Int       @default(0)
   title                String
   description          String?
@@ -506,11 +510,14 @@ model Task {
   deletedAt            DateTime? @map("deleted_at")
 
   // Relations
-  list        TaskList       @relation(fields: [listId], references: [id], onDelete: Cascade)
-  parent      Task?          @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
-  children    Task[]         @relation("TaskSubtasks")
-  status      Status         @relation(fields: [statusId], references: [id])
-  creator     User           @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  list        TaskList        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  parent      Task?           @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Task[]          @relation("TaskSubtasks")
+  status      Status          @relation(fields: [statusId], references: [id])
+  creator     User            @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  /// Follow-up task generated from a Meeting Minutes ("MoM"). Deleting the
+  /// meeting unlinks (not deletes) the task — see MeetingMinutes.
+  meeting     MeetingMinutes? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
   assignees   TaskAssignee[]
   tags        TaskTag[]
   comments    Comment[]
@@ -523,7 +530,50 @@ model Task {
   @@index([statusId])
   @@index([statusId, boardPosition])
   @@index([dueDate])
+  @@index([meetingId])
   @@map("tasks")
+}
+
+/// Minutes of Meeting (MoM) — a record of a meeting with participants,
+/// a discussion summary, optional decisions, and follow-up tasks (linked
+/// via Task.meetingId). Deleting a meeting unlinks its tasks rather than
+/// deleting them (Task.meetingId onDelete: SetNull).
+model MeetingMinutes {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  title       String
+  meetingDate DateTime  @map("meeting_date")
+  summary     String?
+  decisions   String[]  @default([])
+  createdBy   String    @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator      User                 @relation("MeetingCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  participants MeetingParticipant[]
+  tasks        Task[]
+
+  @@index([workspaceId])
+  @@map("meeting_minutes")
+}
+
+/// Junction: MeetingMinutes <-> User, one row per meeting participant
+model MeetingParticipant {
+  id        String   @id @default(uuid())
+  meetingId String   @map("meeting_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  meeting MeetingMinutes @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+  @@index([meetingId])
+  @@map("meeting_participants")
 }
 
 /// User-specific favorite projects for quick access/starred views
