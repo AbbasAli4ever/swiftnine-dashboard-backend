@@ -325,6 +325,26 @@ export class ChatChannelResponseDto {
   members!: ChatChannelMemberDto[];
 }
 
+export class BulkDeleteFailureDto {
+  @ApiProperty()
+  messageId!: string;
+
+  @ApiProperty()
+  reason!: string;
+}
+
+export class BulkDeleteMessagesResponseDto {
+  @ApiProperty({ type: String, isArray: true, description: 'Ids of messages that were deleted' })
+  deleted!: string[];
+
+  @ApiProperty({
+    type: BulkDeleteFailureDto,
+    isArray: true,
+    description: 'Ids that were skipped, with why (not found, already deleted, system message, no permission)',
+  })
+  failed!: BulkDeleteFailureDto[];
+}
+
 export class GlobalSearchResponseDto {
   @ApiProperty({
     type: ChatChannelResponseDto,

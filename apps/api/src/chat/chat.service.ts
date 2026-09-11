@@ -381,6 +381,70 @@ export class ChatService {
     return response;
   }
 
+  // Same rules as deleteMessage, applied per-message rather than
+  // all-or-nothing: a message that isn't found in this channel, is already
+  // deleted, is a SYSTEM message, or belongs to someone else (when the
+  // caller isn't OWNER/ADMIN) is skipped and reported in `failed` instead of
+  // failing the whole batch — mirrors the partial-success shape
+  // addMembersByUserIds already uses for bulk workspace-member adds.
+  async bulkDeleteMessages(
+    workspaceId: string,
+    userId: string,
+    channelId: string,
+    messageIds: string[],
+  ) {
+    const membership = await this.assertChannelMember(
+      workspaceId,
+      channelId,
+      userId,
+    );
+    const isAdmin = membership.role === 'OWNER' || membership.role === 'ADMIN';
+
+    const messages = await this.prisma.channelMessage.findMany({
+      where: { id: { in: messageIds }, channelId },
+      select: { id: true, kind: true, senderId: true, deletedAt: true },
+    });
+    const messageById = new Map(messages.map((m) => [m.id, m]));
+
+    const deleted: string[] = [];
+    const failed: Array<{ messageId: string; reason: string }> = [];
+
+    for (const messageId of messageIds) {
+      const message = messageById.get(messageId);
+      if (!message) {
+        failed.push({ messageId, reason: 'Message not found in this channel' });
+      } else if (message.deletedAt) {
+        failed.push({ messageId, reason: 'Already deleted' });
+      } else if (message.kind !== 'USER') {
+        failed.push({ messageId, reason: 'System messages cannot be deleted' });
+      } else if (message.senderId !== userId && !isAdmin) {
+        failed.push({
+          messageId,
+          reason: 'Only the author or a channel admin can delete this message',
+        });
+      } else {
+        deleted.push(messageId);
+      }
+    }
+
+    if (deleted.length) {
+      const deletedAt = new Date();
+      await this.prisma.channelMessage.updateMany({
+        where: { id: { in: deleted } },
+        data: {
+          deletedAt,
+          contentJson: { deleted: true } as Prisma.InputJsonValue,
+          plaintext: '',
+        },
+      });
+      for (const messageId of deleted) {
+        this.gateway.emitMessageDeleted(channelId, messageId, deletedAt);
+      }
+    }
+
+    return { deleted, failed };
+  }
+
   async toggleReaction(
     workspaceId: string,
     userId: string,

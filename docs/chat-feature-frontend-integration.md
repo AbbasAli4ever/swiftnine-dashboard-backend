@@ -220,6 +220,9 @@ All under `/api/v1/chat`. All require `Authorization` and `x-workspace-id`. All 
 | POST | `/chat/channels/:channelId/messages` | `{ contentJson, replyToMessageId?, mentionedUserIds?, attachmentIds? }` | `ChatMessage` — content **or** at least one attachment is required. Rate-limited to 30/min per (user, channel) → 429 |
 | PATCH | `/chat/messages/:messageId` | `{ contentJson, mentionedUserIds? }` | `ChatMessage` — author only, within 5 min, USER kind only |
 | DELETE | `/chat/messages/:messageId` | — | `ChatMessage` (tombstone) — author or channel OWNER/ADMIN; SYSTEM messages are immutable |
+| DELETE | `/chat/channels/:channelId/messages` | `{ messageIds: string[] }` (1–100) | `{ deleted: string[], failed: { messageId, reason }[] }` — bulk delete, works identically for channels and DMs |
+
+**Bulk delete is per-message, not all-or-nothing.** Same rules as the single `DELETE /chat/messages/:messageId` — author, or channel OWNER/ADMIN; SYSTEM messages are immutable — checked independently for each id in the array. An id that fails its check (not found in this channel, already deleted, a SYSTEM message, or someone else's message and you're not an admin) is skipped and reported in `failed` with why, rather than failing the whole call — a mixed batch of your own messages and ones you can't touch still deletes the ones it can. Each successfully-deleted id fires the normal `message:deleted` socket event (§6) individually, same as a single delete, so no new event to listen for.
 
 ```ts
 type ChatAttachmentView = {

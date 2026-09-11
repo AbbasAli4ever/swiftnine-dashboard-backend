@@ -27,6 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../workspace/workspace.guard';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
 import { AddReactionDto } from './dto/add-reaction.dto';
+import { BulkDeleteMessagesDto } from './dto/bulk-delete-messages.dto';
 import { ChannelAttachmentsResponseDto } from './dto/channel-attachments-response.dto';
 import { CreateDmDto } from './dto/create-dm.dto';
 import { EditMessageDto } from './dto/edit-message.dto';
@@ -40,6 +41,7 @@ import {
   type MessageContextQuery,
 } from './dto/message-context.dto';
 import {
+  BulkDeleteMessagesResponseDto,
   ChatArchiveStateResponseDto,
   ChatChannelResponseDto,
   ChatFavouriteStateResponseDto,
@@ -197,6 +199,32 @@ export class ChatController {
       messageId,
     );
     return ok(result, 'Message deleted');
+  }
+
+  @Delete('channels/:channelId/messages')
+  @ApiOperation({
+    summary: 'Bulk delete messages in a channel or DM',
+    description:
+      'Same rules as single delete (author, or channel OWNER/ADMIN; SYSTEM messages are ' +
+      'immutable), applied per message rather than all-or-nothing — messages you cannot ' +
+      'delete are skipped and reported in `failed` rather than failing the whole call. Works ' +
+      'identically for DMs, which are just 2-member channels.',
+  })
+  @ApiParam({ name: 'channelId', description: 'Channel or DM id' })
+  @ApiBody({ type: BulkDeleteMessagesDto })
+  @ApiResponse({ status: 200, type: BulkDeleteMessagesResponseDto })
+  async bulkDeleteMessages(
+    @Req() req: WorkspaceRequest,
+    @Param('channelId') channelId: string,
+    @Body() dto: BulkDeleteMessagesDto,
+  ): Promise<ApiRes<any>> {
+    const result = await this.chatService.bulkDeleteMessages(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      channelId,
+      dto.messageIds,
+    );
+    return ok(result, 'Messages processed');
   }
 
   @Post('messages/:messageId/reactions')
