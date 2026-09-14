@@ -8,6 +8,7 @@ export const PROJECT_HAS_NO_LIST = 'Selected project has no task list to add thi
 export const PROJECT_HAS_NO_TODO_STATUS = 'Selected project has no "To Do" status';
 export const MEETING_UPDATE_FORBIDDEN = 'Only the meeting creator can update this meeting';
 export const MEETING_DELETE_FORBIDDEN = 'Only the meeting creator can delete this meeting';
+export const MEETING_TASK_ADD_FORBIDDEN = 'Only the meeting creator can add a follow-up task to this meeting';
 
 // ─── Shared inline selects ────────────────────────────────────────────────────
 

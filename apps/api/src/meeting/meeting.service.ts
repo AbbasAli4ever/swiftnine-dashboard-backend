@@ -6,12 +6,13 @@ import {
   MEETING_DETAIL_SELECT,
   MEETING_LIST_ITEM_SELECT,
   MEETING_NOT_FOUND,
+  MEETING_TASK_ADD_FORBIDDEN,
   MEETING_UPDATE_FORBIDDEN,
   PROJECT_HAS_NO_LIST,
   PROJECT_HAS_NO_TODO_STATUS,
   USER_NOT_MEMBER,
 } from './meeting.constants';
-import type { CreateMeetingDto } from './dto/create-meeting.dto';
+import type { CreateMeetingDto, CreateMeetingTaskDto } from './dto/create-meeting.dto';
 import type { UpdateMeetingDto } from './dto/update-meeting.dto';
 import type { ListMeetingsQuery } from './dto/list-meetings.dto';
 import { ActivityService } from '../activity/activity.service';
@@ -245,6 +246,53 @@ export class MeetingService {
     return this.findOne(workspaceId, meetingId);
   }
 
+  // Adds one more follow-up task to an existing meeting — the one thing
+  // POST /meetings itself can't do after the fact, since Task.meetingId is
+  // otherwise write-once (set only inside create()'s own transaction).
+  // Reuses the exact same resolution/creation path as create() so a task
+  // added here is indistinguishable from one added at meeting-creation time:
+  // same project/list/status resolution, same assignee-membership and
+  // project-access checks, same activity log entry, same
+  // "you were assigned" notification. Creator-only, matching update/remove.
+  async addTask(
+    workspaceId: string,
+    userId: string,
+    meetingId: string,
+    dto: CreateMeetingTaskDto,
+  ): Promise<MeetingDetailData> {
+    const meeting = await this.prisma.meetingMinutes.findFirst({
+      where: { id: meetingId, workspaceId, deletedAt: null },
+      select: { id: true, title: true, createdBy: true },
+    });
+    if (!meeting) throw new NotFoundException(MEETING_NOT_FOUND);
+    if (meeting.createdBy !== userId) {
+      throw new ForbiddenException(MEETING_TASK_ADD_FORBIDDEN);
+    }
+
+    const [resolvedTask] = await this.resolveTasks(workspaceId, userId, [dto]);
+
+    const createdTaskId = await this.prisma.$transaction((tx) =>
+      this.createMeetingTask(tx, workspaceId, userId, meetingId, resolvedTask),
+    );
+
+    if (resolvedTask.assigneeId !== userId) {
+      try {
+        await this.notifications.createNotification(
+          workspaceId,
+          resolvedTask.assigneeId,
+          userId,
+          'task:assigned',
+          'You were assigned to a task',
+          `Assigned to task ${resolvedTask.title} (from meeting "${meeting.title}")`,
+          'task',
+          createdTaskId,
+        );
+      } catch {}
+    }
+
+    return this.findOne(workspaceId, meetingId);
+  }
+
   // Soft-deletes the meeting (deletedAt), and explicitly unlinks every task
   // still pointing at it — Task.meetingId's onDelete: SetNull only fires on
   // an actual DB-level DELETE, which never happens here, so the unlink has
@@ -306,6 +354,14 @@ export class MeetingService {
     return { total, completed, pending: total - completed };
   }
 
+  // progress is never date-derived: a task nobody has touched yet must never
+  // read as partially (or fully) done just because its due date passed.
+  // - Closed task -> 100%, regardless of subtasks.
+  // - Open task with subtasks -> real completion ratio of those subtasks.
+  // - Open task with no subtasks -> 0%; there is nothing else to measure.
+  // isLate is a separate flag, not folded into the number: overdue-but-open
+  // is communicated by the "Delayed" label/colour, never by inflating
+  // progress.
   private computeTaskProgress(
     task: RawMeetingTask,
   ): { progress: number; isLate: boolean; subtaskStats: { total: number; completed: number } | null } {
@@ -324,17 +380,7 @@ export class MeetingService {
       return { progress: Math.round((completed / total) * 100), isLate, subtaskStats: { total, completed } };
     }
 
-    if (!task.dueDate) return { progress: 0, isLate, subtaskStats: null };
-
-    const referenceStart = (task.startDate ?? task.createdAt).getTime();
-    const due = task.dueDate.getTime();
-    const now = Date.now();
-
-    if (due <= referenceStart) return { progress: isLate ? 100 : 0, isLate, subtaskStats: null };
-
-    const rawProgress = ((now - referenceStart) / (due - referenceStart)) * 100;
-    const progress = Math.min(100, Math.max(0, Math.round(rawProgress)));
-    return { progress, isLate, subtaskStats: null };
+    return { progress: 0, isLate, subtaskStats: null };
   }
 
   private async resolveTasks(

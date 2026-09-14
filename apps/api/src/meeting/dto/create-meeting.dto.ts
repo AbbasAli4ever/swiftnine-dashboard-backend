@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-const CreateMeetingTaskSchema = z.object({
+export const CreateMeetingTaskSchema = z.object({
   title: z.string().min(1, 'Task title is required').max(500),
   projectId: z.string().uuid('Invalid project ID'),
   assigneeId: z.string().uuid('Invalid assignee ID'),
@@ -18,3 +18,4 @@ const CreateMeetingSchema = z.object({
 });
 
 export class CreateMeetingDto extends createZodDto(CreateMeetingSchema) {}
+export class CreateMeetingTaskDto extends createZodDto(CreateMeetingTaskSchema) {}

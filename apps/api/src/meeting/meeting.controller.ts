@@ -5,7 +5,7 @@ import { WorkspaceGuard } from '../workspace/workspace.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
 import { MeetingService, type MeetingDetailData, type MeetingListItemData } from './meeting.service';
-import { CreateMeetingDto } from './dto/create-meeting.dto';
+import { CreateMeetingDto, CreateMeetingTaskDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { ListMeetingsDto, type ListMeetingsQuery } from './dto/list-meetings.dto';
 import type { WorkspaceRequest } from '../workspace/workspace.types';
@@ -115,6 +115,36 @@ export class MeetingController {
       dto,
     );
     return ok(meeting, 'Meeting updated successfully');
+  }
+
+  @Post(':meetingId/tasks')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Add a follow-up task to an existing Minutes of Meeting (MoM) — creator only',
+    description:
+      'Adds one more follow-up task to a meeting after it was created. Behaves exactly like a ' +
+      'task listed under `tasks` on POST /meetings — same project/assignee dropdowns, same ' +
+      '"To Do" status in the project\'s default list — since a task can only be linked to a ' +
+      'meeting at creation time.',
+  })
+  @ApiParam({ name: 'meetingId', description: 'Meeting UUID' })
+  @ApiResponse({ status: 201, description: 'Task created and returned with the full meeting detail' })
+  @ApiResponse({ status: 400, description: 'Invalid project/assignee, or the selected project has no list/To Do status' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  @ApiResponse({ status: 403, description: 'Only workspace OWNER/MANAGER can use MoM, and only the meeting creator can add a task' })
+  @ApiResponse({ status: 404, description: 'Meeting or project not found' })
+  async addTask(
+    @Req() req: WorkspaceRequest,
+    @Param('meetingId') meetingId: string,
+    @Body() dto: CreateMeetingTaskDto,
+  ): Promise<ApiRes<MeetingDetailData>> {
+    const meeting = await this.meetingService.addTask(
+      req.workspaceContext.workspaceId,
+      req.user.id,
+      meetingId,
+      dto,
+    );
+    return ok(meeting, 'Task added successfully');
   }
 
   @Delete(':meetingId')
